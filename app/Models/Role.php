@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Spatie\Permission\Models\Role as SpatieRole;
+use App\Models\Scopes\TenantScope;
 
 class Role extends SpatieRole
 {
@@ -14,11 +15,8 @@ class Role extends SpatieRole
      */
     protected static function booted()
     {
-        static::addGlobalScope('tenant', function (Builder $builder) {
-            if (Auth::check()) {
-                $builder->where('tenant_id', Auth::user()->tenant_id);
-            }
-        });
+        if(Auth::user())
+    static::addGlobalScope(new TenantScope);
     }
 
     /**

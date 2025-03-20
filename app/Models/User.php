@@ -24,6 +24,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'tenant_id',
     ];
 
     /**
@@ -58,4 +59,14 @@ protected static function booted()
     if(Auth::user())
     static::addGlobalScope(new TenantScope);
 }
+
+public function canImpersonate()
+    {
+        return is_null($this->tenant_id);
+    }
+
+    public function canBeImpersonated()
+    {
+        return ! is_null($this->tenant_id);
+    }
 }

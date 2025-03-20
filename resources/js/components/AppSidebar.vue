@@ -24,12 +24,12 @@ const tenantSlug = page.props.tenantSlug as string | null;
 const mainNavItems: NavItem[] = [
     {
         title: tenantSlug ? 'Dashboard' : 'Admin Dashboard', 
-        href: tenantSlug ? `/${tenantSlug}/dashboard` : '/admin/dashboard',
+        href: tenantSlug ? `/${tenantSlug}/dashboard` : '/admindashboard',
         icon: LayoutGrid,
     },
     {
         title: 'User Management',
-        href: '#',
+        href: tenantSlug ? `/${tenantSlug}/users-roles` :'/adminusers-roles',
         icon: UserCog,
     }
 ];

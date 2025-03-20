@@ -9,7 +9,7 @@ const props = defineProps<{ tenantSlug?: string | null }>();
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: props.tenantSlug ? 'Dashboard' : 'Admin Dashboard', 
-        href: props.tenantSlug ? `/${props.tenantSlug}/dashboard` : '/admin/dashboard', 
+        href: props.tenantSlug ? `/${props.tenantSlug}/dashboard` : '/admindashboard', 
     },
 ];
 
