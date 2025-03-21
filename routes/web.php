@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ImpersonationController;
+use App\Http\Controllers\ZohoWebhookController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
@@ -30,7 +31,9 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     Route::post('/roles', [UserController::class, 'storeRole'])->name('roles.store');
     Route::put('/roles/{role}', [UserController::class, 'updateRole'])->name('roles.update');
     Route::delete('/roles/{role}', [UserController::class, 'destroyRole'])->name('roles.destroy');
-    
+    // Route to stop impersonation
+Route::get('/stopimpersonate', [ImpersonationController::class, 'stopImpersonation'])
+->name('impersonate.stop');
     });
 });
 
@@ -57,6 +60,14 @@ Route::get('/adminusers-roles', [UserController::class, 'index'])->name('admin.u
     Route::post('/admintenants', [UserController::class, 'storeTenant'])->name('admin.tenants.store');
     Route::put('/admintenants/{tenant}', [UserController::class, 'updateTenant'])->name('admin.tenants.update');
     Route::delete('/admintenants/{tenant}', [UserController::class, 'destroyTenant'])->name('admin.tenants.destroy');
+    Route::get('/impersonate/{id}', [ImpersonationController::class, 'impersonate'])
+    ->name('impersonate.start');
+
+
 });
+
+
+Route::post('/zoho/webhook', [ZohoWebhookController::class, 'handleZohoWebhook'])->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

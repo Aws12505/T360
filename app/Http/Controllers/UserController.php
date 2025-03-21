@@ -295,16 +295,42 @@ public function updateUserAdmin(Request $request ,User $user)
 
     public function storeTenant(Request $request)
 {
-    // Validate the input. Both 'name' and 'slug' are required.
+    // Validate the input. Only 'name' is required.
     $validated = $request->validate([
-        'name' => 'required|string|max:255|unique:tenants,name',
-        'slug' => 'required|string|max:255|unique:tenants,slug',
+        'name' => 'required|string|max:255',
     ]);
 
-    // Create the tenant with the validated data.
+    $name = trim($validated['name']);
+
+    // Generate the slug based on the company name.
+    $words = preg_split('/\s+/', $name);
+    if (count($words) === 1) {
+        // Single word: use the entire word as slug.
+        $slug = strtolower($words[0]);
+    } else {
+        // Multiple words: use the first letter of each word.
+        $slug = strtolower(implode('', array_map(function ($word) {
+            return substr($word, 0, 1);
+        }, $words)));
+    }
+
+    // Ensure the slug is unique.
+    $originalSlug = $slug;
+    $count = 1;
+    while (Tenant::where('slug', $slug)->exists()) {
+        $slug = $originalSlug . $count;
+        $count++;
+    }
+    $uniqueCompanyName = $name;
+    $companyCount = 1;
+    while (Tenant::where('name', $uniqueCompanyName)->exists()) {
+        $uniqueCompanyName = $name . ' ' . $companyCount;
+        $companyCount++;
+    }
+    // Create the tenant with the validated name and the generated unique slug.
     $tenant = Tenant::create([
-        'name' => $validated['name'],
-        'slug' => $validated['slug'],
+        'name' => $uniqueCompanyName,
+        'slug' => $slug,
     ]);
 
     return back()->with('success', 'Tenant created successfully.');

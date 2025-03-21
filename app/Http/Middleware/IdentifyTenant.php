@@ -38,7 +38,7 @@ class IdentifyTenant
         }
 
         // If there's no slug in the route, redirect to the correct slug
-        if (is_null($routeSlug)) {
+        if (is_null($routeSlug) && !is_null($user->tenant_id)) {
             // If your route is named, you can redirect via route name
             // e.g., for a named route "dashboard" or "your-route-name"
             return redirect()->route(

@@ -20,7 +20,7 @@
           <Button @click="openUserModal">Create New User</Button>
         </div>
         <!-- Pass filteredUsers instead of the original users prop -->
-        <UserList :users="filteredUsers" @edit="editUser" @delete="deleteUser" />
+        <UserList :users="filteredUsers" :isSuperAdmin="isSuperAdmin" @edit="editUser" @delete="deleteUser" />
       </section>
 
       <!-- Roles Section -->

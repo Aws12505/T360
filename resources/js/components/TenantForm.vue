@@ -11,7 +11,7 @@
             <Input v-model="form.name" placeholder="Enter tenant name" />
           </div>
           <!-- Slug Field -->
-          <div class="mb-3">
+          <div class="mb-3" v-if="tenant">
             <label class="block mb-1">Slug</label>
             <Input v-model="form.slug" placeholder="Enter tenant slug" />
           </div>
