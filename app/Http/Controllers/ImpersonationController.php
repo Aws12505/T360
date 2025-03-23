@@ -44,7 +44,7 @@ class ImpersonationController extends Controller
         if(is_null($oguser->tenant_id)){
         Auth::login(user: $oguser);
         session()->forget('original_user');
-        return redirect()->route('admin.dashboard');
+        return redirect()->route('admin.users.roles.index');
         }
     }
 }
