@@ -31,6 +31,11 @@ const mainNavItems: NavItem[] = [
         title: 'User Management',
         href: tenantSlug ? `/${tenantSlug}/users-roles` :'/admin/users-roles',
         icon: UserCog,
+    },
+    {
+        title: 'Metrics Management',
+        href: tenantSlug ? `/${tenantSlug}/performance-metric-rule/edit` :'/admin/performancemetrics',
+        icon: UserCog,
     }
 ];
 

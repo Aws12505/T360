@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
+use App\Models\PerformanceMetricRule;
 class Tenant extends Model
 {
     protected $fillable = ['name','slug'];
@@ -12,5 +12,8 @@ class Tenant extends Model
 {
     return $this->hasMany(User::class);
 }
-
+public function performanceMetricRule()
+{
+    return $this->hasOne(PerformanceMetricRule::class);
+}
 }

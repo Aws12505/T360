@@ -5,6 +5,8 @@ use Inertia\Inertia;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ImpersonationController;
 use App\Http\Controllers\ZohoWebhookController;
+use App\Http\Controllers\PerformanceMetricRuleController;
+
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
@@ -34,6 +36,10 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     // Route to stop impersonation
 Route::get('/stopimpersonate', [ImpersonationController::class, 'stopImpersonation'])
 ->name('impersonate.stop');
+
+Route::get('/performance-metric-rule/edit', [PerformanceMetricRuleController::class, 'edit'])->name('performance-metric-rule.edit');
+Route::put('/performance-metric-rule', [PerformanceMetricRuleController::class, 'update'])->name('performance-metric-rule.update');
+
     });
 });
 
@@ -62,6 +68,11 @@ Route::get('/admin/users-roles', [UserController::class, 'index'])->name('admin.
     Route::delete('/admin/tenants/{tenant}', [UserController::class, 'destroyTenant'])->name('admin.tenants.destroy');
     Route::get('/impersonate/{id}', [ImpersonationController::class, 'impersonate'])
     ->name('impersonate.start');
+    Route::get('/admin/performancemetrics', [PerformanceMetricRuleController::class, 'index'])->name('performance-metrics.index');
+    Route::post('/admin/performancemetrics', [PerformanceMetricRuleController::class, 'store'])->name('performance-metrics.store');
+    Route::put('/admin/performancemetrics/{id}', [PerformanceMetricRuleController::class, 'updateAdmin'])->name('performance-metrics.update');
+    Route::get('/admin/performancemetrics/export', [PerformanceMetricRuleController::class, 'export'])->name('performance-metrics.export');
+    Route::post('/admin/performancemetrics/import', [PerformanceMetricRuleController::class, 'import'])->name('performance-metrics.import');
 });
 
 
