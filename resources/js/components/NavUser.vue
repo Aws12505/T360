@@ -7,9 +7,17 @@ import { usePage } from '@inertiajs/vue3';
 import { ChevronsUpDown } from 'lucide-vue-next';
 import UserMenuContent from './UserMenuContent.vue';
 
+
+interface Props {
+    tenantSlug?: string | null;
+}
+withDefaults(defineProps<Props>(), {
+    tenantSlug: null, 
+});
 const page = usePage<SharedData>();
 const user = page.props.auth.user as User;
 const { isMobile, state } = useSidebar();
+const tenantSlug = page.props.tenantSlug as string | null;
 </script>
 
 <template>
@@ -28,7 +36,7 @@ const { isMobile, state } = useSidebar();
                     align="end" 
                     :side-offset="4"
                 >
-                    <UserMenuContent :user="user" />
+                    <UserMenuContent :user="user" :tenantSlug="tenantSlug" />
                 </DropdownMenuContent>
             </DropdownMenu>
         </SidebarMenuItem>

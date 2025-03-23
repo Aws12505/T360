@@ -8,10 +8,13 @@ import { LogOut, Settings,UserX } from 'lucide-vue-next';
 
 interface Props {
     user: User;
+    tenantSlug?: string | null;
 }
-
-defineProps<Props>();
-    const page = usePage();
+withDefaults(defineProps<Props>(), {
+    tenantSlug: null, 
+});
+const page = usePage();
+    const tenantSlug = page.props.tenantSlug as string | null;
     const impersonated = computed(() => page.props.impersonated);
 </script>
 
@@ -33,7 +36,7 @@ defineProps<Props>();
     <DropdownMenuSeparator v-if="impersonated"/>
     <DropdownMenuGroup v-if="impersonated">
         <DropdownMenuItem :as-child="true">
-            <Link class="block w-full" :href="route('impersonate.stop')" as="button">
+            <Link class="block w-full" :href="route('impersonate.stop',{tenantSlug})" as="button">
                 <UserX class="mr-2 h-4 w-4" />
                 Stop Impersonation
             </Link>

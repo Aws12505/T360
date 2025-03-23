@@ -24,12 +24,12 @@ const tenantSlug = page.props.tenantSlug as string | null;
 const mainNavItems: NavItem[] = [
     {
         title: tenantSlug ? 'Dashboard' : 'Admin Dashboard', 
-        href: tenantSlug ? `/${tenantSlug}/dashboard` : '/admindashboard',
+        href: tenantSlug ? `/${tenantSlug}/dashboard` : '/admin/dashboard',
         icon: LayoutGrid,
     },
     {
         title: 'User Management',
-        href: tenantSlug ? `/${tenantSlug}/users-roles` :'/adminusers-roles',
+        href: tenantSlug ? `/${tenantSlug}/users-roles` :'/admin/users-roles',
         icon: UserCog,
     }
 ];
@@ -69,7 +69,7 @@ const footerNavItems: NavItem[] = [
 
         <SidebarFooter>
             <NavFooter :items="footerNavItems" />
-            <NavUser />
+            <NavUser :tenantSlug="tenantSlug" />
         </SidebarFooter>
     </Sidebar>
     <slot />

@@ -39,31 +39,29 @@ Route::get('/stopimpersonate', [ImpersonationController::class, 'stopImpersonati
 
 
 
-Route::middleware(['auth', 'tenant'])->group(function () {
-Route::get('admindashboard', function (?string $tenantSlug = null) {
+Route::middleware(['auth', 'tenant','superAdmin'])->group(function () {
+Route::get('admin/dashboard', function (?string $tenantSlug = null) {
     return Inertia::render('Dashboard', [
         'tenantSlug' => $tenantSlug,
     ]);
 })->name('admin.dashboard');
-Route::get('/adminusers-roles', [UserController::class, 'index'])->name('admin.users.roles.index');
+Route::get('/admin/users-roles', [UserController::class, 'index'])->name('admin.users.roles.index');
 
     // User routes
-    Route::post('/adminusers', [UserController::class, 'storeUser'])->name('admin.users.store');
-    Route::put('/adminusers/{user}', [UserController::class, 'updateUserAdmin'])->name('admin.users.update');
-    Route::delete('/adminusers/{user}', [UserController::class, 'destroyUserAdmin'])->name('admin.users.destroy');
+    Route::post('/admin/users', [UserController::class, 'storeUser'])->name('admin.users.store');
+    Route::put('/admin/users/{user}', [UserController::class, 'updateUserAdmin'])->name('admin.users.update');
+    Route::delete('/admin/users/{user}', [UserController::class, 'destroyUserAdmin'])->name('admin.users.destroy');
 
     // Role routes
-    Route::post('/adminroles', [UserController::class, 'storeRole'])->name('admin.roles.store');
-    Route::put('/adminroles/{role}', [UserController::class, 'updateRoleAdmin'])->name('admin.roles.update');
-    Route::delete('/adminroles/{role}', [UserController::class, 'destroyRoleAdmin'])->name('admin.roles.destroy');
+    Route::post('/admin/roles', [UserController::class, 'storeRole'])->name('admin.roles.store');
+    Route::put('/admin/roles/{role}', [UserController::class, 'updateRoleAdmin'])->name('admin.roles.update');
+    Route::delete('/admin/roles/{role}', [UserController::class, 'destroyRoleAdmin'])->name('admin.roles.destroy');
 
-    Route::post('/admintenants', [UserController::class, 'storeTenant'])->name('admin.tenants.store');
-    Route::put('/admintenants/{tenant}', [UserController::class, 'updateTenant'])->name('admin.tenants.update');
-    Route::delete('/admintenants/{tenant}', [UserController::class, 'destroyTenant'])->name('admin.tenants.destroy');
+    Route::post('/admin/tenants', [UserController::class, 'storeTenant'])->name('admin.tenants.store');
+    Route::put('/admin/tenants/{tenant}', [UserController::class, 'updateTenant'])->name('admin.tenants.update');
+    Route::delete('/admin/tenants/{tenant}', [UserController::class, 'destroyTenant'])->name('admin.tenants.destroy');
     Route::get('/impersonate/{id}', [ImpersonationController::class, 'impersonate'])
     ->name('impersonate.start');
-
-
 });
 
 

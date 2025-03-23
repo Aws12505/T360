@@ -39,11 +39,12 @@ class ImpersonationController extends Controller
      */
     public function stopImpersonation()
     {
-        // Remove the impersonation session variable
         session()->forget('impersonate');
-        // Optionally, you can also clear the original user's ID from the session
-        Auth::loginUsingId(session('original_user'));
+        $oguser = User::withoutGlobalScopes()->find(session('original_user'));
+        if(is_null($oguser->tenant_id)){
+        Auth::login(user: $oguser);
         session()->forget('original_user');
         return redirect()->route('admin.dashboard');
+        }
     }
 }
