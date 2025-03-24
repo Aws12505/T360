@@ -123,7 +123,7 @@ const { tenantSlug } = props;
 const breadcrumbs: BreadcrumbItem[] = [
   {
     title: tenantSlug ? 'Dashboard' : 'Admin Dashboard',
-    href: tenantSlug ? `/${tenantSlug}/dashboard` : '/admin/dashboard',
+    href: tenantSlug ? `/${tenantSlug}/dashboard` : '/dashboard',
   },
 ];
 

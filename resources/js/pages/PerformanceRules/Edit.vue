@@ -15,7 +15,7 @@ const { tenantSlug } = props
 const breadcrumbs = [
   {
     title: tenantSlug ? 'Dashboard' : 'Admin Dashboard',
-    href: tenantSlug ? `/${tenantSlug}/dashboard` : '/admin/dashboard',
+    href: tenantSlug ? `/${tenantSlug}/dashboard` : '/dashboard',
   },
 ]
 
@@ -93,7 +93,7 @@ const form = useForm({
 })
 
 const submit = () => {
-  form.put(route('performance-metric-rule.update',tenantSlug))
+  form.put(route('performancemetrics.update',tenantSlug))
 }
 
 const fieldKeys = Object.keys(form.data())

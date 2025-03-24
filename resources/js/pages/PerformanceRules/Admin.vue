@@ -16,7 +16,7 @@ const props = defineProps({
 const breadcrumbs = [
   {
     title: props.tenantSlug ? 'Dashboard' : 'Admin Dashboard',
-    href: props.tenantSlug ? `/${props.tenantSlug}/dashboard` : '/admin/dashboard',
+    href: props.tenantSlug ? `/${props.tenantSlug}/dashboard` : '/dashboard',
   },
 ]
 

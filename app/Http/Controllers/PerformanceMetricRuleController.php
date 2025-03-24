@@ -17,11 +17,12 @@ class PerformanceMetricRuleController extends Controller
     public function edit()
     {
         // Get rule through tenant relation (no ID needed)
-        $rule = Auth::user()->tenant->performanceMetricRule;
         if (is_null(Auth::user()->tenant_id)) {
             $tenantSlug = null;
+            $rule = null;
         } else {
             $tenantSlug = Auth::user()->tenant->slug;
+            $rule = Auth::user()->tenant->performanceMetricRule;
         }
         return Inertia::render('PerformanceRules/Edit', [
             'rule' => $rule,

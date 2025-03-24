@@ -4,12 +4,17 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, usePage } from '@inertiajs/vue3';
 import PlaceholderPattern from '../components/PlaceholderPattern.vue';
 
-const props = defineProps<{ tenantSlug?: string | null }>();
-
+const props = defineProps({
+  tenantSlug: {
+    type: String,
+    default: null,
+  },
+});
+const { tenantSlug } = props;
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: props.tenantSlug ? 'Dashboard' : 'Admin Dashboard', 
-        href: props.tenantSlug ? `/${props.tenantSlug}/dashboard` : '/admin/dashboard', 
+        title: tenantSlug ? 'Dashboard' : 'Admin Dashboard', 
+        href: tenantSlug ? route('dashboard', { tenantSlug }) : route('admin.dashboard'), 
     },
 ];
 
@@ -18,7 +23,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 <template>
     <Head :title="breadcrumbs[0].title" />
 
-    <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="props.tenantSlug">
+    <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
             <div class="grid auto-rows-min gap-4 md:grid-cols-3">
                 <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
