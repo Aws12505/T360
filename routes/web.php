@@ -6,7 +6,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\ImpersonationController;
 use App\Http\Controllers\ZohoWebhookController;
 use App\Http\Controllers\PerformanceMetricRuleController;
-
+use App\Http\Controllers\PerformanceController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
@@ -37,9 +37,12 @@ Route::middleware(['auth', 'tenant'])->group(function () {
 Route::get('/stopimpersonate', [ImpersonationController::class, 'stopImpersonation'])
 ->name('impersonate.stop');
 
-Route::get('/performancemetrics/edit', [PerformanceMetricRuleController::class, 'edit'])->name('performancemetrics.edit');
-Route::put('/performancemetrics', [PerformanceMetricRuleController::class, 'update'])->name('performancemetrics.update');
-
+Route::get('/performance', [PerformanceController::class, 'index'])->name('performance.index');
+Route::post('/performance', [PerformanceController::class, 'store'])->name('performance.store');
+Route::put('/performance/{performance}', [PerformanceController::class, 'update'])->name('performance.update');
+Route::delete('/performance/{performance}', [PerformanceController::class, 'destroy'])->name('performance.destroy');
+Route::post('/performance/import', [PerformanceController::class, 'import'])->name('performance.import');
+Route::get('/performance/export', [PerformanceController::class, 'export'])->name('performance.export');
     });
 });
 
@@ -66,11 +69,14 @@ Route::get('/users-roles', [UserController::class, 'index'])->name('admin.users.
     Route::delete('/tenants/{tenant}', [UserController::class, 'destroyTenant'])->name('admin.tenants.destroy');
     Route::get('/impersonate/{id}', [ImpersonationController::class, 'impersonate'])
     ->name('impersonate.start');
-    Route::get('/performancemetrics', [PerformanceMetricRuleController::class, 'index'])->name('performance-metrics.index');
-    Route::post('/performancemetrics', [PerformanceMetricRuleController::class, 'store'])->name('performance-metrics.store');
-    Route::put('/performancemetrics/{id}', [PerformanceMetricRuleController::class, 'updateAdmin'])->name('performance-metrics.update');
-    Route::get('/performancemetrics/export', [PerformanceMetricRuleController::class, 'export'])->name('performance-metrics.export');
-    Route::post('/performancemetrics/import', [PerformanceMetricRuleController::class, 'import'])->name('performance-metrics.import');
+    Route::get('/performancemetrics', [PerformanceMetricRuleController::class, 'editGlobal'])->name('performance-metrics.edit');
+    Route::post('/performancemetrics', [PerformanceMetricRuleController::class, 'updateGlobal'])->name('performance-metrics.update');
+    Route::get('/performance', [PerformanceController::class, 'index'])->name('performance.index.admin');
+Route::post('/performance', [PerformanceController::class, 'store'])->name('performance.store.admin');
+Route::put('/performance/{performance}', [PerformanceController::class, 'adminUpdate'])->name('performance.update.admin');
+Route::delete('/performance/{performance}', [PerformanceController::class, 'adminDestroy'])->name('performance.destroy.admin');
+Route::post('/performance/import', [PerformanceController::class, 'import'])->name('performance.import.admin');
+Route::get('/performance/export', [PerformanceController::class, 'export'])->name('performance.export.admin');
 });
 
 

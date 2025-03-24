@@ -13,7 +13,6 @@ class PerformanceMetricRule extends Model
         'safety_bonus_eligible_levels' => 'array', // NEW
     ];
     protected $fillable = [
-        'tenant_id',
 
         // Acceptance
         'acceptance_fantastic_plus',
@@ -78,13 +77,5 @@ class PerformanceMetricRule extends Model
         'vcr_preventable_poor',
         'vcr_preventable_poor_operator',
     ];
-    protected static function booted()
-    {
-        if(Auth::user())
-        static::addGlobalScope(new TenantScope);
-    }
-    public function tenant()
-    {
-        return $this->belongsTo(Tenant::class);
-    }
+
 }

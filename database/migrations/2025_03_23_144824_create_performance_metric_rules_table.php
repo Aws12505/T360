@@ -10,7 +10,6 @@ class CreatePerformanceMetricRulesTable extends Migration
     {
         Schema::create('performance_metric_rules', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
 
             // Acceptance
             $table->decimal('acceptance_fantastic_plus', 5, 2)->nullable();

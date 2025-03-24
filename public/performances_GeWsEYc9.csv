@@ -1,0 +1,2 @@
+tenant_name,date,acceptance,on_time_to_origin,on_time_to_destination,on_time,maintenance_variance_to_spend,open_boc,meets_safety_bonus_criteria,vcr_preventable
+test,1994-08-07,86.88,21.00,551.01,46.00,111.00,67,1,30

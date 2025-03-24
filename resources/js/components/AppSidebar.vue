@@ -34,7 +34,12 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Metrics Management',
-        href: tenantSlug ? `/${tenantSlug}/performancemetrics/edit` :'/performancemetrics',
+        href: tenantSlug ? '#' :'/performancemetrics',
+        icon: UserCog,
+    },
+    {
+        title: 'Performance',
+        href: tenantSlug ? `/${tenantSlug}/performance` :'/performance',
         icon: UserCog,
     }
 ];
