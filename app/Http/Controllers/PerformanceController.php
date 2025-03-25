@@ -306,9 +306,7 @@ public function import(Request $request)
 
     public function export()
     {
-        $query = Auth::user()->tenant_id === null
-            ? Performance::with('tenant')
-            : Performance::where('tenant_id', Auth::user()->tenant_id)->with('tenant');
+        $query = Performance::with('tenant');
 
         $performances = $query->get();
 

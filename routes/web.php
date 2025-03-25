@@ -7,6 +7,7 @@ use App\Http\Controllers\ImpersonationController;
 use App\Http\Controllers\ZohoWebhookController;
 use App\Http\Controllers\PerformanceMetricRuleController;
 use App\Http\Controllers\PerformanceController;
+use App\Http\Controllers\SafetyDataController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
@@ -43,7 +44,15 @@ Route::put('/performance/{performance}', [PerformanceController::class, 'update'
 Route::delete('/performance/{performance}', [PerformanceController::class, 'destroy'])->name('performance.destroy');
 Route::post('/performance/import', [PerformanceController::class, 'import'])->name('performance.import');
 Route::get('/performance/export', [PerformanceController::class, 'export'])->name('performance.export');
-    });
+    
+Route::get('/safety', [SafetyDataController::class, 'index'])->name('safety.index');
+    Route::post('/safety', [SafetyDataController::class, 'store'])->name('safety.store');
+    Route::put('/safety/{id}', [SafetyDataController::class, 'update'])->name('safety.update');
+    Route::delete('/safety/{id}', [SafetyDataController::class, 'destroy'])->name('safety.destroy');
+    Route::post('/safety/import', [SafetyDataController::class, 'import'])->name('safety.import');
+    Route::get('/safety/export', [SafetyDataController::class, 'export'])->name('safety.export');
+
+});
 });
 
 
@@ -77,6 +86,13 @@ Route::put('/performance/{performance}', [PerformanceController::class, 'adminUp
 Route::delete('/performance/{performance}', [PerformanceController::class, 'adminDestroy'])->name('performance.destroy.admin');
 Route::post('/performance/import', [PerformanceController::class, 'import'])->name('performance.import.admin');
 Route::get('/performance/export', [PerformanceController::class, 'export'])->name('performance.export.admin');
+
+Route::get('/safety', [SafetyDataController::class, 'index'])->name('safety.index.admin');
+Route::post('/safety', [SafetyDataController::class, 'store'])->name('safety.store.admin');
+Route::put('/safety/{id}', [SafetyDataController::class, 'updateAdmin'])->name('safety.update.admin');
+Route::delete('/safety/{id}', [SafetyDataController::class, 'destroyAdmin'])->name('safety.destroy.admin');
+Route::post('/safety/import', [SafetyDataController::class, 'import'])->name('safety.import.admin');
+Route::get('/safety/export', [SafetyDataController::class, 'export'])->name('safety.export.admin');
 });
 
 

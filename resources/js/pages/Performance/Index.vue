@@ -259,6 +259,7 @@
           </form>
         </div>
       </div>
+      <form ref="exportForm" method="GET" class="hidden" />
     </div>
   </AppLayout>
 </template>
