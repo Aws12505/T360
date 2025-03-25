@@ -7,48 +7,58 @@ import { Head, Link } from '@inertiajs/vue3';
     <link rel="preconnect" href="https://rsms.me/" />
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
   </Head>
-  <div class="flex min-h-screen flex-col items-center bg-[#FDFDFC] p-6 text-[#1b1b18] dark:bg-[#0a0a0a] lg:justify-center lg:p-8">
-    <header class="not-has-[nav]:hidden mb-6 w-full max-w-[335px] text-sm lg:max-w-4xl">
-      <nav class="flex items-center justify-end gap-4">
-        <Link
-          v-if="$page.props.auth.user"
-          :href="route('dashboard')"
-          class="inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
-        >
-          Dashboard
-        </Link>
-        <template v-else>
+  <div class="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex flex-col">
+    <!-- Header -->
+    <header class="border-b border-gray-200 dark:border-gray-700">
+      <div class="container mx-auto px-4 py-4 flex justify-end">
+        <nav class="flex items-center gap-4">
           <Link
-            :href="route('login')"
-            class="inline-block rounded-sm border border-transparent px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#19140035] dark:text-[#EDEDEC] dark:hover:border-[#3E3E3A]"
+            v-if="$page.props.auth.user"
+            :href="route('dashboard')"
+            class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded transition-colors duration-200 hover:border-gray-400 dark:hover:border-gray-500"
           >
-            Log in
+            Dashboard
           </Link>
-        </template>
-      </nav>
-    </header>
-    
-    <!-- Subscription Plans Section -->
-    <section class="w-full max-w-[335px] lg:max-w-4xl">
-      <h2 class="mb-4 text-xl font-bold">Subscription Plans</h2>
-      <div class="flex flex-col gap-4">
-        <a
-          href="https://billing.zohosecure.com/subscribe/be5e52d21f0ce61633149104eb68f5871f563cd205dd5841ad482bf477cf719e/sadasd"
-          class="block rounded-sm border border-[#19140035] px-5 py-3 text-center text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Basic Plan
-        </a>
-        <a
-          href="https://external-site.com/plan-premium"
-          class="block rounded-sm border border-[#19140035] px-5 py-3 text-center text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Premium Plan
-        </a>
+          <template v-else>
+            <Link
+              :href="route('login')"
+              class="px-4 py-2 border border-transparent rounded transition-colors duration-200 hover:border-gray-300 dark:hover:border-gray-600"
+            >
+              Log in
+            </Link>
+          </template>
+        </nav>
       </div>
-    </section>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto px-4 py-8">
+      <section class="max-w-4xl mx-auto">
+        <h2 class="text-2xl font-bold mb-6 text-center">Subscription Plans</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <a
+            href="https://billing.zohosecure.com/subscribe/be5e52d21f0ce61633149104eb68f5871f563cd205dd5841ad482bf477cf719e/sadasd"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="block p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm hover:shadow-lg transition-shadow duration-200 text-center"
+          >
+            <h3 class="text-xl font-semibold mb-2">Basic Plan</h3>
+          </a>
+          <a
+            href="https://external-site.com/plan-premium"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="block p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm hover:shadow-lg transition-shadow duration-200 text-center"
+          >
+            <h3 class="text-xl font-semibold mb-2">Premium Plan</h3>
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-4 border-t border-gray-200 dark:border-gray-700 text-center">
+      <p class="text-sm">&copy; 2025 Company Name. All rights reserved.</p>
+    </footer>
   </div>
 </template>

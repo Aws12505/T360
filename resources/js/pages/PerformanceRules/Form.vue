@@ -1,14 +1,13 @@
-<script setup>
+<script setup lang="ts">
 import { useForm } from '@inertiajs/vue3'
 import { computed } from 'vue'
 
 const props = defineProps({
   entry: {
     type: Object,
-    default: () => ({})
-  }
+    default: () => ({}),
+  },
 })
-
 const emit = defineEmits(['saved', 'cancel'])
 
 const levels = ['fantastic_plus', 'fantastic', 'good', 'fair', 'poor']
@@ -24,12 +23,14 @@ const operators = [
 
 const form = useForm({
   safety_bonus_eligible_levels: props.entry.safety_bonus_eligible_levels ?? [],
-  ...Object.fromEntries(metrics.flatMap(metric =>
-    levels.flatMap(level => [
-      [`${metric}_${level}`, props.entry[`${metric}_${level}`] ?? ''],
-      [`${metric}_${level}_operator`, props.entry[`${metric}_${level}_operator`] ?? '']
-    ])
-  ))
+  ...Object.fromEntries(
+    metrics.flatMap(metric =>
+      levels.flatMap(level => [
+        [`${metric}_${level}`, props.entry[`${metric}_${level}`] ?? ''],
+        [`${metric}_${level}_operator`, props.entry[`${metric}_${level}_operator`] ?? ''],
+      ])
+    )
+  ),
 })
 
 const submit = () => {
@@ -40,24 +41,25 @@ const submit = () => {
 </script>
 
 <template>
-  <form @submit.prevent="submit" class="space-y-10 border p-6 rounded-lg shadow bg-white">
+  <form @submit.prevent="submit" class="space-y-10 border border-gray-200 dark:border-gray-700 p-6 rounded-lg shadow-lg bg-white dark:bg-gray-800">
     <div v-for="metric in metrics" :key="metric" class="space-y-4">
-      <h2 class="text-lg font-bold capitalize">{{ metric.replace(/_/g, ' ') }}</h2>
-
+      <h2 class="text-lg font-bold capitalize text-gray-800 dark:text-gray-100">
+        {{ metric.replace(/_/g, ' ') }}
+      </h2>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div v-for="level in levels" :key="`${metric}-${level}`">
-          <label class="block text-sm font-medium capitalize mb-1">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 capitalize">
             {{ level.replace(/_/g, ' ') }}
           </label>
           <input
             v-model="form[`${metric}_${level}`]"
             type="number"
             step="0.01"
-            class="input w-full mb-1"
+            class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <select
             v-model="form[`${metric}_${level}_operator`]"
-            class="input w-full"
+            class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 mt-1"
           >
             <option v-for="op in operators" :key="op.value" :value="op.value">
               {{ op.label }}
@@ -68,24 +70,29 @@ const submit = () => {
     </div>
 
     <div>
-      <h2 class="text-lg font-bold mb-3">Safety Bonus Eligibility</h2>
+      <h2 class="text-lg font-bold mb-3 text-gray-800 dark:text-gray-100">Safety Bonus Eligibility</h2>
       <div class="flex gap-4 flex-wrap">
         <label v-for="level in levels" :key="level" class="flex items-center gap-2">
           <input
             type="checkbox"
             :value="level"
             v-model="form.safety_bonus_eligible_levels"
+            class="h-4 w-4 text-blue-600 border-gray-300 rounded"
           />
-          <span class="capitalize">{{ level.replace('_', ' ') }}</span>
+          <span class="capitalize text-gray-700 dark:text-gray-300">
+            {{ level.replace(/_/g, ' ') }}
+          </span>
         </label>
       </div>
     </div>
 
     <div class="pt-6 flex gap-4">
-      <button type="submit" class="btn btn-primary" :disabled="form.processing">
+      <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-md transition" :disabled="form.processing">
         Save
       </button>
-      <button type="button" @click="emit('cancel')" class="btn btn-secondary">Cancel</button>
+      <button type="button" @click="emit('cancel')" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold px-4 py-2 rounded-md transition">
+        Cancel
+      </button>
     </div>
   </form>
 </template>

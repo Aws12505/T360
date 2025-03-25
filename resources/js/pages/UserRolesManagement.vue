@@ -2,47 +2,63 @@
   <Head title="Users Management" />
 
   <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
-    <div class="container mx-auto p-4">
-      <h1 class="text-2xl font-bold mb-4">User and Role Management</h1>
+    <div class="container mx-auto p-6">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">
+        User and Role Management
+      </h1>
 
       <!-- Dynamic search bar for users -->
-      <div class="mb-4">
+      <div class="mb-6">
         <Input
           v-model="search"
           placeholder="Search users..."
+          class="w-full rounded-lg border border-gray-300 dark:border-gray-600 shadow-sm focus:ring-2 focus:ring-blue-500"
         />
       </div>
 
       <!-- Users Section -->
-      <section>
-        <div class="flex items-center justify-between mb-2">
-          <h2 class="text-xl font-semibold">Users</h2>
-          <Button @click="openUserModal">Create New User</Button>
+      <section class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">Users</h2>
+          <Button
+            @click="openUserModal"
+            class="bg-blue-600 hover:bg-blue-700 text-white font-medium rounded px-4 py-2 transition"
+          >
+            Create New User
+          </Button>
         </div>
-        <!-- Pass filteredUsers instead of the original users prop -->
         <UserList :users="filteredUsers" :isSuperAdmin="isSuperAdmin" @edit="editUser" @delete="deleteUser" />
       </section>
 
       <!-- Roles Section -->
-      <section class="mt-8">
-        <div class="flex items-center justify-between mb-2">
-          <h2 class="text-xl font-semibold">Roles</h2>
-          <Button @click="openRoleModal">Create New Role</Button>
+      <section class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">Roles</h2>
+          <Button
+            @click="openRoleModal"
+            class="bg-green-600 hover:bg-green-700 text-white font-medium rounded px-4 py-2 transition"
+          >
+            Create New Role
+          </Button>
         </div>
         <RoleList :roles="roles" @edit="editRole" @delete="deleteRole" />
       </section>
 
-       <!-- Tenants Section -->
-        <div v-if="isSuperAdmin" >
-       <section class="mt-8">
-        <div class="flex items-center justify-between mb-2">
-          <h2 class="text-xl font-semibold">Tenants</h2>
-          <Button @click="openTenantModal">Create New Tenant</Button>
+      <!-- Tenants Section -->
+      <section v-if="isSuperAdmin" class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">Tenants</h2>
+          <Button
+            @click="openTenantModal"
+            class="bg-purple-700 hover:bg-purple-800 text-white font-medium rounded px-4 py-2 transition"
+          >
+            Create New Tenant
+          </Button>
         </div>
         <TenantList :tenants="tenants" @edit="editTenant" @delete="deleteTenant" />
       </section>
-    </div>
-      <!-- Modals for creating/editing users and roles -->
+
+      <!-- Modals for creating/editing users, roles, and tenants -->
       <UserForm
         v-if="showUserModal"
         :user="selectedUser"
@@ -50,7 +66,7 @@
         :permissions="permissions"
         :tenants="tenants"
         :isSuperAdmin="isSuperAdmin"
-        :tenantSlug ="tenantSlug"
+        :tenantSlug="tenantSlug"
         @close="closeUserModal"
         @saved="refreshData"
       />
@@ -66,17 +82,16 @@
         :role="selectedRole"
         :permissions="permissions"
         :isSuperAdmin="isSuperAdmin"
-        :tenantSlug ="tenantSlug"
+        :tenantSlug="tenantSlug"
         @close="closeRoleModal"
         @saved="refreshData"
       />
-
       <!-- Confirmation modal for deletion -->
       <ConfirmDeleteModal
         v-if="showConfirmDelete"
         :deleteUrl="deleteUrl"
         :message="deleteMessage"
-        :tenantSlug ="tenantSlug"
+        :tenantSlug="tenantSlug"
         @cancel="showConfirmDelete = false"
         @confirmed="onDeleteConfirmed"
       />
@@ -116,7 +131,6 @@ const props = defineProps({
     default: null,
   },
 });
-// Destructure tenantSlug for easier usage
 const { tenantSlug } = props;
 
 // Set up breadcrumbs
@@ -150,14 +164,12 @@ const filteredUsers = computed(() => {
     return props.users;
   }
   const term = search.value.toLowerCase();
-  // Filter the data array from the paginated object
   const filteredData = props.users.data.filter((user: any) => {
     return (
       user.name.toLowerCase().includes(term) ||
       user.email.toLowerCase().includes(term)
     );
   });
-  // Return a new object preserving the original pagination links, but with filtered data.
   return { ...props.users, data: filteredData };
 });
 
@@ -200,11 +212,10 @@ const editRole = (role: any) => {
   showRoleModal.value = true;
 };
 
-// Updated delete functions that open a confirmation modal
 const deleteUser = (user: any) => {
   deleteUrl.value = isSuperAdmin.value
     ? route('admin.users.destroy', user)
-    : route('users.destroy', [tenantSlug,user]);
+    : route('users.destroy', [tenantSlug, user]);
   deleteMessage.value = `Are you sure you want to delete user ${user.name}?`;
   showConfirmDelete.value = true;
 };
@@ -212,23 +223,23 @@ const deleteUser = (user: any) => {
 const deleteRole = (role: any) => {
   deleteUrl.value = isSuperAdmin.value
     ? route('admin.roles.destroy', role)
-    : route('roles.destroy', [tenantSlug,role]);
+    : route('roles.destroy', [tenantSlug, role]);
   deleteMessage.value = `Are you sure you want to delete role ${role.name}?`;
   showConfirmDelete.value = true;
 };
+
 const deleteTenant = (tenant: any) => {
   deleteUrl.value = route('admin.tenants.destroy', tenant);
   deleteMessage.value = `Are you sure you want to delete tenant ${tenant.name}?`;
   showConfirmDelete.value = true;
 };
+
 const onDeleteConfirmed = () => {
   showConfirmDelete.value = false;
   // In a real app, call an API or refresh data here.
 };
 
 const refreshData = () => {
-  // Close modals immediately; refresh data as needed.
-  
   showRoleModal.value = false;
   showUserModal.value = false;
   showTenantModal.value = false;

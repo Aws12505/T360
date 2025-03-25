@@ -1,6 +1,6 @@
 <template>
   <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
-    <div class="p-6 space-y-6">
+    <div class="max-w-6xl mx-auto p-6 space-y-8">
       <!-- Success Message -->
       <p
         v-if="successMessage"
@@ -10,14 +10,14 @@
       </p>
 
       <!-- Action Buttons -->
-      <div class="flex flex-wrap gap-3">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <button
           @click="openCreateModal"
-          class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow"
+          class="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded shadow transition"
         >
           Create New Performance
         </button>
-        <label class="btn btn-secondary cursor-pointer">
+        <label class="flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded shadow cursor-pointer transition">
           Import CSV
           <input
             type="file"
@@ -26,22 +26,17 @@
             accept=".csv"
           />
         </label>
-        <form
-          ref="exportForm"
-          method="GET"
-          class="hidden"
-        ></form>
         <button
           @click.prevent="exportCSV"
-          class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded shadow"
+          class="bg-gray-600 hover:bg-gray-700 text-white font-semibold px-4 py-2 rounded shadow transition"
         >
           Export CSV
         </button>
       </div>
 
       <!-- Performance Table -->
-      <div class="overflow-x-auto">
-        <table class="min-w-full table-auto border border-gray-300 rounded">
+      <div class="overflow-x-auto shadow rounded-lg">
+        <table class="min-w-full table-auto">
           <thead class="bg-gray-100 text-left">
             <tr>
               <th v-if="SuperAdmin" class="px-4 py-2">Tenant</th>
@@ -57,15 +52,15 @@
               <th class="px-4 py-2">Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody class="divide-y divide-gray-200">
             <tr
               v-for="item in performances"
               :key="item.id"
-              class="border-t text-sm"
+              class="text-sm hover:bg-gray-50"
             >
-            <td v-if="SuperAdmin" class="px-4 py-2">
-    {{ item.tenant?.name ?? '—' }}
-  </td>
+              <td v-if="SuperAdmin" class="px-4 py-2">
+                {{ item.tenant?.name ?? '—' }}
+              </td>
               <td class="px-4 py-2">{{ item.date }}</td>
               <td class="px-4 py-2">
                 {{ item.acceptance }}
@@ -108,13 +103,13 @@
               <td class="px-4 py-2 space-x-2">
                 <button
                   @click="openEditModal(item)"
-                  class="bg-yellow-400 hover:bg-yellow-500 text-white px-2 py-1 rounded text-sm"
+                  class="bg-yellow-400 hover:bg-yellow-500 text-white px-2 py-1 rounded text-sm transition"
                 >
                   Edit
                 </button>
                 <button
                   @click="deletePerformance(item.id)"
-                  class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-sm"
+                  class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-sm transition"
                 >
                   Delete
                 </button>
@@ -129,124 +124,134 @@
         v-if="showModal"
         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
       >
-      
-        <div
-          class="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg space-y-4"
-        >
-          <h2 class="text-xl font-semibold">{{ formTitle }}</h2>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-lg space-y-6">
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+            {{ formTitle }}
+          </h2>
           <form @submit.prevent="submitForm" class="space-y-4">
             <div v-if="SuperAdmin">
-  <label class="block text-sm font-medium">Tenant</label>
-  <select
-    v-model="form.tenant_id"
-    required
-    class="w-full border rounded px-3 py-2"
-  >
-    <option disabled value="">Select a tenant</option>
-    <option
-      v-for="tenant in tenants"
-      :key="tenant.id"
-      :value="tenant.id"
-    >
-      {{ tenant.name }}
-    </option>
-  </select>
-</div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Tenant
+              </label>
+              <select
+                v-model="form.tenant_id"
+                required
+                class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option disabled value="">Select a tenant</option>
+                <option
+                  v-for="tenant in tenants"
+                  :key="tenant.id"
+                  :value="tenant.id"
+                >
+                  {{ tenant.name }}
+                </option>
+              </select>
+            </div>
             <div>
-              <label class="block text-sm font-medium">Date</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Date
+              </label>
               <input
                 v-model="form.date"
                 type="date"
                 required
-                class="w-full border rounded px-3 py-2"
+                class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
-              <label class="block text-sm font-medium">Acceptance</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Acceptance
+              </label>
               <input
                 v-model="form.acceptance"
                 type="number"
                 step="0.01"
                 required
-                class="w-full border rounded px-3 py-2"
+                class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
-              <label class="block text-sm font-medium">On Time to Origin</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                On Time to Origin
+              </label>
               <input
                 v-model="form.on_time_to_origin"
                 type="number"
                 step="0.01"
                 required
-                class="w-full border rounded px-3 py-2"
+                class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
-              <label class="block text-sm font-medium"
-                >On Time to Destination</label
-              >
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                On Time to Destination
+              </label>
               <input
                 v-model="form.on_time_to_destination"
                 type="number"
                 step="0.01"
                 required
-                class="w-full border rounded px-3 py-2"
+                class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
-              <label class="block text-sm font-medium"
-                >Maintenance Variance to Spend</label
-              >
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Maintenance Variance to Spend
+              </label>
               <input
                 v-model="form.maintenance_variance_to_spend"
                 type="number"
                 step="0.01"
                 required
-                class="w-full border rounded px-3 py-2"
+                class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
-              <label class="block text-sm font-medium">Open BOC</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Open BOC
+              </label>
               <input
                 v-model="form.open_boc"
                 type="number"
                 step="1"
                 required
-                class="w-full border rounded px-3 py-2"
+                class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div class="flex items-center gap-2">
               <input
                 v-model="form.meets_safety_bonus_criteria"
                 type="checkbox"
-                class="rounded border-gray-300"
+                class="h-4 w-4 rounded border-gray-300 focus:ring-blue-500"
               />
-              <label class="text-sm font-medium"
-                >Meets Safety Bonus Criteria</label
-              >
+              <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Meets Safety Bonus Criteria
+              </label>
             </div>
             <div>
-              <label class="block text-sm font-medium">VCR Preventable</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                VCR Preventable
+              </label>
               <input
                 v-model="form.vcr_preventable"
                 type="number"
                 step="1"
                 required
-                class="w-full border rounded px-3 py-2"
+                class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-
             <div class="flex justify-end gap-3">
               <button
                 type="submit"
-                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded transition"
               >
                 {{ formAction }}
               </button>
               <button
                 type="button"
                 @click="closeModal"
-                class="bg-gray-300 hover:bg-gray-400 text-black px-4 py-2 rounded"
+                class="bg-gray-300 hover:bg-gray-400 text-black font-semibold px-4 py-2 rounded transition"
               >
                 Close
               </button>
@@ -335,7 +340,6 @@ function openEditModal(item) {
   showModal.value = true
 }
 
-
 function closeModal() {
   showModal.value = false
 }
@@ -347,7 +351,7 @@ function submitForm() {
       ? route('performance.store.admin')
       : route('performance.store', props.tenantSlug)
     : props.SuperAdmin
-      ? route('performance.update.admin', [ form.id])
+      ? route('performance.update.admin', [form.id])
       : route('performance.update', [props.tenantSlug, form.id])
 
   const method = isCreate ? 'post' : 'put'
@@ -369,7 +373,7 @@ function deletePerformance(id) {
   if (!confirm('Are you sure?')) return
 
   const routeName = props.SuperAdmin
-    ? route('performance.destroy.admin', [ id])
+    ? route('performance.destroy.admin', [id])
     : route('performance.destroy', [props.tenantSlug, id])
 
   deleteForm.delete(routeName, {
@@ -413,22 +417,5 @@ function exportCSV() {
 </script>
 
 <style scoped>
-.modal-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.modal {
-  background: #fff;
-  padding: 1rem;
-  border-radius: 5px;
-  width: 90%;
-  max-width: 500px;
-}
+/* Additional custom styling if needed */
 </style>
