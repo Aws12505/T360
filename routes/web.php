@@ -8,6 +8,7 @@ use App\Http\Controllers\ZohoWebhookController;
 use App\Http\Controllers\PerformanceMetricRuleController;
 use App\Http\Controllers\PerformanceController;
 use App\Http\Controllers\SafetyDataController;
+use App\Http\Controllers\SummariesController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
@@ -17,11 +18,7 @@ Route::get('/', function () {
 
 Route::middleware(['auth', 'tenant'])->group(function () {
     Route::prefix('{tenantSlug}')->group(function () {
-        Route::get('dashboard', function (string $tenantSlug) {
-            return Inertia::render('Dashboard',[
-                'tenantSlug' => $tenantSlug, // Pass the prefix parameter
-            ]);
-        })->name('dashboard');
+        Route::get('dashboard',  [SummariesController::class, 'getSummaries'])->name('dashboard');
 
         Route::get('/users-roles', [UserController::class, 'index'])->name('users.roles.index');
 

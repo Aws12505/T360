@@ -1,110 +1,109 @@
 <template>
-    <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
-      <div class="max-w-7xl mx-auto p-6 space-y-8">
-        <!-- Success Message -->
-        <p v-if="successMessage" class="bg-green-100 text-green-800 border border-green-300 px-4 py-2 rounded">
-          {{ successMessage }}
-        </p>
-  
-       <!-- Actions -->
-<div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
-  <button @click="openCreateModal" class="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded shadow transition">
-    Create New Entry
-  </button>
+  <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
+    <div class="max-w-7xl mx-auto p-6 space-y-8">
+      <p v-if="successMessage" class="bg-green-100 text-green-800 border border-green-300 px-4 py-2 rounded">
+        {{ successMessage }}
+      </p>
 
-  <div v-if="SuperAdmin">
-    <label class="block text-sm font-medium mb-1">Tenant for Import</label>
-    <select v-model="importForm.tenant_id" class="w-full border rounded px-3 py-2">
-      <option disabled value="">Select Tenant</option>
-      <option v-for="tenant in tenants" :key="tenant.id" :value="tenant.id">{{ tenant.name }}</option>
-    </select>
-  </div>
+      <!-- Actions -->
+      <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
+        <button @click="openCreateModal" class="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded shadow transition">
+          Create New Entry
+        </button>
 
-  <div>
-    <label class="block text-sm font-medium mb-1">Date for Imported XLSX</label>
-    <input v-model="importForm.date" type="date" required class="w-full border rounded px-3 py-2" />
-  </div>
-
-  <label class="flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded shadow cursor-pointer transition">
-    Import XLSX
-    <input type="file" class="hidden" @change="handleImport" accept=".xlsx" />
-  </label>
-
-  <button @click.prevent="exportCSV" class="bg-gray-600 hover:bg-gray-700 text-white font-semibold px-4 py-2 rounded shadow transition">
-    Export CSV
-  </button>
-</div>
-
-  
-        <!-- Table -->
-        <div class="overflow-x-auto shadow rounded-lg">
-          <table class="min-w-full table-auto text-sm">
-            <thead class="bg-gray-100">
-              <tr>
-                <th v-if="SuperAdmin" class="px-4 py-2">Tenant</th>
-                <th v-for="col in tableColumns" :key="col" class="px-4 py-2 capitalize whitespace-nowrap">
-                  {{ col.replace(/_/g, ' ') }}
-                </th>
-                <th class="px-4 py-2">Actions</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200">
-              <tr v-for="item in entries" :key="item.id">
-                <td v-if="SuperAdmin" class="px-4 py-2">{{ item.tenant?.name ?? '—' }}</td>
-                <td v-for="col in tableColumns" :key="col" class="px-4 py-2 whitespace-nowrap">
-                  {{ item[col] }}
-                </td>
-                <td class="px-4 py-2 space-x-2">
-                  <button @click="openEditModal(item)" class="bg-yellow-400 hover:bg-yellow-500 text-white px-2 py-1 rounded">Edit</button>
-                  <button @click="deleteEntry(item.id)" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded">Delete</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div v-if="SuperAdmin">
+          <label class="block text-sm font-medium mb-1">Tenant for Import</label>
+          <select v-model="importForm.tenant_id" class="w-full border rounded px-3 py-2">
+            <option disabled value="">Select Tenant</option>
+            <option v-for="tenant in tenants" :key="tenant.id" :value="tenant.id">{{ tenant.name }}</option>
+          </select>
         </div>
-  
-        <!-- Modal -->
-        <div v-if="showModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-3xl space-y-6 overflow-y-auto max-h-screen">
-            <h2 class="text-xl font-semibold">{{ formTitle }}</h2>
-            <form @submit.prevent="submitForm" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div v-if="SuperAdmin" class="col-span-2">
-                <label class="block text-sm font-medium">Tenant</label>
-                <select v-model="form.tenant_id" class="w-full border rounded px-3 py-2">
-                  <option disabled value="">Select Tenant</option>
-                  <option v-for="tenant in tenants" :key="tenant.id" :value="tenant.id">{{ tenant.name }}</option>
-                </select>
-              </div>
-  
-              <template v-for="col in formColumns" :key="col">
-                <div>
-                  <label class="block text-sm font-medium capitalize">{{ col.replace(/_/g, ' ') }}</label>
-                  <input
-                    v-model="form[col]"
-                    :type="getInputType(col)"
-                    :step="getStep(col)"
-                    :min="getMin(col)"
-                    class="w-full border rounded px-3 py-2"
-                  />
-                </div>
-              </template>
-  
-              <div class="col-span-2 flex justify-end gap-3 mt-4">
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded">
-                  {{ formAction }}
-                </button>
-                <button type="button" @click="closeModal" class="bg-gray-300 hover:bg-gray-400 text-black font-semibold px-4 py-2 rounded">
-                  Close
-                </button>
-              </div>
-            </form>
-          </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-1">Date for Imported XLSX</label>
+          <input v-model="importForm.date" type="date" required class="w-full border rounded px-3 py-2" />
         </div>
-  
-        <form ref="exportForm" method="GET" class="hidden" />
+
+        <label class="flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded shadow cursor-pointer transition">
+          Import XLSX
+          <input type="file" class="hidden" @change="handleImport" accept=".xlsx" />
+        </label>
+
+        <button @click.prevent="exportCSV" class="bg-gray-600 hover:bg-gray-700 text-white font-semibold px-4 py-2 rounded shadow transition">
+          Export CSV
+        </button>
       </div>
-    </AppLayout>
-  </template>
+
+      <!-- Table -->
+      <div class="overflow-x-auto shadow rounded-lg">
+        <table class="min-w-full table-auto text-sm">
+          <thead class="bg-gray-100">
+            <tr>
+              <th v-if="SuperAdmin" class="px-4 py-2">Tenant</th>
+              <th v-for="col in tableColumns" :key="col" class="px-4 py-2 capitalize whitespace-nowrap">
+                {{ col.replace(/_/g, ' ') }}
+              </th>
+              <th class="px-4 py-2">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200">
+            <tr v-for="item in entries" :key="item.id">
+              <td v-if="SuperAdmin" class="px-4 py-2">{{ item.tenant?.name ?? '—' }}</td>
+              <td v-for="col in tableColumns" :key="col" class="px-4 py-2 whitespace-nowrap">
+                {{ item[col] }}
+              </td>
+              <td class="px-4 py-2 space-x-2">
+                <button @click="openEditModal(item)" class="bg-yellow-400 hover:bg-yellow-500 text-white px-2 py-1 rounded">Edit</button>
+                <button @click="deleteEntry(item.id)" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded">Delete</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Modal -->
+      <div v-if="showModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-4xl space-y-6 overflow-y-auto max-h-screen">
+          <h2 class="text-xl font-semibold">{{ formTitle }}</h2>
+          <form @submit.prevent="submitForm" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div v-if="SuperAdmin" class="col-span-2">
+              <label class="block text-sm font-medium">Tenant</label>
+              <select v-model="form.tenant_id" class="w-full border rounded px-3 py-2">
+                <option disabled value="">Select Tenant</option>
+                <option v-for="tenant in tenants" :key="tenant.id" :value="tenant.id">{{ tenant.name }}</option>
+              </select>
+            </div>
+
+            <template v-for="col in formColumns" :key="col">
+              <div>
+                <label class="block text-sm font-medium capitalize">{{ col.replace(/_/g, ' ') }}</label>
+                <input
+                  v-model="form[col]"
+                  :type="getInputType(col)"
+                  :step="getStep(col)"
+                  :min="getMin(col)"
+                  class="w-full border rounded px-3 py-2"
+                />
+              </div>
+            </template>
+
+            <div class="col-span-2 flex justify-end gap-3 mt-4">
+              <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded">
+                {{ formAction }}
+              </button>
+              <button type="button" @click="closeModal" class="bg-gray-300 hover:bg-gray-400 text-black font-semibold px-4 py-2 rounded">
+                Close
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <form ref="exportForm" method="GET" class="hidden" />
+    </div>
+  </AppLayout>
+</template>
+
   
   <script setup>
   import { ref } from 'vue'
@@ -135,27 +134,60 @@
   
   // Field types based on migration
   const fieldTypes = {
-    driver_name: 'text',
-    user_name: 'text',
-    group: 'text',
-    group_hierarchy: 'text',
-    minutes_analyzed: 'decimal',
-    green_minutes_percent: 'decimal',
-    overspeeding_percent: 'decimal',
-    driver_score: 'decimal',
-    total_events: 'decimal',
-    average_following_distance: 'decimal',
-    sign_violations: 'integer',
-    traffic_light_violation: 'integer',
-    driver_distraction: 'integer',
-    following_distance: 'integer',
-    speeding_violations: 'integer',
-    driver_drowsiness: 'integer',
-    driver_star: 'integer',
-    vehicle_type: 'text',
-    safety_normalisation_factor: 'decimal',
-    date: 'date'
-  }
+  driver_name: 'text',
+  user_name: 'text',
+  group: 'text',
+  group_hierarchy: 'text',
+  minutes_analyzed: 'decimal',
+  green_minutes_percent: 'decimal',
+  overspeeding_percent: 'decimal',
+  driver_score: 'decimal',
+  total_events_avg_fd_impact: 'decimal',
+  average_following_distance_sec: 'decimal',
+  average_following_distance_gz_impact: 'decimal',
+  total_events: 'decimal',
+  high_g: 'decimal',
+  low_impact: 'decimal',
+  driver_initiated: 'decimal',
+  potential_collision: 'decimal',
+  sign_violations: 'decimal',
+  sign_violations_gz_impact: 'decimal',
+  traffic_light_violation: 'decimal',
+  traffic_light_violation_gz_impact: 'decimal',
+  u_turn: 'decimal',
+  u_turn_gz_impact: 'decimal',
+  hard_braking: 'decimal',
+  hard_braking_gz_impact: 'decimal',
+  hard_turn: 'decimal',
+  hard_turn_gz_impact: 'decimal',
+  hard_acceleration: 'decimal',
+  hard_acceleration_gz_impact: 'decimal',
+  driver_distraction: 'decimal',
+  driver_distraction_gz_impact: 'decimal',
+  following_distance: 'decimal',
+  following_distance_gz_impact: 'decimal',
+  speeding_violations: 'decimal',
+  speeding_violations_gz_impact: 'decimal',
+  seatbelt_compliance: 'decimal',
+  camera_obstruction: 'decimal',
+  driver_drowsiness: 'decimal',
+  weaving: 'decimal',
+  weaving_gz_impact: 'decimal',
+  collision_warning: 'decimal',
+  collision_warning_gz_impact: 'decimal',
+  requested_video: 'decimal',
+  backing: 'decimal',
+  roadside_parking: 'decimal',
+  driver_distracted_hard_brake: 'decimal',
+  following_distance_hard_brake: 'decimal',
+  driver_distracted_following_distance: 'decimal',
+  driver_star: 'decimal',
+  driver_star_gz_impact: 'decimal',
+  vehicle_type: 'text',
+  safety_normalisation_factor: 'decimal',
+  date: 'date'
+}
+
   
   const formColumns = Object.keys(fieldTypes)
   const tableColumns = [...formColumns]
