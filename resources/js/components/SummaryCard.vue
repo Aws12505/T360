@@ -32,12 +32,72 @@
         <span class="font-medium text-gray-800">{{ formatValue(key, value) }}</span>
       </div>
     </div>
+
+    <!-- 🟨 Rejection Breakdown -->
+    <div v-if="rejectionBreakdown" class="mt-6 border-t pt-4">
+      <h3 class="text-sm font-semibold text-gray-700 mb-2">Rejections by Driver</h3>
+      <div
+        v-for="driver in rejectionBreakdown.by_driver"
+        :key="driver.driver_name"
+        class="text-sm text-gray-700 mb-1"
+      >
+        <div class="font-medium">{{ driver.driver_name }}</div>
+        <ul class="ml-4 text-xs text-gray-600">
+          <li>Total: {{ driver.total_rejections }} ({{ driver.total_penalty }} pts)</li>
+          <li>Block: {{ driver.total_block_rejections }} ({{ driver.total_block_penalty }} pts)</li>
+          <li>Load: {{ driver.total_load_rejections }} ({{ driver.total_load_penalty }} pts)</li>
+        </ul>
+      </div>
+
+      <h3 class="text-sm font-semibold text-gray-700 mt-4 mb-2">Rejections by Reason</h3>
+      <div
+        v-for="reason in rejectionBreakdown.by_reason"
+        :key="reason.reason_code"
+        class="text-sm text-gray-700 mb-1"
+      >
+        <div class="font-medium">{{ reason.reason_code }}</div>
+        <ul class="ml-4 text-xs text-gray-600">
+          <li>Total: {{ reason.total_rejections }} ({{ reason.total_penalty }} pts)</li>
+          <li>Block: {{ reason.total_block_rejections }} ({{ reason.total_block_penalty }} pts)</li>
+          <li>Load: {{ reason.total_load_rejections }} ({{ reason.total_load_penalty }} pts)</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 🟩 Delay Breakdown -->
+    <div v-if="delayBreakdown" class="mt-6 border-t pt-4">
+      <h3 class="text-sm font-semibold text-gray-700 mb-2">Delays by Driver</h3>
+      <div
+        v-for="driver in delayBreakdown.by_driver"
+        :key="driver.driver_name"
+        class="text-sm text-gray-700 mb-1"
+      >
+        <div class="font-medium">{{ driver.driver_name }}</div>
+        <ul class="ml-4 text-xs text-gray-600">
+          <li>Total: {{ driver.total_delays }} ({{ driver.total_penalty }} pts)</li>
+          <li>Origin: {{ driver.total_origin_delays }} ({{ driver.total_origin_penalty }} pts)</li>
+          <li>Destination: {{ driver.total_destination_delays }} ({{ driver.total_destination_penalty }} pts)</li>
+        </ul>
+      </div>
+
+      <h3 class="text-sm font-semibold text-gray-700 mt-4 mb-2">Delays by Code</h3>
+      <div
+        v-for="code in delayBreakdown.by_code"
+        :key="code.code"
+        class="text-sm text-gray-700 mb-1"
+      >
+        <div class="font-medium">{{ code.code }}</div>
+        <ul class="ml-4 text-xs text-gray-600">
+          <li>Total: {{ code.total_delays }} ({{ code.total_penalty }} pts)</li>
+          <li>Origin: {{ code.total_origin_delays }} ({{ code.total_origin_penalty }} pts)</li>
+          <li>Destination: {{ code.total_destination_delays }} ({{ code.total_destination_penalty }} pts)</li>
+        </ul>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { defineProps } from 'vue'
-
 const props = defineProps({
   range: String,
   data: Object,
@@ -45,6 +105,14 @@ const props = defineProps({
   safetySummary: {
     type: Object,
     default: () => ({}),
+  },
+  rejectionBreakdown: {
+    type: Object,
+    default: null,
+  },
+  delayBreakdown: {
+    type: Object,
+    default: null,
   },
 })
 

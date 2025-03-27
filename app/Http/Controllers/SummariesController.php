@@ -47,11 +47,29 @@ $summaries = [
         'quarterly'
     ),
 ];
-
+$rejectionBreakdowns = [
+    'yesterday' => $this->getRejectionBreakdown(Carbon::yesterday()->startOfDay(),
+    Carbon::yesterday()->endOfDay()),
+    'current_week' => $this->getRejectionBreakdown($currentWeekStart->copy()->startOfDay(),
+    $currentWeekEnd->copy()->endOfDay()),
+    'rolling_6_weeks' => $this->getRejectionBreakdown($rollingStart->copy()->startOfDay(),
+    $rollingEnd->copy()->endOfDay()),
+    'quarterly' => $this->getRejectionBreakdown($today->copy()->subMonths(3)->startOfDay(),
+    $today->copy()->endOfDay()),
+];
         $isSuperAdmin = is_null(Auth::user()->tenant_id);
         $tenants = $isSuperAdmin ? Tenant::all() : [];
         $tenantSlug = $isSuperAdmin ? null : Auth::user()->tenant->slug;
-
+        $delayBreakdowns = [
+            'yesterday' => $this->getDelayBreakdown(Carbon::yesterday()->startOfDay(),
+            Carbon::yesterday()->endOfDay()),
+            'current_week' => $this->getDelayBreakdown($currentWeekStart->copy()->startOfDay(),
+            $currentWeekEnd->copy()->endOfDay()),
+            'rolling_6_weeks' => $this->getDelayBreakdown($rollingStart->copy()->startOfDay(),
+            $rollingEnd->copy()->endOfDay()),
+            'quarterly' => $this->getDelayBreakdown($today->copy()->subMonths(3)->startOfDay(),
+            $today->copy()->endOfDay()),
+        ];
         // ✅ Debug response to inspect data being sent to Vue
        // return response()->json([
        //     'summaries' => $summaries,
@@ -61,14 +79,105 @@ $summaries = [
        // ]);
 //dd($summaries);
         // 🔁 When done debugging, switch to Inertia view rendering:
+
          return Inertia::render('Performance/Summary', [
              'summaries' => $summaries,
              'tenantSlug' => $tenantSlug,
              'SuperAdmin' => $isSuperAdmin,
+             'delayBreakdowns' => $delayBreakdowns,
              'tenants' => $tenants,
+             'rejectionBreakdowns' => $rejectionBreakdowns,
          ]);
     }
+    private function getDelayBreakdown($startDate, $endDate)
+    {
+        $filter = fn($q) =>
+            $q->where(function ($q) {
+                $q->whereNull('driver_controllable')->orWhere('driver_controllable', true);
+            });
 
+        $byDriver = DB::table('delays')
+            ->selectRaw("
+                driver_name,
+                COUNT(*) as total_delays,
+                SUM(penalty) as total_penalty,
+                SUM(CASE WHEN delay_type = 'origin' THEN 1 ELSE 0 END) as total_origin_delays,
+                SUM(CASE WHEN delay_type = 'origin' THEN penalty ELSE 0 END) as total_origin_penalty,
+                SUM(CASE WHEN delay_type = 'destination' THEN 1 ELSE 0 END) as total_destination_delays,
+                SUM(CASE WHEN delay_type = 'destination' THEN penalty ELSE 0 END) as total_destination_penalty
+            ")
+            ->whereBetween('date', [$startDate, $endDate])
+            ->tap($filter)
+            ->groupBy('driver_name')
+            ->get();
+
+        $byCode = DB::table('delays')
+            ->join('delay_codes', 'delays.delay_code_id', '=', 'delay_codes.id')
+            ->selectRaw("
+                delay_codes.code,
+                COUNT(*) as total_delays,
+                SUM(delays.penalty) as total_penalty,
+                SUM(CASE WHEN delays.delay_type = 'origin' THEN 1 ELSE 0 END) as total_origin_delays,
+                SUM(CASE WHEN delays.delay_type = 'origin' THEN delays.penalty ELSE 0 END) as total_origin_penalty,
+                SUM(CASE WHEN delays.delay_type = 'destination' THEN 1 ELSE 0 END) as total_destination_delays,
+                SUM(CASE WHEN delays.delay_type = 'destination' THEN delays.penalty ELSE 0 END) as total_destination_penalty
+            ")
+            ->whereBetween('delays.date', [$startDate, $endDate])
+            ->tap($filter)
+            ->groupBy('delay_codes.code')
+            ->get();
+
+        return [
+            'by_driver' => $byDriver,
+            'by_code' => $byCode,
+        ];
+    }
+    private function getRejectionBreakdown($startDate, $endDate)
+    {
+        // Only include where driver_controllable IS NULL or TRUE
+        $driverFilter = fn($query) =>
+            $query->where(function ($q) {
+                $q->whereNull('driver_controllable')->orWhere('driver_controllable', true);
+            });
+
+        // ➤ By Driver
+        $byDriver = DB::table('rejections')
+            ->selectRaw("
+                driver_name,
+                COUNT(*) as total_rejections,
+                SUM(penalty) as total_penalty,
+                SUM(CASE WHEN rejection_type = 'block' THEN 1 ELSE 0 END) as total_block_rejections,
+                SUM(CASE WHEN rejection_type = 'block' THEN penalty ELSE 0 END) as total_block_penalty,
+                SUM(CASE WHEN rejection_type = 'load' THEN 1 ELSE 0 END) as total_load_rejections,
+                SUM(CASE WHEN rejection_type = 'load' THEN penalty ELSE 0 END) as total_load_penalty
+            ")
+            ->whereBetween('date', [$startDate, $endDate])
+            ->tap($driverFilter)
+            ->groupBy('driver_name')
+            ->get();
+
+        // ➤ By Reason Code
+        $byReason = DB::table('rejections')
+            ->join('rejection_reason_codes', 'rejections.reason_code_id', '=', 'rejection_reason_codes.id')
+            ->selectRaw("
+                rejection_reason_codes.reason_code,
+                COUNT(*) as total_rejections,
+                SUM(rejections.penalty) as total_penalty,
+                SUM(CASE WHEN rejections.rejection_type = 'block' THEN 1 ELSE 0 END) as total_block_rejections,
+                SUM(CASE WHEN rejections.rejection_type = 'block' THEN rejections.penalty ELSE 0 END) as total_block_penalty,
+                SUM(CASE WHEN rejections.rejection_type = 'load' THEN 1 ELSE 0 END) as total_load_rejections,
+                SUM(CASE WHEN rejections.rejection_type = 'load' THEN rejections.penalty ELSE 0 END) as total_load_penalty
+            ")
+            ->whereBetween('rejections.date', [$startDate, $endDate])
+            ->tap($driverFilter)
+            ->groupBy('rejection_reason_codes.reason_code')
+            ->get();
+
+        return [
+            'by_driver' => $byDriver,
+            'by_reason' => $byReason,
+        ];
+    }
     private function fetchMetrics($startDate, $endDate, $label = '')
     {
         $rule = PerformanceMetricRule::first();

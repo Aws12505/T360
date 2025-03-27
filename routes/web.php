@@ -9,6 +9,8 @@ use App\Http\Controllers\PerformanceMetricRuleController;
 use App\Http\Controllers\PerformanceController;
 use App\Http\Controllers\SafetyDataController;
 use App\Http\Controllers\SummariesController;
+use App\Http\Controllers\RejectionsController;
+use App\Http\Controllers\DelaysController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
@@ -48,6 +50,17 @@ Route::get('/safety', [SafetyDataController::class, 'index'])->name('safety.inde
     Route::delete('/safety/{id}', [SafetyDataController::class, 'destroy'])->name('safety.destroy');
     Route::post('/safety/import', [SafetyDataController::class, 'import'])->name('safety.import');
     Route::get('/safety/export', [SafetyDataController::class, 'export'])->name('safety.export');
+// 🟨 DELAYS
+Route::post('/delays', [DelaysController::class, 'store'])->name('delays.store');
+Route::put('/delays/{delay}', [DelaysController::class, 'update'])->name('delays.update');
+Route::delete('/delays/{delay}', [DelaysController::class, 'destroy'])->name('delays.destroy');
+Route::get('/rejections', [RejectionsController::class, 'index'])->name('rejections.index');
+Route::get('/delays', [DelaysController::class, 'index'])->name('delays.index');
+
+// 🟥 REJECTIONS
+Route::post('/rejections', [RejectionsController::class, 'store'])->name('rejections.store');
+Route::put('/rejections/{rejection}', [RejectionsController::class, 'update'])->name('rejections.update');
+Route::delete('/rejections/{rejection}', [RejectionsController::class, 'destroy'])->name('rejections.destroy');
 
 });
 });
@@ -90,6 +103,27 @@ Route::put('/safety/{id}', [SafetyDataController::class, 'updateAdmin'])->name('
 Route::delete('/safety/{id}', [SafetyDataController::class, 'destroyAdmin'])->name('safety.destroy.admin');
 Route::post('/safety/import', [SafetyDataController::class, 'import'])->name('safety.import.admin');
 Route::get('/safety/export', [SafetyDataController::class, 'export'])->name('safety.export.admin');
+
+Route::get('/rejections', [RejectionsController::class, 'index'])->name('rejections.index.admin');
+Route::get('/delays', [DelaysController::class, 'index'])->name('delays.index.admin');
+
+// 🟥 REJECTIONS
+Route::post('/rejections', [RejectionsController::class, 'store'])->name('rejections.store.admin');
+Route::put('/rejections/{rejection}', [RejectionsController::class, 'updateAdmin'])->name('rejections.update.admin');
+Route::delete('/rejections/{rejection}', [RejectionsController::class, 'destroyAdmin'])->name('rejections.destroy.admin');
+
+// 🟥 REJECTION REASON CODES
+Route::post('/rejection-reason-codes', [RejectionsController::class, 'storeCode'])->name('rejection_reason_codes.store.admin');
+Route::delete('/rejection-reason-codes/{rejection_reason_code}', [RejectionsController::class, 'destroyCode'])->name('rejection_reason_codes.destroy.admin');
+
+// 🟨 DELAYS
+Route::post('/delays', [DelaysController::class, 'store'])->name('delays.store.admin');
+Route::put('/delays/{delay}', [DelaysController::class, 'updateAdmin'])->name('delays.update.admin');
+Route::delete('/delays/{delay}', [DelaysController::class, 'destroyAdmin'])->name('delays.destroy.admin');
+
+// 🟨 DELAY CODES
+Route::post('/delay-codes', [DelaysController::class, 'storeCode'])->name('delay_codes.store.admin');
+Route::delete('/delay-codes/{delay_code}', [DelaysController::class, 'destroyCode'])->name('delay_codes.destroy.admin');
 });
 
 

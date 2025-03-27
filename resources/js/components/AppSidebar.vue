@@ -46,6 +46,16 @@ const mainNavItems: NavItem[] = [
         title: 'Safety',
         href: tenantSlug ? `/${tenantSlug}/safety` :'/safety',
         icon: UserCog,
+    },
+    {
+        title: 'Rejections',
+        href: tenantSlug ? `/${tenantSlug}/rejections` :'/rejections',
+        icon: UserCog,
+    },
+    {
+        title: 'Delays',
+        href: tenantSlug ? `/${tenantSlug}/delays` :'/delays',
+        icon: UserCog,
     }
 ];
 
