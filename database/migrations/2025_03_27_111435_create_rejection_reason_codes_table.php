@@ -4,14 +4,18 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * Migration: CreateRejectionReasonCodesTable
+ *
+ * Creates the 'rejection_reason_codes' table to store unique codes for rejection reasons.
+ */
 class CreateRejectionReasonCodesTable extends Migration
 {
     public function up()
     {
         Schema::create('rejection_reason_codes', function (Blueprint $table) {
             $table->id();
-            // Each reason code is a unique string.
-            $table->string('reason_code')->unique();
+            $table->string('reason_code')->unique()->comment('Unique rejection reason code');
             $table->timestamps();
         });
     }

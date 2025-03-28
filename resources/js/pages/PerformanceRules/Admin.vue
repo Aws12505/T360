@@ -1,8 +1,13 @@
 <script setup>
 import { ref, computed } from 'vue'
 import AppLayout from '@/layouts/AppLayout.vue'
-import EntryForm from './Form.vue'
+import EntryForm from './Form.vue'  // Global metrics form component
 
+/**
+ * Props passed from the backend via Inertia.
+ * - metrics: Object containing global performance metrics.
+ * - tenantSlug: Optional string if tenant-specific.
+ */
 const props = defineProps({
   metrics: Object,
   tenantSlug: {
@@ -12,6 +17,7 @@ const props = defineProps({
 })
 const { tenantSlug } = props
 
+// Define breadcrumbs for the layout.
 const breadcrumbs = [
   {
     title: tenantSlug ? 'Dashboard' : 'Admin Dashboard',
@@ -19,23 +25,16 @@ const breadcrumbs = [
   },
 ]
 
+// Reactive state to control the modal for editing global metrics.
 const showForm = ref(false)
+// Reactive state to hold the current metrics data for editing.
 const editing = ref({})
 
-function openEditor() {
-  editing.value = props.metrics ?? {}
-  showForm.value = true
-}
-
-function closeEditor() {
-  showForm.value = false
-  editing.value = {}
-}
-
-// Only show the metrics that are present in the EntryForm
+// List of metrics and levels for display.
 const metricsList = ['acceptance', 'on_time', 'maintenance_variance', 'open_boc', 'vcr_preventable']
 const levels = ['fantastic_plus', 'fantastic', 'good', 'fair', 'poor']
 
+// Compute a display object from the metrics data to show each metric as a card.
 const displayMetrics = computed(() => {
   if (!props.metrics) return {}
   const data = {}
@@ -48,15 +47,28 @@ const displayMetrics = computed(() => {
       }
     })
   })
-  // Add safety bonus eligibility if available
+  // Add safety bonus eligibility levels.
   data.safety_bonus_eligible_levels = props.metrics.safety_bonus_eligible_levels || []
   return data
 })
+
+// Function to open the metrics editor modal.
+function openEditor() {
+  editing.value = props.metrics ?? {}
+  showForm.value = true
+}
+
+// Function to close the editor modal.
+function closeEditor() {
+  showForm.value = false
+  editing.value = {}
+}
 </script>
 
 <template>
   <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
     <div class="max-w-6xl mx-auto p-6 space-y-8">
+      <!-- Header with title and Edit button -->
       <div class="flex flex-col sm:flex-row justify-between items-center">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
           Performance Metrics
@@ -66,12 +78,13 @@ const displayMetrics = computed(() => {
         </button>
       </div>
 
+      <!-- Show the metrics form modal if editing -->
       <div v-if="showForm">
         <EntryForm :entry="editing" @saved="closeEditor" @cancel="closeEditor" />
       </div>
 
-      <div v-else-if="metrics" class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <!-- Display each metric as a card -->
+      <!-- Display metrics as cards when not editing -->
+      <div v-else-if="props.metrics" class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div v-for="metric in metricsList" :key="metric" class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
           <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 capitalize">
             {{ metric.replace(/_/g, ' ') }}

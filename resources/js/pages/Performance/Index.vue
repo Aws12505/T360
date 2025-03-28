@@ -1,22 +1,22 @@
 <template>
   <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
     <div class="max-w-6xl mx-auto p-6 space-y-8">
-      <!-- Success Message -->
-      <p
-        v-if="successMessage"
-        class="bg-green-100 text-green-800 border border-green-300 px-4 py-2 rounded"
-      >
+      <!-- Success Message Notification -->
+      <p v-if="successMessage" class="bg-green-100 text-green-800 border border-green-300 px-4 py-2 rounded">
         {{ successMessage }}
       </p>
 
       <!-- Action Buttons -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <button
+        <!-- Create New Performance Button (using ShadCN Button) -->
+        <Button
           @click="openCreateModal"
+          variant="default"
           class="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded shadow transition"
         >
           Create New Performance
-        </button>
+        </Button>
+        <!-- Import CSV (styled as a label with hidden file input) -->
         <label class="flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded shadow cursor-pointer transition">
           Import CSV
           <input
@@ -26,12 +26,14 @@
             accept=".csv"
           />
         </label>
-        <button
+        <!-- Export CSV Button -->
+        <Button
           @click.prevent="exportCSV"
+          variant="default"
           class="bg-gray-600 hover:bg-gray-700 text-white font-semibold px-4 py-2 rounded shadow transition"
         >
           Export CSV
-        </button>
+        </Button>
       </div>
 
       <!-- Performance Table -->
@@ -101,34 +103,36 @@
                 </div>
               </td>
               <td class="px-4 py-2 space-x-2">
-                <button
+                <!-- Edit Performance Button -->
+                <Button
                   @click="openEditModal(item)"
+                  variant="default"
                   class="bg-yellow-400 hover:bg-yellow-500 text-white px-2 py-1 rounded text-sm transition"
                 >
                   Edit
-                </button>
-                <button
+                </Button>
+                <!-- Delete Performance Button -->
+                <Button
                   @click="deletePerformance(item.id)"
+                  variant="destructive"
                   class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-sm transition"
                 >
                   Delete
-                </button>
+                </Button>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <!-- Modal for Create/Edit -->
-      <div
-        v-if="showModal"
-        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-      >
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-lg space-y-6">
-          <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
-            {{ formTitle }}
-          </h2>
+      <!-- Modal for Create/Edit Performance using ShadCN Dialog components -->
+      <Dialog v-model:open="showModal">
+        <DialogContent class="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{{ formTitle }}</DialogTitle>
+          </DialogHeader>
           <form @submit.prevent="submitForm" class="space-y-4">
+            <!-- Tenant Dropdown for SuperAdmin -->
             <div v-if="SuperAdmin">
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Tenant
@@ -139,15 +143,12 @@
                 class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option disabled value="">Select a tenant</option>
-                <option
-                  v-for="tenant in tenants"
-                  :key="tenant.id"
-                  :value="tenant.id"
-                >
+                <option v-for="tenant in tenants" :key="tenant.id" :value="tenant.id">
                   {{ tenant.name }}
                 </option>
               </select>
             </div>
+            <!-- Date Field -->
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Date
@@ -159,6 +160,7 @@
                 class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
+            <!-- Acceptance Field -->
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Acceptance
@@ -171,6 +173,7 @@
                 class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
+            <!-- On Time to Origin Field -->
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 On Time to Origin
@@ -183,6 +186,7 @@
                 class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
+            <!-- On Time to Destination Field -->
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 On Time to Destination
@@ -195,6 +199,7 @@
                 class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
+            <!-- Maintenance Variance to Spend Field -->
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Maintenance Variance to Spend
@@ -207,6 +212,7 @@
                 class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
+            <!-- Open BOC Field -->
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Open BOC
@@ -219,6 +225,7 @@
                 class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
+            <!-- Safety Bonus Checkbox -->
             <div class="flex items-center gap-2">
               <input
                 v-model="form.meets_safety_bonus_criteria"
@@ -229,6 +236,7 @@
                 Meets Safety Bonus Criteria
               </label>
             </div>
+            <!-- VCR Preventable Field -->
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 VCR Preventable
@@ -241,6 +249,7 @@
                 class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
+            <!-- Action Buttons -->
             <div class="flex justify-end gap-3">
               <button
                 type="submit"
@@ -257,8 +266,10 @@
               </button>
             </div>
           </form>
-        </div>
-      </div>
+        </DialogContent>
+      </Dialog>
+
+      <!-- Hidden Export Form -->
       <form ref="exportForm" method="GET" class="hidden" />
     </div>
   </AppLayout>
@@ -268,21 +279,14 @@
 import { ref } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
+import Button from '@/components/ui/button/Button.vue'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 const props = defineProps({
   performances: Array,
-  tenantSlug: {
-    type: String,
-    default: null
-  },
-  SuperAdmin: {
-    type: Boolean,
-    default: false,
-  },
-  tenants: {
-    type: Array,
-    default: () => [],
-  }
+  tenantSlug: { type: String, default: null },
+  SuperAdmin: { type: Boolean, default: false },
+  tenants: { type: Array, default: () => [] }
 })
 
 const successMessage = ref('')
@@ -299,6 +303,7 @@ const breadcrumbs = [
   }
 ]
 
+// Initialize form state using Inertia's useForm helper.
 const form = useForm({
   tenant_id: null, 
   date: '',
@@ -378,9 +383,7 @@ function deletePerformance(id) {
     : route('performance.destroy', [props.tenantSlug, id])
 
   deleteForm.delete(routeName, {
-    onSuccess: () => {
-      successMessage.value = 'Performance deleted.'
-    }
+    onSuccess: () => successMessage.value = 'Performance deleted.'
   })
 }
 

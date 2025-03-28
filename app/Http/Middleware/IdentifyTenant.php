@@ -4,51 +4,65 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use App\Models\Tenant;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
+/**
+ * Class IdentifyTenant
+ *
+ * This middleware verifies that the current authenticated user belongs to the correct tenant.
+ * It performs the following:
+ *   - If the user is not authenticated, it redirects to the login page.
+ *   - If the user is a Super Admin (tenant_id is null), no further tenant checks are done.
+ *   - If the user has a tenant, it checks if the tenantSlug in the route matches the user's tenant slug.
+ *       - If it does not match, the request is aborted with a 403 error.
+ *       - If no slug is present in the route, the user is redirected to the correct route with their tenantSlug.
+ *
+ * No artisan command is needed since this file already exists.
+ */
 class IdentifyTenant
 {
+    /**
+     * Handle an incoming request.
+     *
+     * @param  Request  $request  The current HTTP request instance.
+     * @param  Closure  $next     The next middleware or request handler.
+     * @return Response
+     */
     public function handle(Request $request, Closure $next)
     {
-        // If user not logged in, just continue (or redirect to login, up to you).
+        // Redirect to login if user is not authenticated.
         if (!Auth::check()) {
             return redirect()->route('login');
         }
         
         $user = Auth::user();
 
-        // If superadmin (tenant_id is null), skip slug checks:
+        // For Super Admins (tenant_id is null), skip tenant slug checks.
         if (is_null($user->tenant_id)) {
-            // No restrictions
             return $next($request);
         }
 
-        // Otherwise, user has a tenant -> get the tenant's slug
-        // Adjust this to however you access the tenant slug, e.g. $user->tenant->slug
+        // Retrieve the user's tenant slug (using optional() to avoid errors if tenant is null).
         $tenantSlug = optional($user->tenant)->slug;
         
-        // The slug in the current route (if any)
+        // Retrieve the tenantSlug parameter from the current route.
         $routeSlug = $request->route('tenantSlug');
 
-        // If the route includes a slug that's not user's slug -> Unauthorized
+        // If the route includes a slug that doesn't match the user's tenant slug, abort with a 403.
         if (!is_null($routeSlug) && $routeSlug !== $tenantSlug) {
             abort(403, 'Unauthorized: Slug does not match your tenant.');
         }
 
-        // If there's no slug in the route, redirect to the correct slug
+        // If no slug is provided in the route and the user has a tenant, redirect to the route with the correct slug.
         if (is_null($routeSlug) && !is_null($user->tenant_id)) {
-            // If your route is named, you can redirect via route name
-            // e.g., for a named route "dashboard" or "your-route-name"
             return redirect()->route(
                 $request->route()->getName(),
                 ['tenantSlug' => $tenantSlug]
             );
         }
 
-        // If everything looks good, continue
+        // All checks passed; proceed with the request.
         return $next($request);
     }
 }
-

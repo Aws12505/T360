@@ -38,7 +38,7 @@
         </tr>
       </tbody>
     </table>
-    <!-- Pagination -->
+    <!-- Pagination Section -->
     <div class="mt-4 flex justify-center" v-if="tenants.links">
       <button
         v-for="link in tenants.links"
@@ -54,6 +54,7 @@
 </template>
 
 <script setup>
+// Import Button from the correct folder and Inertia for navigation
 import Button from '@/components/ui/button/Button.vue';
 
 const props = defineProps({
@@ -63,10 +64,12 @@ const props = defineProps({
   },
 });
 
+// Normalize tenants to an array (for paginated or non-paginated data)
 const normalizedTenants = Array.isArray(props.tenants)
   ? props.tenants
   : props.tenants.data || [];
 
+// Function to navigate to a page while preserving state
 const visitPage = (url) => {
   if (url) {
     Inertia.get(url, {}, { preserveState: true, replace: true });

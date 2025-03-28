@@ -54,6 +54,7 @@
 </template>
 
 <script setup>
+// Import ShadCN UI Button component
 import Button from '@/components/ui/button/Button.vue';
 
 const props = defineProps({

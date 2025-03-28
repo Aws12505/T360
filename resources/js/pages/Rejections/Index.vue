@@ -1,14 +1,22 @@
 <template>
   <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
     <div class="p-6 space-y-6">
+      <!-- Header Section -->
       <div class="flex justify-between items-center">
-        <h1 class="text-2xl font-semibold">Rejections</h1>
+        <h1 class="text-2xl font-semibold">Acceptance</h1>
         <div class="space-x-2">
-          <Button @click="openForm()">Add Rejection</Button>
-          <Button variant="outline" @click="openCodeModal()">Manage Reason Codes</Button>
+          <!-- Button to open rejection form modal -->
+          <Button @click="openForm()" variant="default" class="px-4 py-2">
+            Add Rejection
+          </Button>
+          <!-- Button to open reason code management modal -->
+          <Button @click="openCodeModal()" variant="outline" class="px-4 py-2">
+            Manage Reason Codes
+          </Button>
         </div>
       </div>
 
+      <!-- Rejections Table -->
       <div class="border rounded-lg">
         <table class="w-full text-sm">
           <thead class="bg-gray-100 text-left">
@@ -34,17 +42,22 @@
               <td class="p-3">{{ rejection.reason_code?.reason_code || '—' }}</td>
               <td class="p-3">{{ rejection.disputed ? 'Yes' : 'No' }}</td>
               <td class="p-3">
-                {{ rejection.driver_controllable === null ? 'N/A' : rejection.driver_controllable ? 'Yes' : 'No' }}
+                {{ rejection.driver_controllable === null ? 'N/A' : (rejection.driver_controllable ? 'Yes' : 'No') }}
               </td>
               <td class="p-3 space-x-2">
-                <Button size="sm" @click="openForm(rejection)">Edit</Button>
-                <Button size="sm" variant="destructive" @click="deleteRejection(rejection.id)">Delete</Button>
+                <Button size="sm" @click="openForm(rejection)" variant="default" class="px-3 py-1">
+                  Edit
+                </Button>
+                <Button size="sm" variant="destructive" @click="deleteRejection(rejection.id)" class="px-3 py-1">
+                  Delete
+                </Button>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
 
+      <!-- Rejection Form Modal -->
       <Dialog v-model:open="formModal">
         <DialogContent class="sm:max-w-2xl">
           <DialogHeader>
@@ -61,6 +74,7 @@
         </DialogContent>
       </Dialog>
 
+      <!-- Code Manager Modal for Reason Codes (visible only for SuperAdmin) -->
       <Dialog v-model:open="codeModal" v-if="isSuperAdmin">
         <DialogContent class="sm:max-w-lg">
           <DialogHeader>
@@ -81,36 +95,29 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useForm } from '@inertiajs/vue3'
-import { Button } from '@/Components/ui/button'
+import { ref } from 'vue';
+import { useForm } from '@inertiajs/vue3';
+// Import UI components from their correct folders
+import Button from '@/components/ui/button/Button.vue';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/Components/ui/dialog'
-import RejectionForm from '@/Components/RejectionForm.vue'
-import CodeManager from '@/Components/CodeManager.vue'
-import AppLayout from '@/layouts/AppLayout.vue'
+} from '@/components/ui/dialog';
+import RejectionForm from '@/components/RejectionForm.vue';
+import CodeManager from '@/components/CodeManager.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
 
 const props = defineProps({
   rejections: Array,
-  tenantSlug: {
-    type: String,
-    default: null,
-  },
+  tenantSlug: { type: String, default: null },
   rejection_reason_codes: Array,
-  tenants: {
-    type: Array,
-    default: () => [],
-  },
-  isSuperAdmin: {
-    type: Boolean,
-    default: false,
-  },
-})
+  tenants: { type: Array, default: () => [] },
+  isSuperAdmin: { type: Boolean, default: false },
+});
 
+// Set up breadcrumbs
 const breadcrumbs = [
   {
     title: props.tenantSlug ? 'Dashboard' : 'Admin Dashboard',
@@ -118,36 +125,32 @@ const breadcrumbs = [
       ? route('dashboard', { tenantSlug: props.tenantSlug })
       : route('admin.dashboard'),
   },
-]
+];
 
-const formModal = ref(false)
-const codeModal = ref(false)
-const selectedRejection = ref(null)
+// Reactive state for modals and selected rejection
+const formModal = ref(false);
+const codeModal = ref(false);
+const selectedRejection = ref(null);
 
+// Function to open the rejection form modal (for create or edit)
 const openForm = (rejection = null) => {
-  selectedRejection.value = rejection
-  formModal.value = true
-}
+  selectedRejection.value = rejection;
+  formModal.value = true;
+};
 
+// Function to open the reason codes manager modal
 const openCodeModal = () => {
-  codeModal.value = true
-}
+  codeModal.value = true;
+};
 
+// Function to delete a rejection using Inertia form helper
 const deleteRejection = (id) => {
-  const form = useForm({})
-  const routeName = props.isSuperAdmin
-    ? 'rejections.destroy.admin'
-    : 'rejections.destroy'
-
-  const routeParams = props.isSuperAdmin
-    ? { rejection: id }
-    : { tenantSlug: props.tenantSlug, rejection: id }
-
-  if (!confirm('Are you sure you want to delete this rejection?')) return
-
+  const form = useForm({});
+  const routeName = props.isSuperAdmin ? 'acceptance.destroy.admin' : 'acceptance.destroy';
+  const routeParams = props.isSuperAdmin ? { rejection: id } : { tenantSlug: props.tenantSlug, rejection: id };
+  if (!confirm('Are you sure you want to delete this rejection?')) return;
   form.delete(route(routeName, routeParams), {
     preserveScroll: true,
-  })
-}
-
+  });
+};
 </script>

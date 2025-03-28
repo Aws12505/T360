@@ -1,14 +1,20 @@
 <template>
   <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
     <div class="p-6 space-y-6">
+      <!-- Header Section -->
       <div class="flex justify-between items-center">
-        <h1 class="text-2xl font-semibold">Delays</h1>
+        <h1 class="text-2xl font-semibold">On-Time</h1>
         <div class="space-x-2">
-          <Button @click="openForm()">Add Delay</Button>
-          <Button variant="outline" @click="openCodeModal()">Manage Delay Codes</Button>
+          <Button @click="openForm()" variant="default" class="px-4 py-2">
+            Add Delay
+          </Button>
+          <Button @click="openCodeModal()" variant="outline" class="px-4 py-2">
+            Manage Delay Codes
+          </Button>
         </div>
       </div>
 
+      <!-- Delays Table -->
       <div class="border rounded-lg">
         <table class="w-full text-sm">
           <thead class="bg-gray-100 text-left">
@@ -33,16 +39,23 @@
               <td class="p-3">{{ delay.penalty }}</td>
               <td class="p-3">{{ delay.delay_code?.code || '—' }}</td>
               <td class="p-3">{{ delay.disputed ? 'Yes' : 'No' }}</td>
-              <td class="p-3">{{ delay.driver_controllable === null ? 'N/A' : delay.driver_controllable ? 'Yes' : 'No' }}</td>
+              <td class="p-3">
+                {{ delay.driver_controllable === null ? 'N/A' : (delay.driver_controllable ? 'Yes' : 'No') }}
+              </td>
               <td class="p-3 space-x-2">
-                <Button size="sm" @click="openForm(delay)">Edit</Button>
-                <Button size="sm" variant="destructive" @click="deleteDelay(delay.id)">Delete</Button>
+                <Button size="sm" @click="openForm(delay)" variant="default" class="px-3 py-1">
+                  Edit
+                </Button>
+                <Button size="sm" variant="destructive" @click="deleteDelay(delay.id)" class="px-3 py-1">
+                  Delete
+                </Button>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
 
+      <!-- Delay Form Modal -->
       <Dialog v-model:open="formModal">
         <DialogContent class="sm:max-w-2xl">
           <DialogHeader>
@@ -59,6 +72,7 @@
         </DialogContent>
       </Dialog>
 
+      <!-- Code Manager Modal for Delay Codes (visible only for SuperAdmin) -->
       <Dialog v-model:open="codeModal" v-if="isSuperAdmin">
         <DialogContent class="sm:max-w-lg">
           <DialogHeader>
@@ -79,35 +93,26 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useForm } from '@inertiajs/vue3'
-import { Button } from '@/Components/ui/button'
+import { ref } from 'vue';
+import { useForm } from '@inertiajs/vue3';
+import AppLayout from '@/layouts/AppLayout.vue';
+import Button from '@/components/ui/button/Button.vue';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/Components/ui/dialog'
-import DelayForm from '@/Components/DelayForm.vue'
-import CodeManager from '@/Components/CodeManager.vue'
-import AppLayout from '@/layouts/AppLayout.vue'
+} from '@/components/ui/dialog';
+import DelayForm from '@/components/DelayForm.vue';
+import CodeManager from '@/components/CodeManager.vue';
 
 const props = defineProps({
   delays: Array,
-  tenantSlug: {
-    type: String,
-    default: null,
-  },
+  tenantSlug: { type: String, default: null },
   delay_codes: Array,
-  tenants: {
-    type: Array,
-    default: () => [],
-  },
-  isSuperAdmin: {
-    type: Boolean,
-    default: false,
-  },
-})
+  tenants: { type: Array, default: () => [] },
+  isSuperAdmin: { type: Boolean, default: false },
+});
 
 const breadcrumbs = [
   {
@@ -116,35 +121,28 @@ const breadcrumbs = [
       ? route('dashboard', { tenantSlug: props.tenantSlug })
       : route('admin.dashboard'),
   },
-]
+];
 
-const formModal = ref(false)
-const codeModal = ref(false)
-const selectedDelay = ref(null)
+const formModal = ref(false);
+const codeModal = ref(false);
+const selectedDelay = ref(null);
 
 const openForm = (delay = null) => {
-  selectedDelay.value = delay
-  formModal.value = true
-}
+  selectedDelay.value = delay;
+  formModal.value = true;
+};
 
 const openCodeModal = () => {
-  codeModal.value = true
-}
+  codeModal.value = true;
+};
 
 const deleteDelay = (id) => {
-  const form = useForm()
-  const routeName = props.isSuperAdmin
-    ? 'delays.destroy.admin'
-    : 'delays.destroy'
-
-  const routeParams = props.isSuperAdmin
-    ? { delay: id }
-    : { tenantSlug: props.tenantSlug, delay: id }
-
-  if (!confirm('Are you sure you want to delete this delay?')) return
-
+  const form = useForm({});
+  const routeName = props.isSuperAdmin ? 'ontime.destroy.admin' : 'ontime.destroy';
+  const routeParams = props.isSuperAdmin ? { delay: id } : { tenantSlug: props.tenantSlug, delay: id };
+  if (!confirm('Are you sure you want to delete this delay?')) return;
   form.delete(route(routeName, routeParams), {
     preserveScroll: true,
-  })
-}
+  });
+};
 </script>

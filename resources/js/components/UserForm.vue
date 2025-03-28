@@ -1,4 +1,5 @@
 <template>
+  <!-- Modal overlay for user form -->
   <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
     <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md overflow-y-auto">
       <h2 class="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">
@@ -28,7 +29,7 @@
             class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:ring-blue-500"
           />
         </div>
-        <!-- Password Field (only when creating a new user) -->
+        <!-- Password Field (shown only when creating a new user) -->
         <div v-if="!user">
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Password
@@ -40,7 +41,7 @@
             class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:ring-blue-500"
           />
         </div>
-        <!-- Tenant Dropdown for SuperAdmin -->
+        <!-- Tenant Dropdown for SuperAdmin users -->
         <div v-if="isSuperAdmin">
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Tenant
@@ -59,7 +60,7 @@
             </option>
           </select>
         </div>
-        <!-- Roles Assignment with Search and Scrollable Container -->
+        <!-- Roles Assignment Section -->
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Roles
@@ -85,7 +86,7 @@
             </div>
           </div>
         </div>
-        <!-- Permissions Assignment with Search and Scrollable Container -->
+        <!-- Permissions Assignment Section -->
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Permissions
@@ -111,10 +112,7 @@
               />
               <span class="text-gray-700 dark:text-gray-300">
                 {{ permission.name }}
-                <span
-                  v-if="inheritedPermissions.includes(permission.name)"
-                  class="text-xs text-gray-500"
-                >
+                <span v-if="inheritedPermissions.includes(permission.name)" class="text-xs text-gray-500">
                   (inherited)
                 </span>
               </span>
@@ -145,6 +143,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
+// Import UI components from correct paths
 import Input from '@/components/ui/input/Input.vue';
 import Button from '@/components/ui/button/Button.vue';
 
@@ -158,6 +157,7 @@ const props = defineProps({
 });
 const emit = defineEmits(['close', 'saved']);
 
+// Initialize the form with existing user data (or defaults)
 const form = useForm({
   name: props.user ? props.user.name : '',
   email: props.user ? props.user.email : '',
@@ -170,6 +170,7 @@ const form = useForm({
 const roleSearch = ref('');
 const permissionSearch = ref('');
 
+// Compute filtered roles based on search term.
 const filteredRoles = computed(() => {
   if (!roleSearch.value.trim()) return props.roles;
   const term = roleSearch.value.toLowerCase();
@@ -178,6 +179,7 @@ const filteredRoles = computed(() => {
   );
 });
 
+// Compute filtered permissions based on search term.
 const filteredPermissions = computed(() => {
   if (!permissionSearch.value.trim()) return props.permissions;
   const term = permissionSearch.value.toLowerCase();
@@ -186,6 +188,7 @@ const filteredPermissions = computed(() => {
   );
 });
 
+// Compute inherited permissions from selected roles.
 const inheritedPermissions = computed(() => {
   let perms: string[] = [];
   props.roles.forEach(role => {
@@ -196,6 +199,7 @@ const inheritedPermissions = computed(() => {
   return Array.from(new Set(perms));
 });
 
+// Watch for changes in the user prop to update the form accordingly.
 watch(() => props.user, (newVal) => {
   if (newVal) {
     form.name = newVal.name;

@@ -34,6 +34,7 @@
             >
               Delete
             </Button>
+            <!-- Show Impersonate button only for SuperAdmin users -->
             <Link
               v-if="isSuperAdmin"
               :href="route('impersonate.start', user.id)"
@@ -71,6 +72,7 @@ const props = defineProps({
   isSuperAdmin: { type: Boolean, default: false },
 });
 
+// Function to handle pagination navigation using Inertia.
 const visitPage = (url) => {
   if (url) {
     Inertia.get(url, {}, { preserveState: true, replace: true });

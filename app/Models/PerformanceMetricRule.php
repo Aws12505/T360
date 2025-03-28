@@ -4,16 +4,36 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Scopes\TenantScope;
-use Illuminate\Support\Facades\Auth;
+
+/**
+ * Class PerformanceMetricRule
+ *
+ * Stores threshold values and comparison operators for various performance metrics.
+ *
+ * Properties:
+ * - Each metric (acceptance, on_time, maintenance_variance, etc.) has multiple thresholds
+ *   and operators for different rating levels (fantastic_plus, fantastic, good, fair, poor).
+ * - safety_bonus_eligible_levels: JSON field storing eligible rating levels for bonus.
+ */
 class PerformanceMetricRule extends Model
 {
     use HasFactory;
-    protected $casts = [
-        'safety_bonus_eligible_levels' => 'array', // NEW
-    ];
-    protected $fillable = [
 
+    /**
+     * Cast safety_bonus_eligible_levels as an array.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'safety_bonus_eligible_levels' => 'array',
+    ];
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
         // Acceptance
         'acceptance_fantastic_plus',
         'acceptance_fantastic_plus_operator',
@@ -77,5 +97,4 @@ class PerformanceMetricRule extends Model
         'vcr_preventable_poor',
         'vcr_preventable_poor_operator',
     ];
-
 }

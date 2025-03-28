@@ -1,62 +1,7 @@
-<script setup>
-import { useForm } from '@inertiajs/vue3'
-import { Button } from '@/Components/ui/button'
-import { Input } from '@/Components/ui/input'
-import { Checkbox } from '@/Components/ui/checkbox'
-import { Label } from '@/Components/ui/label'
-
-const props = defineProps({
-  rejection: Object,
-  reasons: Array,
-  tenants: Array,
-  isSuperAdmin: Boolean,
-  tenantSlug: String,
-})
-
-const emit = defineEmits(['close'])
-
-const form = useForm({
-  id: props.rejection?.id,
-  tenant_id: props.isSuperAdmin ? props.rejection?.tenant_id : null,
-  date: props.rejection?.date || '',
-  driver_name: props.rejection?.driver_name || '',
-  rejection_type: props.rejection?.rejection_type || 'block',
-  rejection_category: props.rejection?.rejection_category || 'more_than_6',
-  reason_code_id: props.rejection?.reason_code_id || null,
-  disputed: props.rejection?.disputed || false,
-  driver_controllable:
-    props.rejection?.driver_controllable === 1 || props.rejection?.driver_controllable === true
-      ? true
-      : props.rejection?.driver_controllable === 0 || props.rejection?.driver_controllable === false
-      ? false
-      : null,
-})
-
-const submit = () => {
-  const isEdit = !!form.id
-  const routeName = props.isSuperAdmin
-    ? isEdit ? 'rejections.update.admin' : 'rejections.store.admin'
-    : isEdit ? 'rejections.update' : 'rejections.store'
-
-  const routeParams = props.isSuperAdmin
-    ? isEdit
-      ? { rejection: form.id }
-      : {}
-    : isEdit
-      ? { tenantSlug: props.tenantSlug, rejection: form.id }
-      : { tenantSlug: props.tenantSlug }
-
-  const method = isEdit ? 'put' : 'post'
-
-  form[method](route(routeName, routeParams), {
-    onSuccess: () => emit('close'),
-  })
-}
-</script>
-
 <template>
   <form @submit.prevent="submit">
     <div class="grid grid-cols-2 gap-4">
+      <!-- Tenant dropdown for SuperAdmin users -->
       <div v-if="isSuperAdmin">
         <Label>Tenant</Label>
         <select v-model="form.tenant_id" class="w-full border rounded px-2 py-1">
@@ -66,10 +11,17 @@ const submit = () => {
           </option>
         </select>
       </div>
-
-      <div><Label>Date</Label><Input type="date" v-model="form.date" /></div>
-      <div><Label>Driver Name</Label><Input v-model="form.driver_name" /></div>
-
+      <!-- Date Field -->
+      <div>
+        <Label>Date</Label>
+        <Input type="date" v-model="form.date" class="w-full" />
+      </div>
+      <!-- Driver Name Field -->
+      <div>
+        <Label>Driver Name</Label>
+        <Input v-model="form.driver_name" class="w-full" />
+      </div>
+      <!-- Rejection Type Field -->
       <div>
         <Label>Rejection Type</Label>
         <select v-model="form.rejection_type" class="w-full border rounded px-2 py-1">
@@ -77,7 +29,7 @@ const submit = () => {
           <option value="load">Load</option>
         </select>
       </div>
-
+      <!-- Rejection Category Field -->
       <div>
         <Label>Rejection Category</Label>
         <select v-model="form.rejection_category" class="w-full border rounded px-2 py-1">
@@ -86,7 +38,7 @@ const submit = () => {
           <option value="after_start">After start</option>
         </select>
       </div>
-
+      <!-- Reason Code Field -->
       <div>
         <Label>Reason Code</Label>
         <select v-model="form.reason_code_id" class="w-full border rounded px-2 py-1">
@@ -95,12 +47,12 @@ const submit = () => {
           </option>
         </select>
       </div>
-
+      <!-- Disputed Checkbox -->
       <div class="flex items-center space-x-2">
         <Checkbox v-model:checked="form.disputed" />
         <Label>Disputed</Label>
       </div>
-
+      <!-- Driver Controllable Field -->
       <div>
         <Label>Driver Controllable</Label>
         <select v-model="form.driver_controllable" class="w-full border rounded px-2 py-1">
@@ -118,3 +70,70 @@ const submit = () => {
     </div>
   </form>
 </template>
+
+<script setup lang="ts">
+import { ref, watch } from 'vue';
+import { useForm } from '@inertiajs/vue3';
+// Import UI components from correct folders
+import Input from '@/components/ui/input/Input.vue';
+import Button from '@/components/ui/button/Button.vue';
+import Checkbox from '@/components/ui/checkbox/Checkbox.vue';
+import Label from '@/components/ui/label/Label.vue';
+
+const props = defineProps({
+  rejection: { type: Object, default: null },
+  reasons: { type: Array, default: () => [] },
+  tenants: { type: Array, default: () => [] },
+  isSuperAdmin: { type: Boolean, default: false },
+  tenantSlug: { type: String, default: null },
+});
+const emit = defineEmits(['close']);
+
+// Initialize the form. For driver_controllable, convert the value to boolean
+const form = useForm({
+  id: props.rejection?.id,
+  tenant_id: props.isSuperAdmin ? props.rejection?.tenant_id : null,
+  date: props.rejection?.date || '',
+  driver_name: props.rejection?.driver_name || '',
+  rejection_type: props.rejection?.rejection_type || 'block',
+  rejection_category: props.rejection?.rejection_category || 'more_than_6',
+  reason_code_id: props.rejection?.reason_code_id || null,
+  disputed: props.rejection && props.rejection.disputed !== null
+    ? (parseInt(props.rejection.disputed) === 1)
+    : false,
+  driver_controllable: props.rejection && props.rejection.driver_controllable !== null
+    ? (parseInt(props.rejection.driver_controllable) === 1)
+    : null,
+});
+
+// Watch for changes in the rejection prop and update the form accordingly.
+watch(() => props.rejection, (newVal) => {
+  if (newVal) {
+    form.id = newVal.id;
+    form.tenant_id = newVal.tenant_id;
+    form.date = newVal.date;
+    form.driver_name = newVal.driver_name;
+    form.rejection_type = newVal.rejection_type;
+    form.rejection_category = newVal.rejection_category;
+    form.reason_code_id = newVal.reason_code_id;
+    form.disputed = newVal.disputed !== null ? (parseInt(newVal.disputed) === 1) : false;
+    form.driver_controllable = newVal.driver_controllable !== null ? (parseInt(newVal.driver_controllable) === 1) : null;
+  } else {
+    form.reset();
+  }
+}, { immediate: true });
+
+const submit = () => {
+  const isEdit = !!form.id;
+  const routeName = props.isSuperAdmin
+    ? isEdit ? 'acceptance.update.admin' : 'acceptance.store.admin'
+    : isEdit ? 'acceptance.update' : 'acceptance.store';
+  const routeParams = props.isSuperAdmin
+    ? isEdit ? { rejection: form.id } : {}
+    : isEdit ? { tenantSlug: props.tenantSlug, rejection: form.id } : { tenantSlug: props.tenantSlug };
+  const method = isEdit ? 'put' : 'post';
+  form[method](route(routeName, routeParams), {
+    onSuccess: () => emit('close'),
+  });
+};
+</script>

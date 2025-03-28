@@ -7,12 +7,28 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Scopes\TenantScope;
 use Illuminate\Support\Facades\Auth;
 
+/**
+ * Class SafetyData
+ *
+ * Represents safety data entries containing various metrics per driver.
+ *
+ * Properties include metrics such as minutes analyzed, percentages,
+ * driver scores, and other event-based measurements.
+ *
+ * Relationships:
+ * - Belongs to a Tenant.
+ */
 class SafetyData extends Model
 {
     use HasFactory;
 
     protected $table = 'safety_data';
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'tenant_id', 'driver_name', 'user_name', 'group', 'group_hierarchy', 'minutes_analyzed', 'green_minutes_percent',
         'overspeeding_percent', 'driver_score', 'total_events_avg_fd_impact', 'average_following_distance_sec',
@@ -28,14 +44,24 @@ class SafetyData extends Model
         'safety_normalisation_factor', 'date',
     ];
 
+    /**
+     * Get the tenant that the safety data belongs to.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
     public function tenant()
     {
         return $this->belongsTo(Tenant::class);
     }
 
+    /**
+     * Boot the model and apply the TenantScope global scope if a user is authenticated.
+     *
+     * @return void
+     */
     protected static function booted()
     {
-        if (Auth::user()) {
+        if (Auth::check()) {
             static::addGlobalScope(new TenantScope);
         }
     }

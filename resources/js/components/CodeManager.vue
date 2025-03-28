@@ -1,71 +1,12 @@
-<script setup>
-import { ref, computed } from 'vue'
-import { useForm } from '@inertiajs/vue3'
-import { Input } from '@/Components/ui/input'
-import { Button } from '@/Components/ui/button'
-
-const props = defineProps({
-  model: String,
-  codes: Array,
-  label: String,
-  isSuperAdmin: Boolean,
-  tenantSlug: String,
-})
-
-const emit = defineEmits(['refresh'])
-
-const field = computed(() =>
-  props.model === 'delay_codes' ? 'code' : 'reason_code'
-)
-
-const form = useForm({
-  code: '',
-  reason_code: '',
-})
-
-const deleteForm = useForm()
-const input = ref('')
-
-const submit = () => {
-  form[field.value] = input.value
-
-  const routeName = props.isSuperAdmin
-    ? `${props.model}.store.admin`
-    : `${props.model}.store`
-
-  const routeParams = props.isSuperAdmin ? [] : [props.tenantSlug]
-
-  form.post(route(routeName, ...routeParams), {
-    preserveScroll: true,
-    onSuccess: () => {
-      form.reset()
-      input.value = ''
-      emit('refresh')
-    },
-  })
-}
-
-const deleteCode = (id) => {
-  const routeName = props.isSuperAdmin
-    ? `${props.model}.destroy.admin`
-    : `${props.model}.destroy`
-
-  const routeParams = props.isSuperAdmin ? [id] : [props.tenantSlug, id]
-
-  deleteForm.delete(route(routeName, ...routeParams), {
-    preserveScroll: true,
-    onSuccess: () => emit('refresh'),
-  })
-}
-</script>
-
 <template>
-  <div >
+  <div>
+    <!-- Form to add a new code -->
     <form @submit.prevent="submit" class="flex space-x-2 mb-4">
-      <Input v-model="input" :placeholder="`Enter new ${label}...`" />
+      <Input v-model="input" :placeholder="`Enter new ${label}...`" class="w-full" />
       <Button type="submit" :disabled="form.processing">Add</Button>
     </form>
 
+    <!-- List of existing codes -->
     <ul class="space-y-2">
       <li
         v-for="item in codes"
@@ -85,3 +26,64 @@ const deleteCode = (id) => {
     </ul>
   </div>
 </template>
+
+<script setup lang="ts">
+import { ref, computed } from 'vue';
+import { useForm } from '@inertiajs/vue3';
+// Import UI components from correct folders
+import Input from '@/components/ui/input/Input.vue';
+import Button from '@/components/ui/button/Button.vue';
+
+const props = defineProps({
+  model: { type: String, required: true }, // e.g., "rejection_reason_codes" or "delay_codes"
+  label: { type: String, required: true },
+  codes: { type: Array, default: () => [] },
+  isSuperAdmin: { type: Boolean, default: false },
+  tenantSlug: { type: String, default: null },
+});
+const emit = defineEmits(['refresh']);
+
+// Determine the field to use based on the model.
+const field = computed(() => (props.model === 'delay_codes' ? 'code' : 'reason_code'));
+
+// Initialize form for adding a new code.
+const form = useForm({
+  code: '',
+  reason_code: '',
+});
+
+// Local reactive variable for the input field.
+const input = ref('');
+
+// Initialize a form for deletion.
+const deleteForm = useForm({});
+
+// Submit new code
+const submit = () => {
+  form[field.value] = input.value;
+  const routeName = props.isSuperAdmin
+    ? `${props.model}.store.admin`
+    : `${props.model}.store`;
+  const routeParams = props.isSuperAdmin ? [] : [props.tenantSlug];
+  form.post(route(routeName, ...routeParams), {
+    preserveScroll: true,
+    onSuccess: () => {
+      form.reset();
+      input.value = '';
+      emit('refresh');
+    },
+  });
+};
+
+// Delete a code
+const deleteCode = (id: number) => {
+  const routeName = props.isSuperAdmin
+    ? `${props.model}.destroy.admin`
+    : `${props.model}.destroy`;
+  const routeParams = props.isSuperAdmin ? [id] : [props.tenantSlug, id];
+  deleteForm.delete(route(routeName, ...routeParams), {
+    preserveScroll: true,
+    onSuccess: () => emit('refresh'),
+  });
+};
+</script>

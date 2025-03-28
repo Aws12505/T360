@@ -4,10 +4,9 @@ import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
-import { Link , usePage} from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import { BookOpen, Folder, LayoutGrid, UserCog } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
-
 
 interface Props {
     breadcrumbs?: BreadcrumbItemType[];
@@ -19,42 +18,46 @@ withDefaults(defineProps<Props>(), {
     tenantSlug: null, 
 });
 
+// Get the tenantSlug from page props.
 const page = usePage();
 const tenantSlug = page.props.tenantSlug as string | null;
+
+// Update navigation items to use route() helper.
 const mainNavItems: NavItem[] = [
     {
         title: tenantSlug ? 'Dashboard' : 'Admin Dashboard', 
-        href: tenantSlug ? `/${tenantSlug}/dashboard` : '/dashboard',
+        href: tenantSlug ? route('dashboard', { tenantSlug }) : route('admin.dashboard'),
         icon: LayoutGrid,
     },
     {
         title: 'User Management',
-        href: tenantSlug ? `/${tenantSlug}/users-roles` :'/users-roles',
+        href: tenantSlug ? route('users.roles.index', { tenantSlug }) : route('admin.users.roles.index'),
         icon: UserCog,
     },
     {
         title: 'Metrics Management',
-        href: tenantSlug ? '#' :'/performancemetrics',
+        // Metrics management is only available to Admin
+        href: route('performance-metrics.edit'),
         icon: UserCog,
     },
     {
         title: 'Performance',
-        href: tenantSlug ? `/${tenantSlug}/performance` :'/performance',
+        href: tenantSlug ? route('performance.index', { tenantSlug }) : route('performance.index.admin'),
         icon: UserCog,
     },
     {
         title: 'Safety',
-        href: tenantSlug ? `/${tenantSlug}/safety` :'/safety',
+        href: tenantSlug ? route('safety.index', { tenantSlug }) : route('safety.index.admin'),
         icon: UserCog,
     },
     {
-        title: 'Rejections',
-        href: tenantSlug ? `/${tenantSlug}/rejections` :'/rejections',
+        title: 'Acceptance',
+        href: tenantSlug ? route('acceptance.index', { tenantSlug }) : route('acceptance.index.admin'),
         icon: UserCog,
     },
     {
-        title: 'Delays',
-        href: tenantSlug ? `/${tenantSlug}/delays` :'/delays',
+        title: 'On-Time',
+        href: tenantSlug ? route('ontime.index', { tenantSlug }) : route('ontime.index.admin'),
         icon: UserCog,
     }
 ];
@@ -79,12 +82,12 @@ const footerNavItems: NavItem[] = [
             <SidebarMenu>
                 <SidebarMenuItem>
                     <SidebarMenuButton size="lg" as-child>
+                        <!-- Updated link using route() helper -->
                         <Link :href="tenantSlug ? route('dashboard', { tenantSlug }) : route('admin.dashboard')">
                             <AppLogo />
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
-                
             </SidebarMenu>
         </SidebarHeader>
 

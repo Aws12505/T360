@@ -11,13 +11,14 @@ const props = defineProps({
   },
 });
 const { tenantSlug } = props;
+
+// Update breadcrumbs to use our new routes.
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: tenantSlug ? 'Dashboard' : 'Admin Dashboard', 
         href: tenantSlug ? route('dashboard', { tenantSlug }) : route('admin.dashboard'), 
     },
 ];
-
 </script>
 
 <template>

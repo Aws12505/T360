@@ -1,5 +1,7 @@
 <template>
+  <!-- Modal overlay -->
   <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+    <!-- Modal container with improved spacing and shadows -->
     <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md overflow-y-auto">
       <h2 class="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">
         {{ role ? 'Edit Role' : 'Create Role' }}
@@ -13,7 +15,7 @@
           <Input
             v-model="form.name"
             placeholder="Enter role name"
-            class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:ring-blue-500"
+            class="w-full rounded-md border border-gray-300 dark:border-gray-600 shadow-sm focus:ring-blue-500"
           />
         </div>
         <!-- Permissions Assignment with Search and Scrollable Container -->
@@ -24,7 +26,7 @@
           <Input
             v-model="permissionSearch"
             placeholder="Search permissions..."
-            class="mb-2 w-full rounded-md border-gray-300 dark:border-gray-600"
+            class="mb-2 w-full rounded-md border border-gray-300 dark:border-gray-600"
           />
           <div class="border border-gray-300 dark:border-gray-600 rounded-md p-2 max-h-40 overflow-y-auto">
             <div
@@ -49,13 +51,13 @@
           <Button
             type="button"
             @click="() => emit('close')"
-            class="bg-gray-500 hover:bg-gray-600 text-white rounded px-4 py-2"
+            class="bg-gray-500 hover:bg-gray-600 text-white rounded px-4 py-2 transition"
           >
             Cancel
           </Button>
           <Button
             type="submit"
-            class="bg-blue-600 hover:bg-blue-700 text-white rounded px-4 py-2"
+            class="bg-blue-600 hover:bg-blue-700 text-white rounded px-4 py-2 transition"
           >
             Save
           </Button>
@@ -66,8 +68,11 @@
 </template>
 
 <script setup lang="ts">
+// Import Vue composition API functions
 import { watch, ref, computed } from 'vue';
+// Import Inertia form helper
 import { useForm } from '@inertiajs/vue3';
+// Import ShadCN UI components from their correct paths
 import Input from '@/components/ui/input/Input.vue';
 import Button from '@/components/ui/button/Button.vue';
 
@@ -81,6 +86,7 @@ const props = defineProps({
 });
 const { tenantSlug } = props;
 
+// Initialize form using Inertia's useForm helper.
 const form = useForm({
   name: props.role ? props.role.name : '',
   permissions: props.role?.permissions?.map((p: any) => p.name) || [],
@@ -88,6 +94,7 @@ const form = useForm({
 
 const permissionSearch = ref('');
 
+// Compute filtered permissions based on the search term.
 const filteredPermissions = computed(() => {
   if (!permissionSearch.value.trim()) {
     return props.permissions;
@@ -98,6 +105,7 @@ const filteredPermissions = computed(() => {
   );
 });
 
+// Watch for changes in props.role to update the form values.
 watch(() => props.role, (newVal) => {
   if (newVal) {
     form.name = newVal.name;
