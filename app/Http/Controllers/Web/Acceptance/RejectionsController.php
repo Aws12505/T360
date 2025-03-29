@@ -1,14 +1,15 @@
 <?php
 
-namespace App\Http\Controllers\Web;
+namespace App\Http\Controllers\Web\Acceptance;
 
 use App\Http\Controllers\Controller;
+use App\Services\Acceptance\RejectionReasonCodesService;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreRejectionRequest;
 use App\Http\Requests\UpdateRejectionRequest;
 use App\Services\RejectionService;
 use Inertia\Inertia;
-use Illuminate\Support\Facades\Auth;
+use App\Http\Requests\StoreRejectionReasonCode;
 
 /**
  * Class RejectionsController
@@ -22,15 +23,18 @@ use Illuminate\Support\Facades\Auth;
 class RejectionsController extends Controller
 {
     protected RejectionService $rejectionService;
+    protected RejectionReasonCodesService $rejectionReasonCodesService;
 
     /**
      * Constructor.
      *
      * @param RejectionService $rejectionService Service for rejection processing.
+     * @param RejectionReasonCodesService $rejectionReasonCodesService
      */
-    public function __construct(RejectionService $rejectionService)
+    public function __construct(RejectionService $rejectionService, RejectionReasonCodesService $rejectionReasonCodesService)
     {
         $this->rejectionService = $rejectionService;
+        $this->rejectionReasonCodesService = $rejectionReasonCodesService;
     }
 
     /**
@@ -112,18 +116,20 @@ class RejectionsController extends Controller
     }
 
     /**
-     * Create a new rejection reason code.
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function storeCode(Request $request)
-    {
-        $this->rejectionService->createReasonCode($request->validate([
-            'reason_code' => 'required|string|unique:rejection_reason_codes,reason_code',
-        ]));
-        return back();
-    }
+ * Create a new rejection reason code.
+ *
+ * @param \App\Http\Requests\StoreRejectionReasonCode $request
+ * @return \Illuminate\Http\RedirectResponse
+ */
+public function storeCode(StoreRejectionReasonCode $request)
+{
+    // The incoming request will be automatically validated by the StoreRejectionReasonCode request class
+    // No need to manually validate, just access the validated data
+    $this->rejectionReasonCodesService->createReasonCode($request->validated());
+
+    // Redirect back after successfully creating the reason code
+    return back();
+}
 
     /**
      * Delete a rejection reason code.
@@ -133,7 +139,7 @@ class RejectionsController extends Controller
      */
     public function destroyCode($id)
     {
-        $this->rejectionService->deleteReasonCode($id);
+        $this->rejectionReasonCodesService->deleteReasonCode($id);
         return back();
     }
 }

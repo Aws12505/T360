@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\Web;
+namespace App\Http\Controllers\Web\Zoho;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Services\ZohoWebhookService;
+use App\Services\Zoho\ZohoWebhookService;
 
 /**
  * Class ZohoWebhookController

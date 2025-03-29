@@ -1,12 +1,13 @@
 <?php
 
-namespace App\Http\Controllers\Web;
+namespace App\Http\Controllers\Web\Performance;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Http\Requests\StorePerformanceRequest;
 use App\Http\Requests\UpdatePerformanceRequest;
-use App\Services\PerformanceService;
+use App\Services\Performance\PerformanceImportExportService;
+use App\Services\Performance\PerformanceService;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 
@@ -22,15 +23,17 @@ use Illuminate\Support\Facades\Auth;
 class PerformanceController extends Controller
 {
     protected PerformanceService $performanceService;
-
+    protected PerformanceImportExportService $performanceImportExportService;
     /**
      * Constructor.
      *
      * @param PerformanceService $performanceService Service for performance operations.
+     * @param PerformanceImportExportService $performanceImportExportService
      */
-    public function __construct(PerformanceService $performanceService)
+    public function __construct(PerformanceService $performanceService, PerformanceImportExportService $performanceImportExportService)
     {
         $this->performanceService = $performanceService;
+        $this->performanceImportExportService = $performanceImportExportService;
     }
 
     /**
@@ -119,7 +122,7 @@ class PerformanceController extends Controller
      */
     public function import(Request $request)
     {
-        $this->performanceService->importPerformances($request);
+        $this->performanceImportExportService->importPerformances($request);
         return back()->with('success', 'Performances imported/updated.');
     }
 
@@ -130,6 +133,6 @@ class PerformanceController extends Controller
      */
     public function export()
     {
-        return $this->performanceService->exportPerformances();
+        return $this->performanceImportExportService->exportPerformances();
     }
 }

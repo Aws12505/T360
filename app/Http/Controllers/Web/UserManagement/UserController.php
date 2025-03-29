@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Web;
+namespace App\Http\Controllers\Web\UserManagement;
 
 use App\Http\Controllers\Controller;
 use Inertia\Inertia;
@@ -11,8 +11,9 @@ use App\Http\Requests\StoreRoleRequest;
 use App\Http\Requests\UpdateRoleRequest;
 use App\Http\Requests\StoreTenantRequest;
 use App\Http\Requests\UpdateTenantRequest;
-use App\Services\UserService;
-use Illuminate\Support\Facades\Auth;
+use App\Services\Roles\RoleService;
+use App\Services\Tenants\TenantService;
+use App\Services\Users\UserService;
 
 /**
  * Class UserController
@@ -26,15 +27,20 @@ use Illuminate\Support\Facades\Auth;
 class UserController extends Controller
 {
     protected UserService $userService;
-
+    protected TenantService $tenantService;
+    protected RoleService $roleService;
     /**
      * Constructor.
      *
      * @param UserService $userService Injected service for user management.
+     * @param TenantService $tenantService
+     * @param RoleService $roleService
      */
-    public function __construct(UserService $userService)
+    public function __construct(UserService $userService, TenantService $tenantService, RoleService $roleService)
     {
         $this->userService = $userService;
+        $this->tenantService = $tenantService;
+        $this->roleService = $roleService;
     }
 
     /**
@@ -127,7 +133,7 @@ class UserController extends Controller
     public function storeRole(StoreRoleRequest $request)
     {
         
-        $this->userService->createRole($request->validated());
+        $this->roleService->createRole($request->validated());
         return back()->with('success', 'Role created successfully.');
     }
 
@@ -142,7 +148,7 @@ class UserController extends Controller
     public function updateRole(UpdateRoleRequest $request, $tenantSlug, $id)
     {
         
-        $this->userService->updateRole($id, $request->validated());
+        $this->roleService->updateRole($id, $request->validated());
         return back()->with('success', 'Role updated successfully.');
     }
 
@@ -155,7 +161,7 @@ class UserController extends Controller
      */
     public function destroyRole($tenantSlug, $id)
     {
-        $this->userService->deleteRole($id);
+        $this->roleService->deleteRole($id);
         return back()->with('success', 'Role deleted successfully.');
     }
 
@@ -169,7 +175,7 @@ class UserController extends Controller
     public function updateRoleAdmin(UpdateRoleRequest $request, $id)
     {
         
-        $this->userService->updateRoleAdmin($id, $request->validated());
+        $this->roleService->updateRoleAdmin($id, $request->validated());
         return back()->with('success', 'Role updated successfully.');
     }
 
@@ -181,7 +187,7 @@ class UserController extends Controller
      */
     public function destroyRoleAdmin($id)
     {
-        $this->userService->deleteRole($id);
+        $this->roleService->deleteRole($id);
         return back()->with('success', 'Role deleted successfully.');
     }
 
@@ -193,7 +199,7 @@ class UserController extends Controller
      */
     public function storeTenant(StoreTenantRequest $request)
     {
-        $this->userService->createTenant($request->validated());
+        $this->tenantService->createTenant($request->validated());
         return back()->with('success', 'Tenant created successfully.');
     }
 
@@ -206,7 +212,7 @@ class UserController extends Controller
      */
     public function updateTenant(UpdateTenantRequest $request, $id)
     {
-        $this->userService->updateTenant($id, $request->validated());
+        $this->tenantService->updateTenant($id, $request->validated());
         return back()->with('success', 'Tenant updated successfully.');
     }
 
@@ -218,7 +224,7 @@ class UserController extends Controller
      */
     public function destroyTenant($id)
     {
-        $this->userService->deleteTenant($id);
+        $this->tenantService->deleteTenant($id);
         return back()->with('success', 'Tenant deleted successfully.');
     }
 }

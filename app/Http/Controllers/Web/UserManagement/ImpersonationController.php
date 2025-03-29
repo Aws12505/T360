@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\Web;
+namespace App\Http\Controllers\Web\UserManagement;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Services\UserService;
+use App\Services\Impersonation\ImpersonationService;
 use Illuminate\Support\Facades\Auth;
 
 /**
@@ -17,16 +17,16 @@ use Illuminate\Support\Facades\Auth;
  */
 class ImpersonationController extends Controller
 {
-    protected UserService $userService;
+    protected ImpersonationService $impersonationService;
 
     /**
      * Constructor.
      *
-     * @param UserService $userService Service for user impersonation logic.
+     * @param ImpersonationService $impersonationService Service for user impersonation logic.
      */
-    public function __construct(UserService $userService)
+    public function __construct(ImpersonationService $impersonationService)
     {
-        $this->userService = $userService;
+        $this->impersonationService = $impersonationService;
     }
 
     /**
@@ -37,7 +37,7 @@ class ImpersonationController extends Controller
      */
     public function impersonate($id)
     {
-        return $this->userService->startImpersonation($id);
+        return $this->impersonationService->startImpersonation($id);
     }
 
     /**
@@ -47,6 +47,6 @@ class ImpersonationController extends Controller
      */
     public function stopImpersonation()
     {
-        return $this->userService->stopImpersonation();
+        return $this->impersonationService->stopImpersonation();
     }
 }

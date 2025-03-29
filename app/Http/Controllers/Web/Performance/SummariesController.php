@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\Web;
+namespace App\Http\Controllers\Web\Performance;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Services\PerformanceService;
+use App\Services\Performance\SummariesService;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
@@ -19,16 +19,16 @@ use Inertia\Inertia;
  */
 class SummariesController extends Controller
 {
-    protected PerformanceService $performanceService;
+    protected SummariesService $summariesService;
 
     /**
      * Constructor.
      *
-     * @param PerformanceService $performanceService Service for performance summary calculations.
+     * @param SummariesService $summariesService Service for performance summary calculations.
      */
-    public function __construct(PerformanceService $performanceService)
+    public function __construct(SummariesService $summariesService)
     {
-        $this->performanceService = $performanceService;
+        $this->summariesService = $summariesService;
     }
 
     /**
@@ -38,7 +38,7 @@ class SummariesController extends Controller
      */
     public function getSummaries()
     {
-        $data = $this->performanceService->compileSummaries();
+        $data = $this->summariesService->compileSummaries();
         return Inertia::render('Performance/Summary', $data);
     }
 }

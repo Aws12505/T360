@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\Web;
+namespace App\Http\Controllers\Web\Performance;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Services\PerformanceService;
+use App\Services\Performance\PerformanceMetricRuleService;
 use Inertia\Inertia;
 
 /**
@@ -18,16 +18,16 @@ use Inertia\Inertia;
  */
 class PerformanceMetricRuleController extends Controller
 {
-    protected PerformanceService $performanceService;
+    protected PerformanceMetricRuleService $performanceMetricRuleService;
 
     /**
      * Constructor.
      *
-     * @param PerformanceService $performanceService Service for performance rules.
+     * @param PerformanceMetricRuleService $performanceMetricRuleService Service for performance rules.
      */
-    public function __construct(PerformanceService $performanceService)
+    public function __construct(PerformanceMetricRuleService $performanceMetricRuleService)
     {
-        $this->performanceService = $performanceService;
+        $this->performanceMetricRuleService = $performanceMetricRuleService;
     }
 
     /**
@@ -37,7 +37,7 @@ class PerformanceMetricRuleController extends Controller
      */
     public function editGlobal()
     {
-        $metrics = $this->performanceService->getGlobalMetrics();
+        $metrics = $this->performanceMetricRuleService->getGlobalMetrics();
         return Inertia::render('PerformanceRules/Admin', ['metrics' => $metrics]);
     }
 
@@ -49,8 +49,8 @@ class PerformanceMetricRuleController extends Controller
      */
     public function updateGlobal(Request $request)
     {
-        $data = $request->validate($this->performanceService->getMetricValidationRules());
-        $this->performanceService->updateGlobalMetrics($data);
+        $data = $request->validate($this->performanceMetricRuleService->getMetricValidationRules());
+        $this->performanceMetricRuleService->updateGlobalMetrics($data);
         return back()->with('success', 'Global performance metrics updated.');
     }
 }

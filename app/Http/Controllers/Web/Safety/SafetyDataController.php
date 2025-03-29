@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Http\Controllers\Web;
+namespace App\Http\Controllers\Web\Safety;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreSafetyDataRequest;
 use App\Http\Requests\UpdateSafetyDataRequest;
-use App\Services\SafetyDataService;
+use App\Services\Safety\SafetyDataService;
+use App\Services\Safety\SafetyImportExportService;
 use Inertia\Inertia;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Class SafetyDataController
@@ -22,15 +22,18 @@ use Illuminate\Support\Facades\Auth;
 class SafetyDataController extends Controller
 {
     protected SafetyDataService $safetyDataService;
+    protected SafetyImportExportService $safetyImportExportService;
 
     /**
-     * Constructor.
+     * Inject SafetyDataService and SafetyImportExportService into the controller.
      *
-     * @param SafetyDataService $safetyDataService Service to handle safety data logic.
+     * @param SafetyDataService $safetyDataService
+     * @param SafetyImportExportService $safetyImportExportService
      */
-    public function __construct(SafetyDataService $safetyDataService)
+    public function __construct(SafetyDataService $safetyDataService, SafetyImportExportService $safetyImportExportService)
     {
         $this->safetyDataService = $safetyDataService;
+        $this->safetyImportExportService = $safetyImportExportService;
     }
 
     /**
@@ -122,7 +125,7 @@ class SafetyDataController extends Controller
      */
     public function import(Request $request)
     {
-        $this->safetyDataService->importData($request);
+        $this->safetyImportExportService->importData($request);
         return redirect()->back()->with('success', 'Safety data imported successfully.');
     }
 
@@ -133,6 +136,6 @@ class SafetyDataController extends Controller
      */
     public function export()
     {
-        return $this->safetyDataService->exportData();
+        return $this->safetyImportExportService->exportData();
     }
 }
