@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Acceptance;
 
 use App\Models\Rejection;
 use App\Models\RejectionReasonCode;
 use Illuminate\Support\Facades\Auth;
-
+use App\Models\Tenant;
 /**
  * Class RejectionService
  *
@@ -24,12 +24,12 @@ class RejectionService
     {
         $user = Auth::user();
         $isSuperAdmin = is_null($user->tenant_id);
-        $rejections = Rejection::with(['tenant', 'reasonCode'])->get();
+        $rejections = Rejection::with(['tenant', 'reasonCode'])->paginate(10);
         return [
             'rejections'           => $rejections,
             'tenantSlug'           => $isSuperAdmin ? null : $user->tenant->slug,
             'isSuperAdmin'         => $isSuperAdmin,
-            'tenants'              => $isSuperAdmin ? \App\Models\Tenant::all() : [],
+            'tenants'              => $isSuperAdmin ? Tenant::all() : [],
             'rejection_reason_codes' => RejectionReasonCode::all(),
         ];
     }

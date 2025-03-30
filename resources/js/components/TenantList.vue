@@ -56,11 +56,12 @@
 <script setup>
 // Import Button from the correct folder and Inertia for navigation
 import Button from '@/components/ui/button/Button.vue';
+import { router } from '@inertiajs/vue3';
 
 const props = defineProps({
   tenants: {
-    type: [Array, Object],
-    default: () => ([]),
+    type: Object,
+    default: () => ({ data: [], links: [] }),
   },
 });
 
@@ -72,7 +73,7 @@ const normalizedTenants = Array.isArray(props.tenants)
 // Function to navigate to a page while preserving state
 const visitPage = (url) => {
   if (url) {
-    Inertia.get(url, {}, { preserveState: true, replace: true });
+    router.get(url, {}, {  replace: true });
   }
 };
 </script>

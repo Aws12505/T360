@@ -66,6 +66,7 @@
 <script setup>
 import Button from '@/components/ui/button/Button.vue';
 import { Link } from '@inertiajs/vue3';
+import { router } from '@inertiajs/vue3'
 
 const props = defineProps({
   users: Object,
@@ -75,7 +76,7 @@ const props = defineProps({
 // Function to handle pagination navigation using Inertia.
 const visitPage = (url) => {
   if (url) {
-    Inertia.get(url, {}, { preserveState: true, replace: true });
+    router.get(url, {}, {  replace: true });
   }
 };
 </script>

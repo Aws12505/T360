@@ -38,7 +38,7 @@ class PerformanceService
      */
     public function getPerformanceIndex(): array
     {
-        $performances = Performance::with('tenant')->get();
+        $performances = Performance::with('tenant')->paginate(10);
         $isSuperAdmin = is_null(Auth::user()->tenant_id);
         $tenantSlug = $isSuperAdmin ? null : Auth::user()->tenant->slug;
         $tenants = $isSuperAdmin ? Tenant::all() : [];
@@ -72,7 +72,6 @@ class PerformanceService
         $data['open_boc_rating'] = $this->performanceCalculationsService->getRating($data['open_boc'], $rule, 'open_boc');
         $data['meets_safety_bonus_criteria_rating'] = $this->performanceCalculationsService->getSafetyBonusRating($data['meets_safety_bonus_criteria'], $rule);
         $data['vcr_preventable_rating'] = $this->performanceCalculationsService->getRating($data['vcr_preventable'], $rule, 'vcr_preventable');
-
         Performance::updateOrCreate(
             ['tenant_id' => $data['tenant_id'], 'date' => $data['date']],
             $data

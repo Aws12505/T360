@@ -25,14 +25,21 @@ const props = defineProps({
     type: Object,
     default: () => ({ data: [], links: [] }),
   },
-  roles: Array,
-  tenants: Array,
+  roles:{
+    type: Object,
+    default: () => ({ data: [], links: [] }),
+  },
+  tenants: {
+    type: Object,
+    default: () => ({ data: [], links: [] }),
+  },
   permissions: Array,
   search: String,
   tenantSlug: {
     type: String,
     default: null,
   },
+  SuperAdmin: Boolean,
 });
 const { tenantSlug } = props;
 
@@ -54,7 +61,7 @@ const selectedRole = ref(null);
 const selectedTenant = ref(null);
 
 // Determine if the current user is a SuperAdmin by checking if tenants array is non-empty (from backend)
-const isSuperAdmin = ref(props.tenants.length > 0);
+const isSuperAdmin = props.SuperAdmin;
 
 // Reactive variables for deletion confirmation modal
 const showConfirmDelete = ref(false);
@@ -120,11 +127,10 @@ const editRole = (role: any) => {
   selectedRole.value = role;
   showRoleModal.value = true;
 };
-
 // Functions for handling deletion confirmation.
 // The deleteUrl is set based on whether the current user is a SuperAdmin.
 const deleteUser = (user: any) => {
-  deleteUrl.value = isSuperAdmin.value
+  deleteUrl.value = isSuperAdmin
     ? route('admin.users.destroy', user)
     : route('users.destroy', [tenantSlug, user]);
   deleteMessage.value = `Are you sure you want to delete user ${user.name}?`;
@@ -132,7 +138,7 @@ const deleteUser = (user: any) => {
 };
 
 const deleteRole = (role: any) => {
-  deleteUrl.value = isSuperAdmin.value
+  deleteUrl.value = isSuperAdmin
     ? route('admin.roles.destroy', role)
     : route('roles.destroy', [tenantSlug, role]);
   deleteMessage.value = `Are you sure you want to delete role ${role.name}?`;

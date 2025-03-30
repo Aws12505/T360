@@ -4,7 +4,7 @@ namespace App\Services\Safety;
 
 use App\Models\SafetyData;
 use Illuminate\Support\Facades\Auth;
-
+use App\Models\Tenant;
 /**
  * Class SafetyDataService
  *
@@ -21,10 +21,10 @@ class SafetyDataService
      */
     public function getSafetyDataIndex(): array
     {
-        $entries = SafetyData::with('tenant')->get();
+        $entries = SafetyData::with('tenant')->paginate(10);
         $isSuperAdmin = is_null(Auth::user()->tenant_id);
         $tenantSlug = $isSuperAdmin ? null : Auth::user()->tenant->slug;
-        $tenants = $isSuperAdmin ? \App\Models\Tenant::all() : [];
+        $tenants = $isSuperAdmin ? Tenant::all() : [];
         return [
             'entries'    => $entries,
             'tenantSlug' => $tenantSlug,

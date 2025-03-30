@@ -16,7 +16,7 @@
       </thead>
       <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
         <tr
-          v-for="role in roles"
+          v-for="role in roles.data"
           :key="role.id"
           class="hover:bg-gray-100 dark:hover:bg-gray-700"
         >
@@ -50,14 +50,31 @@
         </tr>
       </tbody>
     </table>
+    <div class="mt-4 flex justify-center" v-if="roles.links">
+      <button
+        v-for="link in roles.links"
+        :key="link.label"
+        @click="visitPage(link.url)"
+        :disabled="!link.url"
+        class="mx-1 px-3 py-1 border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+      >
+        <span v-html="link.label"></span>
+      </button>
+    </div>
   </div>
 </template>
 
 <script setup>
 // Import ShadCN UI Button component
 import Button from '@/components/ui/button/Button.vue';
-
+import { router } from '@inertiajs/vue3';
 const props = defineProps({
-  roles: Array,
+  roles: Object,
 });
+
+const visitPage = (url) => {
+  if (url) {
+    router.get(url, {}, {  replace: true });
+  }
+};
 </script>

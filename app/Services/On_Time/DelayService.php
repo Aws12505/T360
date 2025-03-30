@@ -5,7 +5,7 @@ namespace App\Services\On_Time;
 use App\Models\Delay;
 use App\Models\DelayCode;
 use Illuminate\Support\Facades\Auth;
-
+use App\Models\Tenant;
 /**
  * Class DelayService
  *
@@ -22,10 +22,10 @@ class DelayService
      */
     public function getDelaysIndex(): array
     {
-        $delays = Delay::with(['tenant', 'delayCode'])->get();
+        $delays = Delay::with(['tenant', 'delayCode'])->paginate(10);
         $isSuperAdmin = is_null(Auth::user()->tenant_id);
         $tenantSlug = $isSuperAdmin ? null : Auth::user()->tenant->slug;
-        $tenants = $isSuperAdmin ? \App\Models\Tenant::all() : [];
+        $tenants = $isSuperAdmin ? Tenant::all() : [];
         $delayCodes = DelayCode::all();
         return [
             'delays'     => $delays,

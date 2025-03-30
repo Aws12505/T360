@@ -6,7 +6,7 @@ use App\Models\User;
 use App\Models\Tenant;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
-
+use App\Models\Role;
 /**
  * Class UserService
  *
@@ -35,10 +35,10 @@ class UserService
             });
         }
         $users = $usersQuery->paginate(10);
-        $roles = \App\Models\Role::with('permissions')->get();
-        $tenants = Auth::check() && is_null(Auth::user()->tenant_id) ? Tenant::all() : [];
+        $roles = Role::with('permissions')->paginate(10);
+        $tenants = Auth::check() && is_null(Auth::user()->tenant_id) ? Tenant::paginate(10) : [];
         $permissions = Auth::user()->getAllPermissions();
-
+        $isSuperAdmin = is_null(Auth::user()->tenant_id);
         return [
             'users'       => $users,
             'roles'       => $roles,
@@ -46,6 +46,7 @@ class UserService
             'permissions' => $permissions,
             'search'      => $search,
             'tenantSlug'  => $tenantSlug,
+            'SuperAdmin' => $isSuperAdmin,
         ];
     }
 

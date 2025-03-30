@@ -7,7 +7,7 @@ use App\Services\Acceptance\RejectionReasonCodesService;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreRejectionRequest;
 use App\Http\Requests\UpdateRejectionRequest;
-use App\Services\RejectionService;
+use App\Services\Acceptance\RejectionService;
 use Inertia\Inertia;
 use App\Http\Requests\StoreRejectionReasonCode;
 

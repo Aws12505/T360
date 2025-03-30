@@ -33,7 +33,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="rejection in rejections" :key="rejection.id" class="border-t">
+            <tr v-for="rejection in rejections.data" :key="rejection.id" class="border-t">
               <td v-if="isSuperAdmin" class="p-3">{{ rejection.tenant?.name || '—' }}</td>
               <td class="p-3">{{ rejection.date }}</td>
               <td class="p-3 capitalize">{{ rejection.rejection_type }}</td>
@@ -55,6 +55,17 @@
             </tr>
           </tbody>
         </table>
+        <div class="mt-4 flex justify-center" v-if="rejections.links">
+      <button
+        v-for="link in rejections.links"
+        :key="link.label"
+        @click="visitPage(link.url)"
+        :disabled="!link.url"
+        class="mx-1 px-3 py-1 border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+      >
+        <span v-html="link.label"></span>
+      </button>
+    </div>
       </div>
 
       <!-- Rejection Form Modal -->
@@ -108,9 +119,13 @@ import {
 import RejectionForm from '@/components/RejectionForm.vue';
 import CodeManager from '@/components/CodeManager.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
+import {router} from '@inertiajs/vue3';
 
 const props = defineProps({
-  rejections: Array,
+  rejections:  {
+    type: Object,
+    default: () => ({ data: [], links: [] }),
+  },
   tenantSlug: { type: String, default: null },
   rejection_reason_codes: Array,
   tenants: { type: Array, default: () => [] },
@@ -152,5 +167,10 @@ const deleteRejection = (id) => {
   form.delete(route(routeName, routeParams), {
     preserveScroll: true,
   });
+};
+const visitPage = (url) => {
+  if (url) {
+    router.get(url, {}, { replace: true });
+  }
 };
 </script>

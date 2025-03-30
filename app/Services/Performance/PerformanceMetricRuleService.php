@@ -22,7 +22,7 @@ class PerformanceMetricRuleService{
      */
     public function updateGlobalMetrics(array $data)
     {
-        PerformanceMetricRule::updateOrCreate(['id' => 1], $data);
+        PerformanceMetricRule::updateOrCreate(['id' => PerformanceMetricRule::first()?->id ?? 1], $data);
     }
 
     /**

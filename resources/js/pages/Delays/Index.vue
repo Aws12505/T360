@@ -31,7 +31,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="delay in delays" :key="delay.id" class="border-t">
+            <tr v-for="delay in delays.data" :key="delay.id" class="border-t">
               <td v-if="isSuperAdmin" class="p-3">{{ delay.tenant?.name || '—' }}</td>
               <td class="p-3">{{ delay.date }}</td>
               <td class="p-3">{{ delay.delay_type }}</td>
@@ -53,6 +53,17 @@
             </tr>
           </tbody>
         </table>
+        <div class="mt-4 flex justify-center" v-if="delays.links">
+      <button
+        v-for="link in delays.links"
+        :key="link.label"
+        @click="visitPage(link.url)"
+        :disabled="!link.url"
+        class="mx-1 px-3 py-1 border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+      >
+        <span v-html="link.label"></span>
+      </button>
+    </div>
       </div>
 
       <!-- Delay Form Modal -->
@@ -105,9 +116,13 @@ import {
 } from '@/components/ui/dialog';
 import DelayForm from '@/components/DelayForm.vue';
 import CodeManager from '@/components/CodeManager.vue';
+import {router} from '@inertiajs/vue3';
 
 const props = defineProps({
-  delays: Array,
+  delays:  {
+    type: Object,
+    default: () => ({ data: [], links: [] }),
+  },
   tenantSlug: { type: String, default: null },
   delay_codes: Array,
   tenants: { type: Array, default: () => [] },
@@ -144,5 +159,10 @@ const deleteDelay = (id) => {
   form.delete(route(routeName, routeParams), {
     preserveScroll: true,
   });
+};
+const visitPage = (url) => {
+  if (url) {
+    router.get(url, {}, {  replace: true });
+  }
 };
 </script>

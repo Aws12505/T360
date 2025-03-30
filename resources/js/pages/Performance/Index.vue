@@ -56,7 +56,7 @@
           </thead>
           <tbody class="divide-y divide-gray-200">
             <tr
-              v-for="item in performances"
+              v-for="item in performances.data"
               :key="item.id"
               class="text-sm hover:bg-gray-50"
             >
@@ -123,6 +123,17 @@
             </tr>
           </tbody>
         </table>
+        <div class="mt-4 flex justify-center" v-if="performances.links">
+      <button
+        v-for="link in performances.links"
+        :key="link.label"
+        @click="visitPage(link.url)"
+        :disabled="!link.url"
+        class="mx-1 px-3 py-1 border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+      >
+        <span v-html="link.label"></span>
+      </button>
+    </div>
       </div>
 
       <!-- Modal for Create/Edit Performance using ShadCN Dialog components -->
@@ -281,9 +292,13 @@ import { useForm } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
 import Button from '@/components/ui/button/Button.vue'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { router } from '@inertiajs/vue3';
 
 const props = defineProps({
-  performances: Array,
+  performances: {
+    type: Object,
+    default: () => ({ data: [], links: [] }),
+  },
   tenantSlug: { type: String, default: null },
   SuperAdmin: { type: Boolean, default: false },
   tenants: { type: Array, default: () => [] }
@@ -418,6 +433,12 @@ function exportCSV() {
   exportForm.value?.setAttribute('action', routeName)
   exportForm.value?.submit()
 }
+
+const visitPage = (url) => {
+  if (url) {
+    router.get(url, {}, {  replace: true });
+  }
+};
 </script>
 
 <style scoped>
