@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Web\Performance;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Services\Performance\SummariesService;
+use App\Services\Summaries\SummariesService;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 

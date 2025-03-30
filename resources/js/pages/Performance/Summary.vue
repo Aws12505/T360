@@ -8,9 +8,9 @@
           v-for="(summary, range) in summaries"
           :key="range"
           :range="formatRange(range)"
-          :data="summary.data"
-          :ratings="summary.ratings"
-          :safetySummary="summary.safety_summary"
+          :performanceData="summary.performance.data"
+          :ratings="summary.performance.ratings"
+          :safetyData="summary.safety"
           :rejectionBreakdown="rejectionBreakdowns?.[range]"
           :delayBreakdown="delayBreakdowns?.[range]"
         />
@@ -26,7 +26,7 @@ import AppLayout from '@/layouts/AppLayout.vue'
 
 /**
  * Props:
- * - summaries: Object containing performance summary data.
+ * - summaries: Object containing summaries with separate performance and safety data.
  * - rejectionBreakdowns: Object with breakdown data for rejections.
  * - delayBreakdowns: Object with breakdown data for delays.
  * - tenantSlug: Optional tenant identifier.
@@ -42,7 +42,6 @@ const props = defineProps({
   tenants: Array,
 })
 
-// Build breadcrumbs using tenantSlug to determine the correct dashboard route.
 const breadcrumbs = [
   {
     title: props.tenantSlug ? 'Dashboard' : 'Admin Dashboard',

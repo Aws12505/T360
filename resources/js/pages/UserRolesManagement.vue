@@ -163,6 +163,11 @@ const refreshData = () => {
   showUserModal.value = false;
   showTenantModal.value = false;
 };
+
+// Computed properties to extract arrays
+const rolesArray = computed(() => props.roles.data);
+const tenantsArray = computed(() => props.tenants.data);
+
 </script>
 
 <template>
@@ -235,9 +240,9 @@ const refreshData = () => {
       <UserForm
         v-if="showUserModal"
         :user="selectedUser"
-        :roles="roles"
+        :roles="rolesArray"
         :permissions="permissions"
-        :tenants="tenants"
+        :tenants="tenantsArray"
         :isSuperAdmin="isSuperAdmin"
         :tenantSlug="tenantSlug"
         @close="closeUserModal"
