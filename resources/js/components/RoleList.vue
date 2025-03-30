@@ -74,7 +74,7 @@ const props = defineProps({
 
 const visitPage = (url) => {
   if (url) {
-    router.get(url, {}, {  replace: true });
+    router.get(url, {}, { only: ['roles'] });
   }
 };
 </script>

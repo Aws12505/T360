@@ -73,7 +73,7 @@ const normalizedTenants = Array.isArray(props.tenants)
 // Function to navigate to a page while preserving state
 const visitPage = (url) => {
   if (url) {
-    router.get(url, {}, {  replace: true });
+    router.get(url, {}, { only: ['tenants']});
   }
 };
 </script>

@@ -76,7 +76,7 @@ const props = defineProps({
 // Function to handle pagination navigation using Inertia.
 const visitPage = (url) => {
   if (url) {
-    router.get(url, {}, {  replace: true });
+    router.get(url, {}, {  only: ['users'] });
   }
 };
 </script>
