@@ -8,6 +8,7 @@ use App\Http\Controllers\Web\Safety\SafetyDataController;
 use App\Http\Controllers\Web\Performance\PerformanceController;
 use App\Http\Controllers\Web\UserManagement\ImpersonationController;
 use App\Http\Controllers\Web\Performance\PerformanceMetricRuleController;
+use App\Http\Controllers\Web\Truck\TruckController;
 
 Route::middleware(['auth', 'superAdmin'])->group(function () {
     Route::get('/dashboard', function () {
@@ -52,6 +53,14 @@ Route::middleware(['auth', 'superAdmin'])->group(function () {
     Route::delete('/safety/{id}', [SafetyDataController::class, 'destroyAdmin'])->name('safety.destroy.admin');
     Route::post('/safety/import', [SafetyDataController::class, 'import'])->name('safety.import.admin');
     Route::get('/safety/export', [SafetyDataController::class, 'export'])->name('safety.export.admin');
+
+    // Admin Trucks data routes
+    Route::get('/trucks', [TruckController::class, 'index'])->name('truck.index.admin');
+    Route::post('/trucks', [TruckController::class, 'store'])->name('truck.store.admin');
+    Route::put('/trucks/{truck}', [TruckController::class, 'updateAdmin'])->name('truck.update.admin');
+    Route::delete('/trucks/{truck}', [TruckController::class, 'destroyAdmin'])->name('truck.destroy.admin');
+    Route::post('/trucks/import', [TruckController::class, 'import'])->name('truck.import.admin');
+    Route::get('/trucks/export', [TruckController::class, 'export'])->name('truck.export.admin');
 
     // Admin acceptance routes
     Route::get('/acceptance', [RejectionsController::class, 'index'])->name('acceptance.index.admin');

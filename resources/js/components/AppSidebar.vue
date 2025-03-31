@@ -59,6 +59,11 @@ const mainNavItems: NavItem[] = [
         title: 'On-Time',
         href: tenantSlug ? route('ontime.index', { tenantSlug }) : route('ontime.index.admin'),
         icon: UserCog,
+    },
+    {
+        title: 'Trucks',
+        href: tenantSlug ? route('truck.index', { tenantSlug }) : route('truck.index.admin'),
+        icon: UserCog,
     }
 ];
 

@@ -1,10 +1,11 @@
 <?php
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Web\UserManagement\UserController;
+use App\Http\Controllers\Web\Truck\TruckController;
 use App\Http\Controllers\Web\On_Time\DelaysController;
-use App\Http\Controllers\Web\Performance\SummariesController;
-use App\Http\Controllers\Web\Acceptance\RejectionsController;
 use App\Http\Controllers\Web\Safety\SafetyDataController;
+use App\Http\Controllers\Web\UserManagement\UserController;
+use App\Http\Controllers\Web\Acceptance\RejectionsController;
+use App\Http\Controllers\Web\Performance\SummariesController;
 use App\Http\Controllers\Web\Performance\PerformanceController;
 use App\Http\Controllers\Web\UserManagement\ImpersonationController;
 
@@ -42,6 +43,14 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::delete('/safety/{id}', [SafetyDataController::class, 'destroy'])->name('safety.destroy');
         Route::post('/safety/import', [SafetyDataController::class, 'import'])->name('safety.import');
         Route::get('/safety/export', [SafetyDataController::class, 'export'])->name('safety.export');
+
+        // Trucks data routes
+        Route::get('/trucks', [TruckController::class, 'index'])->name('truck.index');
+        Route::post('/trucks', [TruckController::class, 'store'])->name('truck.store');
+        Route::put('/trucks/{truck}', [TruckController::class, 'update'])->name('truck.update');
+        Route::delete('/trucks/{truck}', [TruckController::class, 'destroy'])->name('truck.destroy');
+        Route::post('/trucks/import', [TruckController::class, 'import'])->name('truck.import');
+        Route::get('/trucks/export', [TruckController::class, 'export'])->name('truck.export');
 
         // Delays routes
         Route::post('/ontime', [DelaysController::class, 'store'])->name('ontime.store');
