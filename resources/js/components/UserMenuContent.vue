@@ -24,15 +24,6 @@ const page = usePage();
             <UserInfo :user="user" :show-email="true" />
         </div>
     </DropdownMenuLabel>
-    <DropdownMenuSeparator />
-    <DropdownMenuGroup>
-        <DropdownMenuItem :as-child="true">
-            <Link class="block w-full" :href="route('profile.edit')" as="button">
-                <Settings class="mr-2 h-4 w-4" />
-                Settings
-            </Link>
-        </DropdownMenuItem>
-    </DropdownMenuGroup>
     <DropdownMenuSeparator v-if="impersonated"/>
     <DropdownMenuGroup v-if="impersonated">
         <DropdownMenuItem :as-child="true">

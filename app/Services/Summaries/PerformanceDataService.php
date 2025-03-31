@@ -4,6 +4,7 @@ namespace App\Services\Summaries;
 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use App\Models\PerformanceMetricRule;
 use App\Services\Performance\PerformanceCalculationsService;
 
@@ -22,15 +23,27 @@ class PerformanceDataService
         $rollingStart = Carbon::now()->subWeeks(6)->startOfWeek();
         $rollingEnd   = Carbon::now();
 
-        $mainData = DB::table('performances')
+        // Main performance query
+        $queryMain = DB::table('performances')
             ->selectRaw("AVG(acceptance) AS average_acceptance, AVG(on_time) AS average_on_time, AVG(maintenance_variance_to_spend) AS average_maintenance_variance_to_spend, CASE WHEN SUM(meets_safety_bonus_criteria) >= COUNT(meets_safety_bonus_criteria) / 2 THEN 1 ELSE 0 END AS meets_safety_bonus_criteria")
-            ->whereBetween('date', [$startDate, $endDate])
-            ->first();
+            ->whereBetween('date', [$startDate, $endDate]);
 
-        $rollingData = DB::table('performances')
+        if (Auth::check() && Auth::user()->tenant_id !== null) {
+            $queryMain->where('tenant_id', Auth::user()->tenant_id);
+        }
+
+        $mainData = $queryMain->first();
+
+        // Rolling data query
+        $queryRolling = DB::table('performances')
             ->selectRaw("SUM(open_boc) AS sum_open_boc, SUM(vcr_preventable) AS sum_vcr_preventable")
-            ->whereBetween('date', [$rollingStart, $rollingEnd])
-            ->first();
+            ->whereBetween('date', [$rollingStart, $rollingEnd]);
+
+        if (Auth::check() && Auth::user()->tenant_id !== null) {
+            $queryRolling->where('tenant_id', Auth::user()->tenant_id);
+        }
+
+        $rollingData = $queryRolling->first();
 
         return [
             'label'      => $label,

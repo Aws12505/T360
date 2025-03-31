@@ -3,12 +3,13 @@
 namespace App\Services\Summaries;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class SafetyDataService
 {
     public function getSafetyData($startDate, $endDate): array
     {
-        $safetyData = DB::table('safety_data')
+        $query = DB::table('safety_data')
             ->selectRaw("
                 SUM(traffic_light_violation) AS traffic_light_violation,
                 SUM(speeding_violations) AS speeding_violations,
@@ -17,8 +18,13 @@ class SafetyDataService
                 SUM(sign_violations) AS sign_violations,
                 AVG(driver_score) AS average_driver_score
             ")
-            ->whereBetween('date', [$startDate, $endDate])
-            ->first();
+            ->whereBetween('date', [$startDate, $endDate]);
+
+        if (Auth::check() && Auth::user()->tenant_id !== null) {
+            $query->where('tenant_id', Auth::user()->tenant_id);
+        }
+
+        $safetyData = $query->first();
 
         return [
             'traffic_light_violation'       => $safetyData->traffic_light_violation ?? 0,

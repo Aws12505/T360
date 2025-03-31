@@ -46,15 +46,15 @@ import Button from '@/components/ui/button/Button.vue';
           <Card class="p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow hover:shadow-lg transition-shadow duration-200">
             <h3 class="text-xl font-semibold mb-2 text-center">Basic Plan</h3>
             <div class="flex justify-center">
-              <Link
-                href="https://billing.zohosecure.com/subscribe/be5e52d21f0ce61633149104eb68f5871f563cd205dd5841ad482bf477cf719e/sadasd"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Button variant="default" class="mt-4">
-                  Choose Plan
-                </Button>
-              </Link>
+              <a
+  href="https://billing.zohosecure.com/subscribe/be5e52d21f0ce61633149104eb68f5871f563cd205dd5841ad482bf477cf719e/sadasd"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  <Button variant="default" class="mt-4">
+    Choose Plan
+  </Button>
+</a>
             </div>
           </Card>
           <!-- Second Subscription Plan Card -->
