@@ -9,7 +9,7 @@
       <!-- Actions Section -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
         <Button @click="openCreateModal" class="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded shadow transition">
-          Create New Entry
+          Create New Driver
         </Button>
 
         <label class="flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded shadow cursor-pointer transition">
@@ -40,8 +40,8 @@
                 {{ item.tenant?.name ?? '—' }}
               </td>
               <td v-for="col in tableColumns" :key="col" class="px-4 py-2 whitespace-nowrap">
-                <template v-if="col === 'is_active'">
-                  {{ item[col] ? 'Yes' : 'No' }}
+                <template v-if="col === 'hiring_date'">
+                  {{ formatDate(item[col]) }}
                 </template>
                 <template v-else>
                   {{ item[col] }}
@@ -82,54 +82,28 @@
             </div>
 
             <div>
-              <label class="block text-sm font-medium">Truck ID</label>
-              <input v-model.number="form.truckid" type="number" class="w-full border rounded px-3 py-2" required>
+              <label class="block text-sm font-medium">First Name</label>
+              <input v-model="form.first_name" type="text" class="w-full border rounded px-3 py-2" required>
             </div>
 
             <div>
-              <label class="block text-sm font-medium">Type</label>
-              <!-- Lowercase values to match validation rules -->
-              <select v-model="form.type" class="w-full border rounded px-3 py-2" required>
-                <option value="daycab">Daycab</option>
-                <option value="sleepercab">Sleepercab</option>
-              </select>
+              <label class="block text-sm font-medium">Last Name</label>
+              <input v-model="form.last_name" type="text" class="w-full border rounded px-3 py-2" required>
             </div>
 
-            <div>
-              <label class="block text-sm font-medium">Make</label>
-              <select v-model="form.make" class="w-full border rounded px-3 py-2" required>
-                <option value="international">International</option>
-                <option value="kenworth">Kenworth</option>
-                <option value="peterbilt">Peterbilt</option>
-                <option value="volvo">Volvo</option>
-                <option value="freightliner">Freightliner</option>
-              </select>
+            <div class="sm:col-span-2">
+              <label class="block text-sm font-medium">Email Address</label>
+              <input v-model="form.email" type="email" class="w-full border rounded px-3 py-2" required>
             </div>
 
-            <div>
-              <label class="block text-sm font-medium">Fuel</label>
-              <select v-model="form.fuel" class="w-full border rounded px-3 py-2" required>
-                <option value="diesel">Diesel</option>
-                <option value="cng">CNG</option>
-              </select>
+            <div class="sm:col-span-2">
+              <label class="block text-sm font-medium">Mobile Phone Number</label>
+              <input v-model="form.mobile_phone" type="text" class="w-full border rounded px-3 py-2" required>
             </div>
 
-            <div>
-              <label class="block text-sm font-medium">License</label>
-              <input v-model.number="form.license" type="number" min="0" class="w-full border rounded px-3 py-2" required>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium">VIN</label>
-              <input v-model="form.vin" type="text" class="w-full border rounded px-3 py-2" required>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium">Active Status</label>
-              <div class="mt-2">
-                <input type="checkbox" v-model="form.is_active" true-value="1" false-value="0" class="rounded">
-                <span class="ml-2">{{ form.is_active ? 'Active' : 'Inactive' }}</span>
-              </div>
+            <div class="sm:col-span-2">
+              <label class="block text-sm font-medium">Hiring Date</label>
+              <input v-model="form.hiring_date" type="date" class="w-full border rounded px-3 py-2" required>
             </div>
 
             <div class="col-span-2 flex justify-end gap-3 mt-4">
@@ -164,7 +138,7 @@ const props = defineProps({
 
 const successMessage = ref('');
 const showModal = ref(false);
-const formTitle = ref('Create Entry');
+const formTitle = ref('Create Driver');
 const formAction = ref('Create');
 const exportForm = ref(null);
 
@@ -178,28 +152,23 @@ const breadcrumbs = [
 ];
 
 const tableColumns = [
-  'truckid',
-  'type',
-  'make',
-  'fuel',
-  'license',
-  'vin',
-  'is_active'
+  'first_name',
+  'last_name',
+  'email',
+  'mobile_phone',
+  'hiring_date'
 ];
 
 const form = useForm({
   id: null,
-  truckid: null,
-  type: 'daycab',
-  make: 'international',
-  fuel: 'diesel',
-  license: null,
-  vin: '',
-  is_active: 1,
+  first_name: '',
+  last_name: '',
+  email: '',
+  mobile_phone: '',
+  hiring_date: '',
   tenant_id: null
 });
 
-// Removed tenant_id from importForm
 const importForm = useForm({
   csv_file: null,
 });
@@ -208,25 +177,22 @@ const deleteForm = useForm({});
 
 function openCreateModal() {
   form.reset();
-  form.is_active = 1;
   form.tenant_id = null;
-  formTitle.value = 'Create Entry';
+  formTitle.value = 'Create Driver';
   formAction.value = 'Create';
   showModal.value = true;
 }
 
 function openEditModal(item) {
   form.id = item.id;
-  form.truckid = item.truckid;
-  form.type = item.type ? item.type.toLowerCase() : '';
-  form.make = item.make ? item.make.toLowerCase() : '';
-  form.fuel = item.fuel;
-  form.license = item.license;
-  form.vin = item.vin;
-  form.is_active = item.is_active;
+  form.first_name = item.first_name;
+  form.last_name = item.last_name;
+  form.email = item.email;
+  form.mobile_phone = item.mobile_phone;
+  form.hiring_date = item.hiring_date;
   form.tenant_id = item.tenant_id;
   
-  formTitle.value = 'Edit Entry';
+  formTitle.value = 'Edit Driver';
   formAction.value = 'Update';
   showModal.value = true;
 }
@@ -237,37 +203,35 @@ function closeModal() {
 
 function submitForm() {
   const payload = {
-    truckid: Number(form.truckid),
-    type: form.type,
-    make: form.make,
-    fuel: form.fuel,
-    license: Number(form.license),
-    vin: form.vin,
-    is_active: Number(form.is_active),
+    first_name: form.first_name,
+    last_name: form.last_name,
+    email: form.email,
+    mobile_phone: form.mobile_phone,
+    hiring_date: form.hiring_date,
     tenant_id: form.tenant_id
   };
 
   if (form.id) {
     form.put(props.SuperAdmin
-      ? route('truck.update.admin', [form.id])
-      : route('truck.update', [props.tenantSlug, form.id]), {
+      ? route('driver.update.admin', [form.id])
+      : route('driver.update', [props.tenantSlug, form.id]), {
       data: payload,
       onSuccess: () => {
-        successMessage.value = 'Entry updated.';
+        successMessage.value = 'Driver updated.';
         closeModal();
       },
-      onError: () => alert('Error updating entry')
+      onError: () => alert('Error updating driver')
     });
   } else {
     form.post(props.SuperAdmin
-      ? route('truck.store.admin')
-      : route('truck.store', props.tenantSlug), {
+      ? route('driver.store.admin')
+      : route('driver.store', props.tenantSlug), {
       data: payload,
       onSuccess: () => {
-        successMessage.value = 'Entry created.';
+        successMessage.value = 'Driver created.';
         closeModal();
       },
-      onError: () => alert('Error creating entry')
+      onError: () => alert('Error creating driver')
     });
   }
 }
@@ -275,9 +239,9 @@ function submitForm() {
 function deleteEntry(id) {
   if (!confirm('Are you sure?')) return;
   deleteForm.delete(props.SuperAdmin
-    ? route('truck.destroy.admin', [id])
-    : route('truck.destroy', [props.tenantSlug, id]), {
-    onSuccess: () => successMessage.value = 'Entry deleted.'
+    ? route('driver.destroy.admin', [id])
+    : route('driver.destroy', [props.tenantSlug, id]), {
+    onSuccess: () => successMessage.value = 'Driver deleted.'
   });
 }
 
@@ -287,8 +251,8 @@ function handleImport(e) {
   
   importForm.csv_file = file;
   importForm.post(props.SuperAdmin
-    ? route('truck.import.admin')
-    : route('truck.import', props.tenantSlug), {
+    ? route('driver.import.admin')
+    : route('driver.import', props.tenantSlug), {
     forceFormData: true,
     onSuccess: () => successMessage.value = 'Data imported successfully.',
     onError: () => alert('Import failed')
@@ -297,13 +261,23 @@ function handleImport(e) {
 
 function exportCSV() {
   const routeName = props.SuperAdmin
-    ? route('truck.export.admin')
-    : route('truck.export', props.tenantSlug);
+    ? route('driver.export.admin')
+    : route('driver.export', props.tenantSlug);
   exportForm.value?.setAttribute('action', routeName);
   exportForm.value?.submit();
 }
 
 function visitPage(url) {
   if (url) router.get(url, {}, { only: ['entries'] });
+}
+
+// Updated: Format date string from YYYY-MM-DD to m/d/Y without using Date()
+// to avoid timezone-related day shifts.
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const parts = dateStr.split('-');
+  if (parts.length !== 3) return dateStr;
+  const [year, month, day] = parts;
+  return `${Number(month)}/${Number(day)}/${year}`;
 }
 </script>

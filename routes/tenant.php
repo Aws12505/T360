@@ -8,6 +8,7 @@ use App\Http\Controllers\Web\Acceptance\RejectionsController;
 use App\Http\Controllers\Web\Performance\SummariesController;
 use App\Http\Controllers\Web\Performance\PerformanceController;
 use App\Http\Controllers\Web\UserManagement\ImpersonationController;
+use App\Http\Controllers\Web\Driver\DriverController;
 
 Route::middleware(['auth', 'tenant'])->group(function () {
     Route::prefix('{tenantSlug}')->group(function () {
@@ -57,6 +58,14 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::put('/ontime/{delay}', [DelaysController::class, 'update'])->name('ontime.update');
         Route::delete('/ontime/{delay}', [DelaysController::class, 'destroy'])->name('ontime.destroy');
         Route::get('/ontime', [DelaysController::class, 'index'])->name('ontime.index');
+
+// Regular Driver routes
+Route::get('/drivers', [DriverController::class, 'index'])->name('driver.index');
+Route::post('/drivers', [DriverController::class, 'store'])->name('driver.store');
+Route::put('/drivers/{driver}', [DriverController::class, 'update'])->name('driver.update');
+Route::delete('/drivers/{driver}', [DriverController::class, 'destroy'])->name('driver.destroy');
+Route::post('/drivers/import', [DriverController::class, 'import'])->name('driver.import');
+Route::get('/drivers/export', [DriverController::class, 'export'])->name('driver.export');
 
         // acceptance routes
         Route::get('/acceptance', [RejectionsController::class, 'index'])->name('acceptance.index');

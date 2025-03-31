@@ -17,12 +17,12 @@ class UpdateTruckRequest extends FormRequest
         return [
             'truckid'  => 'required|integer',
             'type'      => 'required|in:daycab,sleepercab',
-            'make'      => 'required|in:International,Kenworth,Peterbilt,Volvo,Freightliner',
+            'make'      => 'required|in:international,kenworth,peterbilt,volvo,freightliner',
             'fuel'      => 'required|in:cng,diesel',
             'license'   => 'required|integer',
             'vin'       => 'required|string|unique:trucks,vin,' . $truckId ,
             'tenant_id' => 'required|exists:tenants,id',
-            'active'    => 'sometimes|boolean',
+            'is_active'    => 'sometimes|boolean',
         ];
     }
     protected function prepareForValidation()

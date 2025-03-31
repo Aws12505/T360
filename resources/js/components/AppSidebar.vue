@@ -64,6 +64,11 @@ const mainNavItems: NavItem[] = [
         title: 'Trucks',
         href: tenantSlug ? route('truck.index', { tenantSlug }) : route('truck.index.admin'),
         icon: UserCog,
+    },
+    {
+        title: 'Drivers',
+        href: tenantSlug ? route('driver.index', { tenantSlug }) : route('driver.index.admin'),
+        icon: UserCog,
     }
 ];
 

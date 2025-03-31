@@ -9,7 +9,7 @@ use App\Http\Controllers\Web\Performance\PerformanceController;
 use App\Http\Controllers\Web\UserManagement\ImpersonationController;
 use App\Http\Controllers\Web\Performance\PerformanceMetricRuleController;
 use App\Http\Controllers\Web\Truck\TruckController;
-
+use App\Http\Controllers\Web\Driver\DriverController;
 Route::middleware(['auth', 'superAdmin'])->group(function () {
     Route::get('/dashboard', function () {
         return Inertia::render('Dashboard');
@@ -77,6 +77,14 @@ Route::middleware(['auth', 'superAdmin'])->group(function () {
     Route::post('/ontime', [DelaysController::class, 'store'])->name('ontime.store.admin');
     Route::put('/ontime/{delay}', [DelaysController::class, 'updateAdmin'])->name('ontime.update.admin');
     Route::delete('/ontime/{delay}', [DelaysController::class, 'destroyAdmin'])->name('ontime.destroy.admin');
+
+// Admin Driver routes
+Route::get('/drivers', [DriverController::class, 'index'])->name('driver.index.admin');
+Route::post('/drivers', [DriverController::class, 'store'])->name('driver.store.admin');
+Route::put('/drivers/{driver}', [DriverController::class, 'updateAdmin'])->name('driver.update.admin');
+Route::delete('/drivers/{driver}', [DriverController::class, 'destroyAdmin'])->name('driver.destroy.admin');
+Route::post('/drivers/import', [DriverController::class, 'import'])->name('driver.import.admin');
+Route::get('/drivers/export', [DriverController::class, 'export'])->name('driver.export.admin');
 
     // Admin delay codes routes
     Route::post('/delay-codes', [DelaysController::class, 'storeCode'])->name('delay_codes.store.admin');

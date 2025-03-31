@@ -12,8 +12,8 @@ class CreateTrucksTable extends Migration
             $table->id();
             // User-entered truckid
             $table->integer('truckid');
-            $table->enum('type', ['Daycab', 'sleepercab']);
-            $table->enum('make', ['International', 'Kenworth', 'Peterbilt', 'Volvo', 'Freightliner']);
+            $table->enum('type', ['daycab', 'sleepercab']);
+            $table->enum('make', ['international', 'kenworth', 'peterbilt', 'volvo', 'freightliner']);
             $table->enum('fuel', ['cng', 'diesel']);
             $table->integer('license');
             $table->string('vin')->unique();

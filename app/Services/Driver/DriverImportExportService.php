@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Services\Truck;
+namespace App\Services\Driver;
 
-use App\Models\Truck;
+use App\Models\Driver;
 use App\Models\Tenant;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Response;
@@ -10,10 +10,10 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 
-class TruckImportExportService
+class DriverImportExportService
 {
     /**
-     * Import truck data from a CSV file.
+     * Import driver data from a CSV file.
      *
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\RedirectResponse
@@ -21,12 +21,10 @@ class TruckImportExportService
      */
     public function importData($request)
     {
-        // Validate the incoming request.
         $request->validate([
             'csv_file' => 'required|file|mimes:csv,txt',
         ]);
 
-        // Get the CSV file.
         $file = $request->file('csv_file');
         $handle = fopen($file->getRealPath(), 'r');
 
@@ -34,23 +32,18 @@ class TruckImportExportService
             throw new \Exception('Could not open the file.');
         }
 
-        // Determine if the current user is a SuperAdmin.
         $isSuperAdmin = Auth::user()->tenant_id === null;
 
-        // Define expected CSV headers.
-        // SuperAdmin users must include tenant_name in the CSV.
         $expectedHeaders = $isSuperAdmin
-            ? ['tenant_name', 'truckid', 'type', 'make', 'fuel', 'license', 'vin', 'is_active']
-            : ['truckid', 'type', 'make', 'fuel', 'license', 'vin', 'is_active'];
+            ? ['tenant_name', 'first_name', 'last_name', 'email', 'mobile_phone', 'hiring_date']
+            : ['first_name', 'last_name', 'email', 'mobile_phone', 'hiring_date'];
 
-        // Read the header row.
         $headers = fgetcsv($handle, 0, ',');
         if ($headers === false) {
             fclose($handle);
             throw new \Exception('CSV file is empty.');
         }
 
-        // Check if the CSV header count matches expected.
         if (count($headers) !== count($expectedHeaders)) {
             fclose($handle);
             return redirect()->back()->with('error', 'CSV headers do not match the expected format.');
@@ -59,11 +52,8 @@ class TruckImportExportService
         $rowsCreated = 0;
         $rowsUpdated = 0;
         $rowsSkipped = 0;
-
-        // Start row counter at 2 (assuming row 1 is the header).
         $currentRow = 2;
 
-        // Process each CSV row.
         while (($row = fgetcsv($handle, 0, ',')) !== false) {
             if (count($row) !== count($expectedHeaders)) {
                 $rowsSkipped++;
@@ -71,19 +61,25 @@ class TruckImportExportService
                 continue;
             }
 
-            // Combine headers with row data.
             $data = array_combine($expectedHeaders, $row);
-
-            // Clean the data: replace empty strings with null.
             $data = array_map(function ($val) {
                 return $val === '' ? null : $val;
             }, $data);
 
-            // For non-SuperAdmin, set tenant_id from the authenticated user.
+            // Convert hiring_date from m/d/Y to Y-m-d (set time to start of day to avoid timezone issues)
+            try {
+                $data['hiring_date'] = Carbon::createFromFormat('m/d/Y', $data['hiring_date'])
+                    ->startOfDay()
+                    ->format('Y-m-d');
+            } catch (\Exception $e) {
+                $rowsSkipped++;
+                $currentRow++;
+                continue;
+            }
+
             if (!$isSuperAdmin) {
                 $data['tenant_id'] = Auth::user()->tenant_id;
             } else {
-                // For SuperAdmin, lookup tenant by tenant_name.
                 $tenant = Tenant::where('name', $data['tenant_name'])->first();
                 if (!$tenant) {
                     $rowsSkipped++;
@@ -94,26 +90,13 @@ class TruckImportExportService
                 unset($data['tenant_name']);
             }
 
-            // Convert the type, fuel, and make values to lowercase.
-            $data['type'] = strtolower($data['type']);
-            $data['fuel'] = strtolower($data['fuel']);
-            $data['make'] = strtolower($data['make']);
-
-            // Convert the active value:
-            // If the value is "active" or "yes" (case-insensitive), set it to "active", otherwise "inactive".
-            $activeVal = strtolower(trim($data['is_active']));
-            $data['is_active'] = ($activeVal === 'active' || $activeVal === 'yes') ? 1 : 0;
-
-            // Validate the row data.
             $validator = Validator::make($data, [
-                'tenant_id' => 'required|exists:tenants,id',
-                'truckid'   => 'required|integer',
-                'type'      => 'required|in:daycab,sleepercab',
-                'make'      => 'required|in:international,kenworth,peterbilt,volvo,freightliner',
-                'fuel'      => 'required|in:cng,diesel',
-                'license'   => 'required|integer',
-                'vin'       => 'required|string',
-                'is_active' => 'required|boolean',
+                'tenant_id'    => 'required|exists:tenants,id',
+                'first_name'   => 'required|string',
+                'last_name'    => 'required|string',
+                'email'        => 'required|email',
+                'mobile_phone' => 'required|string',
+                'hiring_date'  => 'required|date',
             ]);
 
             if ($validator->fails()) {
@@ -122,15 +105,12 @@ class TruckImportExportService
                 continue;
             }
 
-            // Check if a truck with this VIN already exists.
-            $truck = Truck::where('vin', $data['vin'])->first();
-            if ($truck) {
-                // Update the existing truck.
-                $truck->update($data);
+            $driver = Driver::where('email', $data['email'])->first();
+            if ($driver) {
+                $driver->update($data);
                 $rowsUpdated++;
             } else {
-                // Create a new truck record.
-                Truck::create($data);
+                Driver::create($data);
                 $rowsCreated++;
             }
             $currentRow++;
@@ -143,41 +123,36 @@ class TruckImportExportService
     }
 
     /**
-     * Export truck data to a CSV file.
+     * Export driver data to a CSV file.
      */
     public function exportData()
     {
-        $trucks = Truck::with('tenant')->get();
-        if ($trucks->isEmpty()) {
-            return redirect()->back()->with('error', 'No truck data to export.');
+        $drivers = Driver::with('tenant')->get();
+        if ($drivers->isEmpty()) {
+            return redirect()->back()->with('error', 'No driver data to export.');
         }
-        $fileName = 'trucks_' . Str::random(8) . '.csv';
+        $fileName = 'drivers_' . Str::random(8) . '.csv';
         $filePath = public_path($fileName);
         $file = fopen($filePath, 'w');
 
-        // Define headers.
         $headers = [
             'tenant_name',
-            'truckid',
-            'type',
-            'make',
-            'fuel',
-            'license',
-            'vin',
-            'is_active',
+            'first_name',
+            'last_name',
+            'email',
+            'mobile_phone',
+            'hiring_date',
         ];
         fputcsv($file, $headers);
 
-        foreach ($trucks as $truck) {
+        foreach ($drivers as $driver) {
             fputcsv($file, [
-                $truck->tenant->name ?? '—',
-                $truck->truckid,
-                $truck->type,
-                $truck->make,
-                $truck->fuel,
-                $truck->license,
-                $truck->vin,
-                $truck->is_active ? 'Yes' : 'No',
+                $driver->tenant->name ?? '—',
+                $driver->first_name,
+                $driver->last_name,
+                $driver->email,
+                $driver->mobile_phone,
+                $driver->hiring_date,
             ]);
         }
         fclose($file);
