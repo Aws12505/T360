@@ -1,78 +1,261 @@
 <template>
   <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
-    <div class="p-6 space-y-6">
-      <!-- Header Section -->
-      <div class="flex justify-between items-center">
-        <h1 class="text-2xl font-semibold">Acceptance</h1>
-        <div class="space-x-2">
-          <!-- Button to open rejection form modal -->
-          <Button @click="openForm()" variant="default" class="px-4 py-2">
+    <div class="max-w-7xl mx-auto p-6 space-y-8">
+      <!-- Success Message -->
+      <Alert v-if="successMessage" variant="success">
+        <AlertTitle>Success</AlertTitle>
+        <AlertDescription>{{ successMessage }}</AlertDescription>
+      </Alert>
+
+      <!-- Actions Section -->
+      <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">Acceptance</h1>
+        <div class="flex flex-wrap gap-3">
+          <Button @click="openForm()" variant="default">
+            <Icon name="plus" class="mr-2 h-4 w-4" />
             Add Rejection
           </Button>
-          <!-- Button to open reason code management modal -->
-          <Button @click="openCodeModal()" variant="outline" class="px-4 py-2">
+          <Button @click="openCodeModal()" variant="outline">
+            <Icon name="settings" class="mr-2 h-4 w-4" />
             Manage Reason Codes
           </Button>
         </div>
       </div>
 
+      <!-- Filters Section -->
+      <Card>
+        <CardHeader>
+          <CardTitle>Filters</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div class="flex flex-col gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
+              <div>
+                <Label for="search">Search</Label>
+                <Input 
+                  id="search"
+                  v-model="filters.search" 
+                  type="text" 
+                  placeholder="Search by driver name..." 
+                  @input="applyFilters"
+                />
+              </div>
+              <div>
+                <Label for="dateFrom">Date From</Label>
+                <Input 
+                  id="dateFrom"
+                  v-model="filters.dateFrom" 
+                  type="date" 
+                  @change="applyFilters"
+                />
+              </div>
+              <div>
+                <Label for="dateTo">Date To</Label>
+                <Input 
+                  id="dateTo"
+                  v-model="filters.dateTo" 
+                  type="date" 
+                  @change="applyFilters"
+                />
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
+              <div>
+                <Label for="rejectionType">Rejection Type</Label>
+                <select 
+                  id="rejectionType" 
+                  v-model="filters.rejectionType" 
+                  @change="applyFilters"
+                  class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
+                >
+                  <option value="">All Types</option>
+                  <option value="pickup">Pickup</option>
+                  <option value="delivery">Delivery</option>
+                </select>
+              </div>
+              <div>
+                <Label for="reasonCode">Reason Code</Label>
+                <select 
+                  id="reasonCode" 
+                  v-model="filters.reasonCode" 
+                  @change="applyFilters"
+                  class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
+                >
+                  <option value="">All Reason Codes</option>
+                  <option v-for="code in rejection_reason_codes" :key="code.id" :value="code.id">
+                    {{ code.reason_code }}
+                  </option>
+                </select>
+              </div>
+              <div>
+                <Label for="penalty">Penalty</Label>
+                <Input 
+                  id="penalty"
+                  v-model="filters.penalty" 
+                  type="text" 
+                  placeholder="Filter by penalty..." 
+                  @input="applyFilters"
+                />
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+              <div>
+                <Label for="disputed">Disputed</Label>
+                <select 
+                  id="disputed" 
+                  v-model="filters.disputed" 
+                  @change="applyFilters"
+                  class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
+                >
+                  <option value="">All</option>
+                  <option value="true">Yes</option>
+                  <option value="false">No</option>
+                </select>
+              </div>
+              <div>
+                <Label for="driverControllable">Driver Controllable</Label>
+                <select 
+                  id="driverControllable" 
+                  v-model="filters.driverControllable" 
+                  @change="applyFilters"
+                  class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
+                >
+                  <option value="">All</option>
+                  <option value="true">Yes</option>
+                  <option value="false">No</option>
+                  <option value="null">N/A</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="flex justify-end">
+              <Button 
+                @click="resetFilters" 
+                variant="ghost"
+                size="sm"
+              >
+                <Icon name="rotate-ccw" class="mr-2 h-4 w-4" />
+                Reset Filters
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <!-- Rejections Table -->
-      <div class="border rounded-lg">
-        <table class="w-full text-sm">
-          <thead class="bg-gray-100 text-left">
-            <tr>
-              <th v-if="isSuperAdmin" class="p-3">Tenant</th>
-              <th class="p-3">Date</th>
-              <th class="p-3">Type</th>
-              <th class="p-3">Driver</th>
-              <th class="p-3">Penalty</th>
-              <th class="p-3">Reason</th>
-              <th class="p-3">Disputed</th>
-              <th class="p-3">Controllable</th>
-              <th class="p-3">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="rejection in rejections.data" :key="rejection.id" class="border-t">
-              <td v-if="isSuperAdmin" class="p-3">{{ rejection.tenant?.name || '—' }}</td>
-              <td class="p-3">{{ rejection.date }}</td>
-              <td class="p-3 capitalize">{{ rejection.rejection_type }}</td>
-              <td class="p-3">{{ rejection.driver_name }}</td>
-              <td class="p-3">{{ rejection.penalty }}</td>
-              <td class="p-3">{{ rejection.reason_code?.reason_code || '—' }}</td>
-              <td class="p-3">{{ rejection.disputed ? 'Yes' : 'No' }}</td>
-              <td class="p-3">
-                {{ rejection.driver_controllable === null ? 'N/A' : (rejection.driver_controllable ? 'Yes' : 'No') }}
-              </td>
-              <td class="p-3 space-x-2">
-                <Button size="sm" @click="openForm(rejection)" variant="default" class="px-3 py-1">
-                  Edit
+      <Card>
+        <CardContent class="p-0">
+          <div class="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead v-if="isSuperAdmin">Tenant</TableHead>
+                  <TableHead 
+                    v-for="col in tableColumns" 
+                    :key="col" 
+                    class="cursor-pointer"
+                    @click="sortBy(col)"
+                  >
+                    <div class="flex items-center">
+                      {{ col.replace(/_/g, ' ').replace(/^./, str => str.toUpperCase()) }}
+                      <div v-if="sortColumn === col" class="ml-2">
+                        <svg v-if="sortDirection === 'asc'" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M8 15l4-4 4 4" />
+                        </svg>
+                        <svg v-else class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M16 9l-4 4-4-4" />
+                        </svg>
+                      </div>
+                      <div v-else class="ml-2 opacity-50">
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M8 10l4-4 4 4" />
+                          <path d="M16 14l-4 4-4-4" />
+                        </svg>
+                      </div>
+                    </div>
+                  </TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow v-if="filteredRejections.length === 0">
+                  <TableCell :colspan="isSuperAdmin ? tableColumns.length + 2 : tableColumns.length + 1" class="text-center py-8">
+                    No rejections found matching your criteria
+                  </TableCell>
+                </TableRow>
+                <TableRow v-for="rejection in filteredRejections" :key="rejection.id" class="hover:bg-muted/50">
+                  <TableCell v-if="isSuperAdmin">{{ rejection.tenant?.name || '—' }}</TableCell>
+                  <TableCell v-for="col in tableColumns" :key="col" class="whitespace-nowrap">
+                    <template v-if="col === 'date'">
+                      {{ formatDate(rejection[col]) }}
+                    </template>
+                    <template v-else-if="col === 'rejection_type'">
+                      <span class="capitalize">{{ rejection[col] }}</span>
+                    </template>
+                    <template v-else-if="col === 'reason_code'">
+                      {{ rejection.reason_code?.reason_code || '—' }}
+                    </template>
+                    <template v-else-if="col === 'disputed'">
+                      {{ rejection[col] ? 'Yes' : 'No' }}
+                    </template>
+                    <template v-else-if="col === 'driver_controllable'">
+                      {{ rejection[col] === null ? 'N/A' : (rejection[col] ? 'Yes' : 'No') }}
+                    </template>
+                    <template v-else>
+                      {{ rejection[col] }}
+                    </template>
+                  </TableCell>
+                  <TableCell>
+                    <div class="flex space-x-2">
+                      <Button size="sm" @click="openForm(rejection)" variant="warning">
+                        <Icon name="pencil" class="mr-1 h-4 w-4" />
+                        Edit
+                      </Button>
+                      <Button size="sm" variant="destructive" @click="deleteRejection(rejection.id)">
+                        <Icon name="trash" class="mr-1 h-4 w-4" />
+                        Delete
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
+          
+          <div class="bg-muted/20 px-4 py-3 border-t" v-if="rejections.links">
+            <div class="flex justify-between items-center">
+              <div class="text-sm text-muted-foreground">
+                Showing {{ filteredRejections.length }} of {{ rejections.data.length }} entries
+              </div>
+              <div class="flex">
+                <Button 
+                  v-for="link in rejections.links" 
+                  :key="link.label" 
+                  @click="visitPage(link.url)" 
+                  :disabled="!link.url" 
+                  variant="ghost"
+                  size="sm"
+                  class="mx-1"
+                  :class="{'bg-primary/10 text-primary border-primary': link.active}"
+                >
+                  <span v-html="link.label"></span>
                 </Button>
-                <Button size="sm" variant="destructive" @click="deleteRejection(rejection.id)" class="px-3 py-1">
-                  Delete
-                </Button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <div class="mt-4 flex justify-center" v-if="rejections.links">
-      <button
-        v-for="link in rejections.links"
-        :key="link.label"
-        @click="visitPage(link.url)"
-        :disabled="!link.url"
-        class="mx-1 px-3 py-1 border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-50"
-      >
-        <span v-html="link.label"></span>
-      </button>
-    </div>
-      </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <!-- Rejection Form Modal -->
       <Dialog v-model:open="formModal">
         <DialogContent class="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>{{ selectedRejection ? 'Edit' : 'Add' }} Rejection</DialogTitle>
+            <DialogDescription>
+              Fill in the details to {{ selectedRejection ? 'update' : 'add' }} a rejection.
+            </DialogDescription>
           </DialogHeader>
           <RejectionForm
             :rejection="selectedRejection"
@@ -85,20 +268,93 @@
         </DialogContent>
       </Dialog>
 
-      <!-- Code Manager Modal for Reason Codes (visible only for SuperAdmin) -->
+      <!-- Code Manager Modal for Reason Codes -->
       <Dialog v-model:open="codeModal" v-if="isSuperAdmin">
         <DialogContent class="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Manage Reason Codes</DialogTitle>
+            <DialogDescription>
+              Create and manage reason codes for rejections.
+            </DialogDescription>
           </DialogHeader>
-          <CodeManager
-            model="rejection_reason_codes"
-            label="Reason Code"
-            :codes="rejection_reason_codes"
-            :is-super-admin="isSuperAdmin"
-            :tenant-slug="tenantSlug"
-            @refresh="$inertia.reload({ only: ['rejection_reason_codes'] })"
-          />
+          <div class="mt-4 space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-medium">Current Reason Codes</h3>
+              <Button @click="openNewCodeForm" size="sm" variant="outline">
+                <Icon name="plus" class="mr-2 h-4 w-4" />
+                Add New Code
+              </Button>
+            </div>
+            
+            <div class="max-h-[400px] overflow-y-auto">
+              <div v-if="!rejection_reason_codes || rejection_reason_codes.length === 0" class="text-center py-8 text-muted-foreground border rounded-md">
+                No reason codes found
+              </div>
+              
+              <div v-else class="space-y-2">
+                <div 
+                  v-for="code in rejection_reason_codes" 
+                  :key="code.id" 
+                  class="flex items-center justify-between p-3 border rounded-md hover:bg-muted/50 group"
+                >
+                  <div class="flex-1 cursor-pointer" @click="editCode(code)">
+                    <div class="font-medium">{{ code.reason_code }}</div>
+                    <div v-if="code.description" class="text-sm text-muted-foreground mt-1">
+                      {{ code.description }}
+                    </div>
+                  </div>
+                  <div class="opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button @click="confirmDeleteCode(code.id)" size="sm" variant="ghost" class="h-8 w-8 p-0 text-destructive hover:text-destructive/90 hover:bg-destructive/10">
+                      <Icon name="trash" class="h-4 w-4" />
+                      <span class="sr-only">Delete</span>
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div v-if="showCodeForm" class="border rounded-md p-4 space-y-4">
+              <h3 class="text-sm font-medium">{{ editingCode ? 'Edit' : 'Add' }} Reason Code</h3>
+              <div class="space-y-3">
+                <div>
+                  <Label for="reason_code">Code</Label>
+                  <Input id="reason_code" v-model="codeForm.reason_code" placeholder="Enter reason code" />
+                </div>
+                <div>
+                  <Label for="description">Description</Label>
+                  <Input id="description" v-model="codeForm.description" placeholder="Enter description" />
+                </div>
+                <div class="flex justify-end space-x-2">
+                  <Button @click="cancelCodeEdit" variant="ghost" size="sm">Cancel</Button>
+                  <Button @click="saveCode" variant="default" size="sm">Save</Button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter class="mt-6">
+            <Button @click="codeModal = false" variant="outline">Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      <!-- Delete Code Confirmation Dialog -->
+      <Dialog v-model:open="codeDeleteConfirm">
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this reason code? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter class="mt-4">
+            <Button type="button" @click="codeDeleteConfirm = false" variant="outline">
+              Cancel
+            </Button>
+            <Button type="button" @click="deleteCode(codeToDelete)" variant="destructive">
+              Delete
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
@@ -106,7 +362,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 // Import UI components from their correct folders
 import Button from '@/components/ui/button/Button.vue';
@@ -115,11 +371,20 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
+  DialogFooter,
 } from '@/components/ui/dialog';
 import RejectionForm from '@/components/RejectionForm.vue';
 import CodeManager from '@/components/CodeManager.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import {router} from '@inertiajs/vue3';
+import { router } from '@inertiajs/vue3';
+import Icon from '@/components/Icon.vue';
+import { 
+  Card, CardHeader, CardTitle, CardContent,
+  Table, TableHeader, TableBody, TableHead, TableRow, TableCell,
+  Label, Input,
+  Alert, AlertTitle, AlertDescription
+} from '@/components/ui';
 
 const props = defineProps({
   rejections:  {
@@ -140,12 +405,179 @@ const breadcrumbs = [
       ? route('dashboard', { tenantSlug: props.tenantSlug })
       : route('admin.dashboard'),
   },
+  {
+    title: 'Acceptance',
+    href: '#',
+  }
 ];
 
 // Reactive state for modals and selected rejection
 const formModal = ref(false);
 const codeModal = ref(false);
 const selectedRejection = ref(null);
+const successMessage = ref('');
+
+// Code management state
+const showCodeForm = ref(false);
+const editingCode = ref(null);
+const codeForm = ref({
+  reason_code: '',
+  description: ''
+});
+const codeDeleteConfirm = ref(false);
+const codeToDelete = ref(null);
+
+// Table columns for sorting and display
+const tableColumns = [
+  'date',
+  'rejection_type',
+  'driver_name',
+  'penalty',
+  'reason_code',
+  'disputed',
+  'driver_controllable'
+];
+
+// Sorting state
+const sortColumn = ref('date');
+const sortDirection = ref('desc');
+
+// Filtering state
+const filters = ref({
+  search: '',
+  dateFrom: '',
+  dateTo: '',
+  rejectionType: '',
+  reasonCode: '',
+  penalty: '',
+  disputed: '',
+  driverControllable: ''
+});
+
+// Computed property for filtered and sorted rejections
+const filteredRejections = computed(() => {
+  let result = [...props.rejections.data];
+  
+  // Apply search filter
+  if (filters.value.search) {
+    const searchTerm = filters.value.search.toLowerCase();
+    result = result.filter(item => 
+      item.driver_name?.toLowerCase().includes(searchTerm) ||
+      item.rejection_type?.toLowerCase().includes(searchTerm) ||
+      item.reason_code?.reason_code?.toLowerCase().includes(searchTerm)
+    );
+  }
+  
+  // Apply date filters
+  if (filters.value.dateFrom) {
+    result = result.filter(item => 
+      item.date && item.date >= filters.value.dateFrom
+    );
+  }
+  
+  if (filters.value.dateTo) {
+    result = result.filter(item => 
+      item.date && item.date <= filters.value.dateTo
+    );
+  }
+  
+  // Apply rejection type filter
+  if (filters.value.rejectionType) {
+    result = result.filter(item => 
+      item.rejection_type === filters.value.rejectionType
+    );
+  }
+  
+  // Apply reason code filter
+  if (filters.value.reasonCode) {
+    result = result.filter(item => 
+      item.reason_code && item.reason_code.id === parseInt(filters.value.reasonCode)
+    );
+  }
+  
+  // Apply penalty filter
+  if (filters.value.penalty) {
+    const penaltyTerm = filters.value.penalty.toLowerCase();
+    result = result.filter(item => 
+      item.penalty && item.penalty.toString().toLowerCase().includes(penaltyTerm)
+    );
+  }
+  
+  // Apply disputed filter
+  if (filters.value.disputed !== '') {
+    const isDisputed = filters.value.disputed === 'true';
+    result = result.filter(item => item.disputed === isDisputed);
+  }
+  
+  // Apply driver controllable filter
+  if (filters.value.driverControllable !== '') {
+    if (filters.value.driverControllable === 'null') {
+      result = result.filter(item => item.driver_controllable === null);
+    } else {
+      const isControllable = filters.value.driverControllable === 'true';
+      result = result.filter(item => item.driver_controllable === isControllable);
+    }
+  }
+  
+  // Apply sorting
+  result.sort((a, b) => {
+    let valA = a[sortColumn.value];
+    let valB = b[sortColumn.value];
+    
+    // Special handling for reason_code which is an object
+    if (sortColumn.value === 'reason_code') {
+      valA = a.reason_code?.reason_code || '';
+      valB = b.reason_code?.reason_code || '';
+    }
+    
+    // Handle null values
+    if (valA === null) return 1;
+    if (valB === null) return -1;
+    
+    // String comparison
+    if (typeof valA === 'string') {
+      valA = valA.toLowerCase();
+      valB = valB.toLowerCase();
+    }
+    
+    if (valA < valB) return sortDirection.value === 'asc' ? -1 : 1;
+    if (valA > valB) return sortDirection.value === 'asc' ? 1 : -1;
+    return 0;
+  });
+  
+  return result;
+});
+
+// Sort function
+function sortBy(column) {
+  if (sortColumn.value === column) {
+    // Toggle direction if clicking the same column
+    sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc';
+  } else {
+    // Set new column and default to ascending
+    sortColumn.value = column;
+    sortDirection.value = 'asc';
+  }
+}
+
+// Filter functions
+function applyFilters() {
+  // This function is triggered by input/change events
+  // The filtering is handled by the computed property
+}
+
+function resetFilters() {
+  filters.value = {
+    search: '',
+    dateFrom: '',
+    dateTo: '',
+    rejectionType: '',
+    reasonCode: '',
+    penalty: '',
+    disputed: '',
+    driverControllable: ''
+  };
+}
 
 // Function to open the rejection form modal (for create or edit)
 const openForm = (rejection = null) => {
@@ -156,21 +588,120 @@ const openForm = (rejection = null) => {
 // Function to open the reason codes manager modal
 const openCodeModal = () => {
   codeModal.value = true;
+  showCodeForm.value = false;
+  editingCode.value = null;
+};
+
+// Code management functions
+const openNewCodeForm = () => {
+  codeForm.value = {
+    reason_code: '',
+    description: ''
+  };
+  editingCode.value = null;
+  showCodeForm.value = true;
+};
+
+const editCode = (code) => {
+  codeForm.value = {
+    reason_code: code.reason_code,
+    description: code.description || ''
+  };
+  editingCode.value = code.id;
+  showCodeForm.value = true;
+};
+
+const cancelCodeEdit = () => {
+  showCodeForm.value = false;
+  editingCode.value = null;
+};
+
+const confirmDeleteCode = (id) => {
+  codeToDelete.value = id;
+  codeDeleteConfirm.value = true;
+};
+
+const saveCode = () => {
+  const form = useForm({
+    reason_code: codeForm.value.reason_code,
+    description: codeForm.value.description
+  });
+
+  const routeName = editingCode.value 
+    ? (props.isSuperAdmin ? 'rejection-reason-codes.update.admin' : 'rejection-reason-codes.update')
+    : (props.isSuperAdmin ? 'rejection-reason-codes.store.admin' : 'rejection-reason-codes.store');
+  
+  const routeParams = editingCode.value
+    ? props.isSuperAdmin ? { code: editingCode.value } : { tenantSlug: props.tenantSlug, code: editingCode.value }
+    : props.isSuperAdmin ? {} : { tenantSlug: props.tenantSlug };
+
+  const method = editingCode.value ? form.put : form.post;
+  
+  method.call(form, route(routeName, routeParams), {
+    onSuccess: () => {
+      successMessage.value = editingCode.value ? 'Reason code updated successfully.' : 'Reason code created successfully.';
+      showCodeForm.value = false;
+      editingCode.value = null;
+      router.reload({ only: ['rejection_reason_codes'] });
+    },
+    onError: (errors) => {
+      // Handle errors
+      console.error(errors);
+    }
+  });
+};
+
+const deleteCode = (id) => {
+  const form = useForm({});
+  const routeName = props.isSuperAdmin ? 'rejection-reason-codes.destroy.admin' : 'rejection-reason-codes.destroy';
+  const routeParams = props.isSuperAdmin ? { code: id } : { tenantSlug: props.tenantSlug, code: id };
+  
+  form.delete(route(routeName, routeParams), {
+    onSuccess: () => {
+      successMessage.value = 'Reason code deleted successfully.';
+      codeDeleteConfirm.value = false;
+      router.reload({ only: ['rejection_reason_codes'] });
+    }
+  });
 };
 
 // Function to delete a rejection using Inertia form helper
 const deleteRejection = (id) => {
+  if (!confirm('Are you sure you want to delete this rejection?')) return;
+  
   const form = useForm({});
   const routeName = props.isSuperAdmin ? 'acceptance.destroy.admin' : 'acceptance.destroy';
   const routeParams = props.isSuperAdmin ? { rejection: id } : { tenantSlug: props.tenantSlug, rejection: id };
-  if (!confirm('Are you sure you want to delete this rejection?')) return;
+  
   form.delete(route(routeName, routeParams), {
     preserveScroll: true,
+    onSuccess: () => {
+      successMessage.value = 'Rejection deleted successfully.';
+    }
   });
 };
+
 const visitPage = (url) => {
   if (url) {
     router.get(url, {}, { only: ['rejections'] });
   }
 };
+
+// Format date string from YYYY-MM-DD to m/d/Y
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const parts = dateStr.split('-');
+  if (parts.length !== 3) return dateStr;
+  const [year, month, day] = parts;
+  return `${Number(month)}/${Number(day)}/${year}`;
+}
+
+// Auto-hide success message after 5 seconds
+watch(successMessage, (newValue) => {
+  if (newValue) {
+    setTimeout(() => {
+      successMessage.value = '';
+    }, 5000);
+  }
+});
 </script>

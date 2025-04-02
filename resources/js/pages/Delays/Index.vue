@@ -1,76 +1,228 @@
 <template>
   <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
-    <div class="p-6 space-y-6">
-      <!-- Header Section -->
-      <div class="flex justify-between items-center">
-        <h1 class="text-2xl font-semibold">On-Time</h1>
-        <div class="space-x-2">
-          <Button @click="openForm()" variant="default" class="px-4 py-2">
+    <div class="max-w-7xl mx-auto p-6 space-y-8">
+      <!-- Success Message -->
+      <Alert v-if="successMessage" variant="success">
+        <AlertTitle>Success</AlertTitle>
+        <AlertDescription>{{ successMessage }}</AlertDescription>
+      </Alert>
+
+      <!-- Actions Section -->
+      <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">On-Time Management</h1>
+        <div class="flex flex-wrap gap-3">
+          <Button @click="openForm()" variant="default">
+            <Icon name="plus" class="mr-2 h-4 w-4" />
             Add Delay
           </Button>
-          <Button @click="openCodeModal()" variant="outline" class="px-4 py-2">
+          <Button @click="openCodeModal()" variant="outline">
+            <Icon name="settings" class="mr-2 h-4 w-4" />
             Manage Delay Codes
           </Button>
         </div>
       </div>
 
+      <!-- Filters Section -->
+      <Card>
+        <CardHeader>
+          <CardTitle>Filters</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div class="flex flex-col justify-between gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full">
+              <div>
+                <Label for="search">Search</Label>
+                <Input 
+                  id="search"
+                  v-model="filters.search" 
+                  type="text" 
+                  placeholder="Search by driver or type..." 
+                  @input="applyFilters"
+                />
+              </div>
+              <div>
+                <Label for="dateFrom">Date From</Label>
+                <Input 
+                  id="dateFrom"
+                  v-model="filters.dateFrom" 
+                  type="date" 
+                  @change="applyFilters"
+                />
+              </div>
+              <div>
+                <Label for="dateTo">Date To</Label>
+                <Input 
+                  id="dateTo"
+                  v-model="filters.dateTo" 
+                  type="date" 
+                  @change="applyFilters"
+                />
+              </div>
+              <div>
+                <Label for="delayCode">Delay Code</Label>
+                <select
+                  id="delayCode"
+                  v-model="filters.delayCode"
+                  @change="applyFilters"
+                  class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <option value="">All Codes</option>
+                  <option v-for="code in delay_codes" :key="code.id" :value="code.id">
+                    {{ code.code }}
+                  </option>
+                </select>
+              </div>
+              <div>
+                <Label for="disputed">Disputed Status</Label>
+                <select
+                  id="disputed"
+                  v-model="filters.disputed"
+                  @change="applyFilters"
+                  class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <option value="">All</option>
+                  <option value="true">Disputed</option>
+                  <option value="false">Not Disputed</option>
+                </select>
+              </div>
+              <div>
+                <Label for="controllable">Driver Controllable</Label>
+                <select
+                  id="controllable"
+                  v-model="filters.controllable"
+                  @change="applyFilters"
+                  class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <option value="">All</option>
+                  <option value="true">Yes</option>
+                  <option value="false">No</option>
+                  <option value="null">N/A</option>
+                </select>
+              </div>
+            </div>
+            <div class="flex justify-end">
+              <Button 
+                @click="resetFilters" 
+                variant="ghost"
+                size="sm"
+              >
+                <Icon name="rotate-ccw" class="mr-2 h-4 w-4" />
+                Reset Filters
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <!-- Delays Table -->
-      <div class="border rounded-lg">
-        <table class="w-full text-sm">
-          <thead class="bg-gray-100 text-left">
-            <tr>
-              <th v-if="isSuperAdmin" class="p-3">Tenant</th>
-              <th class="p-3">Date</th>
-              <th class="p-3">Type</th>
-              <th class="p-3">Driver</th>
-              <th class="p-3">Penalty</th>
-              <th class="p-3">Code</th>
-              <th class="p-3">Disputed</th>
-              <th class="p-3">Controllable</th>
-              <th class="p-3">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="delay in delays.data" :key="delay.id" class="border-t">
-              <td v-if="isSuperAdmin" class="p-3">{{ delay.tenant?.name || '—' }}</td>
-              <td class="p-3">{{ delay.date }}</td>
-              <td class="p-3">{{ delay.delay_type }}</td>
-              <td class="p-3">{{ delay.driver_name }}</td>
-              <td class="p-3">{{ delay.penalty }}</td>
-              <td class="p-3">{{ delay.delay_code?.code || '—' }}</td>
-              <td class="p-3">{{ delay.disputed ? 'Yes' : 'No' }}</td>
-              <td class="p-3">
-                {{ delay.driver_controllable === null ? 'N/A' : (delay.driver_controllable ? 'Yes' : 'No') }}
-              </td>
-              <td class="p-3 space-x-2">
-                <Button size="sm" @click="openForm(delay)" variant="default" class="px-3 py-1">
-                  Edit
+      <Card>
+        <CardContent class="p-0">
+          <div class="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead v-if="isSuperAdmin">Tenant</TableHead>
+                  <TableHead 
+                    v-for="col in tableColumns" 
+                    :key="col" 
+                    class="cursor-pointer"
+                    @click="sortBy(col)"
+                  >
+                    <div class="flex items-center">
+                      {{ col.replace(/_/g, ' ') }}
+                      <div v-if="sortColumn === col" class="ml-2">
+                        <svg v-if="sortDirection === 'asc'" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M8 15l4-4 4 4" />
+                        </svg>
+                        <svg v-else class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M16 9l-4 4-4-4" />
+                        </svg>
+                      </div>
+                      <div v-else class="ml-2 opacity-50">
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M8 10l4-4 4 4" />
+                          <path d="M16 14l-4 4-4-4" />
+                        </svg>
+                      </div>
+                    </div>
+                  </TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow v-if="filteredDelays.length === 0">
+                  <TableCell :colspan="isSuperAdmin ? tableColumns.length + 2 : tableColumns.length + 1" class="text-center py-8">
+                    No delays found matching your criteria
+                  </TableCell>
+                </TableRow>
+                <TableRow v-for="delay in filteredDelays" :key="delay.id" class="hover:bg-muted/50">
+                  <TableCell v-if="isSuperAdmin">{{ delay.tenant?.name || '—' }}</TableCell>
+                  <TableCell v-for="col in tableColumns" :key="col" class="whitespace-nowrap">
+                    <template v-if="col === 'date'">
+                      {{ formatDate(delay[col]) }}
+                    </template>
+                    <template v-else-if="col === 'disputed'">
+                      {{ delay[col] ? 'Yes' : 'No' }}
+                    </template>
+                    <template v-else-if="col === 'driver_controllable'">
+                      {{ delay[col] === null ? 'N/A' : (delay[col] ? 'Yes' : 'No') }}
+                    </template>
+                    <template v-else-if="col === 'delay_code'">
+                      {{ delay.delay_code?.code || '—' }}
+                    </template>
+                    <template v-else>
+                      {{ delay[col] }}
+                    </template>
+                  </TableCell>
+                  <TableCell>
+                    <div class="flex space-x-2">
+                      <Button @click="openForm(delay)" variant="warning" size="sm">
+                        <Icon name="pencil" class="mr-1 h-4 w-4" />
+                        Edit
+                      </Button>
+                      <Button @click="confirmDelete(delay.id)" variant="destructive" size="sm">
+                        <Icon name="trash" class="mr-1 h-4 w-4" />
+                        Delete
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
+          
+          <div class="bg-muted/20 px-4 py-3 border-t" v-if="delays.links">
+            <div class="flex justify-between items-center">
+              <div class="text-sm text-muted-foreground">
+                Showing {{ filteredDelays.length }} of {{ delays.data.length }} entries
+              </div>
+              <div class="flex">
+                <Button 
+                  v-for="link in delays.links" 
+                  :key="link.label" 
+                  @click="visitPage(link.url)" 
+                  :disabled="!link.url" 
+                  variant="ghost"
+                  size="sm"
+                  class="mx-1"
+                  :class="{'bg-primary/10 text-primary border-primary': link.active}"
+                >
+                  <span v-html="link.label"></span>
                 </Button>
-                <Button size="sm" variant="destructive" @click="deleteDelay(delay.id)" class="px-3 py-1">
-                  Delete
-                </Button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <div class="mt-4 flex justify-center" v-if="delays.links">
-      <button
-        v-for="link in delays.links"
-        :key="link.label"
-        @click="visitPage(link.url)"
-        :disabled="!link.url"
-        class="mx-1 px-3 py-1 border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-50"
-      >
-        <span v-html="link.label"></span>
-      </button>
-    </div>
-      </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <!-- Delay Form Modal -->
       <Dialog v-model:open="formModal">
         <DialogContent class="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>{{ selectedDelay ? 'Edit' : 'Add' }} Delay</DialogTitle>
+            <DialogDescription>
+              Fill in the details to {{ selectedDelay ? 'update' : 'create' }} a delay record.
+            </DialogDescription>
           </DialogHeader>
           <DelayForm
             :delay="selectedDelay"
@@ -83,20 +235,113 @@
         </DialogContent>
       </Dialog>
 
-      <!-- Code Manager Modal for Delay Codes (visible only for SuperAdmin) -->
-      <Dialog v-model:open="codeModal" v-if="isSuperAdmin">
+      <!-- Code Manager Modal for Delay Codes -->
+      <Dialog v-model:open="codeModal">
         <DialogContent class="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Manage Delay Codes</DialogTitle>
+            <DialogDescription>
+              Create and manage delay codes for your organization.
+            </DialogDescription>
           </DialogHeader>
-          <CodeManager
-            model="delay_codes"
-            label="Delay Code"
-            :codes="delay_codes"
-            :is-super-admin="isSuperAdmin"
-            :tenant-slug="tenantSlug"
-            @refresh="$inertia.reload({ only: ['delay_codes'] })"
-          />
+          <div class="mt-4 space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-medium">Current Delay Codes</h3>
+              <Button @click="openNewCodeForm" size="sm" variant="outline">
+                <Icon name="plus" class="mr-2 h-4 w-4" />
+                Add New Code
+              </Button>
+            </div>
+            
+            <div class="max-h-[400px] overflow-y-auto">
+              <div v-if="!delay_codes || delay_codes.length === 0" class="text-center py-8 text-muted-foreground border rounded-md">
+                No delay codes found
+              </div>
+              
+              <div v-else class="space-y-2">
+                <div 
+                  v-for="code in delay_codes" 
+                  :key="code.id" 
+                  class="flex items-center justify-between p-3 border rounded-md hover:bg-muted/50 group"
+                >
+                  <div class="flex-1 cursor-pointer" @click="editCode(code)">
+                    <div class="font-medium">{{ code.code }}</div>
+                    <div v-if="code.description" class="text-sm text-muted-foreground mt-1">
+                      {{ code.description }}
+                    </div>
+                  </div>
+                  <div class="opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button @click="confirmDeleteCode(code.id)" size="sm" variant="ghost" class="h-8 w-8 p-0 text-destructive hover:text-destructive/90 hover:bg-destructive/10">
+                      <Icon name="trash" class="h-4 w-4" />
+                      <span class="sr-only">Delete</span>
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div v-if="showCodeForm" class="border rounded-md p-4 space-y-4">
+              <h3 class="text-sm font-medium">{{ editingCode ? 'Edit' : 'Add' }} Delay Code</h3>
+              <div class="space-y-3">
+                <div>
+                  <Label for="code">Code</Label>
+                  <Input id="code" v-model="codeForm.code" placeholder="Enter code" />
+                </div>
+                <div>
+                  <Label for="description">Description</Label>
+                  <Input id="description" v-model="codeForm.description" placeholder="Enter description" />
+                </div>
+                <div class="flex justify-end space-x-2">
+                  <Button @click="cancelCodeEdit" variant="ghost" size="sm">Cancel</Button>
+                  <Button @click="saveCode" variant="default" size="sm">Save</Button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter class="mt-6">
+            <Button @click="codeModal = false" variant="outline">Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      <!-- Delete Code Confirmation Dialog -->
+      <Dialog v-model:open="codeDeleteConfirm">
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this delay code? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter class="mt-4">
+            <Button type="button" @click="codeDeleteConfirm = false" variant="outline">
+              Cancel
+            </Button>
+            <Button type="button" @click="deleteCode(codeToDelete)" variant="destructive">
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <!-- Delete Confirmation Dialog -->
+      <Dialog v-model:open="showDeleteModal">
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this delay record? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter class="mt-4">
+            <Button type="button" @click="showDeleteModal = false" variant="outline">
+              Cancel
+            </Button>
+            <Button type="button" @click="deleteDelay(delayToDelete)" variant="destructive">
+              Delete
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
@@ -104,7 +349,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import Button from '@/components/ui/button/Button.vue';
@@ -113,10 +358,19 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
+  DialogFooter,
 } from '@/components/ui/dialog';
 import DelayForm from '@/components/DelayForm.vue';
 import CodeManager from '@/components/CodeManager.vue';
-import {router} from '@inertiajs/vue3';
+import { router } from '@inertiajs/vue3';
+import Icon from '@/components/Icon.vue';
+import { 
+  Card, CardHeader, CardTitle, CardContent,
+  Table, TableHeader, TableBody, TableHead, TableRow, TableCell,
+  Label, Input,
+  Alert, AlertTitle, AlertDescription
+} from '@/components/ui';
 
 const props = defineProps({
   delays:  {
@@ -136,33 +390,291 @@ const breadcrumbs = [
       ? route('dashboard', { tenantSlug: props.tenantSlug })
       : route('admin.dashboard'),
   },
+  {
+    title: 'On-Time',
+    href: '#',
+  }
 ];
 
+// UI state
 const formModal = ref(false);
 const codeModal = ref(false);
 const selectedDelay = ref(null);
+const successMessage = ref('');
+const showDeleteModal = ref(false);
+const delayToDelete = ref(null);
 
+// Code management state
+const showCodeForm = ref(false);
+const editingCode = ref(null);
+const codeForm = ref({
+  code: '',
+  description: ''
+});
+const codeDeleteConfirm = ref(false);
+const codeToDelete = ref(null);
+
+// Sorting state
+const sortColumn = ref('date');
+const sortDirection = ref('desc');
+
+// Filtering state
+const filters = ref({
+  search: '',
+  dateFrom: '',
+  dateTo: '',
+  delayCode: '',
+  disputed: '',
+  controllable: ''
+});
+
+// Table columns
+const tableColumns = [
+  'date',
+  'delay_type',
+  'driver_name',
+  'penalty',
+  'delay_code',
+  'disputed',
+  'driver_controllable'
+];
+
+// Computed property for filtered and sorted delays
+const filteredDelays = computed(() => {
+  let result = [...props.delays.data];
+  
+  // Apply search filter
+  if (filters.value.search) {
+    const searchTerm = filters.value.search.toLowerCase();
+    result = result.filter(item => 
+      item.driver_name?.toLowerCase().includes(searchTerm) || 
+      item.delay_type?.toLowerCase().includes(searchTerm) ||
+      item.delay_code?.code?.toLowerCase().includes(searchTerm)
+    );
+  }
+  
+  // Apply date filters
+  if (filters.value.dateFrom) {
+    result = result.filter(item => 
+      item.date && item.date >= filters.value.dateFrom
+    );
+  }
+  
+  if (filters.value.dateTo) {
+    result = result.filter(item => 
+      item.date && item.date <= filters.value.dateTo
+    );
+  }
+  
+  // Apply delay code filter
+  if (filters.value.delayCode) {
+    result = result.filter(item => 
+      item.delay_code?.id === parseInt(filters.value.delayCode)
+    );
+  }
+  
+  // Apply disputed filter
+  if (filters.value.disputed !== '') {
+    const isDisputed = filters.value.disputed === 'true';
+    result = result.filter(item => item.disputed === isDisputed);
+  }
+  
+  // Apply controllable filter
+  if (filters.value.controllable !== '') {
+    if (filters.value.controllable === 'null') {
+      result = result.filter(item => item.driver_controllable === null);
+    } else {
+      const isControllable = filters.value.controllable === 'true';
+      result = result.filter(item => item.driver_controllable === isControllable);
+    }
+  }
+  
+  // Apply sorting
+  result.sort((a, b) => {
+    let valA, valB;
+    
+    // Special handling for delay_code column
+    if (sortColumn.value === 'delay_code') {
+      valA = a.delay_code?.code || '';
+      valB = b.delay_code?.code || '';
+    } else {
+      valA = a[sortColumn.value];
+      valB = b[sortColumn.value];
+    }
+    
+    // Handle null values
+    if (valA === null) return 1;
+    if (valB === null) return -1;
+    
+    // String comparison
+    if (typeof valA === 'string') {
+      valA = valA.toLowerCase();
+      valB = valB.toLowerCase();
+    }
+    
+    if (valA < valB) return sortDirection.value === 'asc' ? -1 : 1;
+    if (valA > valB) return sortDirection.value === 'asc' ? 1 : -1;
+    return 0;
+  });
+  
+  return result;
+});
+
+// Sort function
+function sortBy(column) {
+  if (sortColumn.value === column) {
+    // Toggle direction if clicking the same column
+    sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc';
+  } else {
+    // Set new column and default to ascending
+    sortColumn.value = column;
+    sortDirection.value = 'asc';
+  }
+}
+
+// Filter functions
+function applyFilters() {
+  // This function is triggered by input/change events
+  // The filtering is handled by the computed property
+}
+
+function resetFilters() {
+  filters.value = {
+    search: '',
+    dateFrom: '',
+    dateTo: '',
+    delayCode: '',
+    disputed: '',
+    controllable: ''
+  };
+}
+
+// Delay form functions
 const openForm = (delay = null) => {
   selectedDelay.value = delay;
   formModal.value = true;
 };
 
+// Code management functions
 const openCodeModal = () => {
   codeModal.value = true;
+  showCodeForm.value = false;
+  editingCode.value = null;
+};
+
+const openNewCodeForm = () => {
+  codeForm.value = {
+    code: '',
+    description: ''
+  };
+  editingCode.value = null;
+  showCodeForm.value = true;
+};
+
+const editCode = (code) => {
+  codeForm.value = {
+    code: code.code,
+    description: code.description || ''
+  };
+  editingCode.value = code.id;
+  showCodeForm.value = true;
+};
+
+const cancelCodeEdit = () => {
+  showCodeForm.value = false;
+  editingCode.value = null;
+};
+
+const confirmDeleteCode = (id) => {
+  codeToDelete.value = id;
+  codeDeleteConfirm.value = true;
+};
+
+const saveCode = () => {
+  const form = useForm({
+    code: codeForm.value.code,
+    description: codeForm.value.description
+  });
+
+  const routeName = editingCode.value 
+    ? (props.isSuperAdmin ? 'delay-codes.update.admin' : 'delay-codes.update')
+    : (props.isSuperAdmin ? 'delay-codes.store.admin' : 'delay-codes.store');
+  
+  const routeParams = editingCode.value
+    ? props.isSuperAdmin ? { code: editingCode.value } : { tenantSlug: props.tenantSlug, code: editingCode.value }
+    : props.isSuperAdmin ? {} : { tenantSlug: props.tenantSlug };
+
+  const method = editingCode.value ? form.put : form.post;
+  
+  method.call(form, route(routeName, routeParams), {
+    onSuccess: () => {
+      successMessage.value = editingCode.value ? 'Delay code updated successfully.' : 'Delay code created successfully.';
+      showCodeForm.value = false;
+      editingCode.value = null;
+      router.reload({ only: ['delay_codes'] });
+    },
+    onError: (errors) => {
+      // Handle errors
+      console.error(errors);
+    }
+  });
+};
+
+const deleteCode = (id) => {
+  const form = useForm({});
+  const routeName = props.isSuperAdmin ? 'delay-codes.destroy.admin' : 'delay-codes.destroy';
+  const routeParams = props.isSuperAdmin ? { code: id } : { tenantSlug: props.tenantSlug, code: id };
+  
+  form.delete(route(routeName, routeParams), {
+    onSuccess: () => {
+      successMessage.value = 'Delay code deleted successfully.';
+      codeDeleteConfirm.value = false;
+      router.reload({ only: ['delay_codes'] });
+    }
+  });
+};
+
+// Delete delay confirmation
+const confirmDelete = (id) => {
+  delayToDelete.value = id;
+  showDeleteModal.value = true;
 };
 
 const deleteDelay = (id) => {
   const form = useForm({});
   const routeName = props.isSuperAdmin ? 'ontime.destroy.admin' : 'ontime.destroy';
   const routeParams = props.isSuperAdmin ? { delay: id } : { tenantSlug: props.tenantSlug, delay: id };
-  if (!confirm('Are you sure you want to delete this delay?')) return;
+  
   form.delete(route(routeName, routeParams), {
     preserveScroll: true,
+    onSuccess: () => {
+      successMessage.value = 'Delay record deleted successfully.';
+      showDeleteModal.value = false;
+    }
   });
 };
+
 const visitPage = (url) => {
   if (url) {
     router.get(url, {}, { only: ['delays']});
   }
 };
+
+// Format date string from YYYY-MM-DD to m/d/Y
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const parts = dateStr.split('-');
+  if (parts.length !== 3) return dateStr;
+  const [year, month, day] = parts;
+  return `${Number(month)}/${Number(day)}/${year}`;
+}
+
+// Auto-hide success message after 5 seconds
+watch(successMessage, (newValue) => {
+  if (newValue) {
+    setTimeout(() => {
+      successMessage.value = '';
+    }, 5000);
+  }
+});
 </script>

@@ -2,147 +2,344 @@
   <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
     <div class="max-w-7xl mx-auto p-6 space-y-8">
       <!-- Success Message -->
-      <p v-if="successMessage" class="bg-green-100 text-green-800 border border-green-300 px-4 py-2 rounded">
-        {{ successMessage }}
-      </p>
+      <Alert v-if="successMessage" variant="success">
+        <AlertTitle>Success</AlertTitle>
+        <AlertDescription>{{ successMessage }}</AlertDescription>
+      </Alert>
 
       <!-- Actions Section -->
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
-        <Button @click="openCreateModal" class="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded shadow transition">
-          Create New Entry
-        </Button>
+      <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">Truck Management</h1>
+        <div class="flex flex-wrap gap-3">
+          <Button @click="openCreateModal" variant="default">
+            <Icon name="plus" class="mr-2 h-4 w-4" />
+            Create New Truck
+          </Button>
 
-        <label class="flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded shadow cursor-pointer transition">
-          Import CSV
-          <input type="file" class="hidden" @change="handleImport" accept=".csv, .txt" />
-        </label>
+          <label class="cursor-pointer">
+            <Button variant="secondary" as="span">
+              <Icon name="upload" class="mr-2 h-4 w-4" />
+              Import CSV
+            </Button>
+            <input type="file" class="hidden" @change="handleImport" accept=".csv, .txt" />
+          </label>
 
-        <Button @click.prevent="exportCSV" class="bg-gray-600 hover:bg-gray-700 text-white font-semibold px-4 py-2 rounded shadow transition">
-          Export CSV
-        </Button>
-      </div>
-
-      <!-- Data Table -->
-      <div class="overflow-x-auto shadow rounded-lg">
-        <table class="min-w-full table-auto text-sm">
-          <thead class="bg-gray-100">
-            <tr>
-              <th v-if="SuperAdmin" class="px-4 py-2">Tenant</th>
-              <th v-for="col in tableColumns" :key="col" class="px-4 py-2 capitalize whitespace-nowrap">
-                {{ col.replace(/_/g, ' ') }}
-              </th>
-              <th class="px-4 py-2">Actions</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-200">
-            <tr v-for="item in entries.data" :key="item.id">
-              <td v-if="SuperAdmin" class="px-4 py-2">
-                {{ item.tenant?.name ?? '—' }}
-              </td>
-              <td v-for="col in tableColumns" :key="col" class="px-4 py-2 whitespace-nowrap">
-                <template v-if="col === 'is_active'">
-                  {{ item[col] ? 'Yes' : 'No' }}
-                </template>
-                <template v-else>
-                  {{ item[col] }}
-                </template>
-              </td>
-              <td class="px-4 py-2 space-x-2">
-                <button @click="openEditModal(item)" class="bg-yellow-400 hover:bg-yellow-500 text-white px-2 py-1 rounded">
-                  Edit
-                </button>
-                <button @click="deleteEntry(item.id)" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded">
-                  Delete
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        
-        <div class="mt-4 flex justify-center" v-if="entries.links">
-          <button v-for="link in entries.links" :key="link.label" @click="visitPage(link.url)" :disabled="!link.url" class="mx-1 px-3 py-1 border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-50">
-            <span v-html="link.label"></span>
-          </button>
+          <Button @click.prevent="exportCSV" variant="outline">
+            <Icon name="download" class="mr-2 h-4 w-4" />
+            Export CSV
+          </Button>
         </div>
       </div>
 
+      <!-- Filters Section -->
+      <Card>
+        <CardHeader>
+          <CardTitle>Filters</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div class="flex flex-col sm:flex-row justify-between items-end gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
+              <div>
+                <Label for="search">Search</Label>
+                <Input 
+                  id="search"
+                  v-model="filters.search" 
+                  type="text" 
+                  placeholder="Search by truck ID or VIN..." 
+                  @input="applyFilters"
+                />
+              </div>
+              <div>
+                <Label for="type">Type</Label>
+                <select 
+                  id="type" 
+                  v-model="filters.type" 
+                  class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
+                  @change="applyFilters"
+                >
+                  <option value="">All Types</option>
+                  <option value="daycab">Daycab</option>
+                  <option value="sleepercab">Sleepercab</option>
+                </select>
+              </div>
+              <div>
+                <Label for="make">Make</Label>
+                <select 
+                  id="make" 
+                  v-model="filters.make" 
+                  class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
+                  @change="applyFilters"
+                >
+                  <option value="">All Makes</option>
+                  <option value="international">International</option>
+                  <option value="kenworth">Kenworth</option>
+                  <option value="peterbilt">Peterbilt</option>
+                  <option value="volvo">Volvo</option>
+                  <option value="freightliner">Freightliner</option>
+                </select>
+              </div>
+            </div>
+            <Button 
+              @click="resetFilters" 
+              variant="ghost"
+              size="sm"
+            >
+              <Icon name="rotate-ccw" class="mr-2 h-4 w-4" />
+              Reset
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <!-- Data Table -->
+      <Card>
+        <CardContent class="p-0">
+          <div class="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead v-if="SuperAdmin">Tenant</TableHead>
+                  <TableHead 
+                    v-for="col in tableColumns" 
+                    :key="col" 
+                    class="cursor-pointer"
+                    @click="sortBy(col)"
+                  >
+                    <div class="flex items-center">
+                      {{ col.replace(/_/g, ' ') }}
+                      <div v-if="sortColumn === col" class="ml-2">
+                        <svg v-if="sortDirection === 'asc'" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M8 15l4-4 4 4" />
+                        </svg>
+                        <svg v-else class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M16 9l-4 4-4-4" />
+                        </svg>
+                      </div>
+                      <div v-else class="ml-2 opacity-50">
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M8 10l4-4 4 4" />
+                          <path d="M16 14l-4 4-4-4" />
+                        </svg>
+                      </div>
+                    </div>
+                  </TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow v-if="filteredEntries.length === 0">
+                  <TableCell :colspan="SuperAdmin ? tableColumns.length + 2 : tableColumns.length + 1" class="text-center py-8">
+                    No trucks found matching your criteria
+                  </TableCell>
+                </TableRow>
+                <TableRow v-for="item in filteredEntries" :key="item.id" class="hover:bg-muted/50">
+                  <TableCell v-if="SuperAdmin">
+                    {{ item.tenant?.name ?? '—' }}
+                  </TableCell>
+                  <TableCell v-for="col in tableColumns" :key="col" class="whitespace-nowrap">
+                    <template v-if="col === 'is_active'">
+                      <span :class="item[col] ? 'text-green-600' : 'text-red-600'">
+                        {{ item[col] ? 'Yes' : 'No' }}
+                      </span>
+                    </template>
+                    <template v-else>
+                      {{ item[col] }}
+                    </template>
+                  </TableCell>
+                  <TableCell>
+                    <div class="flex space-x-2">
+                      <Button @click="openEditModal(item)" variant="warning" size="sm">
+                        <Icon name="pencil" class="mr-1 h-4 w-4" />
+                        Edit
+                      </Button>
+                      <Button @click="deleteEntry(item.id)" variant="destructive" size="sm">
+                        <Icon name="trash" class="mr-1 h-4 w-4" />
+                        Delete
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
+          
+          <div class="bg-muted/20 px-4 py-3 border-t" v-if="entries.links">
+            <div class="flex justify-between items-center">
+              <div class="text-sm text-muted-foreground">
+                Showing {{ filteredEntries.length }} of {{ entries.data.length }} entries
+              </div>
+              <div class="flex">
+                <Button 
+                  v-for="link in entries.links" 
+                  :key="link.label" 
+                  @click="visitPage(link.url)" 
+                  :disabled="!link.url" 
+                  variant="ghost"
+                  size="sm"
+                  class="mx-1"
+                  :class="{'bg-primary/10 text-primary border-primary': link.active}"
+                >
+                  <span v-html="link.label"></span>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <!-- Modal -->
-      <div v-if="showModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-4xl space-y-6 overflow-y-auto max-h-screen">
-          <h2 class="text-xl font-semibold">{{ formTitle }}</h2>
+      <Dialog v-model:open="showModal">
+        <DialogContent class="sm:max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>{{ formTitle }}</DialogTitle>
+            <DialogDescription>
+              Fill in the details to {{ formAction.toLowerCase() }} a truck.
+            </DialogDescription>
+          </DialogHeader>
+          
           <form @submit.prevent="submitForm" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div v-if="SuperAdmin" class="col-span-2">
-              <label class="block text-sm font-medium">Tenant</label>
-              <select v-model="form.tenant_id" class="w-full border rounded px-3 py-2">
-                <option disabled value="">Select Tenant</option>
-                <option v-for="tenant in tenants" :key="tenant.id" :value="tenant.id">
-                  {{ tenant.name }}
-                </option>
-              </select>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium">Truck ID</label>
-              <input v-model.number="form.truckid" type="number" class="w-full border rounded px-3 py-2" required>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium">Type</label>
-              <!-- Lowercase values to match validation rules -->
-              <select v-model="form.type" class="w-full border rounded px-3 py-2" required>
-                <option value="daycab">Daycab</option>
-                <option value="sleepercab">Sleepercab</option>
-              </select>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium">Make</label>
-              <select v-model="form.make" class="w-full border rounded px-3 py-2" required>
-                <option value="international">International</option>
-                <option value="kenworth">Kenworth</option>
-                <option value="peterbilt">Peterbilt</option>
-                <option value="volvo">Volvo</option>
-                <option value="freightliner">Freightliner</option>
-              </select>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium">Fuel</label>
-              <select v-model="form.fuel" class="w-full border rounded px-3 py-2" required>
-                <option value="diesel">Diesel</option>
-                <option value="cng">CNG</option>
-              </select>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium">License</label>
-              <input v-model.number="form.license" type="number" min="0" class="w-full border rounded px-3 py-2" required>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium">VIN</label>
-              <input v-model="form.vin" type="text" class="w-full border rounded px-3 py-2" required>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium">Active Status</label>
-              <div class="mt-2">
-                <input type="checkbox" v-model="form.is_active" true-value="1" false-value="0" class="rounded">
-                <span class="ml-2">{{ form.is_active ? 'Active' : 'Inactive' }}</span>
+              <Label for="tenant">Tenant</Label>
+              <div class="relative">
+                <select 
+                  id="tenant" 
+                  v-model="form.tenant_id" 
+                  class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
+                >
+                  <option value="">Select Tenant</option>
+                  <option v-for="tenant in tenants" :key="tenant.id" :value="tenant.id">
+                    {{ tenant.name }}
+                  </option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                  <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                  </svg>
+                </div>
               </div>
             </div>
 
-            <div class="col-span-2 flex justify-end gap-3 mt-4">
-              <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded">
-                {{ formAction }}
-              </button>
-              <button type="button" @click="closeModal" class="bg-gray-300 hover:bg-gray-400 text-black font-semibold px-4 py-2 rounded">
-                Close
-              </button>
+            <div>
+              <Label for="truckid">Truck ID</Label>
+              <Input id="truckid" v-model.number="form.truckid" type="number" required />
             </div>
+
+            <div>
+              <Label for="type">Type</Label>
+              <div class="relative">
+                <select 
+                  id="type" 
+                  v-model="form.type" 
+                  class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
+                  required
+                >
+                  <option value="daycab">Daycab</option>
+                  <option value="sleepercab">Sleepercab</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                  <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <Label for="make">Make</Label>
+              <div class="relative">
+                <select 
+                  id="make" 
+                  v-model="form.make" 
+                  class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
+                  required
+                >
+                  <option value="international">International</option>
+                  <option value="kenworth">Kenworth</option>
+                  <option value="peterbilt">Peterbilt</option>
+                  <option value="volvo">Volvo</option>
+                  <option value="freightliner">Freightliner</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                  <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <Label for="fuel">Fuel</Label>
+              <div class="relative">
+                <select 
+                  id="fuel" 
+                  v-model="form.fuel" 
+                  class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
+                  required
+                >
+                  <option value="diesel">Diesel</option>
+                  <option value="cng">CNG</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                  <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <Label for="license">License</Label>
+              <Input id="license" v-model.number="form.license" type="number" min="0" required />
+            </div>
+
+            <div>
+              <Label for="vin">VIN</Label>
+              <Input id="vin" v-model="form.vin" type="text" required />
+            </div>
+
+            <div class="sm:col-span-2">
+              <div class="flex items-center space-x-2">
+                <input 
+                  type="checkbox" 
+                  id="is_active" 
+                  v-model="form.is_active"
+                  class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                />
+                <Label for="is_active">Active Status</Label>
+              </div>
+            </div>
+
+            <DialogFooter class="col-span-2 mt-4">
+              <Button type="button" @click="closeModal" variant="outline">
+                Cancel
+              </Button>
+              <Button type="submit" variant="default">
+                {{ formAction }}
+              </Button>
+            </DialogFooter>
           </form>
-        </div>
-      </div>
+        </DialogContent>
+      </Dialog>
+
+      <!-- Delete Confirmation Dialog -->
+      <Dialog v-model:open="showDeleteModal">
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this truck? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter class="mt-4">
+            <Button type="button" @click="showDeleteModal = false" variant="outline">
+              Cancel
+            </Button>
+            <Button type="button" @click="confirmDelete" variant="destructive">
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <form ref="exportForm" method="GET" class="hidden" />
     </div>
@@ -150,10 +347,19 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { router } from '@inertiajs/vue3';
+import Icon from '@/components/Icon.vue';
+import { 
+  Button,
+  Card, CardHeader, CardTitle, CardContent,
+  Table, TableHeader, TableBody, TableHead, TableRow, TableCell,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+  Label, Input,
+  Alert, AlertTitle, AlertDescription
+} from '@/components/ui';
 
 const props = defineProps({
   entries: Object,
@@ -164,9 +370,22 @@ const props = defineProps({
 
 const successMessage = ref('');
 const showModal = ref(false);
+const showDeleteModal = ref(false);
 const formTitle = ref('Create Entry');
 const formAction = ref('Create');
 const exportForm = ref(null);
+const truckToDelete = ref(null);
+
+// Sorting state
+const sortColumn = ref('truckid');
+const sortDirection = ref('asc');
+
+// Filtering state
+const filters = ref({
+  search: '',
+  type: '',
+  make: '',
+});
 
 const breadcrumbs = [
   {
@@ -175,6 +394,10 @@ const breadcrumbs = [
       ? route('dashboard', { tenantSlug: props.tenantSlug })
       : route('admin.dashboard'),
   },
+  {
+    title: 'Trucks',
+    href: '#',
+  }
 ];
 
 const tableColumns = [
@@ -195,22 +418,97 @@ const form = useForm({
   fuel: 'diesel',
   license: null,
   vin: '',
-  is_active: 1,
+  is_active: true,
   tenant_id: null
 });
 
-// Removed tenant_id from importForm
 const importForm = useForm({
   csv_file: null,
 });
 
 const deleteForm = useForm({});
 
+// Computed property for filtered and sorted entries
+const filteredEntries = computed(() => {
+  let result = [...props.entries.data];
+  
+  // Apply search filter
+  if (filters.value.search) {
+    const searchTerm = filters.value.search.toLowerCase();
+    result = result.filter(item => 
+      String(item.truckid).includes(searchTerm) || 
+      item.vin?.toLowerCase().includes(searchTerm)
+    );
+  }
+  
+  // Apply type filter
+  if (filters.value.type) {
+    result = result.filter(item => 
+      item.type?.toLowerCase() === filters.value.type.toLowerCase()
+    );
+  }
+  
+  // Apply make filter
+  if (filters.value.make) {
+    result = result.filter(item => 
+      item.make?.toLowerCase() === filters.value.make.toLowerCase()
+    );
+  }
+  
+  // Apply sorting
+  result.sort((a, b) => {
+    let valA = a[sortColumn.value];
+    let valB = b[sortColumn.value];
+    
+    // Handle null values
+    if (valA === null) return 1;
+    if (valB === null) return -1;
+    
+    // String comparison
+    if (typeof valA === 'string') {
+      valA = valA.toLowerCase();
+      valB = valB.toLowerCase();
+    }
+    
+    if (valA < valB) return sortDirection.value === 'asc' ? -1 : 1;
+    if (valA > valB) return sortDirection.value === 'asc' ? 1 : -1;
+    return 0;
+  });
+  
+  return result;
+});
+
+// Sort function
+function sortBy(column) {
+  if (sortColumn.value === column) {
+    // Toggle direction if clicking the same column
+    sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc';
+  } else {
+    // Set new column and default to ascending
+    sortColumn.value = column;
+    sortDirection.value = 'asc';
+  }
+}
+
+// Filter functions
+function applyFilters() {
+  // This function is triggered by input/change events
+  // The filtering is handled by the computed property
+}
+
+function resetFilters() {
+  filters.value = {
+    search: '',
+    type: '',
+    make: '',
+  };
+}
+
 function openCreateModal() {
   form.reset();
-  form.is_active = 1;
+  form.is_active = true;
   form.tenant_id = null;
-  formTitle.value = 'Create Entry';
+  formTitle.value = 'Create Truck';
   formAction.value = 'Create';
   showModal.value = true;
 }
@@ -223,10 +521,10 @@ function openEditModal(item) {
   form.fuel = item.fuel;
   form.license = item.license;
   form.vin = item.vin;
-  form.is_active = item.is_active;
+  form.is_active = Boolean(item.is_active);
   form.tenant_id = item.tenant_id;
   
-  formTitle.value = 'Edit Entry';
+  formTitle.value = 'Edit Truck';
   formAction.value = 'Update';
   showModal.value = true;
 }
@@ -243,7 +541,7 @@ function submitForm() {
     fuel: form.fuel,
     license: Number(form.license),
     vin: form.vin,
-    is_active: Number(form.is_active),
+    is_active: form.is_active ? 1 : 0,
     tenant_id: form.tenant_id
   };
 
@@ -253,10 +551,10 @@ function submitForm() {
       : route('truck.update', [props.tenantSlug, form.id]), {
       data: payload,
       onSuccess: () => {
-        successMessage.value = 'Entry updated.';
+        successMessage.value = 'Truck updated successfully.';
         closeModal();
       },
-      onError: () => alert('Error updating entry')
+      onError: () => alert('Error updating truck')
     });
   } else {
     form.post(props.SuperAdmin
@@ -264,20 +562,27 @@ function submitForm() {
       : route('truck.store', props.tenantSlug), {
       data: payload,
       onSuccess: () => {
-        successMessage.value = 'Entry created.';
+        successMessage.value = 'Truck created successfully.';
         closeModal();
       },
-      onError: () => alert('Error creating entry')
+      onError: () => alert('Error creating truck')
     });
   }
 }
 
 function deleteEntry(id) {
-  if (!confirm('Are you sure?')) return;
+  truckToDelete.value = id;
+  showDeleteModal.value = true;
+}
+
+function confirmDelete() {
   deleteForm.delete(props.SuperAdmin
-    ? route('truck.destroy.admin', [id])
-    : route('truck.destroy', [props.tenantSlug, id]), {
-    onSuccess: () => successMessage.value = 'Entry deleted.'
+    ? route('truck.destroy.admin', [truckToDelete.value])
+    : route('truck.destroy', [props.tenantSlug, truckToDelete.value]), {
+    onSuccess: () => {
+      successMessage.value = 'Truck deleted successfully.';
+      showDeleteModal.value = false;
+    }
   });
 }
 
@@ -306,4 +611,13 @@ function exportCSV() {
 function visitPage(url) {
   if (url) router.get(url, {}, { only: ['entries'] });
 }
+
+// Auto-hide success message after 5 seconds
+watch(successMessage, (newValue) => {
+  if (newValue) {
+    setTimeout(() => {
+      successMessage.value = '';
+    }, 5000);
+  }
+});
 </script>

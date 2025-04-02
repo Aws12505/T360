@@ -3,157 +3,194 @@
   <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
     <div class="max-w-7xl mx-auto p-6 space-y-8">
       <!-- Success message notification -->
-      <p v-if="successMessage" class="bg-green-100 text-green-800 border border-green-300 px-4 py-2 rounded">
-        {{ successMessage }}
-      </p>
+      <Alert v-if="successMessage" variant="success">
+        <AlertTitle>Success</AlertTitle>
+        <AlertDescription>{{ successMessage }}</AlertDescription>
+      </Alert>
 
       <!-- Actions Section -->
-      <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
-        <!-- Create New Entry button using ShadCN Button component -->
-        <Button 
-          @click="openCreateModal" 
-          variant="default"
-          class="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded shadow transition">
-          Create New Entry
-        </Button>
+      <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">Safety Management</h1>
+        <div class="flex flex-wrap gap-3">
+          <!-- Create New Entry button -->
+          <Button @click="openCreateModal" variant="default">
+            <Icon name="plus" class="mr-2 h-4 w-4" />
+            Create New Entry
+          </Button>
 
-        <!-- Tenant selection for SuperAdmin (only visible if SuperAdmin) -->
-        <div v-if="SuperAdmin">
-          <label class="block text-sm font-medium mb-1">Tenant for Import</label>
-          <select v-model="importForm.tenant_id" class="w-full border rounded px-3 py-2">
-            <option disabled value="">Select Tenant</option>
-            <option v-for="tenant in tenants" :key="tenant.id" :value="tenant.id">{{ tenant.name }}</option>
-          </select>
+          <!-- Tenant selection for SuperAdmin (only visible if SuperAdmin) -->
+          <div v-if="SuperAdmin" class="flex items-center gap-2">
+            <select v-model="importForm.tenant_id" class="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm">
+              <option disabled value="">Select Tenant</option>
+              <option v-for="tenant in tenants" :key="tenant.id" :value="tenant.id">{{ tenant.name }}</option>
+            </select>
+          </div>
+
+          <!-- Date input for the import file -->
+          <div class="flex items-center gap-2">
+            <Input
+              v-model="importForm.date"
+              type="date"
+              required
+              placeholder="Date for Import"
+            />
+          </div>
+
+          <!-- Import XLSX button -->
+          <label class="cursor-pointer">
+            <Button variant="secondary" as="span">
+              <Icon name="upload" class="mr-2 h-4 w-4" />
+              Import XLSX
+            </Button>
+            <input type="file" class="hidden" @change="handleImport" accept=".xlsx" />
+          </label>
+
+          <!-- Export CSV button -->
+          <Button @click.prevent="exportCSV" variant="outline">
+            <Icon name="download" class="mr-2 h-4 w-4" />
+            Export CSV
+          </Button>
         </div>
-
-        <!-- Date input for the import file -->
-        <div>
-          <label class="block text-sm font-medium mb-1">Date for Imported XLSX</label>
-          <input
-            v-model="importForm.date"
-            type="date"
-            required
-            class="w-full border rounded px-3 py-2"
-          />
-        </div>
-
-        <!-- Import XLSX button styled as a label with hidden file input -->
-        <label class="flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded shadow cursor-pointer transition">
-          Import XLSX
-          <input type="file" class="hidden" @change="handleImport" accept=".xlsx" />
-        </label>
-
-        <!-- Export CSV button using ShadCN Button component -->
-        <Button 
-          @click.prevent="exportCSV" 
-          variant="default"
-          class="bg-gray-600 hover:bg-gray-700 text-white font-semibold px-4 py-2 rounded shadow transition">
-          Export CSV
-        </Button>
       </div>
 
       <!-- Data Table Section -->
-      <div class="overflow-x-auto shadow rounded-lg">
-        <table class="min-w-full table-auto text-sm">
-          <thead class="bg-gray-100">
-            <tr>
-              <!-- If SuperAdmin, show Tenant column -->
-              <th v-if="SuperAdmin" class="px-4 py-2">Tenant</th>
-              <!-- Dynamically render table columns from the tableColumns array -->
-              <th
-                v-for="col in tableColumns"
-                :key="col"
-                class="px-4 py-2 capitalize whitespace-nowrap"
-              >
-                {{ col.replace(/_/g, ' ') }}
-              </th>
-              <th class="px-4 py-2">Actions</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-200">
-            <tr v-for="item in entries.data" :key="item.id">
-              <!-- Display Tenant name for SuperAdmin -->
-              <td v-if="SuperAdmin" class="px-4 py-2">{{ item.tenant?.name ?? '—' }}</td>
-              <!-- Render each field for the entry -->
-              <td
-                v-for="col in tableColumns"
-                :key="col"
-                class="px-4 py-2 whitespace-nowrap"
-              >
-                {{ item[col] }}
-              </td>
-              <!-- Actions for each entry -->
-              <td class="px-4 py-2 space-x-2">
-                <!-- Edit button -->
-                <button @click="openEditModal(item)" class="bg-yellow-400 hover:bg-yellow-500 text-white px-2 py-1 rounded">
-                  Edit
-                </button>
-                <!-- Delete button -->
-                <button @click="deleteEntry(item.id)" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded">
-                  Delete
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <div class="mt-4 flex justify-center" v-if="entries.links">
-      <button
-        v-for="link in entries.links"
-        :key="link.label"
-        @click="visitPage(link.url)"
-        :disabled="!link.url"
-        class="mx-1 px-3 py-1 border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-50"
-      >
-        <span v-html="link.label"></span>
-      </button>
-    </div>
-      </div>
+      <Card>
+        <CardContent class="p-0">
+          <div class="overflow-x-auto bg-background dark:bg-background border-t border-border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <!-- If SuperAdmin, show Tenant column -->
+                  <TableHead v-if="SuperAdmin">Tenant</TableHead>
+                  <!-- Dynamically render table columns from the tableColumns array -->
+                  <TableHead
+                    v-for="col in tableColumns"
+                    :key="col"
+                    class="whitespace-nowrap"
+                  >
+                    {{ col.replace(/_/g, ' ') }}
+                  </TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow v-if="entries.data.length === 0">
+                  <TableCell :colspan="SuperAdmin ? tableColumns.length + 2 : tableColumns.length + 1" class="text-center py-8">
+                    No entries found
+                  </TableCell>
+                </TableRow>
+                <TableRow v-for="item in entries.data" :key="item.id" class="hover:bg-muted/50">
+                  <!-- Display Tenant name for SuperAdmin -->
+                  <TableCell v-if="SuperAdmin">{{ item.tenant?.name ?? '—' }}</TableCell>
+                  <!-- Render each field for the entry -->
+                  <TableCell
+                    v-for="col in tableColumns"
+                    :key="col"
+                    class="whitespace-nowrap"
+                  >
+                    {{ item[col] }}
+                  </TableCell>
+                  <!-- Actions for each entry -->
+                  <TableCell>
+                    <div class="flex space-x-2">
+                      <Button @click="openEditModal(item)" variant="warning" size="sm">
+                        <Icon name="pencil" class="mr-1 h-4 w-4" />
+                        Edit
+                      </Button>
+                      <Button @click="deleteEntry(item.id)" variant="destructive" size="sm">
+                        <Icon name="trash" class="mr-1 h-4 w-4" />
+                        Delete
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
+          
+          <!-- Pagination -->
+          <div class="bg-muted/20 px-4 py-3 border-t" v-if="entries.links">
+            <div class="flex justify-between items-center">
+              <div class="text-sm text-muted-foreground">
+                Showing {{ entries.data.length }} entries
+              </div>
+              <div class="flex">
+                <Button 
+                  v-for="link in entries.links" 
+                  :key="link.label" 
+                  @click="visitPage(link.url)" 
+                  :disabled="!link.url" 
+                  variant="ghost"
+                  size="sm"
+                  class="mx-1"
+                  :class="{'bg-primary/10 text-primary border-primary': link.active}"
+                >
+                  <span v-html="link.label"></span>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <!-- Modal for creating/editing an entry -->
-      <div
-        v-if="showModal"
-        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-      >
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-4xl space-y-6 overflow-y-auto max-h-screen">
-          <h2 class="text-xl font-semibold">{{ formTitle }}</h2>
-          <form @submit.prevent="submitForm" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <Dialog v-model:open="showModal">
+        <DialogContent class="sm:max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>{{ formTitle }}</DialogTitle>
+            <DialogDescription>
+              Fill in the details to {{ formAction.toLowerCase() }} an entry.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <form @submit.prevent="submitForm" class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto">
             <!-- Tenant dropdown for SuperAdmin users -->
             <div v-if="SuperAdmin" class="col-span-2">
-              <label class="block text-sm font-medium">Tenant</label>
-              <select v-model="form.tenant_id" class="w-full border rounded px-3 py-2">
-                <option disabled value="">Select Tenant</option>
-                <option v-for="tenant in tenants" :key="tenant.id" :value="tenant.id">
-                  {{ tenant.name }}
-                </option>
-              </select>
+              <Label for="tenant">Tenant</Label>
+              <div class="relative">
+                <select 
+                  id="tenant" 
+                  v-model="form.tenant_id" 
+                  class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
+                >
+                  <option disabled value="">Select Tenant</option>
+                  <option v-for="tenant in tenants" :key="tenant.id" :value="tenant.id">
+                    {{ tenant.name }}
+                  </option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                  <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+              </div>
             </div>
+            
             <!-- Dynamically render form fields based on formColumns -->
             <template v-for="col in formColumns" :key="col">
               <div>
-                <label class="block text-sm font-medium capitalize">
-                  {{ col.replace(/_/g, ' ') }}
-                </label>
-                <input
+                <Label :for="col" class="capitalize">{{ col.replace(/_/g, ' ') }}</Label>
+                <Input
+                  :id="col"
                   v-model="form[col]"
                   :type="getInputType(col)"
                   :step="getStep(col)"
                   :min="getMin(col)"
-                  class="w-full border rounded px-3 py-2"
                 />
               </div>
             </template>
-            <!-- Action buttons for form submission and closing -->
-            <div class="col-span-2 flex justify-end gap-3 mt-4">
-              <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded">
+            
+            <DialogFooter class="col-span-2 mt-4">
+              <Button type="button" @click="closeModal" variant="outline">
+                Cancel
+              </Button>
+              <Button type="submit" variant="default">
                 {{ formAction }}
-              </button>
-              <button type="button" @click="closeModal" class="bg-gray-300 hover:bg-gray-400 text-black font-semibold px-4 py-2 rounded">
-                Close
-              </button>
-            </div>
+              </Button>
+            </DialogFooter>
           </form>
-        </div>
-      </div>
+        </DialogContent>
+      </Dialog>
 
       <!-- Hidden form for CSV export -->
       <form ref="exportForm" method="GET" class="hidden" />
@@ -162,10 +199,20 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
-import {router} from '@inertiajs/vue3';
+import { router } from '@inertiajs/vue3';
+import Icon from '@/components/Icon.vue';
+import { 
+  Button,
+  Card, CardContent,
+  Table, TableHeader, TableBody, TableHead, TableRow, TableCell,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+  Label, Input,
+  Alert, AlertTitle, AlertDescription
+} from '@/components/ui';
+
 // Define props passed from the backend via Inertia
 const props = defineProps({
   entries: {
@@ -191,6 +238,10 @@ const breadcrumbs = [
     href: props.tenantSlug
       ? route('dashboard', { tenantSlug: props.tenantSlug })
       : route('admin.dashboard')
+  },
+  {
+    title: 'Safety',
+    href: '#',
   }
 ];
 
@@ -384,4 +435,13 @@ const visitPage = (url) => {
     router.get(url, {}, {only: ['entries'] });
   }
 };
+
+// Auto-hide success message after 5 seconds
+watch(successMessage, (newValue) => {
+  if (newValue) {
+    setTimeout(() => {
+      successMessage.value = '';
+    }, 5000);
+  }
+});
 </script>
