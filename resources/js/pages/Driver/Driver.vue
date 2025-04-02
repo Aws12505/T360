@@ -96,11 +96,20 @@
                   >
                     <div class="flex items-center">
                       {{ col.replace(/_/g, ' ') }}
-                      <Icon 
-                        v-if="sortColumn === col" 
-                        :name="sortDirection === 'asc' ? 'chevron-up' : 'chevron-down'" 
-                        class="ml-1 h-4 w-4" 
-                      />
+                      <div v-if="sortColumn === col" class="ml-2">
+                        <svg v-if="sortDirection === 'asc'" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M8 15l4-4 4 4" />
+                        </svg>
+                        <svg v-else class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M16 9l-4 4-4-4" />
+                        </svg>
+                      </div>
+                      <div v-else class="ml-2 opacity-50">
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M8 10l4-4 4 4" />
+                          <path d="M16 14l-4 4-4-4" />
+                        </svg>
+                      </div>
                     </div>
                   </TableHead>
                   <TableHead>Actions</TableHead>
