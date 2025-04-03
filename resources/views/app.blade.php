@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}"  @class(['dark' => ($appearance ?? 'system') == 'dark'])>
     <head>
+        <!-- Matomo Tag Manager -->
+        <script>
+          var _mtm = window._mtm = window._mtm || [];
+          _mtm.push({'mtm.startTime': (new Date().getTime()), 'event': 'mtm.Start'});
+          (function() {
+            var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+            g.async=true; g.src='{{ env('VITE_MATOMO_URL', 'http://127.0.0.1:8090') }}/js/container_{{ env('VITE_MATOMO_CONTAINER_ID', 'PiJvIuA3') }}.js'; s.parentNode.insertBefore(g,s);
+          })();
+        </script>
+        <!-- End Matomo Tag Manager -->
+
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 

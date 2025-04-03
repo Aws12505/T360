@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { LoaderCircle } from 'lucide-vue-next';
+import { trackEvent } from '@/lib/tracking'; // Import the tracking helper
 
 defineProps<{
     status?: string;
@@ -22,6 +23,23 @@ const form = useForm({
 
 const submit = () => {
     form.post(route('login'), {
+        onSuccess: (page) => {
+            // If the login response includes user data, include it in the event payload.
+            if (page.props.auth && page.props.auth.user) {
+                trackEvent('userLogin', {
+                    userId: page.props.auth.user.id,
+                    userName: page.props.auth.user.name,
+                    timestamp: new Date().toISOString(),
+                });
+            } else {
+                // Fallback event in case user data is not available
+                trackEvent('userLogin', {
+                    timestamp: new Date().toISOString(),
+                });
+            }
+            // Set session start time for tracking the session duration.
+            localStorage.setItem('sessionStart', Date.now().toString());
+        },
         onFinish: () => form.reset('password'),
     });
 };

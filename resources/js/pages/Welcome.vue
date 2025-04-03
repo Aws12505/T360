@@ -19,7 +19,8 @@ import Button from '@/components/ui/button/Button.vue';
         <nav class="flex items-center gap-4">
           <!-- Dashboard or Login button using ShadCN Button component -->
           <template v-if="$page.props.auth.user">
-            <Link :href="route('dashboard')" class="block">
+            <!-- Dashboard link with tenant slug handling -->
+            <Link :href="$page.props.tenantSlug ? route('dashboard', { tenantSlug: $page.props.tenantSlug }) : route('admin.dashboard')" class="block">
               <Button variant="outline" class="px-4 py-2">
                 Dashboard
               </Button>

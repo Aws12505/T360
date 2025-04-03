@@ -3,10 +3,19 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\Web\Zoho\ZohoWebhookController;
-
+use Illuminate\Support\Facades\Auth;
 
 Route::get('/', function () {
-    return Inertia::render('Welcome');
+    // Safely get the authenticated user's tenant slug if available
+    $tenantSlug = null;
+    
+    if (Auth::check() && Auth::user()->tenant) {
+        $tenantSlug = Auth::user()->tenant->slug;
+    }
+    
+    return Inertia::render('Welcome', [
+        'tenantSlug' => $tenantSlug,
+    ]);
 })->name('home');
 
 
