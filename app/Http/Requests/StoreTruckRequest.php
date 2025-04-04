@@ -22,6 +22,8 @@ class StoreTruckRequest extends FormRequest
             'vin'       => 'required|string|unique:trucks,vin',
             'tenant_id' => 'required|exists:tenants,id',
             'is_active'    => 'sometimes|boolean',
+            'inspection_status' => 'required|in:good,expired',
+            'inspection_expiry_date' => 'required|date',
         ];
     }
     protected function prepareForValidation()

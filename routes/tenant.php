@@ -9,6 +9,7 @@ use App\Http\Controllers\Web\Performance\SummariesController;
 use App\Http\Controllers\Web\Performance\PerformanceController;
 use App\Http\Controllers\Web\UserManagement\ImpersonationController;
 use App\Http\Controllers\Web\Driver\DriverController;
+use App\Http\Controllers\Web\RepairOrderController;
 
 Route::middleware(['auth', 'tenant'])->group(function () {
     Route::prefix('{tenantSlug}')->group(function () {
@@ -36,7 +37,14 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::delete('/performance/{performance}', [PerformanceController::class, 'destroy'])->name('performance.destroy');
         Route::post('/performance/import', [PerformanceController::class, 'import'])->name('performance.import');
         Route::get('/performance/export', [PerformanceController::class, 'export'])->name('performance.export');
-
+        
+        Route::get('/repair-orders', [RepairOrderController::class, 'index'])->name('repair_orders.index');
+        Route::post('/repair-orders', [RepairOrderController::class, 'store'])->name('repair_orders.store');
+        Route::put('/repair-orders/{repair_order}', [RepairOrderController::class, 'update'])->name('repair_orders.update');
+        Route::delete('/repair-orders/{repair_order}', [RepairOrderController::class, 'destroy'])->name('repair_orders.destroy');
+        Route::post('/repair-orders/import', [RepairOrderController::class, 'import'])->name('repair_orders.import');
+        Route::get('/repair-orders/export', [RepairOrderController::class, 'export'])->name('repair_orders.export');
+    
         // Safety data routes
         Route::get('/safety', [SafetyDataController::class, 'index'])->name('safety.index');
         Route::post('/safety', [SafetyDataController::class, 'store'])->name('safety.store');

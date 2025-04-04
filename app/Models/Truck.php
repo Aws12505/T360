@@ -19,6 +19,8 @@ class Truck extends Model
         'vin',
         'tenant_id',
         'is_active',
+        'inspection_status',
+        'inspection_expiry_date',
     ];
 
     public function tenant()

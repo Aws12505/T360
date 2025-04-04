@@ -20,19 +20,3 @@ export function initializeSession(): void {
   });
 }
 
-/**
- * Track user login event
- * @param userId User identifier (optional)
- */
-export function trackLogin(userId?: string | number): void {
-  // Initialize session if not already done
-  if (!localStorage.getItem('sessionStart')) {
-    initializeSession();
-  }
-  
-  // Track login event
-  trackEvent('userLogin', {
-    timestamp: new Date().toISOString(),
-    userId: userId || 'anonymous'
-  });
-}

@@ -40,8 +40,8 @@ class TruckImportExportService
         // Define expected CSV headers.
         // SuperAdmin users must include tenant_name in the CSV.
         $expectedHeaders = $isSuperAdmin
-            ? ['tenant_name', 'truckid', 'type', 'make', 'fuel', 'license', 'vin', 'is_active']
-            : ['truckid', 'type', 'make', 'fuel', 'license', 'vin', 'is_active'];
+            ? ['tenant_name', 'truckid', 'type', 'make', 'fuel', 'license', 'vin', 'is_active', 'inspection_status', 'inspection_expiry_date']
+            : ['truckid', 'type', 'make', 'fuel', 'license', 'vin', 'is_active', 'inspection_status', 'inspection_expiry_date'];
 
         // Read the header row.
         $headers = fgetcsv($handle, 0, ',');
@@ -103,6 +103,19 @@ class TruckImportExportService
             // If the value is "active" or "yes" (case-insensitive), set it to "active", otherwise "inactive".
             $activeVal = strtolower(trim($data['is_active']));
             $data['is_active'] = ($activeVal === 'active' || $activeVal === 'yes') ? 1 : 0;
+            
+            // Process inspection status - convert to lowercase and validate
+            $data['inspection_status'] = strtolower(trim($data['inspection_status']));
+            
+            // Format inspection expiry date if provided
+            if (!empty($data['inspection_expiry_date'])) {
+                try {
+                    $data['inspection_expiry_date'] = Carbon::parse($data['inspection_expiry_date'])->format('Y-m-d');
+                } catch (\Exception $e) {
+                    // If date parsing fails, set to null
+                    $data['inspection_expiry_date'] = null;
+                }
+            }
 
             // Validate the row data.
             $validator = Validator::make($data, [
@@ -114,6 +127,8 @@ class TruckImportExportService
                 'license'   => 'required|integer',
                 'vin'       => 'required|string',
                 'is_active' => 'required|boolean',
+                'inspection_status' => 'required|in:good,expired',
+                'inspection_expiry_date' => 'required|date',
             ]);
 
             if ($validator->fails()) {
@@ -165,6 +180,8 @@ class TruckImportExportService
             'license',
             'vin',
             'is_active',
+            'inspection_status',
+            'inspection_expiry_date',
         ];
         fputcsv($file, $headers);
 
@@ -178,6 +195,8 @@ class TruckImportExportService
                 $truck->license,
                 $truck->vin,
                 $truck->is_active ? 'Yes' : 'No',
+                $truck->inspection_status ?? 'good',
+                $truck->inspection_expiry_date ?? '',
             ]);
         }
         fclose($file);

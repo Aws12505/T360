@@ -136,11 +136,20 @@
                   <TableCell v-if="SuperAdmin">
                     {{ item.tenant?.name ?? '—' }}
                   </TableCell>
+                  <!-- In the TableCell section, add handling for the new columns -->
                   <TableCell v-for="col in tableColumns" :key="col" class="whitespace-nowrap">
                     <template v-if="col === 'is_active'">
                       <span :class="item[col] ? 'text-green-600' : 'text-red-600'">
                         {{ item[col] ? 'Yes' : 'No' }}
                       </span>
+                    </template>
+                    <template v-else-if="col === 'inspection_status'">
+                      <span :class="item[col] === 'good' ? 'text-green-600' : 'text-red-600'">
+                        {{ item[col] === 'good' ? 'Good' : 'Expired' }}
+                      </span>
+                    </template>
+                    <template v-else-if="col === 'inspection_expiry_date'">
+                      {{ formatDate(item[col]) }}
                     </template>
                     <template v-else>
                       {{ item[col] }}
@@ -297,6 +306,37 @@
               <Input id="vin" v-model="form.vin" type="text" required />
             </div>
 
+            <!-- Add the new inspection fields here -->
+            <div>
+              <Label for="inspection_status">Inspection Status</Label>
+              <div class="relative">
+                <select 
+                  id="inspection_status" 
+                  v-model="form.inspection_status" 
+                  class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
+                  required
+                >
+                  <option value="good">Good</option>
+                  <option value="expired">Expired</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                  <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <Label for="inspection_expiry_date">Inspection Expiry Date</Label>
+              <Input 
+                id="inspection_expiry_date" 
+                v-model="form.inspection_expiry_date" 
+                type="date" 
+                required
+              />
+            </div>
+
             <div class="sm:col-span-2">
               <div class="flex items-center space-x-2">
                 <input 
@@ -400,6 +440,7 @@ const breadcrumbs = [
   }
 ];
 
+// Update the tableColumns array to include the new columns
 const tableColumns = [
   'truckid',
   'type',
@@ -407,9 +448,12 @@ const tableColumns = [
   'fuel',
   'license',
   'vin',
+  'inspection_status',
+  'inspection_expiry_date',
   'is_active'
 ];
 
+// Update the form initialization to include the new fields
 const form = useForm({
   id: null,
   truckid: null,
@@ -418,8 +462,10 @@ const form = useForm({
   fuel: 'diesel',
   license: null,
   vin: '',
+  tenant_id: props.SuperAdmin ? '' : null,
   is_active: true,
-  tenant_id: null
+  inspection_status: 'good',
+  inspection_expiry_date: new Date().toISOString().split('T')[0], // Today's date as default
 });
 
 const importForm = useForm({
@@ -513,6 +559,7 @@ function openCreateModal() {
   showModal.value = true;
 }
 
+// This function is updated to include the new inspection fields
 function openEditModal(item) {
   form.id = item.id;
   form.truckid = item.truckid;
@@ -523,6 +570,8 @@ function openEditModal(item) {
   form.vin = item.vin;
   form.is_active = Boolean(item.is_active);
   form.tenant_id = item.tenant_id;
+  form.inspection_status = item.inspection_status || 'good';
+  form.inspection_expiry_date = item.inspection_expiry_date || new Date().toISOString().split('T')[0];
   
   formTitle.value = 'Edit Truck';
   formAction.value = 'Update';
@@ -533,6 +582,7 @@ function closeModal() {
   showModal.value = false;
 }
 
+// This function is updated to include the new inspection fields in the payload
 function submitForm() {
   const payload = {
     truckid: Number(form.truckid),
@@ -542,7 +592,9 @@ function submitForm() {
     license: Number(form.license),
     vin: form.vin,
     is_active: form.is_active ? 1 : 0,
-    tenant_id: form.tenant_id
+    tenant_id: form.tenant_id,
+    inspection_status: form.inspection_status,
+    inspection_expiry_date: form.inspection_expiry_date
   };
 
   if (form.id) {
@@ -610,6 +662,17 @@ function exportCSV() {
 
 function visitPage(url) {
   if (url) router.get(url, {}, { only: ['entries'] });
+}
+
+// Add this function to format dates properly
+function formatDate(dateString) {
+  if (!dateString) return '—';
+  
+  // Fix timezone issue by parsing the date and adjusting for local timezone
+  const date = new Date(dateString + 'T00:00:00');
+  
+  // Format the date using toLocaleDateString
+  return date.toLocaleDateString();
 }
 
 // Auto-hide success message after 5 seconds

@@ -23,6 +23,8 @@ class UpdateTruckRequest extends FormRequest
             'vin'       => 'required|string|unique:trucks,vin,' . $truckId ,
             'tenant_id' => 'required|exists:tenants,id',
             'is_active'    => 'sometimes|boolean',
+            'inspection_status' => 'required|in:good,expired',
+            'inspection_expiry_date' => 'required|date',
         ];
     }
     protected function prepareForValidation()

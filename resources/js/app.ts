@@ -6,7 +6,7 @@ import type { DefineComponent } from 'vue';
 import { createApp, h } from 'vue';
 import { ZiggyVue } from 'ziggy-js';
 import { initializeTheme } from './composables/useAppearance';
-import { trackEvent, trackPageView } from '@/lib/tracking'; // Import the tracking helpers
+import { trackEvent } from '@/lib/tracking'; // Import the tracking helpers
 import { initializeSession } from '@/lib/session-tracking';
 import { router } from '@inertiajs/vue3';
 

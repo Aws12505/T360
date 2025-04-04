@@ -10,6 +10,8 @@ use App\Http\Controllers\Web\UserManagement\ImpersonationController;
 use App\Http\Controllers\Web\Performance\PerformanceMetricRuleController;
 use App\Http\Controllers\Web\Truck\TruckController;
 use App\Http\Controllers\Web\Driver\DriverController;
+use App\Http\Controllers\Web\RepairOrderController;
+
 Route::middleware(['auth', 'superAdmin'])->group(function () {
     Route::get('/dashboard', function () {
         return Inertia::render('Dashboard');
@@ -85,6 +87,21 @@ Route::put('/drivers/{driver}', [DriverController::class, 'updateAdmin'])->name(
 Route::delete('/drivers/{driver}', [DriverController::class, 'destroyAdmin'])->name('driver.destroy.admin');
 Route::post('/drivers/import', [DriverController::class, 'import'])->name('driver.import.admin');
 Route::get('/drivers/export', [DriverController::class, 'export'])->name('driver.export.admin');
+
+
+// Admin repair order routes
+Route::get('/repair-orders', [RepairOrderController::class, 'index'])->name('repair_orders.index.admin');
+Route::post('/repair-orders', [RepairOrderController::class, 'store'])->name('repair_orders.store.admin');
+Route::put('/repair-orders/{repair_order}', [RepairOrderController::class, 'updateAdmin'])->name('repair_orders.update.admin');
+Route::delete('/repair-orders/{repair_order}', [RepairOrderController::class, 'destroyAdmin'])->name('repair_orders.destroy.admin');
+Route::post('/repair-orders/import', [RepairOrderController::class, 'import'])->name('repair_orders.import.admin');
+Route::get('/repair-orders/export', [RepairOrderController::class, 'export'])->name('repair_orders.export.admin');
+
+// Areas of concern and vendors management routes
+Route::post('/areas-of-concern', [RepairOrderController::class, 'storeAreaOfConcern'])->name('area_of_concerns.store.admin');
+Route::delete('/areas-of-concern/{id}', [RepairOrderController::class, 'destroyAreaOfConcern'])->name('area_of_concerns.destroy.admin');
+Route::post('/vendors', [RepairOrderController::class, 'storeVendor'])->name('vendors.store.admin');
+Route::delete('/vendors/{id}', [RepairOrderController::class, 'destroyVendor'])->name('vendors.destroy.admin');
 
     // Admin delay codes routes
     Route::post('/delay-codes', [DelaysController::class, 'storeCode'])->name('delay_codes.store.admin');
