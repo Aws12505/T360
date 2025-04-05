@@ -230,7 +230,7 @@ const tenantsArray = computed(() => props.tenants.data);
             variant="default"
             class="bg-purple-700 hover:bg-purple-800 text-white font-medium rounded px-4 py-2 transition"
           >
-            Create New Tenant
+            Create New Company
           </Button>
         </div>
         <TenantList :tenants="tenants" @edit="editTenant" @delete="deleteTenant" />

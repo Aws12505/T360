@@ -87,7 +87,7 @@
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead v-if="SuperAdmin">Tenant</TableHead>
+                  <TableHead v-if="SuperAdmin">Company Name</TableHead>
                   <TableHead 
                     v-for="col in tableColumns" 
                     :key="col" 
@@ -186,14 +186,14 @@
           
           <form @submit.prevent="submitForm" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div v-if="SuperAdmin" class="col-span-2">
-              <Label for="tenant">Tenant</Label>
+              <Label for="tenant">Company</Label>
               <div class="relative">
                 <select 
                   id="tenant" 
                   v-model="form.tenant_id" 
                   class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
                 >
-                  <option value="">Select Tenant</option>
+                  <option value="">Select Company</option>
                   <option v-for="tenant in tenants" :key="tenant.id" :value="tenant.id">
                     {{ tenant.name }}
                   </option>

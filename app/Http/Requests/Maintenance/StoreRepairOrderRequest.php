@@ -4,7 +4,8 @@ namespace App\Http\Requests\Maintenance;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
-
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Validation\ValidationException;
 class StoreRepairOrderRequest extends FormRequest
 {
     public function authorize()
@@ -19,14 +20,14 @@ class StoreRepairOrderRequest extends FormRequest
             'ro_open_date'        => 'required|date',
             'ro_close_date'       => 'nullable|date',
             'truck_id'            => 'required|exists:trucks,id',
-            'area_of_concerns'    => 'required|array',
+            'area_of_concerns'    => 'nullable|array', // Changed from required to nullable
             'area_of_concerns.*'  => 'exists:area_of_concerns,id',
-            'repairs_made'        => 'required|string',
+            'repairs_made'        => 'nullable|string',
             'vendor_id'           => 'required|exists:vendors,id',
-            'wo_number'           => 'required|string',
-            'wo_status'           => 'required|in:Completed,Canceled,Closed',
-            'invoice'             => 'required|string',
-            'invoice_amount'      => 'required|numeric',
+            'wo_number'           => 'nullable|string', 
+            'wo_status'           => 'required|in:Completed,Canceled,Closed,Pending verification,Scheduled',
+            'invoice'             => 'nullable|string', 
+            'invoice_amount'      => 'nullable|numeric',
             'invoice_received'    => 'required|boolean',
             'on_qs'               => 'required|boolean',
             'qs_invoice_date'     => 'nullable|date',

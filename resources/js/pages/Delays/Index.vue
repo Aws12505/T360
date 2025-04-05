@@ -121,7 +121,7 @@
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead v-if="isSuperAdmin">Tenant</TableHead>
+                  <TableHead v-if="isSuperAdmin">Company Name</TableHead>
                   <TableHead 
                     v-for="col in tableColumns" 
                     :key="col" 

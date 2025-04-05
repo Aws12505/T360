@@ -4,17 +4,17 @@
     <!-- Modal container -->
     <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md overflow-y-auto">
       <h2 class="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">
-        {{ tenant ? 'Edit Tenant' : 'Create Tenant' }}
+        {{ tenant ? 'Edit Company' : 'Create Company' }}
       </h2>
       <form @submit.prevent="submit" class="space-y-4">
         <!-- Name Field -->
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Name
+            Company Name
           </label>
           <Input
             v-model="form.name"
-            placeholder="Enter tenant name"
+            placeholder="Enter company name"
             class="w-full rounded-md border border-gray-300 dark:border-gray-600 shadow-sm focus:ring-blue-500"
           />
         </div>
@@ -25,7 +25,7 @@
           </label>
           <Input
             v-model="form.slug"
-            placeholder="Enter tenant slug"
+            placeholder="Enter company slug"
             class="w-full rounded-md border border-gray-300 dark:border-gray-600 shadow-sm focus:ring-blue-500"
           />
         </div>

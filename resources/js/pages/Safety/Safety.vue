@@ -21,7 +21,7 @@
           <!-- Tenant selection for SuperAdmin (only visible if SuperAdmin) -->
           <div v-if="SuperAdmin" class="flex items-center gap-2">
             <select v-model="importForm.tenant_id" class="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm">
-              <option disabled value="">Select Tenant</option>
+              <option disabled value="">Select Company Name</option>
               <option v-for="tenant in tenants" :key="tenant.id" :value="tenant.id">{{ tenant.name }}</option>
             </select>
           </div>
@@ -61,7 +61,7 @@
               <TableHeader>
                 <TableRow>
                   <!-- If SuperAdmin, show Tenant column -->
-                  <TableHead v-if="SuperAdmin">Tenant</TableHead>
+                  <TableHead v-if="SuperAdmin">Company Name</TableHead>
                   <!-- Dynamically render table columns from the tableColumns array -->
                   <TableHead
                     v-for="col in tableColumns"
@@ -146,14 +146,14 @@
           <form @submit.prevent="submitForm" class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto">
             <!-- Tenant dropdown for SuperAdmin users -->
             <div v-if="SuperAdmin" class="col-span-2">
-              <Label for="tenant">Tenant</Label>
+              <Label for="tenant">Company Name</Label>
               <div class="relative">
                 <select 
                   id="tenant" 
                   v-model="form.tenant_id" 
                   class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
                 >
-                  <option disabled value="">Select Tenant</option>
+                  <option disabled value="">Select Company</option>
                   <option v-for="tenant in tenants" :key="tenant.id" :value="tenant.id">
                     {{ tenant.name }}
                   </option>

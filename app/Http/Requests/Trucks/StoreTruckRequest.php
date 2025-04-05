@@ -22,15 +22,17 @@ class StoreTruckRequest extends FormRequest
             'vin'       => 'required|string|unique:trucks,vin',
             'tenant_id' => 'required|exists:tenants,id',
             'is_active'    => 'sometimes|boolean',
+            'is_returned'  => 'sometimes|boolean',
             'inspection_status' => 'required|in:good,expired',
             'inspection_expiry_date' => 'required|date',
         ];
     }
     protected function prepareForValidation()
     {
-        // If the authenticated user is not a SuperAdmin, always use the user's tenant_id.
-        if (!is_null(Auth::user()->tenant_id)) {
-            $this->merge(['tenant_id' => Auth::user()->tenant_id]);
+        if (Auth::user()->tenant_id) {
+            $this->merge([
+                'tenant_id' => Auth::user()->tenant_id,
+            ]);
         }
     }
 }

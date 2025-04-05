@@ -17,14 +17,14 @@ class CreateRepairOrdersTable extends Migration
             $table->unsignedBigInteger('truck_id')->comment('Asset ID: references trucks table');
             $table->foreign('truck_id')->references('id')->on('trucks')->onDelete('cascade');
             // Repairs Made field
-            $table->longText('repairs_made')->comment('Repairs Made');
+            $table->longText('repairs_made')->nullable()->comment('Repairs Made');
             // Vendor: foreign key referencing vendors table
             $table->unsignedBigInteger('vendor_id')->comment('Vendor ID');
             $table->foreign('vendor_id')->references('id')->on('vendors')->onDelete('cascade');
-            $table->string('wo_number')->comment('WO#');
-            $table->enum('wo_status', ['Completed', 'Canceled', 'Closed'])->comment('WO Status');
-            $table->string('invoice')->comment('Invoice number with dashes');
-            $table->decimal('invoice_amount', 15, 2)->comment('Invoice Amount');
+            $table->string('wo_number')->nullable()->comment('WO#');
+            $table->enum('wo_status', ['Completed', 'Canceled', 'Closed', 'Pending verification', 'Scheduled'])->comment('WO Status');
+            $table->string('invoice')->nullable()->comment('Invoice number with dashes');
+            $table->decimal('invoice_amount', 15, 2)->nullable()->comment('Invoice Amount');
             $table->boolean('invoice_received')->comment('Did we receive the invoice?');
             $table->boolean('on_qs')->comment('On QS?');
             $table->date('qs_invoice_date')->nullable()->comment('QS Invoice Date');

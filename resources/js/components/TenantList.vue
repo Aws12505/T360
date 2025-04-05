@@ -3,7 +3,7 @@
     <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow">
       <thead class="bg-gray-50 dark:bg-gray-700">
         <tr>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company Name</th>
           <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Slug</th>
           <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
         </tr>
@@ -30,7 +30,6 @@
             <Button
               variant="destructive"
               @click="$emit('delete', tenant)"
-              class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
             >
               Delete
             </Button>

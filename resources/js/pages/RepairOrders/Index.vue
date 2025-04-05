@@ -84,9 +84,12 @@
                   @change="applyFilters"
                 >
                   <option value="">All Statuses</option>
+                  <option disabled value="">Select status</option>
                   <option value="Completed">Completed</option>
                   <option value="Canceled">Canceled</option>
                   <option value="Closed">Closed</option>
+                  <option value="Pending verification">Pending verification</option>
+                  <option value="Scheduled">Scheduled</option>
                 </select>
               </div>
             </div>
@@ -114,7 +117,7 @@
                     </div>
                   </TableHead>
                   <!-- Add Tenant column for SuperAdmin -->
-                  <TableHead v-if="SuperAdmin" class="whitespace-nowrap">Tenant</TableHead>
+                  <TableHead v-if="SuperAdmin" class="whitespace-nowrap">Company Name</TableHead>
                   <TableHead class="whitespace-nowrap cursor-pointer" @click="sortBy('ro_open_date')">
                     <div class="flex items-center">
                       Open Date
@@ -216,7 +219,7 @@
           <form @submit.prevent="submitForm" class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto">
             <!-- For SuperAdmin: Tenant Dropdown -->
             <div v-if="SuperAdmin" class="col-span-2">
-              <Label for="tenant">Tenant</Label>
+              <Label for="tenant">Company Name</Label>
               <div class="relative">
                 <select id="tenant" v-model="form.tenant_id" required class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none">
                   <option disabled value="">Select a tenant</option>
@@ -308,7 +311,7 @@
             <!-- Repairs Made -->
             <div class="col-span-2">
               <Label for="repairs_made">Repairs Made</Label>
-              <textarea id="repairs_made" v-model="form.repairs_made" required class="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"></textarea>
+              <textarea id="repairs_made" v-model="form.repairs_made"  class="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"></textarea>
             </div>
             
             <!-- Vendor -->
@@ -332,7 +335,7 @@
             <!-- WO# -->
             <div>
               <Label for="wo_number">WO#</Label>
-              <Input id="wo_number" v-model="form.wo_number" type="text" required />
+              <Input id="wo_number" v-model="form.wo_number" type="text"  />
             </div>
             
             <!-- WO Status -->
@@ -344,6 +347,8 @@
                   <option value="Completed">Completed</option>
                   <option value="Canceled">Canceled</option>
                   <option value="Closed">Closed</option>
+                  <option value="Pending verification">Pending verification</option>
+                  <option value="Scheduled">Scheduled</option>
                 </select>
                 <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                   <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -356,13 +361,13 @@
             <!-- Invoice -->
             <div>
               <Label for="invoice">Invoice</Label>
-              <Input id="invoice" v-model="form.invoice" type="text" required />
+              <Input id="invoice" v-model="form.invoice" type="text"  />
             </div>
             
             <!-- Invoice Amount -->
             <div>
               <Label for="invoice_amount">Invoice Amount</Label>
-              <Input id="invoice_amount" v-model="form.invoice_amount" type="number" step="0.01" required />
+              <Input id="invoice_amount" v-model="form.invoice_amount" type="number" step="0.01" />
             </div>
             
             <!-- Invoice Received -->
@@ -403,8 +408,8 @@
               <Input id="qs_invoice_date" v-model="form.qs_invoice_date" type="date" />
             </div>
             
-            <!-- Disputed -->
-            <div>
+            <!-- Disputed - Only show when editing -->
+            <div v-if="formAction === 'Update'">
               <Label for="disputed">Disputed?</Label>
               <div class="relative">
                 <select id="disputed" v-model="form.disputed" required class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none">
@@ -419,8 +424,8 @@
               </div>
             </div>
             
-            <!-- Dispute Outcome -->
-            <div class="col-span-2">
+            <!-- Dispute Outcome - Only show when editing -->
+            <div class="col-span-2" v-if="formAction === 'Update'">
               <Label for="dispute_outcome">Dispute Outcome</Label>
               <textarea id="dispute_outcome" v-model="form.dispute_outcome" class="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"></textarea>
             </div>
@@ -470,29 +475,31 @@
               <Button type="submit" class="w-full">Add Area of Concern</Button>
             </form>
             
-            <!-- List of existing areas of concern -->
-            <div class="border rounded-md overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Area of Concern</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  <TableRow v-if="areasOfConcern.length === 0">
-                    <TableCell colspan="2" class="text-center py-4">No areas of concern found.</TableCell>
-                  </TableRow>
-                  <TableRow v-for="area in areasOfConcern" :key="area.id">
-                    <TableCell>{{ area.concern }}</TableCell>
-                    <TableCell>
-                      <Button @click="deleteAreaOfConcern(area.id)" variant="destructive" size="sm">
-                        <Icon name="trash" class="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
+            <!-- List of existing areas of concern with fixed height and scrolling -->
+            <div class="border rounded-md">
+              <div class="max-h-[300px] overflow-y-auto">
+                <Table>
+                  <TableHeader class="sticky top-0 bg-background z-10">
+                    <TableRow>
+                      <TableHead>Area of Concern</TableHead>
+                      <TableHead class="w-20">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow v-if="areasOfConcern.length === 0">
+                      <TableCell colspan="2" class="text-center py-4">No areas of concern found.</TableCell>
+                    </TableRow>
+                    <TableRow v-for="area in areasOfConcern" :key="area.id">
+                      <TableCell>{{ area.concern }}</TableCell>
+                      <TableCell>
+                        <Button @click="deleteAreaOfConcern(area.id)" variant="destructive" size="sm">
+                          <Icon name="trash" class="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
             </div>
           </div>
           
@@ -657,7 +664,8 @@ const openCreateModal = () => {
   // Reset boolean fields explicitly to false
   form.invoice_received = false
   form.on_qs = false
-  form.disputed = false
+  form.disputed = false  // Set disputed to false by default
+  form.dispute_outcome = ''  // Set dispute_outcome to empty string by default
   // Clear arrays
   form.area_of_concerns = []
   // Set form mode

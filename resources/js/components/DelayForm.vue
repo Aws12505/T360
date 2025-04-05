@@ -3,9 +3,9 @@
     <div class="grid grid-cols-2 gap-4">
       <!-- Tenant dropdown for SuperAdmin users -->
       <div v-if="isSuperAdmin">
-        <Label>Tenant</Label>
+        <Label>Company Name</Label>
         <select v-model="form.tenant_id" class="w-full border rounded px-2 py-1">
-          <option :value="null" disabled>Select tenant</option>
+          <option :value="null" disabled>Select Company</option>
           <option v-for="tenant in tenants" :key="tenant.id" :value="tenant.id">
             {{ tenant.name }}
           </option>

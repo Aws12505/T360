@@ -98,7 +98,7 @@
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead v-if="SuperAdmin">Tenant</TableHead>
+                  <TableHead v-if="SuperAdmin">Company Name</TableHead>
                   <TableHead 
                     v-for="col in tableColumns" 
                     :key="col" 
@@ -106,7 +106,15 @@
                     @click="sortBy(col)"
                   >
                     <div class="flex items-center">
-                      {{ col.replace(/_/g, ' ') }}
+                      <template v-if="col === 'inspection_status'">
+                        Annual Inspection Status
+                      </template>
+                      <template v-else-if="col === 'inspection_expiry_date'">
+                        Annual Inspection Expiration Date
+                      </template>
+                      <template v-else>
+                        {{ col.replace(/_/g, ' ') }}
+                      </template>
                       <div v-if="sortColumn === col" class="ml-2">
                         <svg v-if="sortDirection === 'asc'" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                           <path d="M8 15l4-4 4 4" />
@@ -141,6 +149,11 @@
                     <template v-if="col === 'is_active'">
                       <span :class="item[col] ? 'text-green-600' : 'text-red-600'">
                         {{ item[col] ? 'Yes' : 'No' }}
+                      </span>
+                    </template>
+                    <template v-else-if="col === 'is_returned'">
+                      <span :class="item[col] ? 'text-red-600' : 'text-green-600'" class="px-2 py-1 rounded-full text-xs font-medium" :style="{ backgroundColor: item[col] ? 'rgba(239, 68, 68, 0.1)' : 'rgba(22, 163, 74, 0.1)' }">
+                        {{ item[col] ? 'Returned' : 'With Company' }}
                       </span>
                     </template>
                     <template v-else-if="col === 'inspection_status'">
@@ -208,14 +221,14 @@
           
           <form @submit.prevent="submitForm" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div v-if="SuperAdmin" class="col-span-2">
-              <Label for="tenant">Tenant</Label>
+              <Label for="tenant">Company Name</Label>
               <div class="relative">
                 <select 
                   id="tenant" 
                   v-model="form.tenant_id" 
                   class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
                 >
-                  <option value="">Select Tenant</option>
+                  <option value="">Select Company</option>
                   <option v-for="tenant in tenants" :key="tenant.id" :value="tenant.id">
                     {{ tenant.name }}
                   </option>
@@ -308,7 +321,7 @@
 
             <!-- Add the new inspection fields here -->
             <div>
-              <Label for="inspection_status">Inspection Status</Label>
+              <Label for="inspection_status">Annual Inspection Status</Label>
               <div class="relative">
                 <select 
                   id="inspection_status" 
@@ -328,7 +341,7 @@
             </div>
 
             <div>
-              <Label for="inspection_expiry_date">Inspection Expiry Date</Label>
+              <Label for="inspection_expiry_date">Annual Inspection Expiry Date</Label>
               <Input 
                 id="inspection_expiry_date" 
                 v-model="form.inspection_expiry_date" 
@@ -346,6 +359,22 @@
                   class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                 />
                 <Label for="is_active">Active Status</Label>
+              </div>
+            </div>
+
+            <div class="sm:col-span-2">
+              <div class="flex items-center space-x-2">
+                <input 
+                  type="checkbox" 
+                  id="is_returned" 
+                  v-model="form.is_returned"
+                  class="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-600"
+                />
+                <Label for="is_returned" class="flex items-center">
+                  Returned Status
+                  <span v-if="form.is_returned" class="ml-2 text-xs text-red-600 bg-red-100 px-2 py-0.5 rounded-full">Truck Returned</span>
+                  <span v-else class="ml-2 text-xs text-green-600 bg-green-100 px-2 py-0.5 rounded-full">With Company</span>
+                </Label>
               </div>
             </div>
 
@@ -450,10 +479,11 @@ const tableColumns = [
   'vin',
   'inspection_status',
   'inspection_expiry_date',
-  'is_active'
+  'is_active',
+  'is_returned'
 ];
 
-// Update the form initialization to include the new fields
+// Update the form initialization to include the new field
 const form = useForm({
   id: null,
   truckid: null,
@@ -464,6 +494,7 @@ const form = useForm({
   vin: '',
   tenant_id: props.SuperAdmin ? '' : null,
   is_active: true,
+  is_returned: false,
   inspection_status: 'good',
   inspection_expiry_date: new Date().toISOString().split('T')[0], // Today's date as default
 });
@@ -559,7 +590,7 @@ function openCreateModal() {
   showModal.value = true;
 }
 
-// This function is updated to include the new inspection fields
+// Update the openEditModal function to include the new field
 function openEditModal(item) {
   form.id = item.id;
   form.truckid = item.truckid;
@@ -569,6 +600,7 @@ function openEditModal(item) {
   form.license = item.license;
   form.vin = item.vin;
   form.is_active = Boolean(item.is_active);
+  form.is_returned = Boolean(item.is_returned);
   form.tenant_id = item.tenant_id;
   form.inspection_status = item.inspection_status || 'good';
   form.inspection_expiry_date = item.inspection_expiry_date || new Date().toISOString().split('T')[0];
@@ -582,7 +614,7 @@ function closeModal() {
   showModal.value = false;
 }
 
-// This function is updated to include the new inspection fields in the payload
+// Update the submitForm function to include the new field in the payload
 function submitForm() {
   const payload = {
     truckid: Number(form.truckid),
@@ -592,6 +624,7 @@ function submitForm() {
     license: Number(form.license),
     vin: form.vin,
     is_active: form.is_active ? 1 : 0,
+    is_returned: form.is_returned ? 1 : 0,
     tenant_id: form.tenant_id,
     inspection_status: form.inspection_status,
     inspection_expiry_date: form.inspection_expiry_date

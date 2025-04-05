@@ -105,6 +105,8 @@ class RepairOrderImportExportService
                     dd('Error converting ro_close_date', $data['ro_close_date'], $e);
                     $data['ro_close_date'] = null;
                 }
+            } else {
+                $data['ro_close_date'] = null;
             }
             if (!empty($data['qs_invoice_date'])) {
                 try {
@@ -113,6 +115,8 @@ class RepairOrderImportExportService
                     dd('Error converting qs_invoice_date', $data['qs_invoice_date'], $e);
                     $data['qs_invoice_date'] = null;
                 }
+            } else {
+                $data['qs_invoice_date'] = null;
             }
             // dd('After date conversion:', $data);
 
@@ -144,17 +148,32 @@ class RepairOrderImportExportService
             unset($data['vendor']);
             // dd('After processing vendor:', $data);
 
+            // Sanitize repairs_made field to handle special characters
+            if (isset($data['repairs_made'])) {
+                // Convert to UTF-8 and clean special characters
+                $data['repairs_made'] = iconv('UTF-8', 'UTF-8//IGNORE', $data['repairs_made']);
+                // Replace problematic characters with simpler alternatives
+                $data['repairs_made'] = preg_replace('/[^\x20-\x7E]/', '', $data['repairs_made']);
+                // Replace any remaining smart quotes that might have been missed
+                $data['repairs_made'] = str_replace(
+                    array("\xe2\x80\x98", "\xe2\x80\x99", "\xe2\x80\x9c", "\xe2\x80\x9d"),
+                    array("'", "'", '"', '"'),
+                    $data['repairs_made']
+                );
+            }
+
             // Process area_of_concerns: convert concern names to their IDs.
-            if (isset($data['area_of_concerns'])) {
+            if (isset($data['area_of_concerns']) && !empty($data['area_of_concerns'])) {
                 $concernNames = array_map('trim', explode(',', $data['area_of_concerns']));
                 $concernIds = [];
                 foreach ($concernNames as $concernName) {
-                    $area = AreaOfConcern::where('concern', $concernName)->first();
-                    if (!$area) {
-                        dd('Area of Concern not found for name:', $concernName, $row);
-                        // You could also choose to skip or continue without this concern.
+                    if (!empty($concernName)) {
+                        $area = AreaOfConcern::where('concern', $concernName)->first();
+                        if ($area) {
+                            $concernIds[] = $area->id;
+                        }
+                        // If area not found, just skip it instead of stopping the import
                     }
-                    $concernIds[] = $area->id;
                 }
                 $data['area_of_concerns'] = $concernIds;
             } else {
@@ -177,6 +196,11 @@ class RepairOrderImportExportService
             }
             // dd('After processing tenant:', $data);
 
+            // Convert wo_status to title case for consistency
+            if (isset($data['wo_status'])) {
+                $data['wo_status'] = ucfirst(strtolower($data['wo_status']));
+            }
+            
             // Validate the row data.
             $validator = Validator::make($data, [
                 'ro_number'        => 'required|string',
@@ -184,10 +208,10 @@ class RepairOrderImportExportService
                 'ro_close_date'    => 'nullable|date',
                 'truck_id'         => 'required|exists:trucks,id',
                 'vendor_id'        => 'required|exists:vendors,id',
-                'wo_number'        => 'required|string',
-                'wo_status'        => 'required|in:Completed,Canceled,Closed',
-                'invoice'          => 'required|string',
-                'invoice_amount'   => 'required|numeric',
+                'wo_number'        => 'nullable|string', // Changed from required to nullable
+                'wo_status'        => 'required|in:Completed,Canceled,Closed,Pending verification,Scheduled',
+                'invoice'          => 'nullable|string', // Changed from required to nullable
+                'invoice_amount'   => 'nullable|numeric',
                 'invoice_received' => 'required|boolean',
                 'on_qs'            => 'required|boolean',
                 'qs_invoice_date'  => 'nullable|date',
@@ -195,12 +219,19 @@ class RepairOrderImportExportService
                 'dispute_outcome'  => 'nullable|string',
                 'tenant_id'        => 'required|exists:tenants,id',
                 // Added repairs_made validation rule:
-                'repairs_made'     => 'required|string',
+                'repairs_made'     => 'nullable|string',
             ]);
             if ($validator->fails()) {
                 dd('Validation failed:', $validator->errors(), $data);
                 $rowsSkipped++;
                 continue;
+            }
+            
+            // Ensure empty strings for nullable fields are converted to null
+            foreach (['ro_close_date', 'qs_invoice_date', 'wo_number', 'invoice', 'dispute_outcome', 'invoice_amount'] as $field) {
+                if (isset($data[$field]) && $data[$field] === '') {
+                    $data[$field] = null;
+                }
             }
             // dd('After validation:', $data);
 
