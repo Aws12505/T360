@@ -1,5 +1,6 @@
 <template>
   <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
+    <Head title="Acceptance"/>
     <div class="max-w-7xl mx-auto p-6 space-y-8">
       <!-- Success Message -->
       <Alert v-if="successMessage" variant="success">
@@ -15,7 +16,7 @@
             <Icon name="plus" class="mr-2 h-4 w-4" />
             Add Rejection
           </Button>
-          <Button @click="openCodeModal()" variant="outline">
+          <Button v-if="isSuperAdmin"@click="openCodeModal()" variant="outline">
             <Icon name="settings" class="mr-2 h-4 w-4" />
             Manage Reason Codes
           </Button>
@@ -363,7 +364,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue';
-import { useForm } from '@inertiajs/vue3';
+import { useForm, Head } from '@inertiajs/vue3';
 // Import UI components from their correct folders
 import Button from '@/components/ui/button/Button.vue';
 import {

@@ -1,5 +1,6 @@
 <template>
   <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
+    <Head title="Repair Orders"/>
     <div class="max-w-7xl mx-auto p-6 space-y-8">
       <!-- Success Message -->
       <Alert v-if="successMessage" variant="success">
@@ -16,19 +17,18 @@
             Create New Repair Order
           </Button>
           
-          <!-- Manage Areas of Concern button -->
-          <Button @click="openAreasOfConcernModal" variant="outline">
+          <!-- Manage Areas of Concern button - only for SuperAdmin -->
+          <Button v-if="SuperAdmin" @click="openAreasOfConcernModal" variant="outline">
             <Icon name="settings" class="mr-2 h-4 w-4" />
             Manage Areas of Concern
           </Button>
           
-          <!-- Manage Vendors button -->
-          <Button @click="openVendorsModal" variant="outline">
+          <!-- Manage Vendors button - only for SuperAdmin -->
+          <Button v-if="SuperAdmin" @click="openVendorsModal" variant="outline">
             <Icon name="settings" class="mr-2 h-4 w-4" />
             Manage Vendors
           </Button>
           
-        
           <label class="cursor-pointer">
             <Button variant="secondary" as="span">
               <Icon name="upload" class="mr-2 h-4 w-4" />
@@ -567,7 +567,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import { useForm, router } from '@inertiajs/vue3'
+import { useForm, router, Head } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
 import Icon from '@/components/Icon.vue'
 import SortIndicator from '@/components/SortIndicator.vue'

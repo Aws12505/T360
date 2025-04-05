@@ -5,7 +5,7 @@ import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, UserCog } from 'lucide-vue-next';
+import { BookOpen, Folder, LayoutGrid, UserCog, BarChart, ShieldCheck, CheckCircle, Clock, Truck, Users, ClipboardList, LineChart, PieChart, Gauge } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
 interface Props {
@@ -34,46 +34,46 @@ const mainNavItems: NavItem[] = [
         href: tenantSlug ? route('users.roles.index', { tenantSlug }) : route('admin.users.roles.index'),
         icon: UserCog,
     },
-    {
+    // Metrics management is only available to Admin
+    ...(tenantSlug ? [] : [{
         title: 'Metrics Management',
-        // Metrics management is only available to Admin
         href: route('performance-metrics.edit'),
-        icon: UserCog,
-    },
+        icon: Gauge,
+    }]),
     {
         title: 'Performance',
         href: tenantSlug ? route('performance.index', { tenantSlug }) : route('performance.index.admin'),
-        icon: UserCog,
+        icon: BarChart,
     },
     {
         title: 'Safety',
         href: tenantSlug ? route('safety.index', { tenantSlug }) : route('safety.index.admin'),
-        icon: UserCog,
+        icon: ShieldCheck,
     },
     {
         title: 'Acceptance',
         href: tenantSlug ? route('acceptance.index', { tenantSlug }) : route('acceptance.index.admin'),
-        icon: UserCog,
+        icon: CheckCircle,
     },
     {
         title: 'On-Time',
         href: tenantSlug ? route('ontime.index', { tenantSlug }) : route('ontime.index.admin'),
-        icon: UserCog,
+        icon: Clock,
     },
     {
         title: 'Trucks',
         href: tenantSlug ? route('truck.index', { tenantSlug }) : route('truck.index.admin'),
-        icon: UserCog,
+        icon: Truck,
     },
     {
         title: 'Drivers',
         href: tenantSlug ? route('driver.index', { tenantSlug }) : route('driver.index.admin'),
-        icon: UserCog,
+        icon: Users,
     },
     {
         title: 'Repair Orders',
         href: tenantSlug? route('repair_orders.index', { tenantSlug }) : route('repair_orders.index.admin'),
-        icon: UserCog,
+        icon: ClipboardList,
     }
 ];
 
@@ -111,7 +111,7 @@ const footerNavItems: NavItem[] = [
         </SidebarContent>
 
         <SidebarFooter>
-            <NavFooter :items="footerNavItems" /> 
+            <!-- <NavFooter :items="footerNavItems" />  -->
             <NavUser :tenantSlug="tenantSlug" />
         </SidebarFooter>
     </Sidebar>

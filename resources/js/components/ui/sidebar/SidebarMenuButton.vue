@@ -1,52 +1,33 @@
 <script setup lang="ts">
-import Tooltip from '@/components/ui/tooltip/Tooltip.vue';
-import TooltipContent from '@/components/ui/tooltip/TooltipContent.vue';
-import TooltipTrigger from '@/components/ui/tooltip/TooltipTrigger.vue';
-import { computed, type Component } from 'vue';
-import SidebarMenuButtonChild, { type SidebarMenuButtonProps } from './SidebarMenuButtonChild.vue';
-import { useSidebar } from './utils';
+import { cn } from '@/lib/utils';
+import { Primitive, type PrimitiveProps } from 'radix-vue';
+import type { HTMLAttributes } from 'vue';
+import { sidebarMenuButtonVariants, type SidebarMenuButtonVariants } from '.';
 
-defineOptions({
-    inheritAttrs: false,
-});
+export interface SidebarMenuButtonProps extends PrimitiveProps {
+    variant?: SidebarMenuButtonVariants['variant'];
+    size?: SidebarMenuButtonVariants['size'];
+    isActive?: boolean;
+    class?: HTMLAttributes['class'];
+}
 
-const props = withDefaults(
-    defineProps<
-        SidebarMenuButtonProps & {
-            tooltip?: string | Component;
-        }
-    >(),
-    {
-        as: 'button',
-        variant: 'default',
-        size: 'default',
-    },
-);
-
-const { isMobile, state } = useSidebar();
-
-const delegatedProps = computed(() => {
-    const { tooltip, ...delegated } = props;
-    return delegated;
+const props = withDefaults(defineProps<SidebarMenuButtonProps>(), {
+    as: 'button',
+    variant: 'default',
+    size: 'default',
 });
 </script>
 
 <template>
-    <SidebarMenuButtonChild v-if="!tooltip" v-bind="{ ...delegatedProps, ...$attrs }">
+    <Primitive
+        data-sidebar="menu-button"
+        :data-size="size"
+        :data-active="isActive ? 'true' : undefined"
+        :class="cn(sidebarMenuButtonVariants({ variant, size }), props.class)"
+        :as="as"
+        :as-child="asChild"
+        v-bind="$attrs"
+    >
         <slot />
-    </SidebarMenuButtonChild>
-
-    <Tooltip v-else>
-        <TooltipTrigger as-child>
-            <SidebarMenuButtonChild v-bind="{ ...delegatedProps, ...$attrs }">
-                <slot />
-            </SidebarMenuButtonChild>
-        </TooltipTrigger>
-        <TooltipContent side="right" align="center" :hidden="state !== 'collapsed' || isMobile">
-            <template v-if="typeof tooltip === 'string'">
-                {{ tooltip }}
-            </template>
-            <component :is="tooltip" v-else />
-        </TooltipContent>
-    </Tooltip>
+    </Primitive>
 </template>

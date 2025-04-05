@@ -1,5 +1,6 @@
 <template>
   <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
+    <Head title="Summary"/>
     <div class="p-6">
       <h1 class="text-2xl font-bold mb-6">Performance Summaries</h1>
       <!-- Display summaries as a responsive grid of cards -->
@@ -23,6 +24,8 @@
 import { defineProps } from 'vue'
 import SummaryCard from '@/components/SummaryCard.vue'
 import AppLayout from '@/layouts/AppLayout.vue'
+import { Head } from '@inertiajs/vue3';
+
 
 /**
  * Props:

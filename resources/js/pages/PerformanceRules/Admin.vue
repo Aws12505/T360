@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import AppLayout from '@/layouts/AppLayout.vue'
 import EntryForm from './Form.vue'  // Global metrics form component
+import { Head } from '@inertiajs/vue3';
 
 /**
  * Props passed from the backend via Inertia.
@@ -67,6 +68,7 @@ function closeEditor() {
 
 <template>
   <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
+    <Head title="Metrics Management"/>
     <div class="max-w-6xl mx-auto p-6 space-y-8">
       <!-- Header with title and Edit button -->
       <div class="flex flex-col sm:flex-row justify-between items-center">

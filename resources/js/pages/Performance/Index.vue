@@ -1,5 +1,7 @@
 <template>
   <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
+    <Head title="Performance"/>
+
     <div class="max-w-7xl mx-auto p-6 space-y-8">
       <!-- Success Message -->
       <Alert v-if="successMessage" variant="success">
@@ -356,7 +358,7 @@
 import { ref, computed, watch } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
-import { router } from '@inertiajs/vue3'
+import { router , Head } from '@inertiajs/vue3'
 import Icon from '@/components/Icon.vue'
 import { 
   Button,

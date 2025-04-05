@@ -176,6 +176,7 @@ const tenantsArray = computed(() => props.tenants.data);
 
   <!-- Main layout with breadcrumbs passed to the AppLayout component -->
   <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
+    
     <div class="container mx-auto p-6">
       <!-- Page title -->
       <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">
