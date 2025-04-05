@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Web\Driver;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Http\Requests\StoreDriverRequest;
-use App\Http\Requests\UpdateDriverRequest;
+use App\Http\Requests\Driver\StoreDriverRequest;
+use App\Http\Requests\Driver\UpdateDriverRequest;
 use App\Services\Driver\DriverDataService;
 use App\Services\Driver\DriverImportExportService;
 use Inertia\Inertia;

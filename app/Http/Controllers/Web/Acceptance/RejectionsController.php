@@ -5,11 +5,11 @@ namespace App\Http\Controllers\Web\Acceptance;
 use App\Http\Controllers\Controller;
 use App\Services\Acceptance\RejectionReasonCodesService;
 use Illuminate\Http\Request;
-use App\Http\Requests\StoreRejectionRequest;
-use App\Http\Requests\UpdateRejectionRequest;
+use App\Http\Requests\Acceptance\StoreRejectionRequest;
+use App\Http\Requests\Acceptance\UpdateRejectionRequest;
 use App\Services\Acceptance\RejectionService;
 use Inertia\Inertia;
-use App\Http\Requests\StoreRejectionReasonCode;
+use App\Http\Requests\Acceptance\StoreRejectionReasonCode;
 
 /**
  * Class RejectionsController
@@ -118,7 +118,7 @@ class RejectionsController extends Controller
     /**
  * Create a new rejection reason code.
  *
- * @param \App\Http\Requests\StoreRejectionReasonCode $request
+ * @param \App\Http\Requests\Acceptance\StoreRejectionReasonCode $request
  * @return \Illuminate\Http\RedirectResponse
  */
 public function storeCode(StoreRejectionReasonCode $request)

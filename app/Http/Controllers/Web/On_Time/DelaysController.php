@@ -7,9 +7,9 @@ use App\Services\On_Time\DelayCodesService;
 use App\Services\On_Time\DelayService;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
-use App\Http\Requests\StoreDelayRequest;
-use App\Http\Requests\UpdateDelayRequest;
-use App\Http\Requests\StoreDelayCode;
+use App\Http\Requests\On_Time\StoreDelayRequest;
+use App\Http\Requests\On_Time\UpdateDelayRequest;
+use App\Http\Requests\On_Time\StoreDelayCode;
 
 /**
  * Class DelaysController
@@ -51,7 +51,7 @@ class DelaysController extends Controller
     /**
      * Create a new delay record.
      *
-     * @param \App\Http\Requests\StoreDelayRequest $request
+     * @param \App\Http\Requests\On_Time\StoreDelayRequest $request
      * @return \Illuminate\Http\RedirectResponse
      */
     public function store(StoreDelayRequest $request)
@@ -65,7 +65,7 @@ class DelaysController extends Controller
     /**
      * Update an existing delay record.
      *
-     * @param \App\Http\Requests\UpdateDelayRequest $request
+     * @param \App\Http\Requests\On_Time\UpdateDelayRequest $request
      * @param string $tenantSlug
      * @param int $id
      * @return \Illuminate\Http\RedirectResponse
@@ -81,7 +81,7 @@ class DelaysController extends Controller
     /**
      * Update a delay record as Admin.
      *
-     * @param \App\Http\Requests\UpdateDelayRequest $request
+     * @param \App\Http\Requests\On_Time\UpdateDelayRequest $request
      * @param int $id
      * @return \Illuminate\Http\RedirectResponse
      */
@@ -121,7 +121,7 @@ class DelaysController extends Controller
     /**
      * Create a new delay code.
      *
-     * @param \App\Http\Requests\StoreDelayCode $request
+     * @param \App\Http\Requests\On_Time\StoreDelayCode $request
      * @return \Illuminate\Http\RedirectResponse
      */
     public function storeCode(StoreDelayCode $request)

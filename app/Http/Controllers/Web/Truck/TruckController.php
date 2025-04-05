@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Web\Truck;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Http\Requests\StoreTruckRequest;
-use App\Http\Requests\UpdateTruckRequest;
+use App\Http\Requests\Trucks\StoreTruckRequest;
+use App\Http\Requests\Trucks\UpdateTruckRequest;
 use App\Services\Truck\TruckDataService;
 use App\Services\Truck\TruckImportExportService;
 use Inertia\Inertia;

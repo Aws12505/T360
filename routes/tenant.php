@@ -9,7 +9,7 @@ use App\Http\Controllers\Web\Performance\SummariesController;
 use App\Http\Controllers\Web\Performance\PerformanceController;
 use App\Http\Controllers\Web\UserManagement\ImpersonationController;
 use App\Http\Controllers\Web\Driver\DriverController;
-use App\Http\Controllers\Web\RepairOrderController;
+use App\Http\Controllers\Web\RepairOrder\RepairOrderController;
 
 Route::middleware(['auth', 'tenant'])->group(function () {
     Route::prefix('{tenantSlug}')->group(function () {

@@ -10,7 +10,7 @@ use App\Http\Controllers\Web\UserManagement\ImpersonationController;
 use App\Http\Controllers\Web\Performance\PerformanceMetricRuleController;
 use App\Http\Controllers\Web\Truck\TruckController;
 use App\Http\Controllers\Web\Driver\DriverController;
-use App\Http\Controllers\Web\RepairOrderController;
+use App\Http\Controllers\Web\RepairOrder\RepairOrderController;
 
 Route::middleware(['auth', 'superAdmin'])->group(function () {
     Route::get('/dashboard', function () {

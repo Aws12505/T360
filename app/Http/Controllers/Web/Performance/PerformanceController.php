@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Web\Performance;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Http\Requests\StorePerformanceRequest;
-use App\Http\Requests\UpdatePerformanceRequest;
+use App\Http\Requests\Performance\StorePerformanceRequest;
+use App\Http\Requests\Performance\UpdatePerformanceRequest;
 use App\Services\Performance\PerformanceImportExportService;
 use App\Services\Performance\PerformanceService;
 use Inertia\Inertia;

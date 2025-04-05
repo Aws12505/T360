@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Web\Safety;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Http\Requests\StoreSafetyDataRequest;
-use App\Http\Requests\UpdateSafetyDataRequest;
+use App\Http\Requests\Safety\StoreSafetyDataRequest;
+use App\Http\Requests\Safety\UpdateSafetyDataRequest;
 use App\Services\Safety\SafetyDataService;
 use App\Services\Safety\SafetyImportExportService;
 use Inertia\Inertia;
