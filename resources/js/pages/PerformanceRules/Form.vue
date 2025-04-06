@@ -22,6 +22,16 @@ const emit = defineEmits(['saved', 'cancel'])
 const levels = ['fantastic_plus', 'fantastic', 'good', 'fair', 'poor']
 const metrics = ['acceptance', 'on_time', 'maintenance_variance', 'open_boc', 'vcr_preventable']
 
+// Define safety metrics and their tiers
+const safetyMetrics = [
+  'driver_distraction',
+  'speeding_violation',
+  'sign_violation',
+  'traffic_light_violation',
+  'following_distance'
+]
+const safetyTiers = ['gold', 'silver', 'not_eligible']
+
 // Operators available for comparison.
 const operators = [
   { label: 'Less', value: 'less' },
@@ -40,6 +50,15 @@ const form = useForm({
       levels.flatMap(level => [
         [`${metric}_${level}`, props.entry[`${metric}_${level}`] ?? ''],
         [`${metric}_${level}_operator`, props.entry[`${metric}_${level}_operator`] ?? ''],
+      ])
+    )
+  ),
+  // Add safety metrics
+  ...Object.fromEntries(
+    safetyMetrics.flatMap(metric =>
+      safetyTiers.flatMap(tier => [
+        [`${metric}_${tier}`, props.entry[`${metric}_${tier}`] ?? ''],
+        [`${metric}_${tier}_operator`, props.entry[`${metric}_${tier}_operator`] ?? ''],
       ])
     )
   ),
@@ -78,6 +97,38 @@ const submit = () => {
           <!-- Select for the operator -->
           <select
             v-model="form[`${metric}_${level}_operator`]"
+            class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 mt-1"
+          >
+            <option v-for="op in operators" :key="op.value" :value="op.value">
+              {{ op.label }}
+            </option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Safety Metrics Section -->
+    <div v-for="metric in safetyMetrics" :key="metric" class="space-y-4">
+      <h2 class="text-lg font-bold capitalize text-gray-800 dark:text-gray-100">
+        {{ metric.replace(/_/g, ' ') }}
+      </h2>
+      <!-- Create a responsive grid for each tier's input -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div v-for="tier in safetyTiers" :key="`${metric}-${tier}`">
+          <!-- Label for the tier -->
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 capitalize">
+            {{ tier.replace(/_/g, ' ') }}
+          </label>
+          <!-- Input for the metric value -->
+          <input
+            v-model="form[`${metric}_${tier}`]"
+            type="number"
+            step="0.01"
+            class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <!-- Select for the operator -->
+          <select
+            v-model="form[`${metric}_${tier}_operator`]"
             class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 mt-1"
           >
             <option v-for="op in operators" :key="op.value" :value="op.value">

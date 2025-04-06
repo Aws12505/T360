@@ -41,10 +41,22 @@ const editing = ref({})
 const metricsList = ['acceptance', 'on_time', 'maintenance_variance', 'open_boc', 'vcr_preventable']
 const levels = ['fantastic_plus', 'fantastic', 'good', 'fair', 'poor']
 
+// List of safety metrics and tiers for display
+const safetyMetricsList = [
+  'driver_distraction',
+  'speeding_violation',
+  'sign_violation',
+  'traffic_light_violation',
+  'following_distance'
+]
+const safetyTiers = ['gold', 'silver', 'not_eligible']
+
 // Compute a display object from the metrics data to show each metric as a card.
 const displayMetrics = computed(() => {
   if (!props.metrics) return {}
   const data = {}
+  
+  // Process regular metrics
   metricsList.forEach(metric => {
     data[metric] = levels.map(level => {
       return {
@@ -54,6 +66,18 @@ const displayMetrics = computed(() => {
       }
     })
   })
+  
+  // Process safety metrics
+  safetyMetricsList.forEach(metric => {
+    data[metric] = safetyTiers.map(tier => {
+      return {
+        level: tier.replace(/_/g, ' '),
+        value: props.metrics[`${metric}_${tier}`] ?? '-',
+        operator: props.metrics[`${metric}_${tier}_operator`] ?? '-',
+      }
+    })
+  })
+  
   // Add safety bonus eligibility levels.
   data.safety_bonus_eligible_levels = props.metrics.safety_bonus_eligible_levels || []
   return data
@@ -97,6 +121,7 @@ function closeEditor() {
 
       <!-- Display metrics as cards when not editing -->
       <div v-else-if="props.metrics" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Regular Performance Metrics -->
         <Card v-for="metric in metricsList" :key="metric">
           <CardHeader>
             <CardTitle class="capitalize">
@@ -109,6 +134,38 @@ function closeEditor() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Level</TableHead>
+                    <TableHead>Value</TableHead>
+                    <TableHead>Operator</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow 
+                    v-for="(item, idx) in displayMetrics[metric]" 
+                    :key="idx"
+                  >
+                    <TableCell>{{ item.level }}</TableCell>
+                    <TableCell>{{ item.value }}</TableCell>
+                    <TableCell>{{ item.operator }}</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+
+        <!-- Safety Metrics -->
+        <Card v-for="metric in safetyMetricsList" :key="metric">
+          <CardHeader>
+            <CardTitle class="capitalize">
+              {{ metric.replace(/_/g, ' ') }}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div class="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Tier</TableHead>
                     <TableHead>Value</TableHead>
                     <TableHead>Operator</TableHead>
                   </TableRow>

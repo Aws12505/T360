@@ -32,18 +32,38 @@ class PerformanceMetricRuleService{
      */
     public function getMetricValidationRules(): array
     {
-        $levels = ['fantastic_plus', 'fantastic', 'good', 'fair', 'poor'];
-        $metrics = ['acceptance', 'on_time', 'maintenance_variance', 'open_boc', 'vcr_preventable'];
+        $performanceLevels = ['fantastic_plus', 'fantastic', 'good', 'fair', 'poor'];
+        $performanceMetrics = ['acceptance', 'on_time', 'maintenance_variance', 'open_boc', 'vcr_preventable'];
+        
+        $safetyLevels = ['gold', 'silver', 'not_eligible'];
+        $safetyMetrics = [
+            'driver_distraction', 
+            'speeding_violation', 
+            'sign_violation', 
+            'traffic_light_violation', 
+            'following_distance'
+        ];
+        
         $rules = [];
-        foreach ($metrics as $metric) {
-            foreach ($levels as $level) {
+        
+        // Performance metrics validation rules
+        foreach ($performanceMetrics as $metric) {
+            foreach ($performanceLevels as $level) {
                 $rules["{$metric}_{$level}"] = ['required', 'numeric'];
                 $rules["{$metric}_{$level}_operator"] = ['required', 'in:less,less_or_equal,equal,more_or_equal,more'];
             }
         }
+        
+        // Safety metrics validation rules
+        foreach ($safetyMetrics as $metric) {
+            foreach ($safetyLevels as $level) {
+                $rules["{$metric}_{$level}"] = ['required', 'numeric'];
+                $rules["{$metric}_{$level}_operator"] = ['required', 'in:less,less_or_equal,equal,more_or_equal,more'];
+            }
+        }
+        
         $rules['safety_bonus_eligible_levels'] = ['nullable', 'array'];
         $rules['safety_bonus_eligible_levels.*'] = ['in:fantastic_plus,fantastic,good,fair,poor'];
         return $rules;
     }
-
 }

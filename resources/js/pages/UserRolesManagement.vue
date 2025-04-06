@@ -9,6 +9,7 @@ import { type BreadcrumbItem } from '@/types';
 // Import ShadCN UI components from their correct paths
 import Input from '@/components/ui/input/Input.vue';
 import Button from '@/components/ui/button/Button.vue';
+import { Search } from 'lucide-vue-next';
 
 // Import custom components for lists and forms
 import UserList from '@/components/UserList.vue';
@@ -18,6 +19,11 @@ import TenantList from '@/components/TenantList.vue';
 import TenantForm from '@/components/TenantForm.vue';
 import RoleForm from '@/components/RoleForm.vue';
 import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue';
+
+// Add these imports for enhanced UI components
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { Plus, Users, Shield, Building } from 'lucide-vue-next';
 
 // Define props received from the backend via Inertia
 const props = defineProps({
@@ -177,103 +183,164 @@ const tenantsArray = computed(() => props.tenants.data);
   <!-- Main layout with breadcrumbs passed to the AppLayout component -->
   <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
     
-    <div class="container mx-auto p-6">
-      <!-- Page title -->
-      <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">
-        User and Role Management
-      </h1>
+    <div class="container mx-auto p-6 space-y-8">
+      <!-- Page header with title and description -->
+      <div class="space-y-2">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">
+          User and Role Management
+        </h1>
+        <p class="text-gray-500 dark:text-gray-400">
+          Manage users, roles, and permissions for your application.
+        </p>
+      </div>
 
-      <!-- Search bar -->
-      <div class="mb-6">
+      <Separator />
+
+      <!-- Search bar with icon -->
+      <div class="relative max-w-md">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <Search class="h-5 w-5 text-gray-400" />
+        </div>
         <Input
           v-model="search"
           placeholder="Search users..."
-          class="w-full rounded-lg border border-gray-300 dark:border-gray-600 shadow-sm focus:ring-2 focus:ring-blue-500"
+          class="w-full pl-10 rounded-md"
         />
       </div>
 
       <!-- Users Section -->
-      <section class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">Users</h2>
+      <Card>
+        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle class="text-xl font-semibold">
+            <div class="flex items-center space-x-2">
+              <Users class="h-5 w-5" />
+              <span>Users</span>
+            </div>
+          </CardTitle>
           <Button
             @click="openUserModal"
             variant="default"
-            class="bg-blue-600 hover:bg-blue-700 text-white font-medium rounded px-4 py-2 transition"
+            size="sm"
+            class="gap-1"
           >
-            Create New User
+            <Plus class="h-4 w-4" />
+            <span>Add User</span>
           </Button>
-        </div>
-        <UserList :users="filteredUsers" :isSuperAdmin="isSuperAdmin" @edit="editUser" @delete="deleteUser" />
-      </section>
+        </CardHeader>
+        <CardContent>
+          <UserList :users="filteredUsers" :isSuperAdmin="isSuperAdmin" @edit="editUser" @delete="deleteUser" />
+        </CardContent>
+      </Card>
 
       <!-- Roles Section -->
-      <section class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">Roles</h2>
+      <Card>
+        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle class="text-xl font-semibold">
+            <div class="flex items-center space-x-2">
+              <Shield class="h-5 w-5" />
+              <span>Roles</span>
+            </div>
+          </CardTitle>
           <Button
             @click="openRoleModal"
             variant="default"
-            class="bg-green-600 hover:bg-green-700 text-white font-medium rounded px-4 py-2 transition"
+            size="sm"
+            class="gap-1"
           >
-            Create New Role
+            <Plus class="h-4 w-4" />
+            <span>Add Role</span>
           </Button>
-        </div>
-        <RoleList :roles="roles" @edit="editRole" @delete="deleteRole" />
-      </section>
+        </CardHeader>
+        <CardContent>
+          <RoleList :roles="roles" @edit="editRole" @delete="deleteRole" />
+        </CardContent>
+      </Card>
 
       <!-- Tenants Section (only visible for SuperAdmin) -->
-      <section v-if="isSuperAdmin" class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">Tenants</h2>
+      <Card v-if="isSuperAdmin">
+        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle class="text-xl font-semibold">
+            <div class="flex items-center space-x-2">
+              <Building class="h-5 w-5" />
+              <span>Companies</span>
+            </div>
+          </CardTitle>
           <Button
             @click="openTenantModal"
             variant="default"
-            class="bg-purple-700 hover:bg-purple-800 text-white font-medium rounded px-4 py-2 transition"
+            size="sm"
+            class="gap-1"
           >
-            Create New Company
+            <Plus class="h-4 w-4" />
+            <span>Add Company</span>
           </Button>
-        </div>
-        <TenantList :tenants="tenants" @edit="editTenant" @delete="deleteTenant" />
-      </section>
+        </CardHeader>
+        <CardContent>
+          <TenantList :tenants="tenants" @edit="editTenant" @delete="deleteTenant" />
+        </CardContent>
+      </Card>
 
       <!-- Modals for creating/editing users, roles, and tenants -->
-      <UserForm
-        v-if="showUserModal"
-        :user="selectedUser"
-        :roles="rolesArray"
-        :permissions="permissions"
-        :tenants="tenantsArray"
-        :isSuperAdmin="isSuperAdmin"
-        :tenantSlug="tenantSlug"
-        @close="closeUserModal"
-        @saved="refreshData"
-      />
-      <TenantForm
-        v-if="showTenantModal"
-        :tenants="tenants"
-        :tenant="selectedTenant"
-        @close="closeTenantModal"
-        @saved="refreshData"
-      />
-      <RoleForm
-        v-if="showRoleModal"
-        :role="selectedRole"
-        :permissions="permissions"
-        :isSuperAdmin="isSuperAdmin"
-        :tenantSlug="tenantSlug"
-        @close="closeRoleModal"
-        @saved="refreshData"
-      />
+      <Transition name="fade">
+        <UserForm
+          v-if="showUserModal"
+          :user="selectedUser"
+          :roles="rolesArray"
+          :permissions="permissions"
+          :tenants="tenantsArray"
+          :isSuperAdmin="isSuperAdmin"
+          :tenantSlug="tenantSlug"
+          @close="closeUserModal"
+          @saved="refreshData"
+        />
+      </Transition>
+      
+      <Transition name="fade">
+        <TenantForm
+          v-if="showTenantModal"
+          :tenants="tenants"
+          :tenant="selectedTenant"
+          @close="closeTenantModal"
+          @saved="refreshData"
+        />
+      </Transition>
+      
+      <Transition name="fade">
+        <RoleForm
+          v-if="showRoleModal"
+          :role="selectedRole"
+          :permissions="permissions"
+          :isSuperAdmin="isSuperAdmin"
+          :tenantSlug="tenantSlug"
+          @close="closeRoleModal"
+          @saved="refreshData"
+        />
+      </Transition>
+      
       <!-- Confirmation modal for deletion -->
-      <ConfirmDeleteModal
-        v-if="showConfirmDelete"
-        :deleteUrl="deleteUrl"
-        :message="deleteMessage"
-        :tenantSlug="tenantSlug"
-        @cancel="showConfirmDelete = false"
-        @confirmed="onDeleteConfirmed"
-      />
+      <Transition name="fade">
+        <ConfirmDeleteModal
+          v-if="showConfirmDelete"
+          :deleteUrl="deleteUrl"
+          :message="deleteMessage"
+          :tenantSlug="tenantSlug"
+          @cancel="showConfirmDelete = false"
+          @confirmed="onDeleteConfirmed"
+        />
+      </Transition>
     </div>
   </AppLayout>
 </template>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: scale(0.98);
+}
+</style>

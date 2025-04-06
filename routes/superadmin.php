@@ -37,8 +37,8 @@ Route::middleware(['auth', 'superAdmin'])->group(function () {
     Route::get('/impersonate/{id}', [ImpersonationController::class, 'impersonate'])->name('impersonate.start');
 
     // Performance metric rules
-    Route::get('/performancemetrics', [PerformanceMetricRuleController::class, 'editGlobal'])->name('performance-metrics.edit');
-    Route::post('/performancemetrics', [PerformanceMetricRuleController::class, 'updateGlobal'])->name('performance-metrics.update');
+    Route::get('/metrics', [PerformanceMetricRuleController::class, 'editGlobal'])->name('performance-metrics.edit');
+    Route::post('/metrics', [PerformanceMetricRuleController::class, 'updateGlobal'])->name('performance-metrics.update');
 
     // Admin performance routes
     Route::get('/performance', [PerformanceController::class, 'index'])->name('performance.index.admin');

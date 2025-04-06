@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
  * Properties:
  * - Each metric (acceptance, on_time, maintenance_variance, etc.) has multiple thresholds
  *   and operators for different rating levels (fantastic_plus, fantastic, good, fair, poor).
+ * - Safety metrics (driver_distraction, speeding_violation, etc.) have gold, silver, and not_eligible tiers.
  * - safety_bonus_eligible_levels: JSON field storing eligible rating levels for bonus.
  */
 class PerformanceMetricRule extends Model
@@ -96,5 +97,45 @@ class PerformanceMetricRule extends Model
         'vcr_preventable_fair_operator',
         'vcr_preventable_poor',
         'vcr_preventable_poor_operator',
+        
+        // Driver Distraction
+        'driver_distraction_gold',
+        'driver_distraction_gold_operator',
+        'driver_distraction_silver',
+        'driver_distraction_silver_operator',
+        'driver_distraction_not_eligible',
+        'driver_distraction_not_eligible_operator',
+        
+        // Speeding Violation
+        'speeding_violation_gold',
+        'speeding_violation_gold_operator',
+        'speeding_violation_silver',
+        'speeding_violation_silver_operator',
+        'speeding_violation_not_eligible',
+        'speeding_violation_not_eligible_operator',
+        
+        // Sign Violation
+        'sign_violation_gold',
+        'sign_violation_gold_operator',
+        'sign_violation_silver',
+        'sign_violation_silver_operator',
+        'sign_violation_not_eligible',
+        'sign_violation_not_eligible_operator',
+        
+        // Traffic Light Violation
+        'traffic_light_violation_gold',
+        'traffic_light_violation_gold_operator',
+        'traffic_light_violation_silver',
+        'traffic_light_violation_silver_operator',
+        'traffic_light_violation_not_eligible',
+        'traffic_light_violation_not_eligible_operator',
+        
+        // Following Distance
+        'following_distance_gold',
+        'following_distance_gold_operator',
+        'following_distance_silver',
+        'following_distance_silver_operator',
+        'following_distance_not_eligible',
+        'following_distance_not_eligible_operator',
     ];
 }
