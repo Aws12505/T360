@@ -74,6 +74,11 @@ const mainNavItems: NavItem[] = [
         title: 'Repair Orders',
         href: tenantSlug? route('repair_orders.index', { tenantSlug }) : route('repair_orders.index.admin'),
         icon: ClipboardList,
+    },
+    {
+        title: 'Miles Driven',
+        href: tenantSlug? route('miles_driven.index', { tenantSlug }) : route('miles_driven.index.admin'),
+        icon: ClipboardList,
     }
 ];
 

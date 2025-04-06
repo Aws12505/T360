@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Support\Facades\Auth;
 
 class PasswordController extends Controller
 {
@@ -18,9 +19,13 @@ class PasswordController extends Controller
      */
     public function edit(Request $request): Response
     {
+        $isSuperAdmin = is_null(Auth::user()->tenant_id);
+        $tenantSlug = $isSuperAdmin ? null : Auth::user()->tenant->slug;
         return Inertia::render('settings/Password', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
+            'tenantSlug' => $tenantSlug,
+            'isSuperAdmin' => $isSuperAdmin,
         ]);
     }
 

@@ -11,7 +11,7 @@ use App\Http\Controllers\Web\Performance\PerformanceMetricRuleController;
 use App\Http\Controllers\Web\Truck\TruckController;
 use App\Http\Controllers\Web\Driver\DriverController;
 use App\Http\Controllers\Web\RepairOrder\RepairOrderController;
-
+use App\Http\Controllers\MilesDrivenController;
 Route::middleware(['auth', 'superAdmin'])->group(function () {
     Route::get('/dashboard', function () {
         return Inertia::render('Dashboard');
@@ -106,4 +106,11 @@ Route::delete('/vendors/{id}', [RepairOrderController::class, 'destroyVendor'])-
     // Admin delay codes routes
     Route::post('/delay-codes', [DelaysController::class, 'storeCode'])->name('delay_codes.store.admin');
     Route::delete('/delay-codes/{delay_code}', [DelaysController::class, 'destroyCode'])->name('delay_codes.destroy.admin');
+
+    // Miles Driven routes
+Route::get('/miles-driven', [MilesDrivenController::class, 'index'])->name('miles_driven.index.admin');
+Route::post('/miles-driven', [MilesDrivenController::class, 'store'])->name('miles_driven.store.admin');
+Route::put('/miles-driven/{milesDriven}', [MilesDrivenController::class, 'updateAdmin'])->name('miles_driven.update.admin');
+Route::delete('/miles-driven/{milesDriven}', [MilesDrivenController::class, 'destroyAdmin'])->name('miles_driven.destroy.admin');
+    
 });

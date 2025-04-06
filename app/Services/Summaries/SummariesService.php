@@ -12,17 +12,20 @@ class SummariesService
     protected SafetyDataService $safetyDataService;
     protected DelayBreakdownService $delayBreakdownService;
     protected RejectionBreakdownService $rejectionBreakdownService;
+    protected MaintenanceBreakdownService $maintenanceBreakdownService;
 
     public function __construct(
         PerformanceDataService $performanceDataService,
         SafetyDataService $safetyDataService,
         DelayBreakdownService $delayBreakdownService,
-        RejectionBreakdownService $rejectionBreakdownService
+        RejectionBreakdownService $rejectionBreakdownService,
+        MaintenanceBreakdownService $maintenanceBreakdownService
     ) {
         $this->performanceDataService    = $performanceDataService;
         $this->safetyDataService         = $safetyDataService;
         $this->delayBreakdownService     = $delayBreakdownService;
         $this->rejectionBreakdownService = $rejectionBreakdownService;
+        $this->maintenanceBreakdownService = $maintenanceBreakdownService;
     }
 
     public function compileSummaries(): array
@@ -121,6 +124,24 @@ class SummariesService
                     $rollingEnd->copy()->endOfDay()
                 ),
                 'quarterly'       => $this->rejectionBreakdownService->getRejectionBreakdown(
+                    $today->copy()->subMonths(3)->startOfDay(),
+                    $today->copy()->endOfDay()
+                ),
+            ],
+            'maintenanceBreakdowns' => [
+                'yesterday'       => $this->maintenanceBreakdownService->getMaintenanceBreakdown(
+                    Carbon::yesterday()->startOfDay(),
+                    Carbon::yesterday()->endOfDay()
+                ),
+                'current_week'    => $this->maintenanceBreakdownService->getMaintenanceBreakdown(
+                    $currentWeekStart->copy()->startOfDay(),
+                    $currentWeekEnd->copy()->endOfDay()
+                ),
+                'rolling_6_weeks' => $this->maintenanceBreakdownService->getMaintenanceBreakdown(
+                    $rollingStart->copy()->startOfDay(),
+                    $rollingEnd->copy()->endOfDay()
+                ),
+                'quarterly'       => $this->maintenanceBreakdownService->getMaintenanceBreakdown(
                     $today->copy()->subMonths(3)->startOfDay(),
                     $today->copy()->endOfDay()
                 ),

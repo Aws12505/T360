@@ -10,6 +10,7 @@ use App\Http\Controllers\Web\Performance\PerformanceController;
 use App\Http\Controllers\Web\UserManagement\ImpersonationController;
 use App\Http\Controllers\Web\Driver\DriverController;
 use App\Http\Controllers\Web\RepairOrder\RepairOrderController;
+use App\Http\Controllers\MilesDrivenController;
 
 Route::middleware(['auth', 'tenant'])->group(function () {
     Route::prefix('{tenantSlug}')->group(function () {
@@ -80,5 +81,14 @@ Route::get('/drivers/export', [DriverController::class, 'export'])->name('driver
         Route::post('/acceptance', [RejectionsController::class, 'store'])->name('acceptance.store');
         Route::put('/acceptance/{rejection}', [RejectionsController::class, 'update'])->name('acceptance.update');
         Route::delete('/acceptance/{rejection}', [RejectionsController::class, 'destroy'])->name('acceptance.destroy');
+    
+    
+// Miles Driven routes
+Route::get('/miles-driven', [MilesDrivenController::class, 'index'])->name('miles_driven.index');
+Route::post('/miles-driven', [MilesDrivenController::class, 'store'])->name('miles_driven.store');
+Route::put('/miles-driven/{milesDriven}', [MilesDrivenController::class, 'update'])->name('miles_driven.update');
+Route::delete('/miles-driven/{milesDriven}', [MilesDrivenController::class, 'destroy'])->name('miles_driven.destroy');
+    
     });
 });
+

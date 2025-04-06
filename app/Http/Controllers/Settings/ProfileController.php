@@ -18,9 +18,13 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
+        $isSuperAdmin = is_null(Auth::user()->tenant_id);
+        $tenantSlug = $isSuperAdmin ? null : Auth::user()->tenant->slug;
         return Inertia::render('settings/Profile', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
+            'tenantSlug' => $tenantSlug,
+            'isSuperAdmin' => $isSuperAdmin,
         ]);
     }
 
