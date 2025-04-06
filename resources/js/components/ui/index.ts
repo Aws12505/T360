@@ -30,3 +30,9 @@ export { default as AlertDescription } from './alert/AlertDescription.vue';
 
 // Export select components
 export * from './select';
+
+import { Badge } from './badge';
+
+export {
+  Badge,
+};

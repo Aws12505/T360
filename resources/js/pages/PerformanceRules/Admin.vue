@@ -3,6 +3,12 @@ import { ref, computed } from 'vue'
 import AppLayout from '@/layouts/AppLayout.vue'
 import EntryForm from './Form.vue'  // Global metrics form component
 import { Head } from '@inertiajs/vue3';
+import { 
+  Card, CardHeader, CardTitle, CardContent,
+  Table, TableHeader, TableBody, TableHead, TableRow, TableCell,
+  Button,
+  Badge
+} from '@/components/ui';
 
 /**
  * Props passed from the backend via Inertia.
@@ -69,15 +75,19 @@ function closeEditor() {
 <template>
   <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
     <Head title="Metrics Management"/>
-    <div class="max-w-6xl mx-auto p-6 space-y-8">
+    <div class="container mx-auto p-6 space-y-8">
       <!-- Header with title and Edit button -->
-      <div class="flex flex-col sm:flex-row justify-between items-center">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+      <div class="flex flex-col sm:flex-row justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-foreground">
           Performance Metrics
         </h1>
-        <button @click="openEditor" class="mt-4 sm:mt-0 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-md transition">
+        <Button 
+          @click="openEditor" 
+          variant="default" 
+          class="mt-4 sm:mt-0"
+        >
           Edit Global Metrics
-        </button>
+        </Button>
       </div>
 
       <!-- Show the metrics form modal if editing -->
@@ -87,45 +97,60 @@ function closeEditor() {
 
       <!-- Display metrics as cards when not editing -->
       <div v-else-if="props.metrics" class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div v-for="metric in metricsList" :key="metric" class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-          <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 capitalize">
-            {{ metric.replace(/_/g, ' ') }}
-          </h2>
-          <div class="overflow-x-auto">
-            <table class="w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead class="bg-gray-50 dark:bg-gray-700">
-                <tr>
-                  <th class="px-4 py-2 text-left text-sm font-medium text-gray-500 uppercase">Level</th>
-                  <th class="px-4 py-2 text-left text-sm font-medium text-gray-500 uppercase">Value</th>
-                  <th class="px-4 py-2 text-left text-sm font-medium text-gray-500 uppercase">Operator</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                <tr v-for="(item, idx) in displayMetrics[metric]" :key="idx" class="hover:bg-gray-100 dark:hover:bg-gray-700">
-                  <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">{{ item.level }}</td>
-                  <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">{{ item.value }}</td>
-                  <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">{{ item.operator }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <Card v-for="metric in metricsList" :key="metric">
+          <CardHeader>
+            <CardTitle class="capitalize">
+              {{ metric.replace(/_/g, ' ') }}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div class="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Level</TableHead>
+                    <TableHead>Value</TableHead>
+                    <TableHead>Operator</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow 
+                    v-for="(item, idx) in displayMetrics[metric]" 
+                    :key="idx"
+                  >
+                    <TableCell>{{ item.level }}</TableCell>
+                    <TableCell>{{ item.value }}</TableCell>
+                    <TableCell>{{ item.operator }}</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
 
         <!-- Safety Bonus Eligibility Card -->
-        <div v-if="displayMetrics.safety_bonus_eligible_levels.length" class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 col-span-1 md:col-span-2">
-          <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">
-            Safety Bonus Eligibility
-          </h2>
-          <div class="flex flex-wrap gap-4">
-            <span
-              v-for="(level, index) in displayMetrics.safety_bonus_eligible_levels"
-              :key="index"
-              class="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 px-3 py-1 rounded-full text-sm"
-            >
-              {{ level.replace(/_/g, ' ') }}
-            </span>
-          </div>
-        </div>
+        <Card 
+          v-if="displayMetrics.safety_bonus_eligible_levels.length" 
+          class="col-span-1 md:col-span-2"
+        >
+          <CardHeader>
+            <CardTitle>
+              Safety Bonus Eligibility
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div class="flex flex-wrap gap-2">
+              <Badge 
+                v-for="(level, index) in displayMetrics.safety_bonus_eligible_levels"
+                :key="index"
+                variant="success"
+                class="capitalize"
+              >
+                {{ level.replace(/_/g, ' ') }}
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   </AppLayout>
