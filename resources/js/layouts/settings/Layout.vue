@@ -5,6 +5,13 @@ import { Separator } from '@/components/ui/separator';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 
+const page = usePage();
+const tenantSlug = page.props.tenantSlug as string | null;
+const isSuperAdmin = page.props.SuperAdmin as boolean;
+
+// Only show tenant settings if user has a tenant and is not a SuperAdmin
+const showTenantSettings = tenantSlug && !isSuperAdmin;
+
 const sidebarNavItems: NavItem[] = [
     {
         title: 'Profile',
@@ -18,9 +25,12 @@ const sidebarNavItems: NavItem[] = [
         title: 'Appearance',
         href: '/settings/appearance',
     },
+    // Add tenant settings only for tenant users (not SuperAdmin)
+    ...(showTenantSettings ? [{
+        title: 'Company Settings',
+        href: `/${tenantSlug}/settings/tenant`,
+    }] : []),
 ];
-
-const page = usePage();
 
 const currentPath = page.props.ziggy?.location ? new URL(page.props.ziggy.location).pathname : '';
 </script>

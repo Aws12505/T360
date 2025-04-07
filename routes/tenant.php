@@ -11,10 +11,15 @@ use App\Http\Controllers\Web\UserManagement\ImpersonationController;
 use App\Http\Controllers\Web\Driver\DriverController;
 use App\Http\Controllers\Web\RepairOrder\RepairOrderController;
 use App\Http\Controllers\MilesDrivenController;
+use App\Http\Controllers\Web\Settings\TenantSettingsController;
 
 Route::middleware(['auth', 'tenant'])->group(function () {
     Route::prefix('{tenantSlug}')->group(function () {
         Route::get('dashboard',  [SummariesController::class, 'getSummaries'])->name('dashboard');
+
+        // Tenant Settings routes
+        Route::get('/settings/tenant', [TenantSettingsController::class, 'edit'])->name('tenant.settings.edit');
+        Route::post('/settings/tenant', [TenantSettingsController::class, 'update'])->name('tenant.settings.update');
 
         Route::get('/users-roles', [UserController::class, 'index'])->name('users.roles.index');
 

@@ -3,6 +3,7 @@
 namespace App\Http\Requests\UserManagement;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Models\Tenant;
 
 /**
  * Class UpdateTenantRequest
@@ -23,10 +24,27 @@ class UpdateTenantRequest extends FormRequest
 
     public function rules()
     {
-        $tenantId = $this->route('tenant'); // Assumes route parameter is named 'tenant'
+        // Get the tenant by slug from the route parameter
+        $tenantSlug = $this->route('tenantSlug');
+        $tenant = Tenant::where('slug', $tenantSlug)->first();
+        $tenantId = $tenant ? $tenant->id : null;
+
         return [
             'name' => 'required|string|max:255|unique:tenants,name,' . $tenantId,
-            'slug' => 'required|string|max:255|unique:tenants,slug,' . $tenantId,
+            'slug' => 'required|string|max:255|alpha_dash|unique:tenants,slug,' . $tenantId,
+            'image' => 'nullable|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ];
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     *
+     * @return array
+     */
+    public function messages()
+    {
+        return [
+            'slug.alpha_dash' => 'The slug may only contain letters, numbers, dashes, and underscores.',
         ];
     }
 }
