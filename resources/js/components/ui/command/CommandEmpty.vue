@@ -8,14 +8,11 @@ const props = defineProps<{
 </script>
 
 <template>
-  <tr
-    :class="
-      cn(
-        'border-b border-border/30 transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted',
-        props.class
-      )
-    "
+  <div
+    cmdk-empty=""
+    :class="cn('py-6 text-center text-sm', props.class)"
+    role="presentation"
   >
     <slot />
-  </tr>
+  </div>
 </template>

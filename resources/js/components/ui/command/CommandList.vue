@@ -8,14 +8,11 @@ const props = defineProps<{
 </script>
 
 <template>
-  <tr
-    :class="
-      cn(
-        'border-b border-border/30 transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted',
-        props.class
-      )
-    "
+  <div
+    cmdk-list=""
+    :class="cn('max-h-[300px] overflow-y-auto overflow-x-hidden', props.class)"
+    role="listbox"
   >
     <slot />
-  </tr>
+  </div>
 </template>

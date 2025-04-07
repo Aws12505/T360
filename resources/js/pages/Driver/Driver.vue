@@ -85,72 +85,32 @@
       <!-- Data Table -->
       <Card>
         <CardContent class="p-0">
-          <div class="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead v-if="SuperAdmin">Company Name</TableHead>
-                  <TableHead 
-                    v-for="col in tableColumns" 
-                    :key="col" 
-                    class="cursor-pointer"
-                    @click="sortBy(col)"
-                  >
-                    <div class="flex items-center">
-                      {{ col.replace(/_/g, ' ') }}
-                      <div v-if="sortColumn === col" class="ml-2">
-                        <svg v-if="sortDirection === 'asc'" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                          <path d="M8 15l4-4 4 4" />
-                        </svg>
-                        <svg v-else class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                          <path d="M16 9l-4 4-4-4" />
-                        </svg>
-                      </div>
-                      <div v-else class="ml-2 opacity-50">
-                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                          <path d="M8 10l4-4 4 4" />
-                          <path d="M16 14l-4 4-4-4" />
-                        </svg>
-                      </div>
-                    </div>
-                  </TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow v-if="filteredEntries.length === 0">
-                  <TableCell :colspan="SuperAdmin ? tableColumns.length + 2 : tableColumns.length + 1" class="text-center py-8">
-                    No drivers found matching your criteria
-                  </TableCell>
-                </TableRow>
-                <TableRow v-for="item in filteredEntries" :key="item.id" class="hover:bg-muted/50">
-                  <TableCell v-if="SuperAdmin">
-                    {{ item.tenant?.name ?? '—' }}
-                  </TableCell>
-                  <TableCell v-for="col in tableColumns" :key="col" class="whitespace-nowrap">
-                    <template v-if="col === 'hiring_date'">
-                      {{ formatDate(item[col]) }}
-                    </template>
-                    <template v-else>
-                      {{ item[col] }}
-                    </template>
-                  </TableCell>
-                  <TableCell>
-                    <div class="flex space-x-2">
-                      <Button @click="openEditModal(item)" variant="warning" size="sm">
-                        <Icon name="pencil" class="mr-1 h-4 w-4" />
-                        Edit
-                      </Button>
-                      <Button @click="deleteEntry(item.id)" variant="destructive" size="sm">
-                        <Icon name="trash" class="mr-1 h-4 w-4" />
-                        Delete
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </div>
+          <DataTable 
+            :columns="columns" 
+            :data="filteredEntries"
+            :options="{
+              enableSorting: true,
+              manualSorting: true,
+              enableColumnFilters: true,
+            }"
+          >
+            <template #tableViewOptions="{ table }">
+              <DataTableViewOptions :table="table" />
+            </template>
+            
+            <template #cell-actions="{ cell }">
+              <div class="flex space-x-2">
+                <Button @click="cell.edit()" variant="warning" size="sm">
+                  <Icon name="pencil" class="mr-1 h-4 w-4" />
+                  Edit
+                </Button>
+                <Button @click="cell.delete()" variant="destructive" size="sm">
+                  <Icon name="trash" class="mr-1 h-4 w-4" />
+                  Delete
+                </Button>
+              </div>
+            </template>
+          </DataTable>
           
           <div class="bg-muted/20 px-4 py-3 border-t" v-if="entries.links">
             <div class="flex justify-between items-center">
@@ -279,11 +239,17 @@ import Icon from '@/components/Icon.vue';
 import { 
   Button,
   Card, CardHeader, CardTitle, CardContent,
-  Table, TableHeader, TableBody, TableHead, TableRow, TableCell,
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
   Label, Input,
   Alert, AlertTitle, AlertDescription
 } from '@/components/ui';
+
+// Import data table components
+import { 
+  DataTable, 
+  DataTableColumnHeader,
+  DataTableViewOptions 
+} from '@/components/ui/data-table';
 
 // Import or create Select components
 import { 
@@ -332,6 +298,66 @@ const breadcrumbs = [
     href: '#',
   }
 ];
+
+// Define columns for the data table
+const columns = computed(() => {
+  const baseColumns = [
+    {
+      accessorKey: 'first_name',
+      header: 'First Name',
+      cell: (info) => info.getValue(),
+      enableSorting: true,
+    },
+    {
+      accessorKey: 'last_name',
+      header: 'Last Name',
+      cell: (info) => info.getValue(),
+      enableSorting: true,
+    },
+    {
+      accessorKey: 'email',
+      header: 'Email',
+      cell: (info) => info.getValue(),
+      enableSorting: true,
+    },
+    {
+      accessorKey: 'mobile_phone',
+      header: 'Mobile Phone',
+      cell: (info) => info.getValue(),
+      enableSorting: true,
+    },
+    {
+      accessorKey: 'hiring_date',
+      header: 'Hiring Date',
+      cell: (info) => formatDate(info.getValue()),
+      enableSorting: true,
+    },
+    {
+      id: 'actions',
+      header: 'Actions',
+      cell: (info) => {
+        return {
+          driver: info.row.original,
+          edit: () => openEditModal(info.row.original),
+          delete: () => deleteEntry(info.row.original.id)
+        };
+      },
+      enableSorting: false,
+    },
+  ];
+
+  // Add company name column for SuperAdmin
+  if (props.SuperAdmin) {
+    baseColumns.unshift({
+      accessorKey: 'tenant.name',
+      header: 'Company Name',
+      cell: (info) => info.row.original.tenant?.name ?? '—',
+      enableSorting: true,
+    });
+  }
+
+  return baseColumns;
+});
 
 const tableColumns = [
   'first_name',
