@@ -242,6 +242,23 @@
                   </div>
                 </div>
               </div>
+              
+              <!-- Work Orders by Truck Section -->
+              <div v-if="maintenanceBreakdowns[selectedRange].work_orders_by_truck && maintenanceBreakdowns[selectedRange].work_orders_by_truck.length > 0" 
+                class="p-3 border rounded-md">
+                <h3 class="text-sm font-semibold mb-3">Work Orders by Truck</h3>
+                <div class="space-y-3">
+                  <div v-for="truck in maintenanceBreakdowns[selectedRange].work_orders_by_truck" :key="truck.truckid" 
+                    class="flex justify-between items-center text-sm">
+                    <div class="text-xs text-muted-foreground">Truck #{{ truck.truckid }}</div>
+                    <Badge variant="outline">{{ truck.work_order_count }}</Badge>
+                  </div>
+                  <div v-if="maintenanceBreakdowns[selectedRange].work_orders_by_truck.length === 0" 
+                    class="text-xs text-muted-foreground text-center py-2">
+                    No work orders recorded for this period
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

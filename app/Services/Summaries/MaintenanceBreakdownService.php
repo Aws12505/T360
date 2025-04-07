@@ -84,6 +84,22 @@ class MaintenanceBreakdownService
             ->orderBy('count', 'desc')
             ->get();
         
+        // Get work orders by truck
+        $workOrdersByTruckQuery = DB::table('repair_orders')
+            ->select('trucks.truckid', DB::raw('COUNT(repair_orders.id) as work_order_count'))
+            ->join('trucks', 'repair_orders.truck_id', '=', 'trucks.id')
+            ->whereNotNull('repair_orders.wo_number')
+            ->where('repair_orders.wo_status', '!=', 'Canceled')
+            ->whereBetween('repair_orders.ro_open_date', [$startDate, $endDate])
+            ->groupBy('trucks.truckid')
+            ->orderBy('work_order_count', 'desc');
+            
+        if (Auth::check() && Auth::user()->tenant_id !== null) {
+            $workOrdersByTruckQuery->where('repair_orders.tenant_id', Auth::user()->tenant_id);
+        }
+        
+        $workOrdersByTruck = $workOrdersByTruckQuery->get();
+        
         // Calculate CPM (Cost Per Mile) metrics
         $cpm = $totalMiles > 0 ? $totalInvoiceAmount / $totalMiles : 0;
         $qsCpm = $totalMiles > 0 ? $qsInvoiceAmount / $totalMiles : 0;
@@ -97,7 +113,8 @@ class MaintenanceBreakdownService
             'cpm' => $cpm,
             'qs_cpm' => $qsCpm,
             'qs_MVtS' => $qsMVtS,
-            'areas_of_concern' => $areasOfConcern
+            'areas_of_concern' => $areasOfConcern,
+            'work_orders_by_truck' => $workOrdersByTruck
         ];
     }
 }

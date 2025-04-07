@@ -212,7 +212,14 @@ class UserController extends Controller
      */
     public function updateTenant(UpdateTenantRequest $request, $id)
     {
-        $this->tenantService->updateTenant($id, $request->validated());
+        $validatedData = $request->validated();
+        
+        // Handle file upload separately since it's not part of the validated array
+        if ($request->hasFile('image')) {
+            $validatedData['image'] = $request->file('image');
+        }
+        
+        $this->tenantService->updateTenant($id, $validatedData);
         return back()->with('success', 'Tenant updated successfully.');
     }
 
