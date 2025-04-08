@@ -1,48 +1,57 @@
 <template>
   <!-- Modal overlay -->
-  <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+  <div class="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50 p-4">
     <!-- Modal container -->
-    <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md overflow-y-auto">
-      <h2 class="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">
-        {{ tenant ? 'Edit Company' : 'Create Company' }}
-      </h2>
+    <div class="bg-background p-6 rounded-lg shadow-xl w-full max-w-md overflow-y-auto max-h-[90vh] animate-in fade-in zoom-in-95 duration-200 border border-border">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-2xl font-bold text-foreground">
+          {{ tenant ? 'Edit Company' : 'Create Company' }}
+        </h2>
+        <Button variant="ghost" size="icon" @click="() => emit('close')">
+          <X class="h-5 w-5" />
+        </Button>
+      </div>
+      
       <form @submit.prevent="submit" class="space-y-4">
         <!-- Name Field -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Company Name
-          </label>
+        <div class="space-y-2">
+          <Label for="name">Company Name</Label>
           <Input
+            id="name"
             v-model="form.name"
             placeholder="Enter company name"
-            class="w-full rounded-md border border-gray-300 dark:border-gray-600 shadow-sm focus:ring-blue-500"
+            class="w-full"
           />
+          <InputError :message="form.errors.name" />
         </div>
+        
         <!-- Slug Field (only for editing) -->
-        <div v-if="tenant">
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Slug
-          </label>
+        <div v-if="tenant" class="space-y-2">
+          <Label for="slug">Slug</Label>
           <Input
+            id="slug"
             v-model="form.slug"
             placeholder="Enter company slug"
-            class="w-full rounded-md border border-gray-300 dark:border-gray-600 shadow-sm focus:ring-blue-500"
+            class="w-full"
           />
+          <InputError :message="form.errors.slug" />
         </div>
+        
         <!-- Action Buttons -->
         <div class="flex justify-end space-x-3 pt-4">
           <Button
             type="button"
             @click="() => emit('close')"
-            class="bg-gray-500 hover:bg-gray-600 text-white rounded px-4 py-2"
+            variant="outline"
           >
             Cancel
           </Button>
           <Button
             type="submit"
-            class="bg-blue-600 hover:bg-blue-700 text-white rounded px-4 py-2"
+            :disabled="form.processing"
           >
-            Save
+            <Loader2 v-if="form.processing" class="mr-2 h-4 w-4 animate-spin" />
+            {{ form.processing ? 'Saving...' : 'Save' }}
           </Button>
         </div>
       </form>
@@ -53,9 +62,12 @@
 <script setup lang="ts">
 import { watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
-// Import UI components from their correct paths
-import Input from '@/components/ui/input/Input.vue';
-import Button from '@/components/ui/button/Button.vue';
+// Import UI components
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import InputError from '@/components/InputError.vue';
+import { X, Loader2 } from 'lucide-vue-next';
 
 const props = defineProps({
   tenant: { type: Object, default: null },

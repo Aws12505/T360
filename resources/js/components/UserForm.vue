@@ -1,171 +1,160 @@
 <template>
   <!-- Modal overlay for user form -->
   <div class="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50 p-4">
-    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md overflow-y-auto max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
+    <div class="bg-background p-6 rounded-lg shadow-xl w-full max-w-md overflow-y-auto max-h-[90vh] animate-in fade-in zoom-in-95 duration-200 border border-border">
       <div class="flex justify-between items-center mb-4">
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+        <h2 class="text-2xl font-bold text-foreground">
           {{ user ? 'Edit User' : 'Create User' }}
         </h2>
-        <button 
-          @click="() => emit('close')" 
-          class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
+        <Button variant="ghost" size="icon" @click="() => emit('close')">
+          <X class="h-5 w-5" />
+        </Button>
       </div>
       
       <form @submit.prevent="submit" class="space-y-4">
         <!-- Name Field -->
         <div class="space-y-2">
-          <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Name
-          </label>
+          <Label for="name">Name</Label>
           <Input
+            id="name"
             v-model="form.name"
             placeholder="Enter name"
             class="w-full"
           />
-          <div v-if="form.errors.name" class="text-sm text-red-500">{{ form.errors.name }}</div>
+          <InputError :message="form.errors.name" />
         </div>
         
         <!-- Email Field -->
         <div class="space-y-2">
-          <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Email
-          </label>
+          <Label for="email">Email</Label>
           <Input
+            id="email"
             v-model="form.email"
             type="email"
             placeholder="Enter email"
             class="w-full"
           />
-          <div v-if="form.errors.email" class="text-sm text-red-500">{{ form.errors.email }}</div>
+          <InputError :message="form.errors.email" />
         </div>
         
         <!-- Password Field (shown only when creating a new user) -->
         <div v-if="!user" class="space-y-2">
-          <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Password
-          </label>
+          <Label for="password">Password</Label>
           <Input
+            id="password"
             v-model="form.password"
             type="password"
             placeholder="Enter password"
             class="w-full"
           />
-          <div v-if="form.errors.password" class="text-sm text-red-500">{{ form.errors.password }}</div>
+          <InputError :message="form.errors.password" />
         </div>
         
         <!-- Tenant Dropdown for SuperAdmin users -->
         <div v-if="isSuperAdmin" class="space-y-2">
-          <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Company Name
-          </label>
-          <select
-            v-model="form.tenant_id"
-            class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary"
-          >
-            <option :value="null">None</option>
-            <option
-              v-for="tenant in tenants"
-              :value="tenant.id"
-              :key="tenant.id"
-            >
-              {{ tenant.name }}
-            </option>
-          </select>
-          <div v-if="form.errors.tenant_id" class="text-sm text-red-500">{{ form.errors.tenant_id }}</div>
+          <Label for="tenant">Company Name</Label>
+          <Select v-model="form.tenant_id">
+            <SelectTrigger>
+              <SelectValue placeholder="Select a company" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem :value="null">None</SelectItem>
+              <SelectItem
+                v-for="tenant in tenants"
+                :value="tenant.id"
+                :key="tenant.id"
+              >
+                {{ tenant.name }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+          <InputError :message="form.errors.tenant_id" />
         </div>
         
         <!-- Roles Assignment Section -->
         <div class="space-y-2">
-          <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Roles
-          </label>
+          <Label>Roles</Label>
           <div class="relative">
-            <Input
-              v-model="roleSearch"
-              placeholder="Search roles..."
-              class="w-full mb-2"
-            />
-            <div v-if="roleSearch" class="absolute right-2 top-1/2 -translate-y-1/2">
-              <button 
+            <div class="flex items-center space-x-2">
+              <Input
+                v-model="roleSearch"
+                placeholder="Search roles..."
+                class="w-full"
+              />
+              <Button 
+                v-if="roleSearch" 
                 type="button" 
+                variant="ghost" 
+                size="icon" 
                 @click="roleSearch = ''" 
-                class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                class="absolute right-2"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+                <X class="h-4 w-4" />
+              </Button>
             </div>
           </div>
-          <div class="border border-gray-300 dark:border-gray-600 rounded-md p-2 max-h-40 overflow-y-auto">
+          <div class="h-40 border rounded-md p-2 overflow-y-auto">
             <div
               v-for="role in filteredRoles"
               :key="role.id"
-              class="flex items-center py-1 px-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded transition-colors"
+              class="flex items-center py-1 px-2 hover:bg-muted/50 rounded transition-colors"
             >
-              <input
-                type="checkbox"
+              <Checkbox
+                :id="`role-${role.id}`"
                 :value="role.id"
-                v-model="form.roles"
-                class="mr-2 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                v-model:checked="form.roles"
+                class="mr-2"
               />
-              <span class="text-gray-700 dark:text-gray-300">{{ role.name }}</span>
+              <Label :for="`role-${role.id}`" class="cursor-pointer">{{ role.name }}</Label>
             </div>
           </div>
-          <div v-if="form.errors.roles" class="text-sm text-red-500">{{ form.errors.roles }}</div>
+          <InputError :message="form.errors.roles" />
         </div>
         
         <!-- Permissions Assignment Section -->
         <div class="space-y-2">
-          <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Permissions
-          </label>
+          <Label>Permissions</Label>
           <div class="relative">
-            <Input
-              v-model="permissionSearch"
-              placeholder="Search permissions..."
-              class="w-full mb-2"
-            />
-            <div v-if="permissionSearch" class="absolute right-2 top-1/2 -translate-y-1/2">
-              <button 
+            <div class="flex items-center space-x-2">
+              <Input
+                v-model="permissionSearch"
+                placeholder="Search permissions..."
+                class="w-full"
+              />
+              <Button 
+                v-if="permissionSearch" 
                 type="button" 
+                variant="ghost" 
+                size="icon" 
                 @click="permissionSearch = ''" 
-                class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                class="absolute right-2"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+                <X class="h-4 w-4" />
+              </Button>
             </div>
           </div>
-          <div class="border border-gray-300 dark:border-gray-600 rounded-md p-2 max-h-40 overflow-y-auto">
+          <div class="h-40 border rounded-md p-2 overflow-y-auto">
             <div
               v-for="permission in filteredPermissions"
               :key="permission.id"
-              class="flex items-center py-1 px-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded transition-colors"
+              class="flex items-center py-1 px-2 hover:bg-muted/50 rounded transition-colors"
             >
-              <input
-                type="checkbox"
+              <Checkbox
+                :id="`permission-${permission.name}`"
                 :value="permission.name"
-                v-model="form.user_permissions"
-                class="mr-2 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                v-model:checked="form.user_permissions"
                 :disabled="inheritedPermissions.includes(permission.name)"
-                :checked="inheritedPermissions.includes(permission.name) || form.user_permissions.includes(permission.name)"
+                class="mr-2"
               />
-              <span class="text-gray-700 dark:text-gray-300">
+              <Label :for="`permission-${permission.name}`" class="cursor-pointer">
                 {{ permission.name }}
-                <span v-if="inheritedPermissions.includes(permission.name)" class="text-xs text-gray-500 ml-1">
-                  (inherited)
+                <span v-if="inheritedPermissions.includes(permission.name)" class="ml-2 text-xs px-2 py-0.5 rounded-full border border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+                  inherited
                 </span>
-              </span>
+              </Label>
             </div>
           </div>
-          <div v-if="form.errors.user_permissions" class="text-sm text-red-500">{{ form.errors.user_permissions }}</div>
+          <InputError :message="form.errors.user_permissions" />
         </div>
         
         <!-- Action Buttons -->
@@ -174,15 +163,14 @@
             type="button"
             @click="() => emit('close')"
             variant="outline"
-            class="border-gray-300 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
           >
             Cancel
           </Button>
           <Button
             type="submit"
             :disabled="form.processing"
-            class="bg-primary hover:bg-primary/90 text-white"
           >
+            <Loader2 v-if="form.processing" class="mr-2 h-4 w-4 animate-spin" />
             {{ form.processing ? 'Saving...' : 'Save' }}
           </Button>
         </div>
@@ -194,9 +182,20 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
-// Import UI components from correct paths
-import Input from '@/components/ui/input/Input.vue';
-import Button from '@/components/ui/button/Button.vue';
+// Import UI components
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
+import InputError from '@/components/InputError.vue';
+import { X, Loader2 } from 'lucide-vue-next';
 
 const props = defineProps({
   user: { type: Object, default: null },
@@ -241,16 +240,19 @@ const filteredPermissions = computed(() => {
 
 // Compute inherited permissions from selected roles.
 const inheritedPermissions = computed(() => {
-  let perms: string[] = [];
+  const permissions = new Set();
   props.roles.forEach(role => {
-    if (form.roles.includes(role.id) && role.permissions && Array.isArray(role.permissions)) {
-      perms = perms.concat(role.permissions.map((p: any) => p.name));
+    if (form.roles.includes(role.id) && role.permissions) {
+      role.permissions.forEach(permission => {
+        permissions.add(permission.name);
+      });
     }
   });
-  return Array.from(new Set(perms));
+  
+  return Array.from(permissions);
 });
 
-// Watch for changes in the user prop to update the form accordingly.
+// Watch for changes to the user prop to update the form
 watch(() => props.user, (newVal) => {
   if (newVal) {
     form.name = newVal.name;

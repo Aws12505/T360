@@ -2,6 +2,7 @@
 import { cn } from '@/lib/utils';
 import type { HTMLAttributes } from 'vue';
 
+
 const props = defineProps<{
   class?: HTMLAttributes['class'];
 }>();
@@ -11,7 +12,7 @@ const props = defineProps<{
   <tr
     :class="
       cn(
-        'border-b border-border/30 transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted',
+        'border-b-2 border-border/50 transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted',
         props.class
       )
     "

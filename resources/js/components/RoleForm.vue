@@ -1,78 +1,71 @@
 <template>
   <!-- Modal overlay -->
   <div class="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50 p-4">
-    <!-- Modal container with improved spacing and shadows -->
-    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md overflow-y-auto max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
+    <!-- Modal container -->
+    <div class="bg-background p-6 rounded-lg shadow-xl w-full max-w-md overflow-y-auto max-h-[90vh] animate-in fade-in zoom-in-95 duration-200 border border-border">
       <div class="flex justify-between items-center mb-4">
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+        <h2 class="text-2xl font-bold text-foreground">
           {{ role ? 'Edit Role' : 'Create Role' }}
         </h2>
-        <button 
-          @click="() => emit('close')" 
-          class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
+        <Button variant="ghost" size="icon" @click="() => emit('close')">
+          <X class="h-5 w-5" />
+        </Button>
       </div>
       
       <form @submit.prevent="submit" class="space-y-4">
         <!-- Role Name Field -->
         <div class="space-y-2">
-          <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Role Name
-          </label>
+          <Label for="name">Role Name</Label>
           <Input
+            id="name"
             v-model="form.name"
             placeholder="Enter role name"
             class="w-full"
           />
-          <div v-if="form.errors.name" class="text-sm text-red-500">{{ form.errors.name }}</div>
+          <InputError :message="form.errors.name" />
         </div>
         
         <!-- Permissions Assignment with Search and Scrollable Container -->
         <div class="space-y-2">
-          <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Permissions
-          </label>
+          <Label>Permissions</Label>
           <div class="relative">
-            <Input
-              v-model="permissionSearch"
-              placeholder="Search permissions..."
-              class="w-full mb-2"
-            />
-            <div v-if="permissionSearch" class="absolute right-2 top-1/2 -translate-y-1/2">
-              <button 
+            <div class="flex items-center space-x-2">
+              <Input
+                v-model="permissionSearch"
+                placeholder="Search permissions..."
+                class="w-full"
+              />
+              <Button 
+                v-if="permissionSearch" 
                 type="button" 
+                variant="ghost" 
+                size="icon" 
                 @click="permissionSearch = ''" 
-                class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                class="absolute right-2"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+                <X class="h-4 w-4" />
+              </Button>
             </div>
           </div>
           
-          <div class="border border-gray-300 dark:border-gray-600 rounded-md p-2 max-h-40 overflow-y-auto">
+          <div class="h-40 border rounded-md p-2 overflow-y-auto">
             <div
               v-for="permission in filteredPermissions"
               :key="permission.id"
-              class="flex items-center py-1 px-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded transition-colors"
+              class="flex items-center py-1 px-2 hover:bg-muted/50 rounded transition-colors"
             >
-              <input
-                type="checkbox"
-                :value="permission.name"
-                v-model="form.permissions"
-                class="mr-2 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+              <Checkbox
+                :id="`permission-${permission.name}`"
+                :checked="form.permissions.includes(permission.name)"
+                @update:checked="togglePermission(permission.name)"
+                class="mr-2"
               />
-              <span class="text-gray-700 dark:text-gray-300">
+              <Label :for="`permission-${permission.name}`" class="cursor-pointer">
                 {{ permission.name }}
-              </span>
+              </Label>
             </div>
           </div>
-          <div v-if="form.errors.permissions" class="text-sm text-red-500">{{ form.errors.permissions }}</div>
+          <InputError :message="form.errors.permissions" />
         </div>
         
         <!-- Action Buttons -->
@@ -81,15 +74,14 @@
             type="button"
             @click="() => emit('close')"
             variant="outline"
-            class="border-gray-300 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
           >
             Cancel
           </Button>
           <Button
             type="submit"
             :disabled="form.processing"
-            class="bg-primary hover:bg-primary/90 text-white"
           >
+            <Loader2 v-if="form.processing" class="mr-2 h-4 w-4 animate-spin" />
             {{ form.processing ? 'Saving...' : 'Save' }}
           </Button>
         </div>
@@ -99,13 +91,15 @@
 </template>
 
 <script setup lang="ts">
-// Import Vue composition API functions
 import { watch, ref, computed } from 'vue';
-// Import Inertia form helper
 import { useForm } from '@inertiajs/vue3';
-// Import ShadCN UI components from their correct paths
-import Input from '@/components/ui/input/Input.vue';
-import Button from '@/components/ui/button/Button.vue';
+// Import UI components
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import InputError from '@/components/InputError.vue';
+import { X, Loader2 } from 'lucide-vue-next';
 
 const emit = defineEmits(['saved', 'close']);
 
@@ -145,7 +139,7 @@ watch(() => props.role, (newVal) => {
     form.name = '';
     form.permissions = [];
   }
-});
+}, { immediate: true });
 
 const submit = () => {
   if (props.role) {
@@ -176,6 +170,16 @@ const submit = () => {
         },
       });
     }
+  }
+};
+
+// Add this function to toggle permissions
+const togglePermission = (permissionName: string) => {
+  const index = form.permissions.indexOf(permissionName);
+  if (index === -1) {
+    form.permissions.push(permissionName);
+  } else {
+    form.permissions.splice(index, 1);
   }
 };
 </script>

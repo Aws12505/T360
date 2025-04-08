@@ -121,7 +121,7 @@ function closeEditor() {
 
       <!-- Display metrics as cards when not editing -->
       <div v-else-if="props.metrics" class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <!-- Regular Performance Metrics -->
+        <!-- Regular  -->
         <Card v-for="metric in metricsList" :key="metric">
           <CardHeader>
             <CardTitle class="capitalize">

@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import { useForm } from '@inertiajs/vue3'
 import { computed } from 'vue'
+// Import ShadCN UI components
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Loader2 } from 'lucide-vue-next'
 
 /**
  * Props:
@@ -42,7 +50,6 @@ const operators = [
 ]
 
 // Initialize form with default values using Inertia's useForm helper.
-// The form object includes safety bonus eligibility and for each metric/level, both the value and its operator.
 const form = useForm({
   safety_bonus_eligible_levels: props.entry.safety_bonus_eligible_levels ?? [],
   ...Object.fromEntries(
@@ -64,6 +71,16 @@ const form = useForm({
   ),
 })
 
+// Function to toggle safety bonus eligibility levels
+const toggleSafetyBonusLevel = (level: string) => {
+  const index = form.safety_bonus_eligible_levels.indexOf(level)
+  if (index === -1) {
+    form.safety_bonus_eligible_levels.push(level)
+  } else {
+    form.safety_bonus_eligible_levels.splice(index, 1)
+  }
+}
+
 // Function to submit the form data to the backend.
 const submit = () => {
   form.post(route('performance-metrics.update'), {
@@ -73,98 +90,109 @@ const submit = () => {
 </script>
 
 <template>
-  <!-- Form container with Tailwind classes for spacing, border, rounded corners, shadow, and dark mode support -->
-  <form @submit.prevent="submit" class="space-y-10 border border-gray-200 dark:border-gray-700 p-6 rounded-lg shadow-lg bg-white dark:bg-gray-800">
-    <!-- Loop through each metric -->
-    <div v-for="metric in metrics" :key="metric" class="space-y-4">
-      <h2 class="text-lg font-bold capitalize text-gray-800 dark:text-gray-100">
-        {{ metric.replace(/_/g, ' ') }}
-      </h2>
-      <!-- Create a responsive grid for each level's input -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div v-for="level in levels" :key="`${metric}-${level}`">
-          <!-- Label for the level -->
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 capitalize">
-            {{ level.replace(/_/g, ' ') }}
-          </label>
-          <!-- Input for the metric value -->
-          <input
-            v-model="form[`${metric}_${level}`]"
-            type="number"
-            step="0.01"
-            class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <!-- Select for the operator -->
-          <select
-            v-model="form[`${metric}_${level}_operator`]"
-            class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 mt-1"
-          >
-            <option v-for="op in operators" :key="op.value" :value="op.value">
-              {{ op.label }}
-            </option>
-          </select>
+  <form @submit.prevent="submit" class="space-y-8">
+    <Card v-for="metric in metrics" :key="metric" class="shadow-sm">
+      <CardHeader>
+        <CardTitle class="capitalize">{{ metric.replace(/_/g, ' ') }}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div v-for="level in levels" :key="`${metric}-${level}`" class="space-y-2">
+            <Label :for="`${metric}-${level}`" class="capitalize">
+              {{ level.replace(/_/g, ' ') }}
+            </Label>
+            <Input
+              :id="`${metric}-${level}`"
+              v-model="form[`${metric}_${level}`]"
+              type="number"
+              step="0.01"
+              class="w-full"
+            />
+            <Select v-model="form[`${metric}_${level}_operator`]">
+              <SelectTrigger class="w-full">
+                <SelectValue :placeholder="form[`${metric}_${level}_operator`] ? operators.find(op => op.value === form[`${metric}_${level}_operator`])?.label : 'Select operator'" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="op in operators" :key="op.value" :value="op.value">
+                  {{ op.label }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
 
     <!-- Safety Metrics Section -->
-    <div v-for="metric in safetyMetrics" :key="metric" class="space-y-4">
-      <h2 class="text-lg font-bold capitalize text-gray-800 dark:text-gray-100">
-        {{ metric.replace(/_/g, ' ') }}
-      </h2>
-      <!-- Create a responsive grid for each tier's input -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div v-for="tier in safetyTiers" :key="`${metric}-${tier}`">
-          <!-- Label for the tier -->
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 capitalize">
-            {{ tier.replace(/_/g, ' ') }}
-          </label>
-          <!-- Input for the metric value -->
-          <input
-            v-model="form[`${metric}_${tier}`]"
-            type="number"
-            step="0.01"
-            class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <!-- Select for the operator -->
-          <select
-            v-model="form[`${metric}_${tier}_operator`]"
-            class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 mt-1"
-          >
-            <option v-for="op in operators" :key="op.value" :value="op.value">
-              {{ op.label }}
-            </option>
-          </select>
+    <Card v-for="metric in safetyMetrics" :key="metric" class="shadow-sm">
+      <CardHeader>
+        <CardTitle class="capitalize">{{ metric.replace(/_/g, ' ') }}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div v-for="tier in safetyTiers" :key="`${metric}-${tier}`" class="space-y-2">
+            <Label :for="`${metric}-${tier}`" class="capitalize">
+              {{ tier.replace(/_/g, ' ') }}
+            </Label>
+            <Input
+              :id="`${metric}-${tier}`"
+              v-model="form[`${metric}_${tier}`]"
+              type="number"
+              step="0.01"
+              class="w-full"
+            />
+            <Select v-model="form[`${metric}_${tier}_operator`]">
+              <SelectTrigger class="w-full">
+                <SelectValue :placeholder="form[`${metric}_${tier}_operator`] ? operators.find(op => op.value === form[`${metric}_${tier}_operator`])?.label : 'Select operator'" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="op in operators" :key="op.value" :value="op.value">
+                  {{ op.label }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
 
     <!-- Safety Bonus Eligibility Section -->
-    <div>
-      <h2 class="text-lg font-bold mb-3 text-gray-800 dark:text-gray-100">Safety Bonus Eligibility</h2>
-      <div class="flex gap-4 flex-wrap">
-        <label v-for="level in levels" :key="level" class="flex items-center gap-2">
-          <input
-            type="checkbox"
-            :value="level"
-            v-model="form.safety_bonus_eligible_levels"
-            class="h-4 w-4 text-blue-600 border-gray-300 rounded"
-          />
-          <span class="capitalize text-gray-700 dark:text-gray-300">
-            {{ level.replace(/_/g, ' ') }}
-          </span>
-        </label>
-      </div>
-    </div>
+    <Card class="shadow-sm">
+      <CardHeader>
+        <CardTitle>Safety Bonus Eligibility</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div class="flex flex-wrap gap-4">
+          <div v-for="level in levels" :key="level" class="flex items-center space-x-2">
+            <Checkbox
+              :id="`safety-bonus-${level}`"
+              :checked="form.safety_bonus_eligible_levels.includes(level)"
+              @update:checked="toggleSafetyBonusLevel(level)"
+            />
+            <Label :for="`safety-bonus-${level}`" class="capitalize">
+              {{ level.replace(/_/g, ' ') }}
+            </Label>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
 
     <!-- Action Buttons -->
-    <div class="pt-6 flex gap-4">
-      <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-md transition" :disabled="form.processing">
-        Save
-      </button>
-      <button type="button" @click="emit('cancel')" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold px-4 py-2 rounded-md transition">
+    <div class="flex justify-end space-x-3">
+      <Button
+        type="button"
+        @click="emit('cancel')"
+        variant="outline"
+      >
         Cancel
-      </button>
+      </Button>
+      <Button
+        type="submit"
+        :disabled="form.processing"
+      >
+        <Loader2 v-if="form.processing" class="mr-2 h-4 w-4 animate-spin" />
+        {{ form.processing ? 'Saving...' : 'Save' }}
+      </Button>
     </div>
   </form>
 </template>
