@@ -35,6 +35,8 @@ class SummariesService
         $currentWeekEnd   = $today->copy()->endOfWeek(Carbon::SATURDAY);
         $rollingStart     = $currentWeekStart->copy()->subWeeks(5);
         $rollingEnd       = $currentWeekEnd;
+       // $rollingStart     = Carbon::parse('2025-02-16')->startOfDay();
+        //$rollingEnd       = Carbon::parse('2025-03-29')->endOfDay();
 
         $summaries = [
             'yesterday' => [
@@ -46,7 +48,11 @@ class SummariesService
                 'safety'      => $this->safetyDataService->getSafetyData(
                     Carbon::yesterday()->startOfDay(),
                     Carbon::yesterday()->endOfDay()
-                )
+                ),
+                'date_range'  => [
+                    'start' => Carbon::yesterday()->startOfDay()->format('Y-m-d'),
+                    'end'   => Carbon::yesterday()->endOfDay()->format('Y-m-d')
+                ]
             ],
             'current_week' => [
                 'performance' => $this->performanceDataService->getPerformanceData(
@@ -57,7 +63,11 @@ class SummariesService
                 'safety'      => $this->safetyDataService->getSafetyData(
                     $currentWeekStart->copy()->startOfDay(),
                     $currentWeekEnd->copy()->endOfDay()
-                )
+                ),
+                'date_range'  => [
+                    'start' => $currentWeekStart->copy()->format('Y-m-d'),
+                    'end'   => $currentWeekEnd->copy()->format('Y-m-d')
+                ]
             ],
             'rolling_6_weeks' => [
                 'performance' => $this->performanceDataService->getPerformanceData(
@@ -68,7 +78,11 @@ class SummariesService
                 'safety'      => $this->safetyDataService->getSafetyData(
                     $rollingStart->copy()->startOfDay(),
                     $rollingEnd->copy()->endOfDay()
-                )
+                ),
+                'date_range'  => [
+                    'start' => $rollingStart->copy()->format('Y-m-d'),
+                    'end'   => $rollingEnd->copy()->format('Y-m-d')
+                ]
             ],
             'quarterly' => [
                 'performance' => $this->performanceDataService->getPerformanceData(

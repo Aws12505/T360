@@ -377,6 +377,14 @@ const formatRange = (key) => {
 
 // Helper: Get date range display for each summary period
 const getDateRangeDisplay = (range) => {
+  if (props.summaries?.[range]?.date_range) {
+    // Fix timezone issue by ensuring dates are parsed correctly
+    const startDate = new Date(props.summaries[range].date_range.start + 'T12:00:00');
+    const endDate = new Date(props.summaries[range].date_range.end + 'T12:00:00');
+    return `${formatDateShort(startDate)} - ${formatDateShort(endDate)}`;
+  }
+  
+  // Fallback to calculated dates if not provided from backend
   const today = new Date()
   
   switch(range) {

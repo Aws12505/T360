@@ -2,21 +2,34 @@
 import InputError from '@/components/InputError.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
-import { Head, useForm } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { Head, useForm, usePage } from '@inertiajs/vue3';
+import { ref, computed } from 'vue';
 
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { type BreadcrumbItem } from '@/types';
+import { type BreadcrumbItem, type SharedData } from '@/types';
 
-const breadcrumbItems: BreadcrumbItem[] = [
+// Get tenantSlug from page props if it's not passed as a prop
+const page = usePage<SharedData>();
+
+interface Props {
+    tenantSlug?: string;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+    tenantSlug: undefined,
+});
+
+
+// Make breadcrumbItems reactive with computed property
+const breadcrumbItems = computed(() => [
     {
-        title: 'Password settings',
-        href: '/settings/password',
+        title: props.tenantSlug ? 'Dashboard' : 'Admin Dashboard',
+        href: props.tenantSlug ? route('dashboard', { tenantSlug: props.tenantSlug }) : route('admin.dashboard'),
     },
-];
+]);
 
 const passwordInput = ref<HTMLInputElement | null>(null);
 const currentPasswordInput = ref<HTMLInputElement | null>(null);
@@ -28,7 +41,7 @@ const form = useForm({
 });
 
 const updatePassword = () => {
-    form.put(route('password.update'), {
+    form.put(route('password.update', props.tenantSlug ? { tenantSlug: props.tenantSlug } : {}), {
         preserveScroll: true,
         onSuccess: () => form.reset(),
         onError: (errors: any) => {
@@ -51,7 +64,7 @@ const updatePassword = () => {
 </script>
 
 <template>
-    <AppLayout :breadcrumbs="breadcrumbItems">
+    <AppLayout :breadcrumbs="breadcrumbItems" :tenantSlug="props.tenantSlug">
         <Head title="Password settings" />
 
         <SettingsLayout>

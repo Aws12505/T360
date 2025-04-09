@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
 import DeleteUser from '@/components/DeleteUser.vue';
 import HeadingSmall from '@/components/HeadingSmall.vue';
@@ -14,16 +15,18 @@ import { type BreadcrumbItem, type SharedData, type User } from '@/types';
 interface Props {
     mustVerifyEmail: boolean;
     status?: string;
+    tenantSlug?: string;
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
 
-const breadcrumbs: BreadcrumbItem[] = [
+// Make breadcrumbItems reactive with computed property
+const breadcrumbs = computed(() => [
     {
-        title: 'Profile settings',
-        href: '/settings/profile',
+        title: props.tenantSlug ? 'Dashboard' : 'Admin Dashboard',
+        href: props.tenantSlug ? route('dashboard', { tenantSlug: props.tenantSlug }) : route('admin.dashboard'),
     },
-];
+]);
 
 const page = usePage<SharedData>();
 const user = page.props.auth.user as User;
@@ -34,14 +37,14 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.patch(route('profile.update'), {
+    form.patch(route('profile.update', props.tenantSlug ? { tenantSlug: props.tenantSlug } : {}), {
         preserveScroll: true,
     });
 };
 </script>
 
 <template>
-    <AppLayout :breadcrumbs="breadcrumbs">
+    <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="props.tenantSlug">
         <Head title="Profile settings" />
 
         <SettingsLayout>
