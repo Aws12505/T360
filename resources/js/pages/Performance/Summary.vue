@@ -16,6 +16,10 @@
           <CardHeader>
             <CardTitle>{{ formatRange(range) }}</CardTitle>
             <div class="text-sm text-muted-foreground">Performance & Safety Summary</div>
+            <!-- Add date range display -->
+            <div class="text-xs text-muted-foreground mt-1">
+              {{ getDateRangeDisplay(range) }}
+            </div>
           </CardHeader>
           
           <CardContent>
@@ -369,6 +373,50 @@ const formatRange = (key) => {
     quarterly: 'Quarterly',
   }
   return labels[key] ?? key
+}
+
+// Helper: Get date range display for each summary period
+const getDateRangeDisplay = (range) => {
+  const today = new Date()
+  
+  switch(range) {
+    case 'yesterday': {
+      const yesterday = new Date(today)
+      yesterday.setDate(yesterday.getDate() - 1)
+      return formatDateShort(yesterday)
+    }
+    case 'current_week': {
+      const startDate = new Date(today)
+      startDate.setDate(today.getDate() - today.getDay()) // Start of week (Sunday)
+      const endDate = new Date(startDate)
+      endDate.setDate(startDate.getDate() + 6) // End of week (Saturday)
+      return `${formatDateShort(startDate)} - ${formatDateShort(endDate)}`
+    }
+    case 'rolling_6_weeks': {
+      const endDate = new Date(today)
+      endDate.setDate(today.getDate() - today.getDay() + 6) // Current week's Saturday
+      const startDate = new Date(endDate)
+      startDate.setDate(endDate.getDate() - (6 * 7) + 1) // 6 weeks before, starting Sunday
+      return `${formatDateShort(startDate)} - ${formatDateShort(endDate)}`
+    }
+    case 'quarterly': {
+      const endDate = new Date(today)
+      const startDate = new Date(today)
+      startDate.setMonth(startDate.getMonth() - 3)
+      return `${formatDateShort(startDate)} - ${formatDateShort(endDate)}`
+    }
+    default:
+      return ''
+  }
+}
+
+// Helper: Format date for short display (MM/DD/YYYY)
+const formatDateShort = (date) => {
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'numeric',
+    day: 'numeric',
+    year: 'numeric'
+  }).format(date)
 }
 
 // Helper: Format date for display

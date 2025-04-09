@@ -56,24 +56,19 @@ class TenantSettingsController extends Controller
     {
         // Get the current tenant
         $tenant = Tenant::where('slug', $tenantSlug)->firstOrFail();
-        
         // Ensure the user belongs to this tenant
         if (Auth::user()->tenant_id !== $tenant->id) {
             abort(403, 'Unauthorized action.');
         }
-
         // Get validated data from the form request
         $validated = $request->validated();
-        
         // Handle file upload separately if present
         if ($request->hasFile('image')) {
             $validated['image'] = $request->file('image');
         }
-
         // Store the original and new slug for comparison
         $originalSlug = $tenant->slug;
         $newSlug = $validated['slug'] ?? $originalSlug;
-
         // Update the tenant
         $updatedTenant = $this->tenantService->updateTenant($tenant->id, $validated);
         

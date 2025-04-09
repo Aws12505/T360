@@ -8,18 +8,14 @@ interface Props {
     tenantSlug?: string | null;
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
     breadcrumbs: () => [],
     tenantSlug: null, 
 });
-
-const page = usePage();
-const tenantSlug = page.props.tenantSlug as string | null;
-
 </script>
 
 <template>
-    <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
+    <AppLayout :breadcrumbs="props.breadcrumbs" :tenantSlug="props.tenantSlug">
         <slot />
     </AppLayout>
 </template>

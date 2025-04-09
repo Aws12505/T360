@@ -46,7 +46,6 @@ class TenantService
     public function updateTenant($tenantId, array $data)
     {
         $tenant = Tenant::findOrFail($tenantId);
-        
         // Handle image upload if present
         if (isset($data['image']) && $data['image']) {
             // Delete old image if exists
@@ -66,6 +65,7 @@ class TenantService
             if (strtolower($originalExtension) === 'svg') {
                 // For SVG files, just store them as is
                 $path = $file->storeAs('tenant-images', $filename . '.svg', 'public');
+                $tenant->image_path = $path;
             } else {
                 // Create image manager with GD driver
                 $manager = new ImageManager(new Driver());
@@ -107,13 +107,13 @@ SVG;
                 
                 // Set the image_path directly on the tenant model instead of in the data array
                 $tenant->image_path = $path;
-                
-                // Remove the image from data as it's not a column in the database
-                unset($data['image']);
             }
             
-            $tenant->update($data);
-            return $tenant;
+            // Remove the image from data as it's not a column in the database
+            unset($data['image']);
         }
+        
+        $tenant->update($data);
+        return $tenant;
     }
 }

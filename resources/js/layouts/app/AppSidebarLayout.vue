@@ -12,20 +12,17 @@ interface Props {
     tenantSlug?: string | null;
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
     breadcrumbs: () => [],
     tenantSlug: null, 
 });
-
-const page = usePage();
-const tenantSlug = page.props.tenantSlug as string | null;
 </script>
 
 <template>
     <AppShell variant="sidebar">
-        <AppSidebar :Breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug" />
+        <AppSidebar :breadcrumbs="props.breadcrumbs" :tenantSlug="props.tenantSlug" />
         <AppContent variant="sidebar">
-            <AppSidebarHeader :breadcrumbs="breadcrumbs" />
+            <AppSidebarHeader :breadcrumbs="props.breadcrumbs" />
             <slot />
         </AppContent>
     </AppShell>

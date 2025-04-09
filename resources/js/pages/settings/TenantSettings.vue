@@ -1,5 +1,5 @@
 <template>
-  <AppLayout :breadcrumbs="breadcrumbItems" :tenantSlug="tenantSlug">
+  <AppLayout :breadcrumbs="props.breadcrumbItems" :tenantSlug="props.tenantSlug">
     <Head title="Company Settings" />
 
     <SettingsLayout>
@@ -100,7 +100,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
@@ -123,12 +123,13 @@ const props = defineProps({
   }
 });
 
-const breadcrumbItems: BreadcrumbItem[] = [
+// Make breadcrumbItems reactive with computed property
+const breadcrumbItems = computed(() => [
   {
-    title: 'Company Settings',
-    href: `/${props.tenantSlug}/settings/tenant`,
+    title: props.tenantSlug ? 'Dashboard' : 'Admin Dashboard', 
+    href: props.tenantSlug ? route('dashboard', { tenantSlug: props.tenantSlug }) : route('admin.dashboard'), 
   },
-];
+]);
 
 const { toast } = useToast();
 const imagePreview = ref<string | null>(null);
