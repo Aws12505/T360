@@ -4,24 +4,55 @@ namespace App\Services\Driver;
 
 use App\Models\Driver;
 use App\Models\Tenant;
+use App\Services\Filtering\FilteringService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Request;
 
 class DriverDataService
 {
+    protected $filteringService;
+
+    public function __construct(FilteringService $filteringService)
+    {
+        $this->filteringService = $filteringService;
+    }
+
     /**
      * Get driver entries for the index view.
      */
     public function getDriverIndex()
     {
-        $drivers = Driver::with('tenant')->paginate(10);
+        $query = Driver::query()->with('tenant');
+        
+        // Apply date filtering if requested
+        $dateFilter = $this->filteringService->getDateFilter();
+        $dateRange = [];
+        
+        if ($dateFilter !== 'full') {
+            $query = $this->filteringService->applyDateFilter($query, $dateFilter, 'hiring_date', $dateRange);
+        }
+        
+        // Get per page value
+        $perPage = $this->filteringService->getPerPage(Request::input('perPage', 10));
+        
+        // Apply tenant filter for non-admin users
+        if (!is_null(Auth::user()->tenant_id)) {
+            $query->where('tenant_id', Auth::user()->tenant_id);
+        }
+        
+        $drivers = $query->paginate($perPage);
+        
         $isSuperAdmin = is_null(Auth::user()->tenant_id);
         $tenantSlug = $isSuperAdmin ? null : Auth::user()->tenant->slug;
         $tenants = $isSuperAdmin ? Tenant::all() : [];
+        
         return [
             'entries'    => $drivers,
             'tenantSlug' => $tenantSlug,
             'SuperAdmin' => $isSuperAdmin,
             'tenants'    => $tenants,
+            'dateRange'  => $dateRange,
+            'dateFilter' => $dateFilter,
         ];
     }
 

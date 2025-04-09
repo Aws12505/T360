@@ -6,7 +6,10 @@ use App\Models\Performance;
 use App\Models\PerformanceMetricRule;
 use App\Models\Tenant;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Request;
+use Carbon\Carbon;
 use App\Services\Performance\PerformanceCalculationsService;
+use App\Services\Filtering\FilteringService;
 
 /**
  * Class PerformanceService
@@ -18,17 +21,21 @@ use App\Services\Performance\PerformanceCalculationsService;
  */
 class PerformanceService
 {
-
     protected PerformanceCalculationsService $performanceCalculationsService;
+    protected FilteringService $filteringService;
 
     /**
      * Constructor.
      *
      * @param PerformanceCalculationsService $performanceCalculationsService Service for performance operations.
+     * @param FilteringService $filteringService Service for filtering and pagination.
      */
-    public function __construct(PerformanceCalculationsService $performanceCalculationsService)
-    {
+    public function __construct(
+        PerformanceCalculationsService $performanceCalculationsService,
+        FilteringService $filteringService
+    ) {
         $this->performanceCalculationsService = $performanceCalculationsService;
+        $this->filteringService = $filteringService;
     }
 
     /**
@@ -38,15 +45,29 @@ class PerformanceService
      */
     public function getPerformanceIndex(): array
     {
-        $performances = Performance::with('tenant')->paginate(10);
+        $dateFilter = $this->filteringService->getDateFilter();
+        $perPage = $this->filteringService->getPerPage();
+        
+        $query = Performance::with('tenant');
+        
+        // Apply date filtering
+        $dateRange = [];
+        $query = $this->filteringService->applyDateFilter($query, $dateFilter, 'date', $dateRange);
+        
+        $performances = $query->paginate($perPage);
+        
         $isSuperAdmin = is_null(Auth::user()->tenant_id);
         $tenantSlug = $isSuperAdmin ? null : Auth::user()->tenant->slug;
         $tenants = $isSuperAdmin ? Tenant::all() : [];
+        
         return [
             'performances' => $performances,
             'tenantSlug'   => $tenantSlug,
             'SuperAdmin'   => $isSuperAdmin,
             'tenants'      => $tenants,
+            'dateFilter'   => $dateFilter,
+            'dateRange'    => $dateRange,
+            'perPage'      => $perPage,
         ];
     }
 
@@ -118,6 +139,4 @@ class PerformanceService
         }
         $performance->delete();
     }
-
-   
 }

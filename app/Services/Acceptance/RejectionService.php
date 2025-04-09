@@ -6,6 +6,8 @@ use App\Models\Rejection;
 use App\Models\RejectionReasonCode;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Tenant;
+use App\Services\Filtering\FilteringService;
+
 /**
  * Class RejectionService
  *
@@ -15,6 +17,18 @@ use App\Models\Tenant;
  */
 class RejectionService
 {
+    protected FilteringService $filteringService;
+
+    /**
+     * Constructor.
+     *
+     * @param FilteringService $filteringService Service for filtering and pagination.
+     */
+    public function __construct(FilteringService $filteringService)
+    {
+        $this->filteringService = $filteringService;
+    }
+
     /**
      * Get rejection data for the index view.
      *
@@ -24,13 +38,30 @@ class RejectionService
     {
         $user = Auth::user();
         $isSuperAdmin = is_null($user->tenant_id);
-        $rejections = Rejection::with(['tenant', 'reasonCode'])->paginate(10);
+        
+        // Get filtering parameters
+        $dateFilter = $this->filteringService->getDateFilter();
+        $perPage = $this->filteringService->getPerPage();
+        
+        // Build query
+        $query = Rejection::with(['tenant', 'reasonCode']);
+        
+        // Apply date filtering
+        $dateRange = [];
+        $query = $this->filteringService->applyDateFilter($query, $dateFilter, 'date', $dateRange);
+        
+        // Paginate results
+        $rejections = $query->paginate($perPage);
+        
         return [
             'rejections'           => $rejections,
             'tenantSlug'           => $isSuperAdmin ? null : $user->tenant->slug,
             'isSuperAdmin'         => $isSuperAdmin,
             'tenants'              => $isSuperAdmin ? Tenant::all() : [],
             'rejection_reason_codes' => RejectionReasonCode::all(),
+            'dateFilter'           => $dateFilter,
+            'dateRange'            => $dateRange,
+            'perPage'              => $perPage,
         ];
     }
 
@@ -83,6 +114,4 @@ class RejectionService
         $rejection = Rejection::findOrFail($id);
         $rejection->delete();
     }
-
-  
 }

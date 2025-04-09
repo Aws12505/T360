@@ -23,6 +23,64 @@
         </div>
       </div>
 
+      <!-- Date Filter Tabs -->
+      <Card>
+        <CardContent class="p-4">
+          <div class="flex flex-col gap-2">
+            <div class="flex flex-wrap gap-2">
+              <Button 
+                @click="selectDateFilter('yesterday')" 
+                variant="outline"
+                size="sm"
+                :class="{'bg-primary/10 text-primary border-primary': activeTab === 'yesterday'}"
+              >
+                Yesterday
+              </Button>
+              <Button 
+                @click="selectDateFilter('current-week')" 
+                variant="outline"
+                size="sm"
+                :class="{'bg-primary/10 text-primary border-primary': activeTab === 'current-week'}"
+              >
+                Current Week
+              </Button>
+              <Button 
+                @click="selectDateFilter('6w')" 
+                variant="outline"
+                size="sm"
+                :class="{'bg-primary/10 text-primary border-primary': activeTab === '6w'}"
+              >
+                6 Weeks
+              </Button>
+              <Button 
+                @click="selectDateFilter('quarterly')" 
+                variant="outline"
+                size="sm"
+                :class="{'bg-primary/10 text-primary border-primary': activeTab === 'quarterly'}"
+              >
+                Quarterly
+              </Button>
+              <Button 
+                @click="selectDateFilter('full')" 
+                variant="outline"
+                size="sm"
+                :class="{'bg-primary/10 text-primary border-primary': activeTab === 'full'}"
+              >
+                Full
+              </Button>
+            </div>
+            <div v-if="dateRange" class="text-sm text-muted-foreground">
+              <span v-if="dateRange.start && dateRange.end">
+                Showing data from {{ formatDate(dateRange.start) }} to {{ formatDate(dateRange.end) }}
+              </span>
+              <span v-else>
+                {{ dateRange.label }}
+              </span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <!-- Filters Section -->
       <Card>
         <CardHeader>
@@ -227,8 +285,19 @@
           
           <div class="bg-muted/20 px-4 py-3 border-t" v-if="rejections.links">
             <div class="flex justify-between items-center">
-              <div class="text-sm text-muted-foreground">
-                Showing {{ filteredRejections.length }} of {{ rejections.data.length }} entries
+              <div class="text-sm text-muted-foreground flex items-center gap-4">
+                <span>Showing {{ filteredRejections.length }} of {{ rejections.data.length }} entries</span>
+                
+                <div class="flex items-center gap-2">
+                  <span class="text-sm">Show:</span>
+                  <select 
+                    v-model="perPage" 
+                    @change="changePerPage"
+                    class="h-8 rounded-md border border-input bg-background px-2 py-1 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  >
+                    <option v-for="size in [10, 25, 50, 100]" :key="size" :value="size">{{ size }}</option>
+                  </select>
+                </div>
               </div>
               <div class="flex">
                 <Button 
@@ -396,6 +465,9 @@ const props = defineProps({
   rejection_reason_codes: Array,
   tenants: { type: Array, default: () => [] },
   isSuperAdmin: { type: Boolean, default: false },
+  dateFilter: { type: String, default: 'full' },
+  dateRange: { type: Object, default: () => ({ label: 'All Time' }) },
+  perPage: { type: Number, default: 10 },
 });
 
 // Set up breadcrumbs
@@ -417,6 +489,8 @@ const formModal = ref(false);
 const codeModal = ref(false);
 const selectedRejection = ref(null);
 const successMessage = ref('');
+const activeTab = ref(props.dateFilter || 'full');
+const perPage = ref(props.perPage);
 
 // Code management state
 const showCodeForm = ref(false);
@@ -567,6 +641,7 @@ function applyFilters() {
   // The filtering is handled by the computed property
 }
 
+// Function to reset filters - consolidated version
 function resetFilters() {
   filters.value = {
     search: '',
@@ -578,6 +653,9 @@ function resetFilters() {
     disputed: '',
     driverControllable: ''
   };
+  
+  // Reset date filter to full
+  selectDateFilter('full');
 }
 
 // Function to open the rejection form modal (for create or edit)
@@ -682,11 +760,41 @@ const deleteRejection = (id) => {
   });
 };
 
+// Function to handle pagination
 const visitPage = (url) => {
   if (url) {
     router.get(url, {}, { only: ['rejections'] });
   }
 };
+
+// Function to handle date filter selection
+function selectDateFilter(filter) {
+  activeTab.value = filter;
+  
+  const routeName = props.tenantSlug 
+    ? route('acceptance.index', { tenantSlug: props.tenantSlug }) 
+    : route('acceptance.index.admin');
+    
+  router.get(routeName, { 
+    dateFilter: filter,
+    perPage: perPage.value 
+  }, { preserveState: true });
+}
+
+// Function to handle per page change
+function changePerPage() {
+  const routeName = props.tenantSlug 
+    ? route('acceptance.index', { tenantSlug: props.tenantSlug }) 
+    : route('acceptance.index.admin');
+    
+  router.get(routeName, { 
+    dateFilter: activeTab.value,
+    perPage: perPage.value 
+  }, { preserveState: true });
+}
+
+// Remove this duplicate function declaration
+// function visitPage(url) { ... }
 
 // Format date string from YYYY-MM-DD to m/d/Y
 function formatDate(dateStr) {

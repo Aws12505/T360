@@ -33,54 +33,66 @@
         </div>
       </div>
 
-      <!-- Filters Section -->
+      <!-- Date Filter Tabs -->
       <Card>
-        <CardHeader>
-          <CardTitle>Filters</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div class="flex flex-col sm:flex-row justify-between items-end gap-4">
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
-              <div>
-                <Label for="search">Search</Label>
-                <Input 
-                  id="search"
-                  v-model="filters.search" 
-                  type="text" 
-                  placeholder="Search by date..." 
-                  @input="applyFilters"
-                />
-              </div>
-              <div>
-                <Label for="dateFrom">From Date</Label>
-                <Input 
-                  id="dateFrom"
-                  v-model="filters.dateFrom" 
-                  type="date" 
-                  @change="applyFilters"
-                />
-              </div>
-              <div>
-                <Label for="dateTo">To Date</Label>
-                <Input 
-                  id="dateTo"
-                  v-model="filters.dateTo" 
-                  type="date" 
-                  @change="applyFilters"
-                />
-              </div>
+        <CardContent class="p-4">
+          <div class="flex flex-col gap-2">
+            <div class="flex flex-wrap gap-2">
+              <Button 
+                @click="selectDateFilter('yesterday')" 
+                variant="outline"
+                size="sm"
+                :class="{'bg-primary/10 text-primary border-primary': activeTab === 'yesterday'}"
+              >
+                Yesterday
+              </Button>
+              <Button 
+                @click="selectDateFilter('current-week')" 
+                variant="outline"
+                size="sm"
+                :class="{'bg-primary/10 text-primary border-primary': activeTab === 'current-week'}"
+              >
+                Current Week
+              </Button>
+              <Button 
+                @click="selectDateFilter('6w')" 
+                variant="outline"
+                size="sm"
+                :class="{'bg-primary/10 text-primary border-primary': activeTab === '6w'}"
+              >
+                6 Weeks
+              </Button>
+              <Button 
+                @click="selectDateFilter('quarterly')" 
+                variant="outline"
+                size="sm"
+                :class="{'bg-primary/10 text-primary border-primary': activeTab === 'quarterly'}"
+              >
+                Quarterly
+              </Button>
+              <Button 
+                @click="selectDateFilter('full')" 
+                variant="outline"
+                size="sm"
+                :class="{'bg-primary/10 text-primary border-primary': activeTab === 'full'}"
+              >
+                Full
+              </Button>
             </div>
-            <Button 
-              @click="resetFilters" 
-              variant="ghost"
-              size="sm"
-            >
-              <Icon name="rotate-ccw" class="mr-2 h-4 w-4" />
-              Reset
-            </Button>
+            <div v-if="dateRange" class="text-sm text-muted-foreground">
+              <span v-if="dateRange.start && dateRange.end">
+                Showing data from {{ formatDate(dateRange.start) }} to {{ formatDate(dateRange.end) }}
+              </span>
+              <span v-else>
+                {{ dateRange.label }}
+              </span>
+            </div>
           </div>
         </CardContent>
       </Card>
+
+      <!-- Filters Section - REMOVED -->
+      <!-- Replaced with Date Filter Tabs above -->
 
       <!-- Performance Table -->
       <Card>
@@ -173,8 +185,19 @@
           
           <div class="bg-muted/20 px-4 py-3 border-t" v-if="performances.links">
             <div class="flex justify-between items-center">
-              <div class="text-sm text-muted-foreground">
-                Showing {{ filteredPerformances.length }} of {{ performances.data.length }} entries
+              <div class="text-sm text-muted-foreground flex items-center gap-4">
+                <span>Showing {{ filteredPerformances.length }} of {{ performances.data.length }} entries</span>
+                
+                <div class="flex items-center gap-2">
+                  <span class="text-sm">Show:</span>
+                  <select 
+                    v-model="perPage" 
+                    @change="changePerPage"
+                    class="h-8 rounded-md border border-input bg-background px-2 py-1 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  >
+                    <option v-for="size in [10, 25, 50, 100]" :key="size" :value="size">{{ size }}</option>
+                  </select>
+                </div>
               </div>
               <div class="flex">
                 <Button 
@@ -376,8 +399,38 @@ const props = defineProps({
   },
   tenantSlug: { type: String, default: null },
   SuperAdmin: { type: Boolean, default: false },
-  tenants: { type: Array, default: () => [] }
+  tenants: { type: Array, default: () => [] },
+  dateFilter: { type: String, default: 'full' },
+  dateRange: { type: Object, default: () => ({ label: 'All Time' }) },
+  perPage: { type: Number, default: 10 }
 })
+
+// Add this after other refs
+const perPage = ref(props.perPage || 10)
+
+// Add this function to handle per page changes
+function changePerPage() {
+  const routeName = props.tenantSlug 
+    ? route('performance.index', { tenantSlug: props.tenantSlug }) 
+    : route('performance.index.admin')
+    
+  router.get(routeName, { 
+    dateFilter: activeTab.value,
+    perPage: perPage.value 
+  }, { preserveState: true })
+}
+
+// Update the visitPage function to preserve perPage
+function visitPage(url) {
+  if (url) {
+    // Add perPage and dateFilter parameters to the URL
+    const urlObj = new URL(url);
+    urlObj.searchParams.set('perPage', perPage.value);
+    urlObj.searchParams.set('dateFilter', activeTab.value);
+    
+    router.get(urlObj.href, {}, { only: ['performances'] })
+  }
+}
 
 const successMessage = ref('')
 const showModal = ref(false)
@@ -386,6 +439,7 @@ const formTitle = ref('Create Performance')
 const formAction = ref('Create')
 const exportForm = ref(null)
 const performanceToDelete = ref(null)
+const activeTab = ref(props.dateFilter || 'full')
 
 // Sorting state
 const sortColumn = ref('date')
@@ -444,23 +498,6 @@ const importForm = useForm({ csv_file: null })
 const filteredPerformances = computed(() => {
   let result = [...props.performances.data]
   
-  // Apply search filter
-  if (filters.value.search) {
-    const searchTerm = filters.value.search.toLowerCase()
-    result = result.filter(item => 
-      item.date?.toLowerCase().includes(searchTerm)
-    )
-  }
-  
-  // Apply date range filters
-  if (filters.value.dateFrom) {
-    result = result.filter(item => item.date >= filters.value.dateFrom)
-  }
-  
-  if (filters.value.dateTo) {
-    result = result.filter(item => item.date <= filters.value.dateTo)
-  }
-  
   // Apply sorting
   result.sort((a, b) => {
     let valA = a[sortColumn.value]
@@ -484,6 +521,11 @@ const filteredPerformances = computed(() => {
   return result
 })
 
+// Date filter function - use this instead of the old resetFilters
+function resetFilters() {
+  selectDateFilter('full')
+}
+
 // Sort function
 function sortBy(column) {
   if (sortColumn.value === column) {
@@ -502,60 +544,33 @@ function applyFilters() {
   // The filtering is handled by the computed property
 }
 
-function resetFilters() {
-  filters.value = {
-    search: '',
-    dateFrom: '',
-    dateTo: '',
-  }
+// Make sure this function is defined before it's used in the template
+function selectDateFilter(filter) {
+  activeTab.value = filter
+  
+  const routeName = props.tenantSlug 
+    ? route('performance.index', { tenantSlug: props.tenantSlug }) 
+    : route('performance.index.admin')
+    
+  router.get(routeName, { 
+    dateFilter: filter,
+    perPage: perPage.value 
+  }, { preserveState: true })
 }
 
-function openCreateModal() {
-  formTitle.value = 'Create Performance'
-  formAction.value = 'Create'
-  form.reset()
-  showModal.value = true
-}
-
-function openEditModal(item) {
-  formTitle.value = 'Edit Performance'
-  formAction.value = 'Update'
-
-  form.tenant_id = props.SuperAdmin ? item.tenant_id : null
-  form.date = item.date
-  form.acceptance = item.acceptance
-  form.on_time_to_origin = item.on_time_to_origin
-  form.on_time_to_destination = item.on_time_to_destination
-  form.maintenance_variance_to_spend = item.maintenance_variance_to_spend
-  form.open_boc = item.open_boc
-  form.meets_safety_bonus_criteria = !!item.meets_safety_bonus_criteria
-  form.vcr_preventable = item.vcr_preventable
-  form.id = item.id
-
-  showModal.value = true
-}
-
-function closeModal() {
-  showModal.value = false
-}
-
-function deletePerformance(id) {
-  performanceToDelete.value = id
-  showDeleteModal.value = true
-}
-
-function confirmDelete() {
-  const routeName = props.SuperAdmin
-    ? route('performance.destroy.admin', [performanceToDelete.value])
-    : route('performance.destroy', [props.tenantSlug, performanceToDelete.value])
-
-  deleteForm.delete(routeName, {
-    onSuccess: () => {
-      successMessage.value = 'Performance deleted successfully.'
-      showDeleteModal.value = false
-    }
-  })
-}
+// Remove this duplicate function - delete lines 620-630
+// function selectDateFilter(filter) {
+//   activeTab.value = filter
+  
+//   const routeName = props.tenantSlug 
+//     ? route('performance.index', { tenantSlug: props.tenantSlug }) 
+//     : route('performance.index.admin')
+    
+//   router.get(routeName, { 
+//     dateFilter: filter,
+//     perPage: perPage.value 
+//   }, { preserveState: true })
+// }
 
 function submitForm() {
   const isCreate = formAction.value === 'Create'
@@ -614,11 +629,12 @@ function exportCSV() {
   exportForm.value?.submit()
 }
 
-function visitPage(url) {
-  if (url) {
-    router.get(url, {}, { only: ['performances'] })
-  }
-}
+// Remove this duplicate function
+// function visitPage(url) {
+//   if (url) {
+//     router.get(url, {}, { only: ['performances'] })
+//   }
+// }
 
 // Auto-hide success message after 5 seconds
 watch(successMessage, (newValue) => {
@@ -628,4 +644,16 @@ watch(successMessage, (newValue) => {
     }, 5000)
   }
 })
+
+// Add a date formatting function
+function formatDate(dateString) {
+  if (!dateString) return '';
+  // Create date with timezone adjustment to prevent the one day behind issue
+  const date = new Date(dateString + 'T12:00:00'); // Add time component to avoid timezone issues
+  return date.toLocaleDateString('en-US', { 
+    year: 'numeric', 
+    month: 'short', 
+    day: 'numeric' 
+  });
+}
 </script>
