@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Web\Miles;
 
 use App\Http\Requests\MilesDriven\StoreMilesDrivenRequest;
 use App\Http\Requests\MilesDriven\UpdateMilesDrivenRequest;
@@ -8,6 +8,7 @@ use App\Models\MilesDriven;
 use App\Services\MilesDriven\MilesDrivenService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Http\Controllers\Controller;
 
 class MilesDrivenController extends Controller
 {

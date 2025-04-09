@@ -10,8 +10,8 @@ use App\Http\Controllers\Web\Performance\PerformanceController;
 use App\Http\Controllers\Web\UserManagement\ImpersonationController;
 use App\Http\Controllers\Web\Driver\DriverController;
 use App\Http\Controllers\Web\RepairOrder\RepairOrderController;
-use App\Http\Controllers\MilesDrivenController;
-use App\Http\Controllers\Web\Settings\TenantSettingsController;
+use App\Http\Controllers\Web\Miles\MilesDrivenController;
+use App\Http\Controllers\Settings\TenantSettingsController;
 
 Route::middleware(['auth', 'tenant'])->group(function () {
     Route::prefix('{tenantSlug}')->group(function () {

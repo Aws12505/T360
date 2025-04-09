@@ -11,7 +11,7 @@ use App\Http\Controllers\Web\Performance\PerformanceMetricRuleController;
 use App\Http\Controllers\Web\Truck\TruckController;
 use App\Http\Controllers\Web\Driver\DriverController;
 use App\Http\Controllers\Web\RepairOrder\RepairOrderController;
-use App\Http\Controllers\MilesDrivenController;
+use App\Http\Controllers\Web\Miles\MilesDrivenController;
 Route::middleware(['auth', 'superAdmin'])->group(function () {
     Route::get('/dashboard', function () {
         return Inertia::render('Dashboard');
