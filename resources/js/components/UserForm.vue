@@ -101,8 +101,8 @@
             >
               <Checkbox
                 :id="`role-${role.id}`"
-                :value="role.id"
-                v-model:checked="form.roles"
+                :checked="form.roles.includes(role.id)"
+                @update:checked="toggleRole(role.id)"
                 class="mr-2"
               />
               <Label :for="`role-${role.id}`" class="cursor-pointer">{{ role.name }}</Label>
@@ -141,8 +141,8 @@
             >
               <Checkbox
                 :id="`permission-${permission.name}`"
-                :value="permission.name"
-                v-model:checked="form.user_permissions"
+                :checked="form.user_permissions.includes(permission.name)"
+                @update:checked="togglePermission(permission.name)"
                 :disabled="inheritedPermissions.includes(permission.name)"
                 class="mr-2"
               />
@@ -299,6 +299,29 @@ const submit = () => {
         },
       });
     }
+  }
+};
+
+// Add these toggle functions
+const toggleRole = (roleId) => {
+  const index = form.roles.indexOf(roleId);
+  if (index === -1) {
+    form.roles.push(roleId);
+  } else {
+    form.roles.splice(index, 1);
+  }
+};
+
+const togglePermission = (permissionName) => {
+  if (inheritedPermissions.value.includes(permissionName)) {
+    return; // Don't toggle inherited permissions
+  }
+  
+  const index = form.user_permissions.indexOf(permissionName);
+  if (index === -1) {
+    form.user_permissions.push(permissionName);
+  } else {
+    form.user_permissions.splice(index, 1);
   }
 };
 </script>
