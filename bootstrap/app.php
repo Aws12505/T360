@@ -7,7 +7,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use App\Http\Middleware\IdentifyTenant;
-use App\Http\Middleware\SuperAdmin;
+use App\Http\Middleware\superAdmin;
 use App\Http\Middleware\Impersonate;
 
 
