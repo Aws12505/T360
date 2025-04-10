@@ -33,10 +33,10 @@ class SummariesService
         $today            = Carbon::now();
         $currentWeekStart = $today->copy()->startOfWeek(Carbon::SUNDAY);
         $currentWeekEnd   = $today->copy()->endOfWeek(Carbon::SATURDAY);
-        $rollingStart     = $currentWeekStart->copy()->subWeeks(5);
-        $rollingEnd       = $currentWeekEnd;
-       // $rollingStart     = Carbon::parse('2025-02-16')->startOfDay();
-        //$rollingEnd       = Carbon::parse('2025-03-29')->endOfDay();
+        //$rollingStart     = $currentWeekStart->copy()->subWeeks(5);
+        //$rollingEnd       = $currentWeekEnd;
+        $rollingStart     = Carbon::parse('2025-02-16')->startOfDay();
+        $rollingEnd       = Carbon::parse('2025-03-29')->endOfDay();
 
         $summaries = [
             'yesterday' => [

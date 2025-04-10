@@ -673,7 +673,18 @@ const breadcrumbs = [
       : route('admin.dashboard')
   },
 ]
-
+function selectDateFilter(filter) {
+  activeTab.value = filter;
+  
+  const routeName = props.tenantSlug 
+    ? route('repair_orders.index', { tenantSlug: props.tenantSlug }) 
+    : route('repair_orders.index.admin');
+    
+  router.get(routeName, { 
+    dateFilter: filter,
+    perPage: perPage.value 
+  }, { preserveState: true });
+}
 // State variables
 const successMessage = ref('')
 const showModal = ref(false)
@@ -861,7 +872,25 @@ const deleteAreaOfConcern = (id) => {
     router.delete(route('area_of_concerns.destroy.admin', id))
   }
 }
+function changePerPage() {
+  const routeName = props.tenantSlug 
+    ? route('repair_orders.index', { tenantSlug: props.tenantSlug }) 
+    : route('repair_orders.index.admin');
+    
+  router.get(routeName, { 
+    dateFilter: activeTab.value,
+    perPage: perPage.value 
+  }, { preserveState: true });
+}
 
+// Format date string helper function
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const parts = dateStr.split('-');
+  if (parts.length !== 3) return dateStr;
+  const [year, month, day] = parts;
+  return `${Number(month)}/${Number(day)}/${year}`;
+}
 // Methods for vendors
 const openVendorsModal = () => {
   vendorForm.reset()
@@ -977,18 +1006,17 @@ const exportCSV = () => {
     : route('repair_orders.export', props.tenantSlug)
 }
 
-// Formatting helpers
-const formatDate = (dateString) => {
-  if (!dateString) return ''
-  const date = new Date(dateString)
-  return date.toLocaleDateString()
-}
+
 
 const formatCurrency = (amount) => {
   if (!amount) return '$0.00'
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount)
 }
+// Add activeTab ref
+const activeTab = ref(props.dateFilter || 'full');
 
+// Add perPage ref
+const perPage = ref(10);
 // Initialize component
 onMounted(() => {
   // Any initialization code can go here

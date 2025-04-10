@@ -4,8 +4,11 @@ namespace App\Services\On_Time;
 
 use App\Models\Delay;
 use App\Models\DelayCode;
+use App\Services\Filtering\FilteringService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Request;
 use App\Models\Tenant;
+
 /**
  * Class DelayService
  *
@@ -15,6 +18,13 @@ use App\Models\Tenant;
  */
 class DelayService
 {
+    protected $filteringService;
+
+    public function __construct(FilteringService $filteringService)
+    {
+        $this->filteringService = $filteringService;
+    }
+
     /**
      * Get delay data for the index view.
      *
@@ -22,17 +32,39 @@ class DelayService
      */
     public function getDelaysIndex(): array
     {
-        $delays = Delay::with(['tenant', 'delayCode'])->paginate(10);
+        $query = Delay::with(['tenant', 'delayCode']);
+        
+        // Apply date filtering if requested
+        $dateFilter = $this->filteringService->getDateFilter();
+        $dateRange = [];
+        
+        if ($dateFilter !== 'full') {
+            $query = $this->filteringService->applyDateFilter($query, $dateFilter, 'date', $dateRange);
+        }
+        
+        // Get per page value
+        $perPage = $this->filteringService->getPerPage(Request::input('perPage', 10));
+        
+        // Apply tenant filter for non-admin users
+        if (!is_null(Auth::user()->tenant_id)) {
+            $query->where('tenant_id', Auth::user()->tenant_id);
+        }
+        
+        $delays = $query->latest('date')->paginate($perPage);
+        
         $isSuperAdmin = is_null(Auth::user()->tenant_id);
         $tenantSlug = $isSuperAdmin ? null : Auth::user()->tenant->slug;
         $tenants = $isSuperAdmin ? Tenant::all() : [];
         $delayCodes = DelayCode::all();
+        
         return [
             'delays'     => $delays,
             'tenantSlug' => $tenantSlug,
             'isSuperAdmin' => $isSuperAdmin,
             'tenants'    => $tenants,
             'delay_codes' => $delayCodes,
+            'dateRange'  => $dateRange,
+            'dateFilter' => $dateFilter,
         ];
     }
 

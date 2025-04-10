@@ -3,7 +3,9 @@
 namespace App\Services\Safety;
 
 use App\Models\SafetyData;
+use App\Services\Filtering\FilteringService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Request;
 use App\Models\Tenant;
 /**
  * Class SafetyDataService
@@ -14,6 +16,13 @@ use App\Models\Tenant;
  */
 class SafetyDataService
 {
+    protected $filteringService;
+
+    public function __construct(FilteringService $filteringService)
+    {
+        $this->filteringService = $filteringService;
+    }
+
     /**
      * Get safety data entries for the index view.
      *
@@ -21,15 +30,37 @@ class SafetyDataService
      */
     public function getSafetyDataIndex(): array
     {
-        $entries = SafetyData::with('tenant')->paginate(10);
+        $query = SafetyData::with('tenant');
+        
+        // Apply date filtering if requested
+        $dateFilter = $this->filteringService->getDateFilter();
+        $dateRange = [];
+        
+        if ($dateFilter !== 'full') {
+            $query = $this->filteringService->applyDateFilter($query, $dateFilter, 'date', $dateRange);
+        }
+        
+        // Get per page value
+        $perPage = $this->filteringService->getPerPage(Request::input('perPage', 10));
+        
+        // Apply tenant filter for non-admin users
+        if (!is_null(Auth::user()->tenant_id)) {
+            $query->where('tenant_id', Auth::user()->tenant_id);
+        }
+        
+        $entries = $query->latest('date')->paginate($perPage);
+        
         $isSuperAdmin = is_null(Auth::user()->tenant_id);
         $tenantSlug = $isSuperAdmin ? null : Auth::user()->tenant->slug;
         $tenants = $isSuperAdmin ? Tenant::all() : [];
+        
         return [
             'entries'    => $entries,
             'tenantSlug' => $tenantSlug,
             'SuperAdmin' => $isSuperAdmin,
             'tenants'    => $tenants,
+            'dateRange'  => $dateRange,
+            'dateFilter' => $dateFilter,
         ];
     }
 

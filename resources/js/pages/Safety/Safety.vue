@@ -54,6 +54,64 @@
         </div>
       </div>
 
+      <!-- Date Filter Tabs -->
+      <Card>
+        <CardContent class="p-4">
+          <div class="flex flex-col gap-2">
+            <div class="flex flex-wrap gap-2">
+              <Button 
+                @click="selectDateFilter('yesterday')" 
+                variant="outline"
+                size="sm"
+                :class="{'bg-primary/10 text-primary border-primary': activeTab === 'yesterday'}"
+              >
+                Yesterday
+              </Button>
+              <Button 
+                @click="selectDateFilter('current-week')" 
+                variant="outline"
+                size="sm"
+                :class="{'bg-primary/10 text-primary border-primary': activeTab === 'current-week'}"
+              >
+                Current Week
+              </Button>
+              <Button 
+                @click="selectDateFilter('6w')" 
+                variant="outline"
+                size="sm"
+                :class="{'bg-primary/10 text-primary border-primary': activeTab === '6w'}"
+              >
+                6 Weeks
+              </Button>
+              <Button 
+                @click="selectDateFilter('quarterly')" 
+                variant="outline"
+                size="sm"
+                :class="{'bg-primary/10 text-primary border-primary': activeTab === 'quarterly'}"
+              >
+                Quarterly
+              </Button>
+              <Button 
+                @click="selectDateFilter('full')" 
+                variant="outline"
+                size="sm"
+                :class="{'bg-primary/10 text-primary border-primary': activeTab === 'full'}"
+              >
+                Full
+              </Button>
+            </div>
+            <div v-if="dateRange" class="text-sm text-muted-foreground">
+              <span v-if="dateRange.start && dateRange.end">
+                Showing data from {{ formatDate(dateRange.start) }} to {{ formatDate(dateRange.end) }}
+              </span>
+              <span v-else>
+                {{ dateRange.label }}
+              </span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <!-- Data Table Section -->
       <Card>
         <CardContent class="p-0">
@@ -115,19 +173,35 @@
               <div class="text-sm text-muted-foreground">
                 Showing {{ entries.data.length }} entries
               </div>
-              <div class="flex">
-                <Button 
-                  v-for="link in entries.links" 
-                  :key="link.label" 
-                  @click="visitPage(link.url)" 
-                  :disabled="!link.url" 
-                  variant="ghost"
-                  size="sm"
-                  class="mx-1"
-                  :class="{'bg-primary/10 text-primary border-primary': link.active}"
-                >
-                  <span v-html="link.label"></span>
-                </Button>
+              <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2">
+                  <Label for="perPage" class="text-sm">Per page:</Label>
+                  <select 
+                    id="perPage" 
+                    v-model="perPage" 
+                    @change="changePerPage"
+                    class="h-8 rounded-md border border-input bg-background px-2 py-1 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                  </select>
+                </div>
+                <div class="flex">
+                  <Button 
+                    v-for="link in entries.links" 
+                    :key="link.label" 
+                    @click="visitPage(link.url)" 
+                    :disabled="!link.url" 
+                    variant="ghost"
+                    size="sm"
+                    class="mx-1"
+                    :class="{'bg-primary/10 text-primary border-primary': link.active}"
+                  >
+                    <span v-html="link.label"></span>
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
@@ -223,6 +297,11 @@ const props = defineProps({
   tenantSlug: String,
   SuperAdmin: Boolean,
   tenants: Array,
+  dateRange: Object,
+  dateFilter: {
+    type: String,
+    default: 'full'
+  }
 });
 
 // Reactive state variables
@@ -231,6 +310,8 @@ const showModal = ref(false);
 const formTitle = ref('Create Entry');
 const formAction = ref('Create');
 const exportForm = ref(null);
+const activeTab = ref(props.dateFilter || 'full');
+const perPage = ref(10);
 
 // Define breadcrumbs for the layout
 const breadcrumbs = [
@@ -431,11 +512,12 @@ function exportCSV() {
   exportForm.value?.submit();
 }
 
-const visitPage = (url) => {
-  if (url) {
-    router.get(url, {}, {only: ['entries'] });
-  }
-};
+// Remove this duplicate visitPage function
+// const visitPage = (url) => {
+//   if (url) {
+//     router.get(url, {}, {only: ['entries'] });
+//   }
+// };
 
 // Auto-hide success message after 5 seconds
 watch(successMessage, (newValue) => {
@@ -445,4 +527,51 @@ watch(successMessage, (newValue) => {
     }, 5000);
   }
 });
+
+// Function to handle date filter selection
+function selectDateFilter(filter) {
+  activeTab.value = filter;
+  
+  const routeName = props.tenantSlug 
+    ? route('safety.index', { tenantSlug: props.tenantSlug }) 
+    : route('safety.index.admin');
+    
+  router.get(routeName, { 
+    dateFilter: filter,
+    perPage: perPage.value 
+  }, { preserveState: true });
+}
+
+// Function to handle per page change
+function changePerPage() {
+  const routeName = props.tenantSlug 
+    ? route('safety.index', { tenantSlug: props.tenantSlug }) 
+    : route('safety.index.admin');
+    
+  router.get(routeName, { 
+    dateFilter: activeTab.value,
+    perPage: perPage.value 
+  }, { preserveState: true });
+}
+
+// Format date string helper function
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const parts = dateStr.split('-');
+  if (parts.length !== 3) return dateStr;
+  const [year, month, day] = parts;
+  return `${Number(month)}/${Number(day)}/${year}`;
+}
+
+// Update visitPage to preserve perPage and dateFilter
+function visitPage(url) {
+  if (url) {
+    // Add perPage and dateFilter parameters to the URL
+    const urlObj = new URL(url);
+    urlObj.searchParams.set('perPage', perPage.value);
+    urlObj.searchParams.set('dateFilter', activeTab.value);
+    
+    router.get(urlObj.href, {}, { only: ['entries'] });
+  }
+}
 </script>

@@ -4,10 +4,19 @@ namespace App\Services\MilesDriven;
 
 use App\Models\MilesDriven;
 use App\Models\Tenant;
+use App\Services\Filtering\FilteringService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Request;
 
 class MilesDrivenService
 {
+    protected $filteringService;
+
+    public function __construct(FilteringService $filteringService)
+    {
+        $this->filteringService = $filteringService;
+    }
+
     /**
      * Get miles driven entries for the index view.
      *
@@ -15,7 +24,26 @@ class MilesDrivenService
      */
     public function getMilesDrivenIndex()
     {
-        $milesDriven = MilesDriven::with('tenant')->paginate(10);
+        $query = MilesDriven::with('tenant');
+        
+        // Apply date filtering if requested
+        $dateFilter = $this->filteringService->getDateFilter();
+        $dateRange = [];
+        
+        if ($dateFilter !== 'full') {
+            $query = $this->filteringService->applyDateFilter($query, $dateFilter, 'week_start_date', $dateRange);
+        }
+        
+        // Get per page value
+        $perPage = $this->filteringService->getPerPage(Request::input('perPage', 10));
+        
+        // Apply tenant filter for non-admin users
+        if (!is_null(Auth::user()->tenant_id)) {
+            $query->where('tenant_id', Auth::user()->tenant_id);
+        }
+        
+        $milesDriven = $query->latest('week_start_date')->paginate($perPage);
+        
         $isSuperAdmin = is_null(Auth::user()->tenant_id);
         $tenantSlug = $isSuperAdmin ? null : Auth::user()->tenant->slug;
         $tenants = $isSuperAdmin ? Tenant::all() : [];
@@ -25,6 +53,8 @@ class MilesDrivenService
             'tenantSlug' => $tenantSlug,
             'SuperAdmin' => $isSuperAdmin,
             'tenants'    => $tenants,
+            'dateRange'  => $dateRange,
+            'dateFilter' => $dateFilter,
         ];
     }
 
