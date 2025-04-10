@@ -481,8 +481,7 @@ const breadcrumbs = [
   {
     title: 'Acceptance',
     href: props.tenantSlug
-     ? route('acceptance', { tenantSlug: props.tenantSlug })
-      : route('admin.acceptance'),
+     ?  route('acceptance.index', { tenantSlug: props.tenantSlug }) : route('acceptance.index.admin'),
   }
 ];
 

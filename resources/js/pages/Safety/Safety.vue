@@ -324,8 +324,7 @@ const breadcrumbs = [
   {
     title: 'Safety',
     href: props.tenantSlug
-     ? route('safety.index', { tenantSlug: props.tenantSlug })
-      : route('admin.safety.index')
+     ? route('safety.index', { tenantSlug: props.tenantSlug }) : route('safety.index.admin')
   }
 ];
 

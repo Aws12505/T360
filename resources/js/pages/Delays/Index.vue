@@ -470,8 +470,7 @@ const breadcrumbs = [
   {
     title: 'On-Time',
     href: props.tenantSlug
-     ? route('ontime.index', { tenantSlug: props.tenantSlug })
-      : route('admin.ontime.index'),
+     ? route('ontime.index', { tenantSlug: props.tenantSlug }) : route('ontime.index.admin'),
   }
 ];
 

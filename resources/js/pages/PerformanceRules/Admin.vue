@@ -32,7 +32,7 @@ const breadcrumbs = [
   },
   {
     title: 'Metrics',
-    href: tenantSlug? route('metrics', { tenantSlug }) : route('admin.metrics'),
+    href: route('performance-metrics.edit'),
   },
 ]
 
