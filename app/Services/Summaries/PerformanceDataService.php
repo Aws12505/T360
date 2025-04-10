@@ -19,32 +19,34 @@ class PerformanceDataService
 
     public function getPerformanceData($startDate, $endDate, string $label = ''): array
     {
-        $rule         = PerformanceMetricRule::first();
+        $rule = PerformanceMetricRule::first();
+        
+        // Always use 6-week rolling window for rolling metrics
         $rollingStart = Carbon::now()->subWeeks(6)->startOfWeek();
         $rollingEnd   = Carbon::now();
-
-        // Main performance query
+    
+        // Main performance query - uses the provided date range
         $queryMain = DB::table('performances')
             ->selectRaw("AVG(acceptance) AS average_acceptance, AVG(on_time) AS average_on_time, AVG(maintenance_variance_to_spend) AS average_maintenance_variance_to_spend, CASE WHEN SUM(meets_safety_bonus_criteria) >= COUNT(meets_safety_bonus_criteria) / 2 THEN 1 ELSE 0 END AS meets_safety_bonus_criteria")
             ->whereBetween('date', [$startDate, $endDate]);
-
+    
         if (Auth::check() && Auth::user()->tenant_id !== null) {
             $queryMain->where('tenant_id', Auth::user()->tenant_id);
         }
-
+    
         $mainData = $queryMain->first();
-
-        // Rolling data query
+    
+        // Rolling data query - always uses the 6-week rolling window
         $queryRolling = DB::table('performances')
             ->selectRaw("SUM(open_boc) AS sum_open_boc, SUM(vcr_preventable) AS sum_vcr_preventable")
             ->whereBetween('date', [$rollingStart, $rollingEnd]);
-
+    
         if (Auth::check() && Auth::user()->tenant_id !== null) {
             $queryRolling->where('tenant_id', Auth::user()->tenant_id);
         }
-
+    
         $rollingData = $queryRolling->first();
-
+    
         return [
             'label'      => $label,
             'start_date' => $startDate->toDateString(),

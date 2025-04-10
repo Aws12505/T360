@@ -5,6 +5,7 @@ namespace App\Services\Summaries;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Tenant;
+use App\Services\Filtering\FilteringService;
 
 class SummariesService
 {
@@ -13,153 +14,110 @@ class SummariesService
     protected DelayBreakdownService $delayBreakdownService;
     protected RejectionBreakdownService $rejectionBreakdownService;
     protected MaintenanceBreakdownService $maintenanceBreakdownService;
+    protected FilteringService $filteringService;
 
     public function __construct(
         PerformanceDataService $performanceDataService,
         SafetyDataService $safetyDataService,
         DelayBreakdownService $delayBreakdownService,
         RejectionBreakdownService $rejectionBreakdownService,
-        MaintenanceBreakdownService $maintenanceBreakdownService
+        MaintenanceBreakdownService $maintenanceBreakdownService,
+        FilteringService $filteringService
     ) {
         $this->performanceDataService    = $performanceDataService;
         $this->safetyDataService         = $safetyDataService;
         $this->delayBreakdownService     = $delayBreakdownService;
         $this->rejectionBreakdownService = $rejectionBreakdownService;
         $this->maintenanceBreakdownService = $maintenanceBreakdownService;
+        $this->filteringService = $filteringService;
     }
 
     public function compileSummaries(): array
     {
-        $today            = Carbon::now();
-        $currentWeekStart = $today->copy()->startOfWeek(Carbon::SUNDAY);
-        $currentWeekEnd   = $today->copy()->endOfWeek(Carbon::SATURDAY);
-        //$rollingStart     = $currentWeekStart->copy()->subWeeks(5);
-        //$rollingEnd       = $currentWeekEnd;
-        $rollingStart     = Carbon::parse('2025-02-16')->startOfDay();
-        $rollingEnd       = Carbon::parse('2025-03-29')->endOfDay();
-
-        $summaries = [
-            'yesterday' => [
-                'performance' => $this->performanceDataService->getPerformanceData(
-                    Carbon::yesterday()->startOfDay(),
-                    Carbon::yesterday()->endOfDay(),
-                    'yesterday'
-                ),
-                'safety'      => $this->safetyDataService->getSafetyData(
-                    Carbon::yesterday()->startOfDay(),
-                    Carbon::yesterday()->endOfDay()
-                ),
-                'date_range'  => [
-                    'start' => Carbon::yesterday()->startOfDay()->format('Y-m-d'),
-                    'end'   => Carbon::yesterday()->endOfDay()->format('Y-m-d')
-                ]
-            ],
-            'current_week' => [
-                'performance' => $this->performanceDataService->getPerformanceData(
-                    $currentWeekStart->copy()->startOfDay(),
-                    $currentWeekEnd->copy()->endOfDay(),
-                    'current_week'
-                ),
-                'safety'      => $this->safetyDataService->getSafetyData(
-                    $currentWeekStart->copy()->startOfDay(),
-                    $currentWeekEnd->copy()->endOfDay()
-                ),
-                'date_range'  => [
-                    'start' => $currentWeekStart->copy()->format('Y-m-d'),
-                    'end'   => $currentWeekEnd->copy()->format('Y-m-d')
-                ]
-            ],
-            'rolling_6_weeks' => [
-                'performance' => $this->performanceDataService->getPerformanceData(
-                    $rollingStart->copy()->startOfDay(),
-                    $rollingEnd->copy()->endOfDay(),
-                    'rolling_6_weeks'
-                ),
-                'safety'      => $this->safetyDataService->getSafetyData(
-                    $rollingStart->copy()->startOfDay(),
-                    $rollingEnd->copy()->endOfDay()
-                ),
-                'date_range'  => [
-                    'start' => $rollingStart->copy()->format('Y-m-d'),
-                    'end'   => $rollingEnd->copy()->format('Y-m-d')
-                ]
-            ],
-            'quarterly' => [
-                'performance' => $this->performanceDataService->getPerformanceData(
-                    $today->copy()->subMonths(3)->startOfDay(),
-                    $today->copy()->endOfDay(),
-                    'quarterly'
-                ),
-                'safety'      => $this->safetyDataService->getSafetyData(
-                    $today->copy()->subMonths(3)->startOfDay(),
-                    $today->copy()->endOfDay()
-                )
-            ],
+        // Get date filter from request, default to 'yesterday' instead of 'full'
+        $dateFilter = $this->filteringService->getDateFilter('yesterday');
+        
+        // Get date range based on filter
+        $dateRange = [];
+        $now = Carbon::now();
+        
+        switch ($dateFilter) {
+            case 'yesterday':
+                $startDate = Carbon::yesterday()->startOfDay();
+                $endDate = Carbon::yesterday()->endOfDay();
+                $label = 'Yesterday';
+                break;
+                
+            case 'current-week':
+                $startDate = $now->copy()->startOfWeek(Carbon::SUNDAY)->startOfDay();
+                $endDate = $now->copy()->endOfWeek(Carbon::SATURDAY)->endOfDay();
+                $label = 'Current Week';
+                break;
+                
+            case '6w':
+                $startDate = $now->copy()->startOfWeek(Carbon::SUNDAY)->subWeeks(5)->startOfDay();
+                $endDate = $now->copy()->endOfWeek(Carbon::SATURDAY)->endOfDay();
+                $label = '6 Weeks';
+                break;
+                
+            case 'quarterly':
+                $startDate = $now->copy()->subMonths(3)->startOfDay();
+                $endDate = $now->copy()->endOfDay();
+                $label = 'Quarterly';
+                break;
+                
+            default:
+                // Default to yesterday if an invalid filter is provided
+                $startDate = Carbon::yesterday()->startOfDay();
+                $endDate = Carbon::yesterday()->endOfDay();
+                $label = 'Yesterday';
+                break;
+        }
+        
+        $dateRange = [
+            'start' => $startDate->format('Y-m-d'),
+            'end' => $endDate->format('Y-m-d'),
+            'label' => $label
         ];
-
-        $isSuperAdmin = is_null(Auth::user()->tenant_id);
-        $tenantSlug   = $isSuperAdmin ? null : Auth::user()->tenant->slug;
-        $tenants      = $isSuperAdmin ? Tenant::all() : [];
-
+        
+        // Get data for the selected date range only
+        // Note: PerformanceDataService will still use a 6-week rolling window for specific metrics
+        $summaries = [
+            'performance' => $this->performanceDataService->getPerformanceData(
+                $startDate,
+                $endDate,
+                $label
+            ),
+            'safety' => $this->safetyDataService->getSafetyData(
+                $startDate,
+                $endDate
+            ),
+            'date_range' => $dateRange
+        ];
+        
+        $isSuperAdmin = Auth::check() && is_null(Auth::user()->tenant_id);
+        $tenantSlug = $isSuperAdmin ? null : (Auth::check() ? Auth::user()->tenant->slug : null);
+        $tenants = $isSuperAdmin ? Tenant::all() : [];
+        
         return [
-            'summaries'           => $summaries,
-            'tenantSlug'          => $tenantSlug,
-            'SuperAdmin'          => $isSuperAdmin,
-            'tenants'             => $tenants,
-            'delayBreakdowns'     => [
-                'yesterday'       => $this->delayBreakdownService->getDelayBreakdown(
-                    Carbon::yesterday()->startOfDay(),
-                    Carbon::yesterday()->endOfDay()
-                ),
-                'current_week'    => $this->delayBreakdownService->getDelayBreakdown(
-                    $currentWeekStart->copy()->startOfDay(),
-                    $currentWeekEnd->copy()->endOfDay()
-                ),
-                'rolling_6_weeks' => $this->delayBreakdownService->getDelayBreakdown(
-                    $rollingStart->copy()->startOfDay(),
-                    $rollingEnd->copy()->endOfDay()
-                ),
-                'quarterly'       => $this->delayBreakdownService->getDelayBreakdown(
-                    $today->copy()->subMonths(3)->startOfDay(),
-                    $today->copy()->endOfDay()
-                ),
-            ],
-            'rejectionBreakdowns' => [
-                'yesterday'       => $this->rejectionBreakdownService->getRejectionBreakdown(
-                    Carbon::yesterday()->startOfDay(),
-                    Carbon::yesterday()->endOfDay()
-                ),
-                'current_week'    => $this->rejectionBreakdownService->getRejectionBreakdown(
-                    $currentWeekStart->copy()->startOfDay(),
-                    $currentWeekEnd->copy()->endOfDay()
-                ),
-                'rolling_6_weeks' => $this->rejectionBreakdownService->getRejectionBreakdown(
-                    $rollingStart->copy()->startOfDay(),
-                    $rollingEnd->copy()->endOfDay()
-                ),
-                'quarterly'       => $this->rejectionBreakdownService->getRejectionBreakdown(
-                    $today->copy()->subMonths(3)->startOfDay(),
-                    $today->copy()->endOfDay()
-                ),
-            ],
-            'maintenanceBreakdowns' => [
-                'yesterday'       => $this->maintenanceBreakdownService->getMaintenanceBreakdown(
-                    Carbon::yesterday()->startOfDay(),
-                    Carbon::yesterday()->endOfDay()
-                ),
-                'current_week'    => $this->maintenanceBreakdownService->getMaintenanceBreakdown(
-                    $currentWeekStart->copy()->startOfDay(),
-                    $currentWeekEnd->copy()->endOfDay()
-                ),
-                'rolling_6_weeks' => $this->maintenanceBreakdownService->getMaintenanceBreakdown(
-                    $rollingStart->copy()->startOfDay(),
-                    $rollingEnd->copy()->endOfDay()
-                ),
-                'quarterly'       => $this->maintenanceBreakdownService->getMaintenanceBreakdown(
-                    $today->copy()->subMonths(3)->startOfDay(),
-                    $today->copy()->endOfDay()
-                ),
-            ],
+            'summaries' => $summaries,
+            'tenantSlug' => $tenantSlug,
+            'SuperAdmin' => $isSuperAdmin,
+            'tenants' => $tenants,
+            'delayBreakdowns' => $this->delayBreakdownService->getDelayBreakdown(
+                $startDate,
+                $endDate
+            ),
+            'rejectionBreakdowns' => $this->rejectionBreakdownService->getRejectionBreakdown(
+                $startDate,
+                $endDate
+            ),
+            'maintenanceBreakdowns' => $this->maintenanceBreakdownService->getMaintenanceBreakdown(
+                $startDate,
+                $endDate
+            ),
+            'dateFilter' => $dateFilter,
+            'dateRange' => $dateRange
         ];
     }
 }

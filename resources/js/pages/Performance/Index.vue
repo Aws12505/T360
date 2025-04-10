@@ -656,4 +656,73 @@ function formatDate(dateString) {
     day: 'numeric' 
   });
 }
+// Add these functions after the other function definitions (around line 550-600)
+function openCreateModal() {
+  formTitle.value = 'Create Performance'
+  formAction.value = 'Create'
+  
+  // Reset the form
+  form.reset()
+  form.clearErrors()
+  
+  // Set default tenant_id for SuperAdmin
+  if (props.SuperAdmin && props.tenants.length > 0) {
+    form.tenant_id = ''
+  }
+  
+  showModal.value = true
+}
+
+function openEditModal(item) {
+  formTitle.value = 'Edit Performance'
+  formAction.value = 'Update'
+  
+  // Reset the form first to clear any previous data
+  form.reset()
+  form.clearErrors()
+  
+  // Populate the form with the item data
+  form.id = item.id
+  form.tenant_id = item.tenant_id
+  form.date = item.date
+  form.acceptance = item.acceptance
+  form.on_time_to_origin = item.on_time_to_origin
+  form.on_time_to_destination = item.on_time_to_destination
+  form.maintenance_variance_to_spend = item.maintenance_variance_to_spend
+  form.open_boc = item.open_boc
+  form.meets_safety_bonus_criteria = item.meets_safety_bonus_criteria
+  form.vcr_preventable = item.vcr_preventable
+  
+  showModal.value = true
+}
+
+function closeModal() {
+  showModal.value = false
+  form.reset()
+  form.clearErrors()
+}
+
+function deletePerformance(id) {
+  performanceToDelete.value = id
+  showDeleteModal.value = true
+}
+
+function confirmDelete() {
+  if (!performanceToDelete.value) return
+  
+  const routeName = props.SuperAdmin
+    ? route('performance.destroy.admin', [performanceToDelete.value])
+    : route('performance.destroy', [props.tenantSlug, performanceToDelete.value])
+  
+  deleteForm.delete(routeName, {
+    onSuccess: () => {
+      successMessage.value = 'Performance deleted successfully.'
+      showDeleteModal.value = false
+      performanceToDelete.value = null
+    },
+    onError: () => {
+      alert('Failed to delete performance record.')
+    }
+  })
+}
 </script>
