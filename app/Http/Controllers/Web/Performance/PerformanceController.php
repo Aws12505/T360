@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Auth;
 /**
  * Class PerformanceController
  *
- * This controller handles performance records including CRUD, import/export,
+ * This controller handles Performance records including CRUD, import/export,
  * and rating calculations. It delegates business logic to PerformanceService.
  *
  * Command:
@@ -22,46 +22,46 @@ use Illuminate\Support\Facades\Auth;
  */
 class PerformanceController extends Controller
 {
-    protected PerformanceService $performanceService;
-    protected PerformanceImportExportService $performanceImportExportService;
+    protected PerformanceService $PerformanceService;
+    protected PerformanceImportExportService $PerformanceImportExportService;
     /**
      * Constructor.
      *
-     * @param PerformanceService $performanceService Service for performance operations.
-     * @param PerformanceImportExportService $performanceImportExportService
+     * @param PerformanceService $PerformanceService Service for Performance operations.
+     * @param PerformanceImportExportService $PerformanceImportExportService
      */
-    public function __construct(PerformanceService $performanceService, PerformanceImportExportService $performanceImportExportService)
+    public function __construct(PerformanceService $PerformanceService, PerformanceImportExportService $PerformanceImportExportService)
     {
-        $this->performanceService = $performanceService;
-        $this->performanceImportExportService = $performanceImportExportService;
+        $this->PerformanceService = $PerformanceService;
+        $this->PerformanceImportExportService = $PerformanceImportExportService;
     }
 
     /**
-     * Display the performance records.
+     * Display the Performance records.
      *
      * @param Request $request
      * @return \Inertia\Response
      */
     public function index(Request $request)
     {
-        $data = $this->performanceService->getPerformanceIndex();
+        $data = $this->PerformanceService->getPerformanceIndex();
         return Inertia::render('Performance/Index', $data);
     }
 
     /**
-     * Store a new performance record.
+     * Store a new Performance record.
      *
      * @param StorePerformanceRequest $request
      * @return \Illuminate\Http\RedirectResponse
      */
     public function store(StorePerformanceRequest $request)
     {
-        $this->performanceService->storePerformance($request->validated());
+        $this->PerformanceService->storePerformance($request->validated());
         return redirect()->back()->with('success', 'Performance saved successfully.');
     }
 
     /**
-     * Update an existing performance record.
+     * Update an existing Performance record.
      *
      * @param UpdatePerformanceRequest $request
      * @param string $tenantSlug
@@ -71,12 +71,12 @@ class PerformanceController extends Controller
     public function update(UpdatePerformanceRequest $request, $tenantSlug, $id)
     {
         
-        $this->performanceService->updatePerformance($id, $request->validated());
+        $this->PerformanceService->updatePerformance($id, $request->validated());
         return redirect()->back()->with('success', 'Performance updated successfully.');
     }
 
     /**
-     * Update a performance record as Admin.
+     * Update a Performance record as Admin.
      *
      * @param UpdatePerformanceRequest $request
      * @param int $id
@@ -85,12 +85,12 @@ class PerformanceController extends Controller
     public function adminUpdate(UpdatePerformanceRequest $request, $id)
     {
         
-        $this->performanceService->updatePerformance($id, $request->validated());
+        $this->PerformanceService->updatePerformance($id, $request->validated());
         return redirect()->back()->with('success', 'Performance updated by admin successfully.');
     }
 
     /**
-     * Delete a performance record.
+     * Delete a Performance record.
      *
      * @param string $tenantSlug
      * @param int $id
@@ -98,41 +98,41 @@ class PerformanceController extends Controller
      */
     public function destroy($tenantSlug, $id)
     {
-        $this->performanceService->deletePerformance($id, Auth::user()->tenant_id);
+        $this->PerformanceService->deletePerformance($id, Auth::user()->tenant_id);
         return redirect()->back()->with('success', 'Performance deleted successfully.');
     }
 
     /**
-     * Delete a performance record as Admin.
+     * Delete a Performance record as Admin.
      *
      * @param int $id
      * @return \Illuminate\Http\RedirectResponse
      */
     public function adminDestroy($id)
     {
-        $this->performanceService->deletePerformance($id);
+        $this->PerformanceService->deletePerformance($id);
         return redirect()->back()->with('success', 'Performance deleted by admin.');
     }
 
     /**
-     * Import performance records.
+     * Import Performance records.
      *
      * @param Request $request
      * @return \Illuminate\Http\RedirectResponse
      */
     public function import(Request $request)
     {
-        $this->performanceImportExportService->importPerformances($request);
+        $this->PerformanceImportExportService->importPerformances($request);
         return back()->with('success', 'Performances imported/updated.');
     }
 
     /**
-     * Export performance records.
+     * Export Performance records.
      *
      * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
      */
     public function export()
     {
-        return $this->performanceImportExportService->exportPerformances();
+        return $this->PerformanceImportExportService->exportPerformances();
     }
 }
