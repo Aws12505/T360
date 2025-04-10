@@ -48,7 +48,7 @@ class PerformanceService
         $dateFilter = $this->filteringService->getDateFilter();
         $perPage = $this->filteringService->getPerPage();
         
-        $query = Performance::with('tenant');
+        $query = \App\Models\Performance::with('tenant');
         
         // Apply date filtering
         $dateRange = [];
