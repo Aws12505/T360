@@ -5,8 +5,7 @@ namespace App\Services\Summaries;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use App\Models\MilesDriven;
-use App\Models\RepairOrder;
+use App\Models\PerformanceMetricRule;
 
 class MaintenanceBreakdownService
 {
@@ -21,19 +20,25 @@ class MaintenanceBreakdownService
     {
         // Get total repair orders count
         $repairOrdersCount = DB::table('repair_orders')
-            ->whereBetween('ro_open_date', [$startDate, $endDate]);
+            ->whereBetween('ro_open_date', [$startDate, $endDate])
+            ->where(function($query) {
+                $query->where('wo_status', '!=', 'Canceled')
+                      ->orWhereNull('wo_status');
+            });
             
         if (Auth::check() && Auth::user()->tenant_id !== null) {
             $repairOrdersCount->where('tenant_id', Auth::user()->tenant_id);
         }
         
         $totalRepairOrders = $repairOrdersCount->count();
-        
-        
         // Get sum of invoice_amount where wo_number isn't null
         $totalInvoiceAmountQuery = DB::table('repair_orders')
             ->whereNotNull('wo_number')
-            ->whereBetween('ro_open_date', [$startDate, $endDate]);
+            ->whereBetween('ro_open_date', [$startDate, $endDate])
+            ->where(function($query) {
+                $query->where('wo_status', '!=', 'Canceled')
+                      ->orWhereNull('wo_status');
+            });
             
         if (Auth::check() && Auth::user()->tenant_id !== null) {
             $totalInvoiceAmountQuery->where('tenant_id', Auth::user()->tenant_id);
@@ -45,7 +50,11 @@ class MaintenanceBreakdownService
         // Get sum of invoice_amount where wo_number isn't null and on_qs is true
         $qsInvoiceAmountQuery = DB::table('repair_orders')
             ->where('on_qs', true)
-            ->whereBetween('qs_invoice_date', [$startDate, $endDate]);
+            ->whereBetween('qs_invoice_date', [$startDate, $endDate])
+            ->where(function($query) {
+                $query->where('wo_status', '!=', 'Canceled')
+                      ->orWhereNull('wo_status');
+            });
             
         if (Auth::check() && Auth::user()->tenant_id !== null) {
             $qsInvoiceAmountQuery->where('tenant_id', Auth::user()->tenant_id);
@@ -71,6 +80,10 @@ class MaintenanceBreakdownService
             ->where(function($query) use ($startDate, $endDate) {
                 $query->whereBetween('repair_orders.ro_open_date', [$startDate, $endDate])
                       ->orWhereNull('repair_orders.ro_open_date');
+            })
+            ->where(function($query) {
+                $query->where('repair_orders.wo_status', '!=', 'Canceled')
+                      ->orWhereNull('repair_orders.wo_status');
             });
             
         if (Auth::check() && Auth::user()->tenant_id !== null) {
@@ -89,7 +102,10 @@ class MaintenanceBreakdownService
             ->select('trucks.truckid', DB::raw('COUNT(repair_orders.id) as work_order_count'))
             ->join('trucks', 'repair_orders.truck_id', '=', 'trucks.id')
             ->whereNotNull('repair_orders.wo_number')
-            ->where('repair_orders.wo_status', '!=', 'Canceled')
+            ->where(function($query) {
+                $query->where('repair_orders.wo_status', '!=', 'Canceled')
+                      ->orWhereNull('repair_orders.wo_status');
+            })
             ->whereBetween('repair_orders.ro_open_date', [$startDate, $endDate])
             ->groupBy('trucks.truckid')
             ->orderBy('work_order_count', 'desc');
@@ -103,8 +119,14 @@ class MaintenanceBreakdownService
         // Calculate CPM (Cost Per Mile) metrics
         $cpm = $totalMiles > 0 ? $totalInvoiceAmount / $totalMiles : 0;
         $qsCpm = $totalMiles > 0 ? $qsInvoiceAmount / $totalMiles : 0;
-        $qsMVtS = $totalMiles > 0 ? ($qsInvoiceAmount / $totalMiles) / 0.135 : 0;
         
+        // Get MVtS divisor from performance metrics or use default value
+        $performanceMetrics = PerformanceMetricRule::first();
+        $mvtsDivisor = ($performanceMetrics && !empty($performanceMetrics->mvts_divisor)) 
+            ? $performanceMetrics->mvts_divisor 
+            : 0.135;
+        
+        $qsMVtS = $totalMiles > 0 ? ($qsInvoiceAmount / $totalMiles) / $mvtsDivisor : 0;
         return [
             'total_repair_orders' => $totalRepairOrders,
             'total_invoice_amount' => $totalInvoiceAmount,

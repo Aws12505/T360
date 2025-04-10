@@ -52,6 +52,7 @@ const operators = [
 // Initialize form with default values using Inertia's useForm helper.
 const form = useForm({
   safety_bonus_eligible_levels: props.entry.safety_bonus_eligible_levels ?? [],
+  mvts_divisor: props.entry.mvts_divisor ?? 0.135,
   ...Object.fromEntries(
     metrics.flatMap(metric =>
       levels.flatMap(level => [
@@ -87,6 +88,12 @@ const submit = () => {
     onSuccess: () => emit('saved'),
   })
 }
+
+// Add a helper function to get operator label
+const getOperatorLabel = (value) => {
+  const op = operators.find(op => op.value === value)
+  return op ? op.label : 'Select operator'
+}
 </script>
 
 <template>
@@ -110,7 +117,9 @@ const submit = () => {
             />
             <Select v-model="form[`${metric}_${level}_operator`]">
               <SelectTrigger class="w-full">
-                <SelectValue :placeholder="form[`${metric}_${level}_operator`] ? operators.find(op => op.value === form[`${metric}_${level}_operator`])?.label : 'Select operator'" />
+                <SelectValue>
+                  {{ getOperatorLabel(form[`${metric}_${level}_operator`]) }}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem v-for="op in operators" :key="op.value" :value="op.value">
@@ -143,7 +152,9 @@ const submit = () => {
             />
             <Select v-model="form[`${metric}_${tier}_operator`]">
               <SelectTrigger class="w-full">
-                <SelectValue :placeholder="form[`${metric}_${tier}_operator`] ? operators.find(op => op.value === form[`${metric}_${tier}_operator`])?.label : 'Select operator'" />
+                <SelectValue>
+                  {{ getOperatorLabel(form[`${metric}_${tier}_operator`]) }}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem v-for="op in operators" :key="op.value" :value="op.value">
@@ -173,6 +184,30 @@ const submit = () => {
               {{ level.replace(/_/g, ' ') }}
             </Label>
           </div>
+        </div>
+      </CardContent>
+    </Card>
+
+    <!-- MVtS Configuration Section -->
+    <Card class="shadow-sm">
+      <CardHeader>
+        <CardTitle>MVtS Configuration</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div class="space-y-2">
+          <Label for="mvts-divisor">MVtS Divisor</Label>
+          <Input
+            id="mvts-divisor"
+            v-model="form.mvts_divisor"
+            type="number"
+            step="0.001"
+            min="0.001"
+            class="w-full md:w-1/3"
+          />
+          <p class="text-sm text-muted-foreground">
+            This value is used to calculate the Maintenance Variance to Standard (MVtS) metric.
+            Default value is 0.135.
+          </p>
         </div>
       </CardContent>
     </Card>

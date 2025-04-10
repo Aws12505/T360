@@ -51,6 +51,15 @@ const safetyMetricsList = [
 ]
 const safetyTiers = ['gold', 'silver', 'not_eligible']
 
+// Map operator codes to human-readable labels
+const operatorLabels = {
+  'less': 'Less than',
+  'less_or_equal': 'Less than or equal to',
+  'equal': 'Equal to',
+  'more_or_equal': 'More than or equal to',
+  'more': 'More than'
+}
+
 // Compute a display object from the metrics data to show each metric as a card.
 const displayMetrics = computed(() => {
   if (!props.metrics) return {}
@@ -59,10 +68,11 @@ const displayMetrics = computed(() => {
   // Process regular metrics
   metricsList.forEach(metric => {
     data[metric] = levels.map(level => {
+      const operatorCode = props.metrics[`${metric}_${level}_operator`] ?? '-'
       return {
         level: level.replace(/_/g, ' '),
         value: props.metrics[`${metric}_${level}`] ?? '-',
-        operator: props.metrics[`${metric}_${level}_operator`] ?? '-',
+        operator: operatorLabels[operatorCode] || operatorCode,
       }
     })
   })
@@ -70,10 +80,11 @@ const displayMetrics = computed(() => {
   // Process safety metrics
   safetyMetricsList.forEach(metric => {
     data[metric] = safetyTiers.map(tier => {
+      const operatorCode = props.metrics[`${metric}_${tier}_operator`] ?? '-'
       return {
         level: tier.replace(/_/g, ' '),
         value: props.metrics[`${metric}_${tier}`] ?? '-',
-        operator: props.metrics[`${metric}_${tier}_operator`] ?? '-',
+        operator: operatorLabels[operatorCode] || operatorCode,
       }
     })
   })
@@ -186,6 +197,25 @@ function closeEditor() {
         </Card>
 
         <!-- Safety Bonus Eligibility Card -->
+        <Card class="col-span-1 md:col-span-2">
+          <CardHeader>
+            <CardTitle>
+              MVtS Configuration
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div class="flex flex-col">
+              <div class="flex items-center justify-between">
+                <span class="font-medium">MVtS Divisor:</span>
+                <span>{{ props.metrics?.mvts_divisor || '0.135' }}</span>
+              </div>
+              <p class="text-sm text-muted-foreground mt-2">
+                This value is used to calculate the Maintenance Variance to Standard (MVtS) metric.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+        
         <Card 
           v-if="displayMetrics.safety_bonus_eligible_levels.length" 
           class="col-span-1 md:col-span-2"

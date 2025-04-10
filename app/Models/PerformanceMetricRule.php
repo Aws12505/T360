@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
  *   and operators for different rating levels (fantastic_plus, fantastic, good, fair, poor).
  * - Safety metrics (driver_distraction, speeding_violation, etc.) have gold, silver, and not_eligible tiers.
  * - safety_bonus_eligible_levels: JSON field storing eligible rating levels for bonus.
+ * - mvts_divisor: Divisor used for calculating MVtS (Maintenance Variance to Standard).
  */
 class PerformanceMetricRule extends Model
 {
@@ -137,5 +138,8 @@ class PerformanceMetricRule extends Model
         'following_distance_silver_operator',
         'following_distance_not_eligible',
         'following_distance_not_eligible_operator',
+        
+        // MVtS Divisor
+        'mvts_divisor',
     ];
 }

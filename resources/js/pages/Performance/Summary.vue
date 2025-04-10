@@ -12,7 +12,6 @@
         </Badge>
       </div>
       
-<<<<<<< HEAD
       <!-- Dashboard Header -->
       <DashboardHeader />
       
@@ -30,85 +29,6 @@
         <OnTimeContent v-if="activeTab === 'on-time'" />
         <AcceptanceContent v-if="activeTab === 'acceptance'" />
         <SafetyContent v-if="activeTab === 'safety'" />
-=======
-      <!-- Display summaries as a responsive grid of cards -->
-      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-        <Card v-for="(summary, range) in summaries" :key="range" class="overflow-hidden">
-          <CardHeader>
-            <CardTitle>{{ formatRange(range) }}</CardTitle>
-            <div class="text-sm text-muted-foreground">Performance & Safety Summary</div>
-            <!-- Add date range display -->
-            <div class="text-xs text-muted-foreground mt-1">
-              {{ getDateRangeDisplay(range) }}
-            </div>
-          </CardHeader>
-          
-          <CardContent>
-            <!-- Performance Data Section -->
-            <div class="space-y-4">
-              <div v-for="(value, key) in summary.performance.data" :key="key" class="space-y-1">
-                <div class="flex justify-between text-sm">
-                  <span class="capitalize text-muted-foreground">{{ formatKey(key) }}</span>
-                  <span class="font-medium">{{ formatValue(key, value) }}</span>
-                </div>
-                <div>
-                  <Badge :variant="getBadgeVariant(summary.performance.ratings[normalizeKey(key)])">
-                    {{ summary.performance.ratings[normalizeKey(key)] || 'N/A' }}
-                  </Badge>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Safety Data Section -->
-            <div class="my-4 h-px bg-border"></div>
-            <h3 class="text-sm font-semibold mb-3">Safety Summary</h3>
-            
-            <!-- Basic Safety Metrics -->
-            <div class="space-y-2 mb-4">
-              <div v-for="(value, key) in getBasicSafetyMetrics(summary.safety)" :key="'safety-' + key" 
-                class="flex justify-between text-sm">
-                <span class="capitalize text-muted-foreground">{{ formatKey(key) }}</span>
-                <span class="font-medium">{{ formatValue(key, value) }}</span>
-              </div>
-            </div>
-            
-            <!-- Safety Violation Ratings -->
-            <div v-if="summary.safety.ratings" class="space-y-3 mt-4">
-              <h4 class="text-xs font-medium text-muted-foreground">Violation Ratings</h4>
-              <div class="grid grid-cols-2 gap-2">
-                <div v-for="(rating, violation) in summary.safety.ratings" :key="violation" 
-                  class="border rounded p-2">
-                  <div class="text-xs text-muted-foreground">{{ formatKey(violation) }}</div>
-                  <div class="flex items-center justify-between mt-1">
-                    <Badge :variant="getSafetyBadgeVariant(rating)">
-                      {{ rating }}
-                    </Badge>
-                    <span class="text-xs font-medium">
-                      {{ formatRateValue(summary.safety.rates, violation) }}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Rejection, Delay & Maintenance Breakdown Links -->
-            <div v-if="rejectionBreakdowns?.[range] || delayBreakdowns?.[range] || maintenanceBreakdowns?.[range]" class="mt-4 flex flex-wrap gap-2">
-              <Button v-if="rejectionBreakdowns?.[range]" variant="outline" size="sm" @click="showRejectionDetails(range)">
-                <Icon name="x-circle" class="mr-1 h-3 w-3" />
-                Rejections
-              </Button>
-              <Button v-if="delayBreakdowns?.[range]" variant="outline" size="sm" @click="showDelayDetails(range)">
-                <Icon name="clock" class="mr-1 h-3 w-3" />
-                Delays
-              </Button>
-              <Button v-if="maintenanceBreakdowns?.[range]" variant="outline" size="sm" @click="showMaintenanceDetails(range)">
-                <Icon name="wrench" class="mr-1 h-3 w-3" />
-                Maintenance
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
->>>>>>> 8195deb297ecee7e52764790c20559d04ae88f14
       </div>
     </div>
   </AppLayout>

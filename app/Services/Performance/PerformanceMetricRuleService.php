@@ -64,6 +64,10 @@ class PerformanceMetricRuleService{
         
         $rules['safety_bonus_eligible_levels'] = ['nullable', 'array'];
         $rules['safety_bonus_eligible_levels.*'] = ['in:fantastic_plus,fantastic,good,fair,poor'];
+        
+        // Add MVtS divisor validation rule
+        $rules['mvts_divisor'] = ['required', 'numeric', 'min:0.001'];
+        
         return $rules;
     }
 }
