@@ -39,6 +39,54 @@ class SafetyDataService
         // Get the performance metric rules
         $rules = PerformanceMetricRule::first();
 
+        // Get top 5 drivers by score
+        $topDriversQuery = DB::table('safety_data')
+            ->select('driver_name', DB::raw('AVG(driver_score) as average_score'))
+            ->whereBetween('date', [$startDate, $endDate])
+            ->whereNotNull('driver_name')
+            ->where('driver_name', '!=', '');
+
+        if (Auth::check() && Auth::user()->tenant_id !== null) {
+            $topDriversQuery->where('tenant_id', Auth::user()->tenant_id);
+        }
+
+        $topDrivers = $topDriversQuery
+            ->groupBy('driver_name')
+            ->orderBy('average_score', 'desc')
+            ->limit(5)
+            ->get()
+            ->map(function($driver, $index) {
+                return [
+                    'name' => $driver->driver_name,
+                    'score' => round($driver->average_score, 1),
+                    'rank' => $index + 1
+                ];
+            });
+
+        // Get bottom 5 drivers by score
+        $bottomDriversQuery = DB::table('safety_data')
+            ->select('driver_name', DB::raw('AVG(driver_score) as average_score'))
+            ->whereBetween('date', [$startDate, $endDate])
+            ->whereNotNull('driver_name')
+            ->where('driver_name', '!=', '');
+
+        if (Auth::check() && Auth::user()->tenant_id !== null) {
+            $bottomDriversQuery->where('tenant_id', Auth::user()->tenant_id);
+        }
+
+        $bottomDrivers = $bottomDriversQuery
+            ->groupBy('driver_name')
+            ->orderBy('average_score', 'asc')
+            ->limit(5)
+            ->get()
+            ->map(function($driver, $index) {
+                return [
+                    'name' => $driver->driver_name,
+                    'score' => round($driver->average_score, 1),
+                    'rank' => $index + 1
+                ];
+            });
+
         return [
             'traffic_light_violation'       => $safetyData->traffic_light_violation ?? 0,
             'speeding_violations'           => $safetyData->speeding_violations ?? 0,
@@ -48,6 +96,8 @@ class SafetyDataService
             'average_driver_score'          => $safetyData->average_driver_score ?? 0,
             'total_minutes_analyzed'        => $safetyData->total_minutes_analyzed ?? 0,
             'total_hours'                   => $totalHours,
+            'top_drivers'                   => $topDrivers,
+            'bottom_drivers'                => $bottomDrivers,
             'rates' => [
                 'traffic_light_violation'       => $trafficLightRate,
                 'speeding_violations'           => $speedingRate,

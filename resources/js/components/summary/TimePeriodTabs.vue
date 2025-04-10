@@ -5,7 +5,7 @@
         <button 
           v-for="tab in tabs" 
           :key="tab.id"
-          @click="activeTab = tab.id"
+          @click="handleTabChange(tab.id)"
           class="py-2 px-1 border-b-2 text-sm font-medium transition-colors"
           :class="activeTab === tab.id ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground'"
         >
@@ -17,16 +17,26 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 
 const tabs = [
   { id: 'yesterday', label: 'Yesterday' },
   { id: 'current-week', label: 'Current Week' },
-  { id: 't8w', label: 'T8W Scores' },
+  { id: 't6w', label: 'T6W Scores' },
   { id: 'quarterly', label: 'Quarterly Scores' }
 ];
 
 const activeTab = ref('yesterday');
+const emit = defineEmits(['tab-change']);
 
-defineEmits(['tab-change']);
+// Handle tab change and emit the event to parent
+const handleTabChange = (tabId: string) => {
+  activeTab.value = tabId;
+  emit('tab-change', tabId);
+};
+
+// Emit the default tab on component mount
+onMounted(() => {
+  emit('tab-change', activeTab.value);
+});
 </script>

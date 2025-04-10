@@ -7,11 +7,24 @@
       </div>
       <div class="p-4">
         <ul class="space-y-3">
-          <li v-for="(driver, index) in topDrivers" :key="index" class="flex justify-between items-center">
+          <li v-for="(driver, index) in safetyData.top_drivers || []" :key="index" class="flex justify-between items-center">
             <span>{{ driver.name }}</span>
-            <Badge variant="outline">{{ driver.rank }}</Badge>
+            <Badge variant="outline">{{ driver.score }}</Badge>
+          </li>
+          <li v-if="(safetyData.top_drivers || []).length === 0" class="text-center text-muted-foreground">
+            No data available
           </li>
         </ul>
+        <div class="mt-4 text-right">
+          <Button 
+            variant="link" 
+            size="sm" 
+            class="text-primary"
+            @click="navigateToDetails"
+          >
+            See details...
+          </Button>
+        </div>
       </div>
     </div>
 
@@ -22,9 +35,12 @@
       </div>
       <div class="p-4">
         <ul class="space-y-3">
-          <li v-for="(driver, index) in bottomDrivers" :key="index" class="flex justify-between items-center">
+          <li v-for="(driver, index) in safetyData.bottom_drivers || []" :key="index" class="flex justify-between items-center">
             <span>{{ driver.name }}</span>
-            <Badge variant="outline">{{ driver.rank }}</Badge>
+            <Badge variant="outline">{{ driver.score }}</Badge>
+          </li>
+          <li v-if="(safetyData.bottom_drivers || []).length === 0" class="text-center text-muted-foreground">
+            No data available
           </li>
         </ul>
       </div>
@@ -42,7 +58,7 @@
           :colors="chartColors" 
           index="label"
           :showTooltip="true"
-          :tooltipTemplate="(item : any) => `${item.label}: ${item.value}%`"
+          :tooltipTemplate="(item) => `${item.label}: ${item.value}%`"
           class="max-w-[200px]" 
         />
         <div class="mt-6 w-full space-y-2">
@@ -63,35 +79,66 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { DonutChart } from '@/components/ui/chart-donut';
+import { router } from '@inertiajs/vue3';
 
-// Sample data for top drivers
-const topDrivers = [
-  { name: 'Daniel Rice', rank: 1 },
-  { name: 'Johnny Rice', rank: 2 },
-  { name: 'Michael Johnson', rank: 3 },
-  { name: 'Sarah Williams', rank: 4 },
-  { name: 'David Brown', rank: 5 }
-];
+const props = defineProps({
+  safetyData: {
+    type: Object,
+    default: () => ({})
+  },
+  tenantSlug: {
+    type: String,
+    required: true
+  }
+});
 
-// Sample data for bottom drivers
-const bottomDrivers = [
-  { name: 'James Wilson', rank: 45 },
-  { name: 'Emily Davis', rank: 46 },
-  { name: 'Robert Miller', rank: 47 },
-  { name: 'Jennifer Garcia', rank: 48 },
-  { name: 'Thomas Rodriguez', rank: 49 }
-];
+// Navigate to safety details page
+const navigateToDetails = () => {
+  router.visit(route('safety.index', { tenantSlug: props.tenantSlug }));
+};
 
-// Sample data for the chart
-const chartData = [
-  { label: 'Speeding Violations', value: 40.3 },
-  { label: 'Traffic Light Violation', value: 31.0 },
-  { label: 'Following Distance Hard Brake', value: 15.2 },
-  { label: 'Driver Distraction', value: 8.5 },
-  { label: 'Sign Violations', value: 5.0 }
-];
+// Generate chart data from safety violations
+const chartData = computed(() => {
+  const totalViolations = 
+    (props.safetyData.traffic_light_violation || 0) +
+    (props.safetyData.speeding_violations || 0) +
+    (props.safetyData.following_distance_hard_brake || 0) +
+    (props.safetyData.driver_distraction || 0) +
+    (props.safetyData.sign_violations || 0);
+  
+  if (totalViolations === 0) {
+    return [
+      { label: 'No Data', value: 100 }
+    ];
+  }
+  
+  return [
+    { 
+      label: 'Speeding Violations', 
+      value: totalViolations > 0 ? Math.round((props.safetyData.speeding_violations || 0) / totalViolations * 100 * 10) / 10 : 0 
+    },
+    { 
+      label: 'Traffic Light Violation', 
+      value: totalViolations > 0 ? Math.round((props.safetyData.traffic_light_violation || 0) / totalViolations * 100 * 10) / 10 : 0 
+    },
+    { 
+      label: 'Following Distance', 
+      value: totalViolations > 0 ? Math.round((props.safetyData.following_distance_hard_brake || 0) / totalViolations * 100 * 10) / 10 : 0 
+    },
+    { 
+      label: 'Driver Distraction', 
+      value: totalViolations > 0 ? Math.round((props.safetyData.driver_distraction || 0) / totalViolations * 100 * 10) / 10 : 0 
+    },
+    { 
+      label: 'Sign Violations', 
+      value: totalViolations > 0 ? Math.round((props.safetyData.sign_violations || 0) / totalViolations * 100 * 10) / 10 : 0 
+    }
+  ].filter(item => item.value > 0);
+});
 
 // Color palette for the chart
 const chartColors = [

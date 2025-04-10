@@ -46,7 +46,10 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
-                'user' => $request->user(),
+                'user' => $request->user() ? [
+                    ...$request->user()->toArray(),
+                    'tenant' => $request->user()->tenant_id ? $request->user()->tenant : null,
+                ] : null,
             ],
             'ziggy' => [
                 ...(new Ziggy)->toArray(),

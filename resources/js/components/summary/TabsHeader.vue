@@ -22,7 +22,8 @@ import { ref } from 'vue';
 const tabs = [
   { id: 'on-time', label: 'On-Time' },
   { id: 'acceptance', label: 'Acceptance' },
-  { id: 'safety', label: 'Safety' }
+  { id: 'safety', label: 'Safety' },
+  { id: 'maintenance',label:'Maintenance'},
 ];
 
 const activeTab = ref('on-time');

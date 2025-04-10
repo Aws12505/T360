@@ -32,10 +32,10 @@ class SummariesService
         $this->filteringService = $filteringService;
     }
 
-    public function compileSummaries(): array
+    public function compileSummaries($dateFilter = null): array
     {
-        // Get date filter from request, default to 'yesterday' instead of 'full'
-        $dateFilter = $this->filteringService->getDateFilter('yesterday');
+        // Get date filter from request or use the provided parameter
+        $dateFilter = $dateFilter ?? $this->filteringService->getDateFilter('yesterday');
         
         // Get date range based on filter
         $dateRange = [];
@@ -54,7 +54,7 @@ class SummariesService
                 $label = 'Current Week';
                 break;
                 
-            case '6w':
+            case 't6w':
                 $startDate = $now->copy()->startOfWeek(Carbon::SUNDAY)->subWeeks(5)->startOfDay();
                 $endDate = $now->copy()->endOfWeek(Carbon::SATURDAY)->endOfDay();
                 $label = '6 Weeks';

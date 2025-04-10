@@ -16,16 +16,21 @@
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow v-for="(driver, index) in drivers" :key="index">
-              <TableCell>{{ driver.name }}</TableCell>
-              <TableCell>{{ driver.loadRejections }}</TableCell>
-              <TableCell>{{ driver.blockRejections }}</TableCell>
-              <TableCell>{{ driver.penalty }}</TableCell>
+            <TableRow v-for="(driver, index) in topDrivers" :key="index">
+              <TableCell>{{ driver.driver_name || 'Unknown' }}</TableCell>
+              <TableCell>{{ driver.total_load_rejections }}</TableCell>
+              <TableCell>{{ driver.total_block_rejections }}</TableCell>
+              <TableCell>{{ driver.total_penalty }}</TableCell>
             </TableRow>
           </TableBody>
         </Table>
         <div class="mt-4 text-right">
-          <Button variant="link" size="sm" class="text-primary">
+          <Button 
+            variant="link" 
+            size="sm" 
+            class="text-primary"
+            @click="navigateToDetails"
+          >
             See details...
           </Button>
         </div>
@@ -43,7 +48,8 @@
           :colors="chartColors" 
           index="label"
           category="value"
-        
+          :showTooltip="true"
+          :tooltipTemplate="(item) => `${item.label}: ${item.value}%`"
         />
         <div class="mt-6 w-full grid grid-cols-2 gap-4">
           <div v-for="(item, index) in chartData" :key="index" class="flex items-center">
@@ -60,28 +66,57 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import { 
   Table, TableHeader, TableBody, TableHead, TableRow, TableCell 
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { DonutChart } from '@/components/ui/chart-donut';
+import { router } from '@inertiajs/vue3';
 
-// Sample data for the table
-const drivers = [
-  { name: 'Adam', loadRejections: '3', blockRejections: '2', penalty: '$150' },
-  { name: 'Adam', loadRejections: '2', blockRejections: '1', penalty: '$100' },
-  { name: 'Adam', loadRejections: '4', blockRejections: '0', penalty: '$200' },
-  { name: 'Adam', loadRejections: '1', blockRejections: '3', penalty: '$175' },
-  { name: 'Adam', loadRejections: '2', blockRejections: '2', penalty: '$150' }
-];
+const props = defineProps({
+  rejectionBreakdownsByDriver: {
+    type: Array,
+    default: () => []
+  },
+  rejectionBreakdownsByReason: {
+    type: Array,
+    default: () => []
+  },
+  tenantSlug: {
+    type: String,
+    required: true
+  }
+});
 
-// Sample data for the chart
-const chartData = [
-  { label: 'Mechanical tractors', value: 85 },
-  { label: 'Driver arriving late', value: 8 },
-  { label: 'Medical', value: 4 },
-  { label: 'HOS', value: 3 }
-];
+// Get top 5 drivers with highest total rejections
+const topDrivers = computed(() => {
+  return [...props.rejectionBreakdownsByDriver]
+    .sort((a, b) => b.total_rejections - a.total_rejections)
+    .slice(0, 5);
+});
+
+// Navigate to acceptance details page
+const navigateToDetails = () => {
+  router.visit(route('acceptance.index', { tenantSlug: props.tenantSlug }));
+};
+
+// Generate chart data from rejection breakdowns by reason
+const chartData = computed(() => {
+  // Get top 4 rejection reasons by total
+  const topReasons = [...props.rejectionBreakdownsByReason]
+    .sort((a, b) => b.total_rejections - a.total_rejections)
+    .slice(0, 4);
+  
+  // Calculate total rejections for percentage calculation
+  const totalRejections = topReasons.reduce((sum, reason) => sum + reason.total_rejections, 0);
+  
+  // Convert to chart data format with percentages
+  return topReasons.map(reason => ({
+    label: reason.reason_code || 'Unknown',
+    value: totalRejections > 0 ? Math.round((reason.total_rejections / totalRejections) * 100) : 0
+  }));
+});
 
 // Blue color palette for the chart
 const chartColors = [

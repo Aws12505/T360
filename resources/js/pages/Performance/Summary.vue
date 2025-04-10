@@ -13,30 +13,64 @@
       </div>
       
       <!-- Dashboard Header -->
-      <DashboardHeader />
+      <DashboardHeader :operationalExcellenceScore="operationalExcellenceScore" />
       
       <!-- Time Period Tabs -->
-      <TimePeriodTabs />
+      <TimePeriodTabs @tab-change="handleTimePeriodChange" />
       
       <!-- Performance Cards -->
-      <PerformanceCards />
+      <PerformanceCards 
+        v-if="summaries"
+        :performanceData="summaries.performance?.data || {}"
+        :performanceRatings="summaries.performance?.ratings || {}"
+        :safetyData="summaries.safety || {}"
+        :delayBreakdowns="delayBreakdowns?.by_code || []"
+        :rejectionBreakdowns="rejectionBreakdowns?.by_reason || []"
+        :maintenanceBreakdowns="maintenanceBreakdowns || {}"
+      />
+      
+      <!-- Additional Metrics Card -->
+      <AdditionalMetricsCard 
+        v-if="summaries"
+        :performanceData="summaries.performance?.data || {}"
+        :performanceRatings="summaries.performance?.ratings || {}"
+      />
       
       <!-- Tabs Header -->
       <TabsHeader @tab-change="handleTabChange" />
       
       <!-- Tab Content -->
       <div>
-        <OnTimeContent v-if="activeTab === 'on-time'" />
-        <AcceptanceContent v-if="activeTab === 'acceptance'" />
-        <SafetyContent v-if="activeTab === 'safety'" />
+        <OnTimeContent 
+          v-if="activeTab === 'on-time'" 
+          :delayBreakdownsByDriver="delayBreakdowns?.by_driver || []"
+          :delayBreakdownsByCode="delayBreakdowns?.by_code || []"
+          :tenantSlug="tenantSlug"
+        />
+        <AcceptanceContent 
+          v-if="activeTab === 'acceptance'" 
+          :rejectionBreakdownsByDriver="rejectionBreakdowns?.by_driver || []"
+          :rejectionBreakdownsByReason="rejectionBreakdowns?.by_reason || []"
+          :tenantSlug="tenantSlug"
+        />
+        <SafetyContent 
+          v-if="activeTab === 'safety'" 
+          :safetyData="summaries?.safety || {}"
+          :tenantSlug="tenantSlug"
+        />
+        <MaintenanceContent 
+          v-if="activeTab === 'maintenance'" 
+          :maintenanceData="maintenanceBreakdowns || {}"
+          :tenantSlug="tenantSlug"
+        />
       </div>
     </div>
   </AppLayout>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { Head } from '@inertiajs/vue3';
+import { ref, onMounted, computed } from 'vue';
+import { Head, router } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import Icon from '@/components/Icon.vue';
 import { Badge } from '@/components/ui/badge';
@@ -46,23 +80,47 @@ import TabsHeader from '@/components/summary/TabsHeader.vue';
 import OnTimeContent from '@/components/summary/OnTimeContent.vue';
 import AcceptanceContent from '@/components/summary/AcceptanceContent.vue';
 import SafetyContent from '@/components/summary/SafetyContent.vue';
+import MaintenanceContent from '@/components/summary/MaintenanceContent.vue';
 
 // Import new dashboard components
 import DashboardHeader from '@/components/summary/DashboardHeader.vue';
 import TimePeriodTabs from '@/components/summary/TimePeriodTabs.vue';
 import PerformanceCards from '@/components/summary/PerformanceCards.vue';
+import AdditionalMetricsCard from '@/components/summary/AdditionalMetricsCard.vue';
 
 // Props
 const props = defineProps({
   tenantSlug: String,
+  summaries: Object,
+  delayBreakdowns: Object,
+  rejectionBreakdowns: Object,
+  maintenanceBreakdowns: Object,
+  dateFilter: String,
+  dateRange: Object
 });
 
 // Active tab state
 const activeTab = ref('on-time');
+const currentDateFilter = ref(props.dateFilter || 'yesterday');
 
 // Handle tab change
 const handleTabChange = (tabId: string) => {
   activeTab.value = tabId;
+};
+
+// Handle time period tab change
+const handleTimePeriodChange = (tabId: string) => {
+  currentDateFilter.value = tabId;
+  
+  // Reload the page with the new date filter
+  router.visit(route('dashboard', { 
+    tenantSlug: props.tenantSlug,
+    dateFilter: tabId
+  }), {
+    preserveState: true,
+    preserveScroll: true,
+    only: ['summaries', 'delayBreakdowns', 'rejectionBreakdowns', 'maintenanceBreakdowns', 'dateFilter', 'dateRange']
+  });
 };
 
 // Breadcrumbs for navigation
@@ -78,6 +136,17 @@ const breadcrumbs = [
     href: '#',
   },
 ];
+
+// Helper: Format date for display
+const formatDate = (date: Date) => {
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(date);
+};
 
 // Helper: Get date range display for each summary period
 const getDateRangeDisplay = (range) => {
@@ -131,14 +200,50 @@ const formatDateShort = (date) => {
   }).format(date)
 }
 
-// Helper: Format date for display
-const formatDate = (date: Date) => {
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  }).format(date);
-};
+// Compute operational excellence score based on performance ratings
+const operationalExcellenceScore = computed(() => {
+  if (!props.summaries?.performance?.ratings) return 'Not Available';
+  
+  const ratings = props.summaries.performance.ratings;
+  const ratingValues = {
+    'fantastic_plus': 5,
+    'fantastic': 4,
+    'good': 3,
+    'fair': 2,
+    'poor': 1
+  };
+  
+  // Get all ratings as an array
+  const ratingKeys = [
+    'average_acceptance',
+    'average_on_time',
+    'average_maintenance_variance_to_spend',
+    'open_boc',
+    'vcr_preventable'
+  ];
+  
+  // Find the worst rating
+  let worstRating = 'fantastic_plus';
+  for (const key of ratingKeys) {
+    if (ratings[key] && ratingValues[ratings[key]] < ratingValues[worstRating]) {
+      worstRating = ratings[key];
+    }
+  }
+  
+  // Map the rating to a display value
+  switch (worstRating) {
+    case 'fantastic_plus':
+      return 'Fantastic +';
+    case 'fantastic':
+      return 'Fantastic';
+    case 'good':
+      return 'Good';
+    case 'fair':
+      return 'Fair';
+    case 'poor':
+      return 'Poor';
+    default:
+      return 'Not Available';
+  }
+});
 </script>

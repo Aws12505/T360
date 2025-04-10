@@ -34,11 +34,13 @@ class SummariesController extends Controller
     /**
      * Get performance summaries.
      *
+     * @param Request $request
      * @return \Inertia\Response
      */
-    public function getSummaries()
+    public function getSummaries(Request $request)
     {
-        $data = $this->summariesService->compileSummaries();
+        $dateFilter = $request->input('dateFilter', 'yesterday');
+        $data = $this->summariesService->compileSummaries($dateFilter);
         return Inertia::render('Performance/Summary', $data);
     }
 }

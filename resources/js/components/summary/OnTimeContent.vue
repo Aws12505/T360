@@ -10,20 +10,27 @@
           <TableHeader>
             <TableRow>
               <TableHead>Driver Name</TableHead>
-              <TableHead>OTO</TableHead>
-              <TableHead>OTD</TableHead>
+              <TableHead>Origin Delays</TableHead>
+              <TableHead>Destination Delays</TableHead>
+              <TableHead>Total</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow v-for="(driver, index) in drivers" :key="index">
-              <TableCell>{{ driver.name }}</TableCell>
-              <TableCell>{{ driver.oto }}</TableCell>
-              <TableCell>{{ driver.otd }}</TableCell>
+            <TableRow v-for="(driver, index) in topDrivers" :key="index">
+              <TableCell>{{ driver.driver_name || 'Unknown' }}</TableCell>
+              <TableCell>{{ driver.total_origin_delays }}</TableCell>
+              <TableCell>{{ driver.total_destination_delays }}</TableCell>
+              <TableCell>{{ driver.total_delays }}</TableCell>
             </TableRow>
           </TableBody>
         </Table>
         <div class="mt-4 text-right">
-          <Button variant="link" size="sm" class="text-primary">
+          <Button 
+            variant="link" 
+            size="sm" 
+            class="text-primary"
+            @click="navigateToDetails"
+          >
             See details...
           </Button>
         </div>
@@ -42,9 +49,8 @@
           :colors="chartColors" 
           index="label"
           :showTooltip="true"
-          :tooltipTemplate="(item : any) => `${item.label}: ${item.value}%`"
+          :tooltipTemplate="(item) => `${item.label}: ${item.value}%`"
           class="max-w-[500px]" 
-          
         />
         <div class="mt-6 w-full grid grid-cols-2 gap-4">
           <div v-for="(item, index) in chartData" :key="index" class="flex items-center">
@@ -61,28 +67,57 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import { 
   Table, TableHeader, TableBody, TableHead, TableRow, TableCell 
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { DonutChart } from '@/components/ui/chart-donut';
+import { router } from '@inertiajs/vue3';
 
-// Sample data for the table
-const drivers = [
-  { name: 'John Doe', oto: '95%', otd: '92%' },
-  { name: 'Jane Smith', oto: '93%', otd: '90%' },
-  { name: 'Mike Johnson', oto: '97%', otd: '95%' },
-  { name: 'Sarah Williams', oto: '91%', otd: '89%' },
-  { name: 'David Brown', oto: '94%', otd: '93%' }
-];
+const props = defineProps({
+  delayBreakdownsByDriver: {
+    type: Array,
+    default: () => []
+  },
+  delayBreakdownsByCode: {
+    type: Array,
+    default: () => []
+  },
+  tenantSlug: {
+    type: String,
+    required: true
+  }
+});
 
-// Sample data for the chart
-const chartData = [
-  { label: 'Mechanical tractors', value: 90 },
-  { label: 'Driver arriving late', value: 6 },
-  { label: 'Medical', value: 2 },
-  { label: 'HOS', value: 2 }
-];
+// Get top 5 drivers with highest total delays
+const topDrivers = computed(() => {
+  return [...props.delayBreakdownsByDriver]
+    .sort((a, b) => b.total_delays - a.total_delays)
+    .slice(0, 5);
+});
+
+// Navigate to on-time details page
+const navigateToDetails = () => {
+  router.visit(route('ontime.index', { tenantSlug: props.tenantSlug }));
+};
+
+// Chart data computation remains unchanged
+const chartData = computed(() => {
+  // Get top 4 delay codes by total
+  const topCodes = [...props.delayBreakdownsByCode]
+    .sort((a, b) => b.total_delays - a.total_delays)
+    .slice(0, 4);
+  
+  // Calculate total delays for percentage calculation
+  const totalDelays = topCodes.reduce((sum, code) => sum + code.total_delays, 0);
+  
+  // Convert to chart data format with percentages
+  return topCodes.map(code => ({
+    label: code.code || 'Unknown',
+    value: totalDelays > 0 ? Math.round((code.total_delays / totalDelays) * 100) : 0
+  }));
+});
 
 // Blue color palette for the chart
 const chartColors = [
