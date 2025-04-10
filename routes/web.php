@@ -24,5 +24,5 @@ Route::post('/zoho/webhook', [ZohoWebhookController::class, 'handleZohoWebhook']
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
-require __DIR__.'/superAdmin.php';
+require __DIR__.'/superadmin.php';
 require __DIR__.'/tenant.php';
