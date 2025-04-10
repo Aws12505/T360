@@ -461,7 +461,9 @@ const breadcrumbs = [
   },
   {
     title: 'Performance',
-    href: '#'
+    href: props.tenantSlug
+     ? route('performance.index', { tenantSlug: props.tenantSlug })
+      : route('performance.index.admin')
   }
 ]
 

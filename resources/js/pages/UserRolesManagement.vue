@@ -50,10 +50,14 @@ const props = defineProps({
 const { tenantSlug } = props;
 
 // Set up breadcrumbs (if tenantSlug exists, use it to create a tenant-specific dashboard link)
-const breadcrumbs: BreadcrumbItem[] = [
+const breadcrumbs = [
   {
     title: tenantSlug ? 'Dashboard' : 'Admin Dashboard',
     href: tenantSlug ? `/${tenantSlug}/dashboard` : '/dashboard',
+  },
+  {
+    title: 'User Management',
+    href: tenantSlug? `/${tenantSlug}/admin/user-management` : '/admin/user-management',
   },
 ];
 

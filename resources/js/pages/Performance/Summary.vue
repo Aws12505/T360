@@ -133,7 +133,7 @@ const breadcrumbs = [
   },
   {
     title: 'Performance Summary',
-    href: '#',
+    href: route('dashboard', { tenantSlug: props.tenantSlug }),
   },
 ];
 

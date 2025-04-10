@@ -672,6 +672,12 @@ const breadcrumbs = [
       ? route('dashboard', { tenantSlug: props.tenantSlug })
       : route('admin.dashboard')
   },
+  {
+    title: 'Repair Orders',
+    href: props.tenantSlug
+     ? route('repair_orders.index', { tenantSlug: props.tenantSlug })
+      : route('repair_orders.index.admin')
+  }
 ]
 function selectDateFilter(filter) {
   activeTab.value = filter;

@@ -30,6 +30,10 @@ const breadcrumbs = [
     title: tenantSlug ? 'Dashboard' : 'Admin Dashboard',
     href: tenantSlug ? route('dashboard', { tenantSlug }) : route('admin.dashboard'),
   },
+  {
+    title: 'Metrics',
+    href: tenantSlug? route('metrics', { tenantSlug }) : route('admin.metrics'),
+  },
 ]
 
 // Reactive state to control the modal for editing global metrics.

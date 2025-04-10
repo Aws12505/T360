@@ -380,7 +380,9 @@ const breadcrumbs = [
   },
   {
     title: 'Drivers',
-    href: '#',
+    href: props.tenantSlug
+     ? route('drivers.index', { tenantSlug: props.tenantSlug })
+      : route('admin.drivers.index'),
   }
 ];
 

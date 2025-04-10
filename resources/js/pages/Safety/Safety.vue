@@ -116,9 +116,9 @@
       <Card>
         <CardContent class="p-0">
           <div class="overflow-x-auto bg-background dark:bg-background border-t border-border">
-            <Table>
+            <Table class="relative h-[500px] overflow-auto">
               <TableHeader>
-                <TableRow>
+                <TableRow class="sticky top-0 ">
                   <!-- If SuperAdmin, show Tenant column -->
                   <TableHead v-if="SuperAdmin">Company Name</TableHead>
                   <!-- Dynamically render table columns from the tableColumns array -->
@@ -323,7 +323,9 @@ const breadcrumbs = [
   },
   {
     title: 'Safety',
-    href: '#',
+    href: props.tenantSlug
+     ? route('safety.index', { tenantSlug: props.tenantSlug })
+      : route('admin.safety.index')
   }
 ];
 
