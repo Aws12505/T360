@@ -116,4 +116,23 @@ SVG;
         $tenant->update($data);
         return $tenant;
     }
+
+    /**
+     * Delete a tenant.
+     *
+     * @param int $tenantId
+     * @return bool
+     */
+    public function deleteTenant($tenantId)
+    {
+        $tenant = Tenant::findOrFail($tenantId);
+        
+        // Delete tenant image if exists
+        if ($tenant->image_path && Storage::disk('public')->exists($tenant->image_path)) {
+            Storage::disk('public')->delete($tenant->image_path);
+        }
+        
+        // Delete the tenant
+        return $tenant->delete();
+    }
 }
