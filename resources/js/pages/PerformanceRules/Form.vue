@@ -28,7 +28,7 @@ const emit = defineEmits(['saved', 'cancel'])
 
 // Define the levels and metrics used for thresholds.
 const levels = ['fantastic_plus', 'fantastic', 'good', 'fair', 'poor']
-const metrics = ['acceptance', 'on_time', 'maintenance_variance', 'open_boc', 'vcr_preventable']
+const metrics = ['acceptance', 'on_time', 'maintenance_variance', 'open_boc', 'vcr_preventable', 'vmcr_p']
 
 // Define safety metrics and their tiers
 const safetyMetrics = [

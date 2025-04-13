@@ -141,5 +141,17 @@ class PerformanceMetricRule extends Model
         
         // MVtS Divisor
         'mvts_divisor',
+        
+        // VMCR-P
+        'vmcr_p_fantastic_plus',
+        'vmcr_p_fantastic_plus_operator',
+        'vmcr_p_fantastic',
+        'vmcr_p_fantastic_operator',
+        'vmcr_p_good',
+        'vmcr_p_good_operator',
+        'vmcr_p_fair',
+        'vmcr_p_fair_operator',
+        'vmcr_p_poor',
+        'vmcr_p_poor_operator',
     ];
 }

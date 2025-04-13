@@ -82,28 +82,61 @@
       </div>
       
       <div class="space-y-2 text-sm">
-        <div class="flex justify-between">
+        <div class="flex justify-between items-center">
           <span>Traffic Light Violation</span>
-          <span>{{ safetyData.traffic_light_violation }}</span>
+          <div class="flex items-center gap-2">
+            <span>{{ safetyData.traffic_light_violation }}</span>
+            <span class="text-xs text-muted-foreground">({{ formatDecimal(safetyData.rates?.traffic_light_violation) }}/1000h)</span>
+            <Badge :variant="getRatingVariant(safetyData.ratings?.traffic_light_violation)" class="text-xs">
+              {{ formatRating(safetyData.ratings?.traffic_light_violation) }}
+            </Badge>
+          </div>
         </div>
-        <div class="flex justify-between">
+        <div class="flex justify-between items-center">
           <span>Speeding Violations</span>
-          <span>{{ safetyData.speeding_violations }}</span>
+          <div class="flex items-center gap-2">
+            <span>{{ safetyData.speeding_violations }}</span>
+            <span class="text-xs text-muted-foreground">({{ formatDecimal(safetyData.rates?.speeding_violations) }}/1000h)</span>
+            <Badge :variant="getRatingVariant(safetyData.ratings?.speeding_violations)" class="text-xs">
+              {{ formatRating(safetyData.ratings?.speeding_violations) }}
+            </Badge>
+          </div>
         </div>
-        <div class="flex justify-between">
-          <span>Following Distance Hard Brake</span>
-          <span>{{ safetyData.following_distance_hard_brake }}</span>
+        <div class="flex justify-between items-center">
+          <span>Following Distance</span>
+          <div class="flex items-center gap-2">
+            <span>{{ safetyData.following_distance_hard_brake }}</span>
+            <span class="text-xs text-muted-foreground">({{ formatDecimal(safetyData.rates?.following_distance_hard_brake) }}/1000h)</span>
+            <Badge :variant="getRatingVariant(safetyData.ratings?.following_distance)" class="text-xs">
+              {{ formatRating(safetyData.ratings?.following_distance) }}
+            </Badge>
+          </div>
         </div>
-        <div class="flex justify-between">
+        <div class="flex justify-between items-center">
           <span>Driver Distraction</span>
-          <span>{{ safetyData.driver_distraction }}</span>
+          <div class="flex items-center gap-2">
+            <span>{{ safetyData.driver_distraction }}</span>
+            <span class="text-xs text-muted-foreground">({{ formatDecimal(safetyData.rates?.driver_distraction) }}/1000h)</span>
+            <Badge :variant="getRatingVariant(safetyData.ratings?.driver_distraction)" class="text-xs">
+              {{ formatRating(safetyData.ratings?.driver_distraction) }}
+            </Badge>
+          </div>
         </div>
-        <div class="flex justify-between">
+        <div class="flex justify-between items-center">
           <span>Sign Violations</span>
-          <span>{{ safetyData.sign_violations }}</span>
+          <div class="flex items-center gap-2">
+            <span>{{ safetyData.sign_violations }}</span>
+            <span class="text-xs text-muted-foreground">({{ formatDecimal(safetyData.rates?.sign_violations) }}/1000h)</span>
+            <Badge :variant="getRatingVariant(safetyData.ratings?.sign_violations)" class="text-xs">
+              {{ formatRating(safetyData.ratings?.sign_violations) }}
+            </Badge>
+          </div>
         </div>
       </div>
-     
+      
+      <div class="text-sm text-muted-foreground mt-3">
+        <div>Total Hours Analyzed: {{ formatDecimal(safetyData.total_hours || 0) }}</div>
+      </div>
     </div>
   </div>
 </template>

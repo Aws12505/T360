@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Class AreaOfConcern
@@ -14,5 +15,6 @@ use Illuminate\Database\Eloquent\Model;
  */
 class AreaOfConcern extends Model
 {
+    use SoftDeletes;
     protected $fillable = ['concern'];
 }

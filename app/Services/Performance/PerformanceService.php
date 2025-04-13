@@ -93,6 +93,8 @@ class PerformanceService
         $data['open_boc_rating'] = $this->performanceCalculationsService->getRating($data['open_boc'], $rule, 'open_boc');
         $data['meets_safety_bonus_criteria_rating'] = $this->performanceCalculationsService->getSafetyBonusRating($data['meets_safety_bonus_criteria'], $rule);
         $data['vcr_preventable_rating'] = $this->performanceCalculationsService->getRating($data['vcr_preventable'], $rule, 'vcr_preventable');
+        $data['vmcr_p_rating'] = $this->performanceCalculationsService->getRating($data['vmcr_p'], $rule, 'vmcr_p');
+        
         Performance::updateOrCreate(
             ['tenant_id' => $data['tenant_id'], 'date' => $data['date']],
             $data
@@ -119,6 +121,7 @@ class PerformanceService
         $data['open_boc_rating'] = $this->performanceCalculationsService->getRating($data['open_boc'], $rule, 'open_boc');
         $data['meets_safety_bonus_criteria_rating'] = $this->performanceCalculationsService->getSafetyBonusRating($data['meets_safety_bonus_criteria'], $rule);
         $data['vcr_preventable_rating'] = $this->performanceCalculationsService->getRating($data['vcr_preventable'], $rule, 'vcr_preventable');
+        $data['vmcr_p_rating'] = $this->performanceCalculationsService->getRating($data['vmcr_p'], $rule, 'vmcr_p');
 
         $performance = Performance::findOrFail($id);
         $performance->update($data);

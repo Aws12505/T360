@@ -9,9 +9,6 @@ use Illuminate\Support\Facades\Auth;
  * Class UpdatePerformanceRequest
  *
  * Validates data for updating an existing performance record.
- *
- * Command:
- *   php artisan make:request UpdatePerformanceRequest
  */
 class UpdatePerformanceRequest extends FormRequest
 {
@@ -32,6 +29,7 @@ class UpdatePerformanceRequest extends FormRequest
             'open_boc'                        => 'required|integer',
             'meets_safety_bonus_criteria'     => 'required|boolean',
             'vcr_preventable'                 => 'required|integer',
+            'vmcr_p'                          => 'required|integer',
         ];
     }
 

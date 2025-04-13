@@ -13,11 +13,21 @@
         </button>
       </div>
     </div>
+    <div v-if="dateRangeText" class="mt-2 text-sm text-muted-foreground">
+      <span>{{ dateRangeText }}</span>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+
+const props = defineProps({
+  dateRangeText: {
+    type: String,
+    default: ''
+  }
+});
 
 const tabs = [
   { id: 'yesterday', label: 'Yesterday' },

@@ -112,5 +112,38 @@ Route::get('/miles-driven', [MilesDrivenController::class, 'index'])->name('mile
 Route::post('/miles-driven', [MilesDrivenController::class, 'store'])->name('miles_driven.store.admin');
 Route::put('/miles-driven/{milesDriven}', [MilesDrivenController::class, 'updateAdmin'])->name('miles_driven.update.admin');
 Route::delete('/miles-driven/{milesDriven}', [MilesDrivenController::class, 'destroyAdmin'])->name('miles_driven.destroy.admin');
-    
+   
+
+ // Repair Orders
+ Route::post('/repair-orders/{id}/restore', [RepairOrderController::class, 'restore'])->name('repair-orders.restore');
+ Route::delete('/repair-orders/{id}/force', [RepairOrderController::class, 'forceDestroy'])->name('repair-orders.force-destroy');
+ 
+ // Areas of Concern
+ Route::post('/areas-of-concern/{id}/restore', [RepairOrderController::class, 'restoreAreaOfConcern'])->name('areas-of-concern.restore');
+ Route::delete('/areas-of-concern/{id}/force', [RepairOrderController::class, 'forceDestroyAreaOfConcern'])->name('areas-of-concern.force-destroy');
+ Route::get('/areas-of-concern/with-trashed', [RepairOrderController::class, 'getAllAreasOfConcernWithTrashed'])->name('areas-of-concern.with-trashed');
+ 
+ // Vendors
+ Route::post('/vendors/{id}/restore', [RepairOrderController::class, 'restoreVendor'])->name('vendors.restore');
+ Route::delete('/vendors/{id}/force', [RepairOrderController::class, 'forceDestroyVendor'])->name('vendors.force-destroy');
+ Route::get('/vendors/with-trashed', [RepairOrderController::class, 'getAllVendorsWithTrashed'])->name('vendors.with-trashed');
+ 
+ // Rejections
+ Route::post('/rejections/{id}/restore', [RejectionsController::class, 'restore'])->name('rejections.restore');
+ Route::delete('/rejections/{id}/force', [RejectionsController::class, 'forceDestroy'])->name('rejections.force-destroy');
+ 
+ // Rejection Reason Codes
+ Route::post('/rejection-reason-codes/{id}/restore', [RejectionsController::class, 'restoreCode'])->name('rejection-reason-codes.restore');
+ Route::delete('/rejection-reason-codes/{id}/force', [RejectionsController::class, 'forceDestroyCode'])->name('rejection-reason-codes.force-destroy');
+ Route::get('/rejection-reason-codes/with-trashed', [RejectionsController::class, 'getAllCodesWithTrashed'])->name('rejection-reason-codes.with-trashed');
+ 
+ // Delays
+ Route::post('/delays/{id}/restore', [DelaysController::class, 'restore'])->name('delays.restore');
+ Route::delete('/delays/{id}/force', [DelaysController::class, 'forceDestroy'])->name('delays.force-destroy');
+ 
+ // Delay Codes
+ Route::post('/delay-codes/{id}/restore', [DelaysController::class, 'restoreCode'])->name('delay-codes.restore');
+ Route::delete('/delay-codes/{id}/force', [DelaysController::class, 'forceDestroyCode'])->name('delay-codes.force-destroy');
+ Route::get('/delay-codes/with-trashed', [DelaysController::class, 'getAllCodesWithTrashed'])->name('delay-codes.with-trashed');
+
 });

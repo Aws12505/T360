@@ -3,7 +3,8 @@
 namespace App\Services\Performance;
 
 use App\Models\PerformanceMetricRule;
-class PerformanceMetricRuleService{
+class PerformanceMetricRuleService
+{
     /**
      * Get the global performance metric rules.
      *
@@ -33,7 +34,7 @@ class PerformanceMetricRuleService{
     public function getMetricValidationRules(): array
     {
         $performanceLevels = ['fantastic_plus', 'fantastic', 'good', 'fair', 'poor'];
-        $performanceMetrics = ['acceptance', 'on_time', 'maintenance_variance', 'open_boc', 'vcr_preventable'];
+        $performanceMetrics = ['acceptance', 'on_time', 'maintenance_variance', 'open_boc', 'vcr_preventable', 'vmcr_p'];
         
         $safetyLevels = ['gold', 'silver', 'not_eligible'];
         $safetyMetrics = [

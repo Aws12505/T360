@@ -42,7 +42,7 @@ const showForm = ref(false)
 const editing = ref({})
 
 // List of metrics and levels for display.
-const metricsList = ['acceptance', 'on_time', 'maintenance_variance', 'open_boc', 'vcr_preventable']
+const metricsList = ['acceptance', 'on_time', 'maintenance_variance', 'open_boc', 'vcr_preventable', 'vmcr_p']
 const levels = ['fantastic_plus', 'fantastic', 'good', 'fair', 'poor']
 
 // List of safety metrics and tiers for display

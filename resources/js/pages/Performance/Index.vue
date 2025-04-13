@@ -167,6 +167,10 @@
                     <div class="text-xs italic text-gray-500">({{ item.vcr_preventable_rating }})</div>
                   </TableCell>
                   <TableCell>
+                    <div>{{ item.vmcr_p }}</div>
+                    <div class="text-xs italic text-gray-500">({{ item.vmcr_p_rating }})</div>
+                  </TableCell>
+                  <TableCell>
                     <div class="flex space-x-2">
                       <Button @click="openEditModal(item)" variant="warning" size="sm">
                         <Icon name="pencil" class="mr-1 h-4 w-4" />
@@ -475,7 +479,8 @@ const tableColumns = [
   'maintenance_variance_to_spend',
   'open_boc',
   'meets_safety_bonus_criteria',
-  'vcr_preventable'
+  'vcr_preventable',
+  'vmcr_p'
 ]
 
 // Initialize form state using Inertia's useForm helper.
@@ -489,6 +494,7 @@ const form = useForm({
   open_boc: '',
   meets_safety_bonus_criteria: false,
   vcr_preventable: '',
+  vmcr_p: '',
   id: null
 })
 

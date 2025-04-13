@@ -6,13 +6,11 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Auth;
+
 /**
  * Class StorePerformanceRequest
  *
  * Validates data for creating a new performance record.
- *
- * Command:
- *   php artisan make:request StorePerformanceRequest
  */
 class StorePerformanceRequest extends FormRequest
 {
@@ -33,6 +31,7 @@ class StorePerformanceRequest extends FormRequest
             'open_boc'                        => 'required|integer',
             'meets_safety_bonus_criteria'     => 'required|boolean',
             'vcr_preventable'                 => 'required|integer',
+            'vmcr_p'                          => 'required|integer',
         ];
     }
     protected function prepareForValidation()

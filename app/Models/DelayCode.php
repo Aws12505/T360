@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Class DelayCode
@@ -17,6 +18,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class DelayCode extends Model
 {
+    use SoftDeletes;
     protected $fillable = ['code'];
 
     /**

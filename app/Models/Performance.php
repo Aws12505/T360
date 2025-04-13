@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Auth;
  * and their calculated ratings.
  *
  * Properties include:
- * - acceptance, on_time metrics, maintenance_variance_to_spend, open_boc, meets_safety_bonus_criteria, vcr_preventable.
+ * - acceptance, on_time metrics, maintenance_variance_to_spend, open_boc, meets_safety_bonus_criteria, vcr_preventable, vmcr_p.
  * - Calculated rating fields: acceptance_rating, on_time_rating, etc.
  *
  * Relationships:
@@ -40,12 +40,14 @@ class Performance extends Model
         'open_boc',
         'meets_safety_bonus_criteria',
         'vcr_preventable',
+        'vmcr_p',
         'acceptance_rating',
         'on_time_rating',
         'maintenance_variance_to_spend_rating',
         'open_boc_rating',
         'meets_safety_bonus_criteria_rating',
         'vcr_preventable_rating',
+        'vmcr_p_rating',
     ];
 
     /**

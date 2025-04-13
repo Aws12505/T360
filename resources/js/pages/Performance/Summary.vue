@@ -16,7 +16,10 @@
       <DashboardHeader :operationalExcellenceScore="operationalExcellenceScore" />
       
       <!-- Time Period Tabs -->
-      <TimePeriodTabs @tab-change="handleTimePeriodChange" />
+      <TimePeriodTabs 
+        @tab-change="handleTimePeriodChange" 
+        :dateRangeText="currentDateRangeText"
+      />
       
       <!-- Performance Cards -->
       <PerformanceCards 
@@ -102,6 +105,19 @@ const props = defineProps({
 // Active tab state
 const activeTab = ref('on-time');
 const currentDateFilter = ref(props.dateFilter || 'yesterday');
+
+// Compute the current date range text based on the selected filter
+const currentDateRangeText = computed(() => {
+  const filterMap = {
+    'yesterday': 'yesterday',
+    'current-week': 'current_week',
+    't6w': 'rolling_6_weeks',
+    'quarterly': 'quarterly'
+  };
+  
+  const mappedFilter = filterMap[currentDateFilter.value] || currentDateFilter.value;
+  return getDateRangeDisplay(mappedFilter);
+});
 
 // Handle tab change
 const handleTabChange = (tabId: string) => {
