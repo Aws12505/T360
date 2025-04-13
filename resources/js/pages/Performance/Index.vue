@@ -98,9 +98,9 @@
       <Card>
         <CardContent class="p-0">
           <div class="overflow-x-auto">
-            <Table>
+            <Table class="relative h-[600px] overflow-auto">
               <TableHeader>
-                <TableRow>
+                <TableRow class="sticky top-0 bg-background border-b z-10">
                   <TableHead v-if="SuperAdmin">Company Name</TableHead>
                   <TableHead 
                     v-for="col in tableColumns" 
@@ -109,7 +109,7 @@
                     @click="sortBy(col)"
                   >
                     <div class="flex items-center">
-                      {{ col.replace(/_/g, ' ') }}
+                      {{ col.replace(/_/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') }}
                       <div v-if="sortColumn === col" class="ml-2">
                         <svg v-if="sortDirection === 'asc'" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                           <path d="M8 15l4-4 4 4" />
@@ -139,7 +139,7 @@
                   <TableCell v-if="SuperAdmin">
                     {{ item.tenant?.name ?? '—' }}
                   </TableCell>
-                  <TableCell>{{ item.date }}</TableCell>
+                  <TableCell>{{ formatDate(item.date) }}</TableCell>
                   <TableCell>
                     <div>{{ item.acceptance }}</div>
                     <div class="text-xs italic text-gray-500">({{ item.acceptance_rating }})</div>
@@ -657,11 +657,13 @@ function formatDate(dateString) {
   if (!dateString) return '';
   // Create date with timezone adjustment to prevent the one day behind issue
   const date = new Date(dateString + 'T12:00:00'); // Add time component to avoid timezone issues
-  return date.toLocaleDateString('en-US', { 
-    year: 'numeric', 
-    month: 'short', 
-    day: 'numeric' 
-  });
+  
+  // Format as month-day-year manually
+  const month = date.getMonth() + 1; // getMonth is 0-indexed
+  const day = date.getDate();
+  const year = date.getFullYear();
+  
+  return `${month}-${day}-${year}`;
 }
 // Add these functions after the other function definitions (around line 550-600)
 function openCreateModal() {

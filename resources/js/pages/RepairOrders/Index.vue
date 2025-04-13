@@ -166,9 +166,9 @@
       <Card>
         <CardContent class="p-0">
           <div class="overflow-x-auto bg-background dark:bg-background border-t border-border">
-            <Table>
+            <Table class="relative h-[600px] overflow-auto">
               <TableHeader>
-                <TableRow>
+                <TableRow class="sticky top-0 bg-background border-b z-10">
                   <TableHead class="whitespace-nowrap cursor-pointer" @click="sortBy('ro_number')">
                     <div class="flex items-center">
                       RO#
@@ -637,7 +637,7 @@
               <div class="max-h-[300px] overflow-y-auto">
                 <Table>
                   <TableHeader class="sticky top-0 bg-background z-10">
-                    <TableRow>
+                    <TableRow class="sticky top-0 bg-background border-b z-10">
                       <TableHead>Vendor Name</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
