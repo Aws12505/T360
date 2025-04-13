@@ -151,7 +151,7 @@
               manualSorting: true,
               enableColumnFilters: true,
             }"
-          >
+            >
             <template #tableViewOptions="{ table }">
               <DataTableViewOptions :table="table" />
             </template>

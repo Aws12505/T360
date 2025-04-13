@@ -207,9 +207,9 @@
       <Card>
         <CardContent class="p-0">
           <div class="overflow-x-auto">
-            <Table >
+            <Table class="relative h-[500px] overflow-auto">
               <TableHeader>
-                <TableRow>
+                <TableRow class="sticky top-0 bg-background border-b z-10">
                   <TableHead v-if="isSuperAdmin">Company Name</TableHead>
                   <TableHead 
                     v-for="col in tableColumns" 

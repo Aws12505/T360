@@ -96,9 +96,9 @@
       <Card>
         <CardContent class="p-0">
           <div class="overflow-x-auto">
-            <Table>
+            <Table class="relative h-[500px] overflow-auto">
               <TableHeader>
-                <TableRow>
+                <TableRow class="sticky top-0 bg-background border-b z-10">
                   <TableHead v-if="SuperAdmin">Company Name</TableHead>
                   <TableHead 
                     v-for="col in tableColumns" 
@@ -114,7 +114,7 @@
                         Annual Inspection Expiration Date
                       </template>
                       <template v-else>
-                        {{ col.replace(/_/g, ' ') }}
+                        {{ col.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) }}
                       </template>
                       <div v-if="sortColumn === col" class="ml-2">
                         <svg v-if="sortDirection === 'asc'" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -166,7 +166,7 @@
                       {{ formatDate(item[col]) }}
                     </template>
                     <template v-else>
-                      {{ item[col] }}
+                      {{ typeof item[col] === 'string' ? item[col].charAt(0).toUpperCase() + item[col].slice(1) : item[col] }}
                     </template>
                   </TableCell>
                   <TableCell>

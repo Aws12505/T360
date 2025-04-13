@@ -158,9 +158,9 @@
       <Card>
         <CardContent class="p-0">
           <div class="overflow-x-auto">
-            <Table>
+            <Table class="relative h-[500px] overflow-auto">
               <TableHeader>
-                <TableRow>
+                <TableRow class="sticky top-0 bg-background border-b z-10">
                   <TableHead class="w-[50px]">
                     <div class="flex items-center justify-center">
                       <input 
@@ -179,7 +179,7 @@
                     @click="sortBy(col)"
                   >
                     <div class="flex items-center">
-                      {{ col.replace(/_/g, ' ') }}
+                      {{ col.replace(/_/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') }}
                       <div v-if="sortColumn === col" class="ml-2">
                         <svg v-if="sortDirection === 'asc'" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                           <path d="M8 15l4-4 4 4" />

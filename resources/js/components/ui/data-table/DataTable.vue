@@ -59,9 +59,9 @@ function renderCell(column, context) {
 <template>
   <div>
     <div class="rounded-md border border-border/50">
-      <Table>
+      <Table class="relative h-[500px] overflow-auto">
         <TableHeader>
-          <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
+          <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id" class="sticky top-0 bg-background border-b z-10">
             <TableHead v-for="header in headerGroup.headers" :key="header.id">
               <div
                 v-if="!header.isPlaceholder"
