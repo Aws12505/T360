@@ -166,4 +166,31 @@ public function storeCode(StoreRejectionReasonCode $request)
         $this->rejectionReasonCodesService->forceDeleteReasonCode($id);
         return back();
     }
+
+    /**
+     * Delete multiple rejection records.
+     *
+     * @param Request $request
+     * @param string|null $tenantSlug
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function destroyBulk(Request $request, $tenantSlug = null)
+    {
+        $ids = $request->input('ids', []);
+        $this->rejectionService->deleteMultipleRejections($ids);
+        return redirect()->back()->with('success', 'Rejections deleted successfully.');
+    }
+
+    /**
+     * Delete multiple rejection records as Admin.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function destroyBulkAdmin(Request $request)
+    {
+        $ids = $request->input('ids', []);
+        $this->rejectionService->deleteMultipleRejections($ids);
+        return redirect()->back()->with('success', 'Rejections deleted successfully.');
+    }
 }

@@ -85,12 +85,14 @@ Route::post('/drivers/import', [DriverController::class, 'import'])->name('drive
 Route::get('/drivers/export', [DriverController::class, 'export'])->name('driver.export');
 
         // acceptance routes
+        // Acceptance routes
         Route::get('/acceptance', [RejectionsController::class, 'index'])->name('acceptance.index');
         Route::post('/acceptance', [RejectionsController::class, 'store'])->name('acceptance.store');
         Route::put('/acceptance/{rejection}', [RejectionsController::class, 'update'])->name('acceptance.update');
         Route::delete('/acceptance/{rejection}', [RejectionsController::class, 'destroy'])->name('acceptance.destroy');
+        Route::delete('/acceptance-bulk', [RejectionsController::class, 'destroyBulk'])->name('acceptance.destroyBulk');
     
-    
+       
 // Miles Driven routes
 Route::get('/miles-driven', [MilesDrivenController::class, 'index'])->name('miles_driven.index');
 Route::post('/miles-driven', [MilesDrivenController::class, 'store'])->name('miles_driven.store');

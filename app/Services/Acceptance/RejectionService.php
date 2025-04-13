@@ -119,4 +119,28 @@ class RejectionService
         $rejection = Rejection::findOrFail($id);
         $rejection->delete();
     }
+
+    /**
+     * Delete multiple rejection records.
+     *
+     * @param array $ids Array of rejection IDs to delete
+     * @return void
+     */
+    public function deleteMultipleRejections(array $ids)
+    {
+        if (empty($ids)) {
+            return;
+        }
+        
+        // For security, ensure the user can only delete rejections they have access to
+        $query = Rejection::whereIn('id', $ids);
+        
+        // If not a super admin, restrict to tenant's rejections
+        $user = Auth::user();
+        if (!is_null($user->tenant_id)) {
+            $query->where('tenant_id', $user->tenant_id);
+        }
+        
+        $query->delete();
+    }
 }
