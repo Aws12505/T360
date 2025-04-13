@@ -128,9 +128,9 @@
         <Card>
           <CardContent class="p-0">
             <div class="overflow-x-auto">
-              <Table>
+              <Table class="relative h-[500px] overflow-auto">
                 <TableHeader>
-                  <TableRow>
+                  <TableRow class="sticky top-0 bg-background border-b z-10">
                     <!-- Company Name column for SuperAdmin -->
                     <TableHead v-if="SuperAdmin" class="whitespace-nowrap">Company Name</TableHead>
                     <TableHead class="whitespace-nowrap cursor-pointer" @click="sortBy('week_start_date')">
