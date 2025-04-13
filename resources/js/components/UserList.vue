@@ -6,7 +6,7 @@
           <tr class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
             <th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Name</th>
             <th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Email</th>
-            <th class="h-12 px-4 text-center align-middle font-medium text-muted-foreground">Actions</th>
+            <th class="h-12 px-4 text-right pr-16 align-middle font-medium text-muted-foreground">Actions</th>
           </tr>
         </thead>
         <tbody class="[&_tr:last-child]:border-0">
@@ -21,8 +21,8 @@
             <td class="p-4 align-middle">
               {{ user.email }}
             </td>
-            <td class="p-4 align-middle text-center">
-              <div class="flex justify-center space-x-2">
+            <td class="p-4 align-middle text-right">
+              <div class="flex justify-end space-x-2">
                 <Button
                   @click="$emit('edit', user)"
                   variant="outline"
