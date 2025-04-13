@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, watch } from 'vue';
 import {
   useVueTable,
   getCoreRowModel,
@@ -22,9 +22,48 @@ const props = defineProps<{
   columns: ColumnDef<any, any>[];
   data: any[];
   options?: Partial<TableOptions<any>>;
+  selectable?: boolean;
+  selectedIds?: any[];
 }>();
 
+const emit = defineEmits(['selectionChange', 'toggleSelectAll']);
+
 const sorting = ref<SortingState>([]);
+const selectedRows = ref<any[]>(props.selectedIds || []);
+
+// Watch for changes in the selectedIds prop
+watch(() => props.selectedIds, (newSelectedIds) => {
+  if (newSelectedIds) {
+    selectedRows.value = [...newSelectedIds];
+  }
+}, { immediate: true });
+
+// Computed property to check if all rows are selected
+const allSelected = computed(() => {
+  return props.data.length > 0 && props.data.every(row => selectedRows.value.includes(row.id));
+});
+
+// Function to toggle select all rows
+function toggleSelectAll(event: Event) {
+  const checked = (event.target as HTMLInputElement).checked;
+  if (checked) {
+    selectedRows.value = props.data.map(row => row.id);
+  } else {
+    selectedRows.value = [];
+  }
+  emit('selectionChange', selectedRows.value);
+}
+
+// Function to toggle selection of a single row
+function toggleRowSelection(rowId: any) {
+  const index = selectedRows.value.indexOf(rowId);
+  if (index === -1) {
+    selectedRows.value.push(rowId);
+  } else {
+    selectedRows.value.splice(index, 1);
+  }
+  emit('selectionChange', selectedRows.value);
+}
 
 const table = useVueTable({
   get data() {
@@ -62,6 +101,17 @@ function renderCell(column, context) {
       <Table class="relative h-[500px] overflow-auto">
         <TableHeader>
           <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id" class="sticky top-0 bg-background border-b z-10">
+            <!-- Add checkbox column for selecting all if selectable prop is true -->
+            <TableHead v-if="selectable" class="w-[50px]">
+              <div class="flex items-center justify-center">
+                <input 
+                  type="checkbox" 
+                  @change="toggleSelectAll" 
+                  :checked="allSelected"
+                  class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                />
+              </div>
+            </TableHead>
             <TableHead v-for="header in headerGroup.headers" :key="header.id">
               <div
                 v-if="!header.isPlaceholder"
@@ -92,6 +142,16 @@ function renderCell(column, context) {
               :key="row.id"
               :data-state="row.getIsSelected() && 'selected'"
             >
+              <!-- Add checkbox for selecting individual row if selectable prop is true -->
+              <TableCell v-if="selectable" class="text-center">
+                <input 
+                  type="checkbox" 
+                  :value="row.original.id" 
+                  @change="toggleRowSelection(row.original.id)"
+                  :checked="selectedRows.includes(row.original.id)"
+                  class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                />
+              </TableCell>
               <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id">
                 <template v-if="cell.column.columnDef.id === 'actions'">
                   <slot name="cell-actions" :cell="renderCell(cell.column.columnDef, cell.getContext())"></slot>
@@ -104,7 +164,7 @@ function renderCell(column, context) {
           </template>
           <template v-else>
             <TableRow>
-              <TableCell :colspan="props.columns.length" class="h-24 text-center">
+              <TableCell :colspan="selectable ? props.columns.length + 1 : props.columns.length" class="h-24 text-center">
                 No results.
               </TableCell>
             </TableRow>

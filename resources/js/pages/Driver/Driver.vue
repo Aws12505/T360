@@ -17,7 +17,15 @@
             <Icon name="plus" class="mr-2 h-4 w-4" />
             Create New Driver
           </Button>
-
+          <!-- Add Delete Selected button -->
+          <Button 
+            v-if="selectedDrivers.length > 0" 
+            @click="confirmDeleteSelected()" 
+            variant="destructive"
+          >
+            <Icon name="trash" class="mr-2 h-4 w-4" />
+            Delete Selected ({{ selectedDrivers.length }})
+          </Button>
           <label class="cursor-pointer">
             <Button variant="secondary" as="span">
               <Icon name="upload" class="mr-2 h-4 w-4" />
@@ -151,7 +159,10 @@
               manualSorting: true,
               enableColumnFilters: true,
             }"
-            >
+            :selectable="true"
+            :selectedIds="selectedDrivers"
+            @selectionChange="handleSelectionChange"
+          >
             <template #tableViewOptions="{ table }">
               <DataTableViewOptions :table="table" />
             </template>
@@ -298,6 +309,25 @@
           </DialogFooter>
         </DialogContent>
       </Dialog>
+<!-- Add Delete Selected Confirmation Dialog -->
+<Dialog v-model:open="showDeleteSelectedModal">
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>Confirm Bulk Deletion</DialogTitle>
+      <DialogDescription>
+        Are you sure you want to delete {{ selectedDrivers.length }} driver records? This action cannot be undone.
+      </DialogDescription>
+    </DialogHeader>
+    <DialogFooter class="mt-4">
+      <Button type="button" @click="showDeleteSelectedModal = false" variant="outline">
+        Cancel
+      </Button>
+      <Button type="button" @click="deleteSelectedDrivers()" variant="destructive">
+        Delete Selected
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
 
       <form ref="exportForm" method="GET" class="hidden" />
     </div>
@@ -349,9 +379,11 @@ const props = defineProps({
 // Add activeTab ref
 const activeTab = ref(props.dateFilter || 'full');
 
-// Add perPage ref
-const perPage = ref(10);
+const perPage = ref(props.perPage || 10);
+// UI state
 
+const selectedDrivers = ref([]);
+const showDeleteSelectedModal = ref(false);
 const successMessage = ref('');
 const showModal = ref(false);
 const showDeleteModal = ref(false);
@@ -692,4 +724,61 @@ function changePerPage() {
     perPage: perPage.value 
   }, { preserveState: true });
 }
+
+
+// Computed property for "Select All" checkbox state
+const isAllSelected = computed(() => {
+  return filteredEntries.value.length > 0 && selectedDrivers.value.length === filteredEntries.value.length;
+});
+
+// Bulk selection functions
+function toggleSelectAll(event) {
+  if (event.target.checked) {
+    selectedDrivers.value = filteredEntries.value.map(driver => driver.id);
+  } else {
+    selectedDrivers.value = [];
+  }
+}
+
+function confirmDeleteSelected() {
+  if (selectedDrivers.value.length > 0) {
+    showDeleteSelectedModal.value = true;
+  }
+}
+
+function deleteSelectedDrivers() {
+  const form = useForm({
+    ids: selectedDrivers.value
+  });
+  
+  const routeName = props.SuperAdmin ? 'driver.destroyBulk.admin' : 'driver.destroyBulk';
+  const routeParams = props.SuperAdmin ? {} : { tenantSlug: props.tenantSlug };
+  
+  form.delete(route(routeName, routeParams), {
+    preserveScroll: true,
+    onSuccess: () => {
+      successMessage.value = `${selectedDrivers.value.length} driver records deleted successfully.`;
+      selectedDrivers.value = [];
+      showDeleteSelectedModal.value = false;
+    },
+    onError: (errors) => {
+      console.error(errors);
+    }
+  });
+}
+
+// Handle selection change from DataTable
+function handleSelectionChange(selectedIds) {
+  selectedDrivers.value = [...selectedIds];
+}
+
+// We can remove this function as it's now handled directly in the DataTable component
+// function handleToggleSelectAll(checked) {
+//   if (checked) {
+//     selectedDrivers.value = filteredEntries.value.map(driver => driver.id);
+//   } else {
+//     selectedDrivers.value = [];
+//   }
+// }
 </script>
+

@@ -91,4 +91,31 @@ class DriverController extends Controller
     {
         return $this->driverImportExportService->exportData();
     }
+
+    /**
+     * Delete multiple driver entries.
+     *
+     * @param Request $request
+     * @param string|null $tenantSlug
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function destroyBulk(Request $request, $tenantSlug = null)
+    {
+        $ids = $request->input('ids', []);
+        $this->driverDataService->deleteMultipleDrivers($ids);
+        return redirect()->back()->with('success', 'Drivers deleted successfully.');
+    }
+    
+    /**
+     * Delete multiple driver entries as Admin.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function destroyBulkAdmin(Request $request)
+    {
+        $ids = $request->input('ids', []);
+        $this->driverDataService->deleteMultipleDrivers($ids);
+        return redirect()->back()->with('success', 'Drivers deleted successfully.');
+    }
 }

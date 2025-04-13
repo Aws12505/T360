@@ -104,6 +104,7 @@ Route::put('/drivers/{driver}', [DriverController::class, 'updateAdmin'])->name(
 Route::delete('/drivers/{driver}', [DriverController::class, 'destroyAdmin'])->name('driver.destroy.admin');
 Route::post('/drivers/import', [DriverController::class, 'import'])->name('driver.import.admin');
 Route::get('/drivers/export', [DriverController::class, 'export'])->name('driver.export.admin');
+Route::delete('/drivers-bulk', [DriverController::class, 'destroyBulkAdmin'])->name('driver.destroyBulk.admin');
 
 
 // Admin repair order routes

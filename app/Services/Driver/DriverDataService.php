@@ -81,4 +81,28 @@ class DriverDataService
         $driver = Driver::findOrFail($id);
         $driver->delete();
     }
+
+    /**
+     * Delete multiple driver entries.
+     *
+     * @param array $ids Array of driver IDs to delete
+     * @return void
+     */
+    public function deleteMultipleDrivers(array $ids)
+    {
+        if (empty($ids)) {
+            return;
+        }
+        
+        // For security, ensure the user can only delete drivers they have access to
+        $query = Driver::whereIn('id', $ids);
+        
+        // If not a super admin, restrict to tenant's drivers
+        $user = Auth::user();
+        if (!is_null($user->tenant_id)) {
+            $query->where('tenant_id', $user->tenant_id);
+        }
+        
+        $query->delete();
+    }
 }

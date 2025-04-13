@@ -81,6 +81,7 @@ Route::get('/drivers', [DriverController::class, 'index'])->name('driver.index')
 Route::post('/drivers', [DriverController::class, 'store'])->name('driver.store');
 Route::put('/drivers/{driver}', [DriverController::class, 'update'])->name('driver.update');
 Route::delete('/drivers/{driver}', [DriverController::class, 'destroy'])->name('driver.destroy');
+Route::delete('/drivers-bulk', [DriverController::class, 'destroyBulk'])->name('driver.destroyBulk');
 Route::post('/drivers/import', [DriverController::class, 'import'])->name('driver.import');
 Route::get('/drivers/export', [DriverController::class, 'export'])->name('driver.export');
 
