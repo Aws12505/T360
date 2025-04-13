@@ -130,6 +130,7 @@
                   <option value="">All Vendors</option>
                   <option v-for="vendor in vendors" :key="vendor.id" :value="vendor.id">
                     {{ vendor.vendor_name }}
+                    <span v-if="vendor.deleted_at">(Deleted)</span>
                   </option>
                 </select>
               </div>
@@ -190,6 +191,7 @@
                   </TableHead>
                   <TableHead class="whitespace-nowrap">Truck</TableHead>
                   <TableHead class="whitespace-nowrap">Vendor</TableHead>
+                  <TableHead class="whitespace-nowrap">Areas of Concern</TableHead>
                   <TableHead class="whitespace-nowrap">WO#</TableHead>
                   <TableHead class="whitespace-nowrap">WO Status</TableHead>
                   <TableHead class="whitespace-nowrap">Invoice</TableHead>
@@ -203,7 +205,7 @@
               </TableHeader>
               <TableBody>
                 <TableRow v-if="repairOrders.data.length === 0">
-                  <TableCell :colspan="SuperAdmin ? 15 : 14" class="text-center py-8">
+                  <TableCell :colspan="SuperAdmin ? 16 : 15" class="text-center py-8">
                     No repair orders found.
                   </TableCell>
                 </TableRow>
@@ -214,7 +216,20 @@
                   <TableCell class="whitespace-nowrap">{{ formatDate(order.ro_open_date) }}</TableCell>
                   <TableCell class="whitespace-nowrap">{{ order.ro_close_date ? formatDate(order.ro_close_date) : 'N/A' }}</TableCell>
                   <TableCell class="whitespace-nowrap">{{ order.truck?.truckid ?? '—' }}</TableCell>
-                  <TableCell class="whitespace-nowrap">{{ order.vendor?.vendor_name ?? '—' }}</TableCell>
+                  <TableCell class="whitespace-nowrap">
+                    {{ order.vendor?.vendor_name ?? '—' }}
+                    <span v-if="order.vendor?.deleted_at" class="ml-1 text-xs text-red-500">(Deleted)</span>
+                  </TableCell>
+                  <TableCell class="whitespace-nowrap">
+  <div v-if="order.areas_of_concern && order.areas_of_concern.length > 0">
+    <span v-for="(area, index) in order.areas_of_concern" :key="area.id" class="inline-block">
+      {{ area.concern }}
+      <span v-if="area.deleted_at" class="text-xs text-red-500">(Deleted)</span>
+      <span v-if="index < order.areas_of_concern.length - 1">, </span>
+    </span>
+  </div>
+  <span v-else>—</span>
+</TableCell>
                   <TableCell class="whitespace-nowrap">{{ order.wo_number }}</TableCell>
                   <TableCell class="whitespace-nowrap">{{ order.wo_status }}</TableCell>
                   <TableCell class="whitespace-nowrap">{{ order.invoice }}</TableCell>
@@ -353,6 +368,7 @@
                   <div v-for="selectedId in form.area_of_concerns" :key="selectedId" 
                        class="bg-primary/10 text-primary px-2 py-1 rounded-md flex items-center text-sm">
                     {{ areasOfConcern.find(a => a.id === selectedId)?.concern }}
+                    <span v-if="areasOfConcern.find(a => a.id === selectedId)?.deleted_at" class="ml-1 text-xs text-red-500">(Deleted)</span>
                     <button type="button" @click="removeAreaOfConcern(selectedId)" class="ml-1 text-primary hover:text-primary/80">
                       <Icon name="x" class="h-3 w-3" />
                     </button>
@@ -369,8 +385,9 @@
                       v-for="area in availableAreasOfConcern" 
                       :key="area.id" 
                       :value="area.id"
+                      :disabled="area.deleted_at"
                     >
-                      {{ area.concern }}
+                      {{ area.concern }} {{ area.deleted_at ? '(Deleted)' : '' }}
                     </option>
                   </select>
                   <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
@@ -394,8 +411,8 @@
               <div class="relative">
                 <select id="vendor_id" v-model="form.vendor_id" required class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none">
                   <option disabled value="">Select a vendor</option>
-                  <option v-for="vendor in vendors" :key="vendor.id" :value="vendor.id">
-                    {{ vendor.vendor_name }}
+                  <option v-for="vendor in vendors" :key="vendor.id" :value="vendor.id" :disabled="vendor.deleted_at">
+                    {{ vendor.vendor_name }} {{ vendor.deleted_at ? '(Deleted)' : '' }}
                   </option>
                 </select>
                 <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
@@ -564,11 +581,22 @@
                       <TableCell colspan="2" class="text-center py-4">No areas of concern found.</TableCell>
                     </TableRow>
                     <TableRow v-for="area in areasOfConcern" :key="area.id">
-                      <TableCell>{{ area.concern }}</TableCell>
                       <TableCell>
-                        <Button @click="deleteAreaOfConcern(area.id)" variant="destructive" size="sm">
-                          <Icon name="trash" class="h-4 w-4" />
-                        </Button>
+                        {{ area.concern }}
+                        <span v-if="area.deleted_at" class="ml-1 text-xs text-red-500">(Deleted)</span>
+                      </TableCell>
+                      <TableCell>
+                        <div class="flex space-x-2">
+                          <Button v-if="area.deleted_at" @click="restoreAreaOfConcern(area.id)" variant="outline" size="sm">
+                            <Icon name="undo" class="h-4 w-4" />
+                          </Button>
+                          <Button v-if="!area.deleted_at" @click="deleteAreaOfConcern(area.id)" variant="destructive" size="sm">
+                            <Icon name="trash" class="h-4 w-4" />
+                          </Button>
+                          <Button v-if="area.deleted_at" @click="forceDeleteAreaOfConcern(area.id)" variant="destructive" size="sm">
+                            <Icon name="x" class="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   </TableBody>
@@ -606,27 +634,40 @@
             
             <!-- List of existing vendors -->
             <div class="border rounded-md overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Vendor Name</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  <TableRow v-if="vendors.length === 0">
-                    <TableCell colspan="2" class="text-center py-4">No vendors found.</TableCell>
-                  </TableRow>
-                  <TableRow v-for="vendor in vendors" :key="vendor.id">
-                    <TableCell>{{ vendor.vendor_name }}</TableCell>
-                    <TableCell>
-                      <Button @click="deleteVendor(vendor.id)" variant="destructive" size="sm">
-                        <Icon name="trash" class="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
+              <div class="max-h-[300px] overflow-y-auto">
+                <Table>
+                  <TableHeader class="sticky top-0 bg-background z-10">
+                    <TableRow>
+                      <TableHead>Vendor Name</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow v-if="vendors.length === 0">
+                      <TableCell colspan="2" class="text-center py-4">No vendors found.</TableCell>
+                    </TableRow>
+                    <TableRow v-for="vendor in vendors" :key="vendor.id">
+                      <TableCell>
+                        {{ vendor.vendor_name }}
+                        <span v-if="vendor.deleted_at" class="ml-1 text-xs text-red-500">(Deleted)</span>
+                      </TableCell>
+                      <TableCell>
+                        <div class="flex space-x-2">
+                          <Button v-if="vendor.deleted_at" @click="restoreVendor(vendor.id)" variant="outline" size="sm">
+                            <Icon name="undo" class="h-4 w-4" />
+                          </Button>
+                          <Button v-if="!vendor.deleted_at" @click="deleteVendor(vendor.id)" variant="destructive" size="sm">
+                            <Icon name="trash" class="h-4 w-4" />
+                          </Button>
+                          <Button v-if="vendor.deleted_at" @click="forceDeleteVendor(vendor.id)" variant="destructive" size="sm">
+                            <Icon name="x" class="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
             </div>
           </div>
           
@@ -679,18 +720,7 @@ const breadcrumbs = [
       : route('repair_orders.index.admin')
   }
 ]
-function selectDateFilter(filter) {
-  activeTab.value = filter;
-  
-  const routeName = props.tenantSlug 
-    ? route('repair_orders.index', { tenantSlug: props.tenantSlug }) 
-    : route('repair_orders.index.admin');
-    
-  router.get(routeName, { 
-    dateFilter: filter,
-    perPage: perPage.value 
-  }, { preserveState: true });
-}
+
 // State variables
 const successMessage = ref('')
 const showModal = ref(false)
@@ -702,6 +732,8 @@ const formAction = ref('Create')
 const repairOrderToDelete = ref(null)
 const sortColumn = ref('ro_number')
 const sortDirection = ref('asc')
+const activeTab = ref(props.dateFilter || 'full')
+const perPage = ref(10)
 
 // Filters
 const filters = ref({
@@ -748,7 +780,6 @@ const availableAreasOfConcern = computed(() => {
 })
 
 // Methods for repair orders
-
 const openCreateModal = () => {
   // Completely reset the form to default values
   form.reset()
@@ -791,11 +822,10 @@ const openEditModal = (order) => {
   form.dispute_outcome = order.dispute_outcome || ''
   form.repairs_made = order.repairs_made || ''
   
-  // Handle areas of concern with better error checking
+  // Handle areas of concern with better error checking - use areas_of_concern (snake_case)
   form.area_of_concerns = []
-  if (order.areasOfConcern && Array.isArray(order.areasOfConcern)) {
-    form.area_of_concerns = order.areasOfConcern.map(area => area.id)
-  } else if (order.areas_of_concern && Array.isArray(order.areas_of_concern)) {
+  if (order.areas_of_concern && Array.isArray(order.areas_of_concern)) {
+    // Extract just the IDs from the areas_of_concern relationship
     form.area_of_concerns = order.areas_of_concern.map(area => area.id)
   }
   
@@ -878,25 +908,19 @@ const deleteAreaOfConcern = (id) => {
     router.delete(route('area_of_concerns.destroy.admin', id))
   }
 }
-function changePerPage() {
-  const routeName = props.tenantSlug 
-    ? route('repair_orders.index', { tenantSlug: props.tenantSlug }) 
-    : route('repair_orders.index.admin');
-    
-  router.get(routeName, { 
-    dateFilter: activeTab.value,
-    perPage: perPage.value 
-  }, { preserveState: true });
+
+const restoreAreaOfConcern = (id) => {
+  if (confirm('Are you sure you want to restore this area of concern?')) {
+    router.post(route('area_of_concerns.restore.admin', id))
+  }
 }
 
-// Format date string helper function
-function formatDate(dateStr) {
-  if (!dateStr) return '';
-  const parts = dateStr.split('-');
-  if (parts.length !== 3) return dateStr;
-  const [year, month, day] = parts;
-  return `${Number(month)}/${Number(day)}/${year}`;
+const forceDeleteAreaOfConcern = (id) => {
+  if (confirm('Are you sure you want to permanently delete this area of concern? This action cannot be undone.')) {
+    router.delete(route('area_of_concerns.forceDelete.admin', id))
+  }
 }
+
 // Methods for vendors
 const openVendorsModal = () => {
   vendorForm.reset()
@@ -914,6 +938,18 @@ const submitVendorForm = () => {
 const deleteVendor = (id) => {
   if (confirm('Are you sure you want to delete this vendor?')) {
     router.delete(route('vendors.destroy.admin', id))
+  }
+}
+
+const restoreVendor = (id) => {
+  if (confirm('Are you sure you want to restore this vendor?')) {
+    router.post(route('vendors.restore.admin', id))
+  }
+}
+
+const forceDeleteVendor = (id) => {
+  if (confirm('Are you sure you want to permanently delete this vendor? This action cannot be undone.')) {
+    router.delete(route('vendors.forceDelete.admin', id))
   }
 }
 
@@ -982,6 +1018,32 @@ const resetFilters = () => {
   applyFilters()
 }
 
+// Date filtering
+const selectDateFilter = (filter) => {
+  activeTab.value = filter
+  
+  const routeName = props.tenantSlug 
+    ? route('repair_orders.index', { tenantSlug: props.tenantSlug }) 
+    : route('repair_orders.index.admin')
+    
+  router.get(routeName, { 
+    dateFilter: filter,
+    perPage: perPage.value 
+  }, { preserveState: true })
+}
+
+// Pagination
+const changePerPage = () => {
+  const routeName = props.tenantSlug 
+    ? route('repair_orders.index', { tenantSlug: props.tenantSlug }) 
+    : route('repair_orders.index.admin')
+    
+  router.get(routeName, { 
+    dateFilter: activeTab.value,
+    perPage: perPage.value 
+  }, { preserveState: true })
+}
+
 // Import/Export
 const handleImport = (event) => {
   const file = event.target.files[0]
@@ -1012,17 +1074,20 @@ const exportCSV = () => {
     : route('repair_orders.export', props.tenantSlug)
 }
 
-
+// Helper functions
+const formatDate = (dateStr) => {
+  if (!dateStr) return ''
+  const parts = dateStr.split('-')
+  if (parts.length !== 3) return dateStr
+  const [year, month, day] = parts
+  return `${Number(month)}/${Number(day)}/${year}`
+}
 
 const formatCurrency = (amount) => {
   if (!amount) return '$0.00'
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount)
 }
-// Add activeTab ref
-const activeTab = ref(props.dateFilter || 'full');
 
-// Add perPage ref
-const perPage = ref(10);
 // Initialize component
 onMounted(() => {
   // Any initialization code can go here

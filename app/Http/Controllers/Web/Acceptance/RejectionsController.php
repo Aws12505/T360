@@ -142,4 +142,28 @@ public function storeCode(StoreRejectionReasonCode $request)
         $this->rejectionReasonCodesService->deleteReasonCode($id);
         return back();
     }
+
+    /**
+     * Restore a soft-deleted rejection reason code.
+     *
+     * @param int $id
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function restoreCode($id)
+    {
+        $this->rejectionReasonCodesService->restoreReasonCode($id);
+        return back();
+    }
+
+    /**
+     * Permanently force delete a rejection reason code.
+     *
+     * @param int $id
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function forceDeleteCode($id)
+    {
+        $this->rejectionReasonCodesService->forceDeleteReasonCode($id);
+        return back();
+    }
 }

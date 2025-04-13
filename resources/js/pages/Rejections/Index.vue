@@ -255,6 +255,7 @@
                     </template>
                     <template v-else-if="col === 'reason_code'">
                       {{ rejection.reason_code?.reason_code || '—' }}
+                      <span v-if="rejection.reason_code?.deleted_at" class="ml-1 text-xs text-red-500">(Deleted)</span>
                     </template>
                     <template v-else-if="col === 'disputed'">
                       {{ rejection[col] ? 'Yes' : 'No' }}
@@ -368,36 +369,59 @@
                   class="flex items-center justify-between p-3 border rounded-md hover:bg-muted/50 group"
                 >
                   <div class="flex-1 cursor-pointer" @click="editCode(code)">
-                    <div class="font-medium">{{ code.reason_code }}</div>
+                    <div class="font-medium">
+                      {{ code.reason_code }}
+                      <span v-if="code.deleted_at" class="ml-2 text-xs text-red-500">(Deleted)</span>
+                    </div>
                     <div v-if="code.description" class="text-sm text-muted-foreground mt-1">
                       {{ code.description }}
                     </div>
                   </div>
                   <div class="opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button @click="confirmDeleteCode(code.id)" size="sm" variant="ghost" class="h-8 w-8 p-0 text-destructive hover:text-destructive/90 hover:bg-destructive/10">
-                      <Icon name="trash" class="h-4 w-4" />
-                      <span class="sr-only">Delete</span>
-                    </Button>
+                    <template v-if="isSuperAdmin">
+                      <template v-if="code.deleted_at">
+                        <Button @click="restoreCode(code.id)" size="sm" variant="outline">
+                          <Icon name="refresh" class="mr-2 h-4 w-4" />
+                          Restore
+                        </Button>
+                        <Button @click="forceDeleteCode(code.id)" size="sm" variant="destructive">
+                          <Icon name="trash" class="mr-2 h-4 w-4" />
+                          Permanently Delete
+                        </Button>
+                      </template>
+                      <template v-else>
+                        <Button @click="confirmDeleteCode(code.id)" size="sm" variant="destructive">
+                          <Icon name="trash" class="mr-2 h-4 w-4" />
+                          Delete
+                        </Button>
+                      </template>
+                    </template>
+                    <template v-else>
+                      <Button @click="confirmDeleteCode(code.id)" size="sm" variant="destructive">
+                        <Icon name="trash" class="mr-2 h-4 w-4" />
+                        Delete
+                      </Button>
+                    </template>
                   </div>
                 </div>
               </div>
             </div>
-            
-            <div v-if="showCodeForm" class="border rounded-md p-4 space-y-4">
-              <h3 class="text-sm font-medium">{{ editingCode ? 'Edit' : 'Add' }} Reason Code</h3>
-              <div class="space-y-3">
-                <div>
-                  <Label for="reason_code">Code</Label>
-                  <Input id="reason_code" v-model="codeForm.reason_code" placeholder="Enter reason code" />
-                </div>
-                <div>
-                  <Label for="description">Description</Label>
-                  <Input id="description" v-model="codeForm.description" placeholder="Enter description" />
-                </div>
-                <div class="flex justify-end space-x-2">
-                  <Button @click="cancelCodeEdit" variant="ghost" size="sm">Cancel</Button>
-                  <Button @click="saveCode" variant="default" size="sm">Save</Button>
-                </div>
+          </div>
+          
+          <div v-if="showCodeForm" class="border rounded-md p-4 space-y-4">
+            <h3 class="text-sm font-medium">{{ editingCode ? 'Edit' : 'Add' }} Reason Code</h3>
+            <div class="space-y-3">
+              <div>
+                <Label for="reason_code">Code</Label>
+                <Input id="reason_code" v-model="codeForm.reason_code" placeholder="Enter reason code" />
+              </div>
+              <div>
+                <Label for="description">Description</Label>
+                <Input id="description" v-model="codeForm.description" placeholder="Enter description" />
+              </div>
+              <div class="flex justify-end space-x-2">
+                <Button @click="cancelCodeEdit" variant="ghost" size="sm">Cancel</Button>
+                <Button @click="saveCode" variant="default" size="sm">Save</Button>
               </div>
             </div>
           </div>
@@ -708,8 +732,8 @@ const saveCode = () => {
   });
 
   const routeName = editingCode.value 
-    ? (props.isSuperAdmin ? 'rejection-reason-codes.update.admin' : 'rejection-reason-codes.update')
-    : (props.isSuperAdmin ? 'rejection-reason-codes.store.admin' : 'rejection-reason-codes.store');
+    ? (props.isSuperAdmin ? 'rejection_reason_codes.update.admin' : 'rejection_reason_codes.update')
+    : (props.isSuperAdmin ? 'rejection_reason_codes.store.admin' : 'rejection_reason_codes.store');
   
   const routeParams = editingCode.value
     ? props.isSuperAdmin ? { code: editingCode.value } : { tenantSlug: props.tenantSlug, code: editingCode.value }
@@ -733,8 +757,8 @@ const saveCode = () => {
 
 const deleteCode = (id) => {
   const form = useForm({});
-  const routeName = props.isSuperAdmin ? 'rejection-reason-codes.destroy.admin' : 'rejection-reason-codes.destroy';
-  const routeParams = props.isSuperAdmin ? { code: id } : { tenantSlug: props.tenantSlug, code: id };
+  const routeName = props.isSuperAdmin ? 'rejection_reason_codes.destroy.admin' : 'rejection_reason_codes.destroy';
+  const routeParams = props.isSuperAdmin ? { id: id } : { tenantSlug: props.tenantSlug, code: id };
   
   form.delete(route(routeName, routeParams), {
     onSuccess: () => {
@@ -813,5 +837,31 @@ watch(successMessage, (newValue) => {
       successMessage.value = '';
     }, 5000);
   }
+});
+
+// Add these new methods to handle soft-deleted reason codes
+function restoreCode(id) {
+  router.post(route('rejection_reason_codes.restore.admin', { id }), {}, {
+    onSuccess: () => {
+      successMessage.value = 'Reason code restored successfully';
+      setTimeout(() => successMessage.value = '', 3000);
+    }
+  });
+}
+
+function forceDeleteCode(id) {
+  if (confirm('Are you sure you want to permanently delete this reason code? This action cannot be undone.')) {
+    router.delete(route('rejection_reason_codes.forceDelete.admin', { id }), {
+      onSuccess: () => {
+        successMessage.value = 'Reason code permanently deleted';
+        setTimeout(() => successMessage.value = '', 3000);
+      }
+    });
+  }
+}
+
+// Computed property for active reason codes (for the form dropdown)
+const activeReasonCodes = computed(() => {
+  return props.rejection_reason_codes.filter(code => !code.deleted_at);
 });
 </script>

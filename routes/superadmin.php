@@ -73,7 +73,9 @@ Route::middleware(['auth', 'superAdmin'])->group(function () {
 
     // Admin rejection reason codes routes
     Route::post('/rejection-reason-codes', [RejectionsController::class, 'storeCode'])->name('rejection_reason_codes.store.admin');
-    Route::delete('/rejection-reason-codes/{rejection_reason_code}', [RejectionsController::class, 'destroyCode'])->name('rejection_reason_codes.destroy.admin');
+    Route::delete('/rejection-reason-codes/{id}', [RejectionsController::class, 'destroyCode'])->name('rejection_reason_codes.destroy.admin');
+    Route::post('/rejection-reason-codes/{id}/restore', [RejectionsController::class, 'restoreCode'])->name('rejection_reason_codes.restore.admin');
+    Route::delete('/rejection-reason-codes/{id}/force', [RejectionsController::class, 'forceDeleteCode'])->name('rejection_reason_codes.forceDelete.admin');
 
     // Admin delays routes
     Route::post('/ontime', [DelaysController::class, 'store'])->name('ontime.store.admin');
@@ -100,50 +102,23 @@ Route::get('/repair-orders/export', [RepairOrderController::class, 'export'])->n
 // Areas of concern and vendors management routes
 Route::post('/areas-of-concern', [RepairOrderController::class, 'storeAreaOfConcern'])->name('area_of_concerns.store.admin');
 Route::delete('/areas-of-concern/{id}', [RepairOrderController::class, 'destroyAreaOfConcern'])->name('area_of_concerns.destroy.admin');
+Route::post('/areas-of-concern/{id}/restore', [RepairOrderController::class, 'restoreAreaOfConcern'])->name('area_of_concerns.restore.admin');
+Route::delete('/areas-of-concern/{id}/force', [RepairOrderController::class, 'forceDeleteAreaOfConcern'])->name('area_of_concerns.forceDelete.admin');
+
 Route::post('/vendors', [RepairOrderController::class, 'storeVendor'])->name('vendors.store.admin');
 Route::delete('/vendors/{id}', [RepairOrderController::class, 'destroyVendor'])->name('vendors.destroy.admin');
+Route::post('/vendors/{id}/restore', [RepairOrderController::class, 'restoreVendor'])->name('vendors.restore.admin');
+Route::delete('/vendors/{id}/force', [RepairOrderController::class, 'forceDeleteVendor'])->name('vendors.forceDelete.admin');
 
     // Admin delay codes routes
     Route::post('/delay-codes', [DelaysController::class, 'storeCode'])->name('delay_codes.store.admin');
-    Route::delete('/delay-codes/{delay_code}', [DelaysController::class, 'destroyCode'])->name('delay_codes.destroy.admin');
 
     // Miles Driven routes
 Route::get('/miles-driven', [MilesDrivenController::class, 'index'])->name('miles_driven.index.admin');
 Route::post('/miles-driven', [MilesDrivenController::class, 'store'])->name('miles_driven.store.admin');
 Route::put('/miles-driven/{milesDriven}', [MilesDrivenController::class, 'updateAdmin'])->name('miles_driven.update.admin');
 Route::delete('/miles-driven/{milesDriven}', [MilesDrivenController::class, 'destroyAdmin'])->name('miles_driven.destroy.admin');
-   
-
- // Repair Orders
- Route::post('/repair-orders/{id}/restore', [RepairOrderController::class, 'restore'])->name('repair-orders.restore');
- Route::delete('/repair-orders/{id}/force', [RepairOrderController::class, 'forceDestroy'])->name('repair-orders.force-destroy');
- 
- // Areas of Concern
- Route::post('/areas-of-concern/{id}/restore', [RepairOrderController::class, 'restoreAreaOfConcern'])->name('areas-of-concern.restore');
- Route::delete('/areas-of-concern/{id}/force', [RepairOrderController::class, 'forceDestroyAreaOfConcern'])->name('areas-of-concern.force-destroy');
- Route::get('/areas-of-concern/with-trashed', [RepairOrderController::class, 'getAllAreasOfConcernWithTrashed'])->name('areas-of-concern.with-trashed');
- 
- // Vendors
- Route::post('/vendors/{id}/restore', [RepairOrderController::class, 'restoreVendor'])->name('vendors.restore');
- Route::delete('/vendors/{id}/force', [RepairOrderController::class, 'forceDestroyVendor'])->name('vendors.force-destroy');
- Route::get('/vendors/with-trashed', [RepairOrderController::class, 'getAllVendorsWithTrashed'])->name('vendors.with-trashed');
- 
- // Rejections
- Route::post('/rejections/{id}/restore', [RejectionsController::class, 'restore'])->name('rejections.restore');
- Route::delete('/rejections/{id}/force', [RejectionsController::class, 'forceDestroy'])->name('rejections.force-destroy');
- 
- // Rejection Reason Codes
- Route::post('/rejection-reason-codes/{id}/restore', [RejectionsController::class, 'restoreCode'])->name('rejection-reason-codes.restore');
- Route::delete('/rejection-reason-codes/{id}/force', [RejectionsController::class, 'forceDestroyCode'])->name('rejection-reason-codes.force-destroy');
- Route::get('/rejection-reason-codes/with-trashed', [RejectionsController::class, 'getAllCodesWithTrashed'])->name('rejection-reason-codes.with-trashed');
- 
- // Delays
- Route::post('/delays/{id}/restore', [DelaysController::class, 'restore'])->name('delays.restore');
- Route::delete('/delays/{id}/force', [DelaysController::class, 'forceDestroy'])->name('delays.force-destroy');
- 
- // Delay Codes
- Route::post('/delay-codes/{id}/restore', [DelaysController::class, 'restoreCode'])->name('delay-codes.restore');
- Route::delete('/delay-codes/{id}/force', [DelaysController::class, 'forceDestroyCode'])->name('delay-codes.force-destroy');
- Route::get('/delay-codes/with-trashed', [DelaysController::class, 'getAllCodesWithTrashed'])->name('delay-codes.with-trashed');
-
+Route::delete('/delay-codes/{id}', [DelaysController::class, 'destroyCode'])->name('delay_codes.destroy.admin');
+Route::post('/delay-codes/{id}/restore', [DelaysController::class, 'restoreCode'])->name('delay_codes.restore.admin');
+Route::delete('/delay-codes/{id}/force', [DelaysController::class, 'forceDeleteCode'])->name('delay_codes.forceDelete.admin');
 });

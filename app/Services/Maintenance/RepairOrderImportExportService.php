@@ -144,6 +144,12 @@ class RepairOrderImportExportService
                 $rowsSkipped++;
                 continue;
             }
+            // Check if vendor is soft-deleted
+            if ($vendor->trashed()) {
+                dd('Vendor is soft-deleted:', $data['vendor'], $row);
+                $rowsSkipped++;
+                continue;
+            }
             $data['vendor_id'] = $vendor->id;
             unset($data['vendor']);
             // dd('After processing vendor:', $data);
@@ -168,9 +174,14 @@ class RepairOrderImportExportService
                 $concernIds = [];
                 foreach ($concernNames as $concernName) {
                     if (!empty($concernName)) {
-                        $area = AreaOfConcern::where('concern', $concernName)->first();
+                        // Get area of concern including soft-deleted ones to check status
+                        $area = AreaOfConcern::withTrashed()->where('concern', $concernName)->first();
                         if ($area) {
-                            $concernIds[] = $area->id;
+                            // Only add non-trashed areas
+                            if (!$area->trashed()) {
+                                $concernIds[] = $area->id;
+                            }
+                            // If area is trashed, just skip it instead of stopping the import
                         }
                         // If area not found, just skip it instead of stopping the import
                     }
@@ -272,7 +283,17 @@ class RepairOrderImportExportService
     public function exportRepairOrders()
     {
         // Retrieve all repair orders with related data.
-        $repairOrders = RepairOrder::with(['truck', 'vendor', 'areasOfConcern', 'tenant'])->get();
+        // Include trashed vendors and areas of concern to show their status
+        $repairOrders = RepairOrder::with([
+            'truck', 
+            'vendor' => function($query) {
+                $query->withTrashed();
+            }, 
+            'areasOfConcern' => function($query) {
+                $query->withTrashed();
+            }, 
+            'tenant'
+        ])->get();
 
         if ($repairOrders->isEmpty()) {
             throw new \Exception('No repair order data to export.');
@@ -314,8 +335,8 @@ class RepairOrderImportExportService
                 $ro->truck->truckid,
                 // Output the repairs_made text.
                 $ro->repairs_made,
-                // Output the vendor's name.
-                $ro->vendor->vendor_name,
+                // Output the vendor's name with indicator if soft-deleted.
+                $ro->vendor ? ($ro->vendor->trashed() ? $ro->vendor->vendor_name . ' (Deleted)' : $ro->vendor->vendor_name) : '—',
                 $ro->wo_number,
                 $ro->wo_status,
                 $ro->invoice,
@@ -325,8 +346,10 @@ class RepairOrderImportExportService
                 !empty($ro->qs_invoice_date) ? Carbon::parse($ro->qs_invoice_date)->format('m/d/Y') : '',
                 $ro->disputed ? 'Yes' : 'No',
                 $ro->dispute_outcome,
-                // Output area_of_concerns as a comma-separated list of concern names.
-                implode(',', $ro->areasOfConcern->pluck('concern')->toArray()),
+                // Output area_of_concerns as a comma-separated list of concern names with indicators for deleted ones.
+                implode(',', $ro->areasOfConcern->map(function($area) {
+                    return $area->trashed() ? $area->concern . ' (Deleted)' : $area->concern;
+                })->toArray()),
             ]);
         }
 

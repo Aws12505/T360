@@ -4,18 +4,11 @@ namespace App\Services\On_Time;
 
 use App\Models\Delay;
 use App\Models\DelayCode;
+use App\Models\Tenant;
 use App\Services\Filtering\FilteringService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Request;
-use App\Models\Tenant;
 
-/**
- * Class DelayService
- *
- * Contains business logic for managing delay records and delay codes.
- *
- * Created manually: touch app/Services/DelayService.php
- */
 class DelayService
 {
     protected $filteringService;
@@ -28,43 +21,56 @@ class DelayService
     /**
      * Get delay data for the index view.
      *
+     * Note: The delayCode relationship is loaded withTrashed
+     * so that even soft‑deleted delay codes appear with delays.
+     * Also, all delay codes are retrieved with trashed for display in the manage section.
+     *
      * @return array
      */
     public function getDelaysIndex(): array
     {
-        $query = Delay::with(['tenant', 'delayCode']);
-        
+        // Retrieve delays along with their tenant and delay code (including soft-deleted codes)
+        $query = Delay::with([
+            'tenant',
+            'delayCode' => function ($query) {
+                $query->withTrashed();
+            }
+        ]);
+
         // Apply date filtering if requested
         $dateFilter = $this->filteringService->getDateFilter();
         $dateRange = [];
-        
+
         if ($dateFilter !== 'full') {
             $query = $this->filteringService->applyDateFilter($query, $dateFilter, 'date', $dateRange);
         }
-        
-        // Get per page value
+
+        // Get the per page value from request (default 10)
         $perPage = $this->filteringService->getPerPage(Request::input('perPage', 10));
-        
-        // Apply tenant filter for non-admin users
+
+        // Apply tenant filter for non‑admin users
         if (!is_null(Auth::user()->tenant_id)) {
             $query->where('tenant_id', Auth::user()->tenant_id);
         }
-        
+
         $delays = $query->latest('date')->paginate($perPage);
-        
+
         $isSuperAdmin = is_null(Auth::user()->tenant_id);
         $tenantSlug = $isSuperAdmin ? null : Auth::user()->tenant->slug;
         $tenants = $isSuperAdmin ? Tenant::all() : [];
-        $delayCodes = DelayCode::all();
-        
+
+        // Retrieve ALL delay codes including soft-deleted ones, for listing in the table and
+        // the "Manage Delay Codes" section.
+        $delayCodes = DelayCode::withTrashed()->get();
+
         return [
-            'delays'     => $delays,
-            'tenantSlug' => $tenantSlug,
-            'isSuperAdmin' => $isSuperAdmin,
-            'tenants'    => $tenants,
+            'delays'      => $delays,
+            'tenantSlug'  => $tenantSlug,
+            'isSuperAdmin'=> $isSuperAdmin,
+            'tenants'     => $tenants,
             'delay_codes' => $delayCodes,
-            'dateRange'  => $dateRange,
-            'dateFilter' => $dateFilter,
+            'dateRange'   => $dateRange,
+            'dateFilter'  => $dateFilter,
         ];
     }
 
@@ -79,9 +85,9 @@ class DelayService
         $user = Auth::user();
         $data['tenant_id'] = is_null($user->tenant_id) ? $data['tenant_id'] : $user->tenant_id;
         $data['penalty'] = match ($data['delay_category']) {
-            '1_120'   => 1,
-            '121_600' => 2,
-            '601_plus'=> 4,
+            '1_120'    => 1,
+            '121_600'  => 2,
+            '601_plus' => 4,
         };
         Delay::create($data);
     }
@@ -98,9 +104,9 @@ class DelayService
         $user = Auth::user();
         $data['tenant_id'] = is_null($user->tenant_id) ? $data['tenant_id'] : $user->tenant_id;
         $data['penalty'] = match ($data['delay_category']) {
-            '1_120'   => 1,
-            '121_600' => 2,
-            '601_plus'=> 4,
+            '1_120'    => 1,
+            '121_600'  => 2,
+            '601_plus' => 4,
         };
         $delay = Delay::findOrFail($id);
         $delay->update($data);

@@ -17,4 +17,11 @@ class AreaOfConcern extends Model
 {
     use SoftDeletes;
     protected $fillable = ['concern'];
+
+    // In AreaOfConcern model
+public function repairOrders()
+{
+    return $this->belongsToMany(RepairOrder::class, 'area_of_concern_repair_order')
+                ->withTimestamps();
+}
 }

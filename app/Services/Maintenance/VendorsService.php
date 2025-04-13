@@ -18,7 +18,7 @@ class VendorsService
     }
 
     /**
-     * Delete a vendor.
+     * Soft delete a vendor.
      *
      * @param int $id
      * @return void
@@ -27,5 +27,29 @@ class VendorsService
     {
         $vendor = Vendor::findOrFail($id);
         $vendor->delete();
+    }
+    
+    /**
+     * Restore a soft-deleted vendor.
+     *
+     * @param int $id
+     * @return void
+     */
+    public function restoreVendor($id)
+    {
+        $vendor = Vendor::withTrashed()->findOrFail($id);
+        $vendor->restore();
+    }
+
+    /**
+     * Permanently force delete a vendor.
+     *
+     * @param int $id
+     * @return void
+     */
+    public function forceDeleteVendor($id)
+    {
+        $vendor = Vendor::withTrashed()->findOrFail($id);
+        $vendor->forceDelete();
     }
 }

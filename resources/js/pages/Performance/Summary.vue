@@ -235,7 +235,8 @@ const operationalExcellenceScore = computed(() => {
     'average_on_time',
     'average_maintenance_variance_to_spend',
     'open_boc',
-    'vcr_preventable'
+    'vcr_preventable',
+    'vmcr_p'
   ];
   
   // Find the worst rating

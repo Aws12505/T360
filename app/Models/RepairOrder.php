@@ -40,9 +40,11 @@ class RepairOrder extends Model
 
     // Many-to-many with Areas Of Concern
     public function areasOfConcern()
-    {
-        return $this->belongsToMany(AreaOfConcern::class, 'area_of_concern_repair_order');
-    }
+{
+    return $this->belongsToMany(AreaOfConcern::class, 'area_of_concern_repair_order')
+                ->withTimestamps()
+                ->withTrashed(); // Include soft deleted areas of concern
+}
 
     // Relationship to Tenant
     public function tenant()

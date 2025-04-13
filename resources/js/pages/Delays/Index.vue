@@ -1,6 +1,7 @@
 <template>
   <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
-    <Head title="On-Time"/>
+    <Head title="On-Time" />
+
     <div class="max-w-7xl mx-auto p-6 space-y-8">
       <!-- Success Message -->
       <Alert v-if="successMessage" variant="success">
@@ -28,44 +29,39 @@
         <CardContent class="p-4">
           <div class="flex flex-col gap-2">
             <div class="flex flex-wrap gap-2">
-              <Button 
-                @click="selectDateFilter('yesterday')" 
+              <Button
+                @click="selectDateFilter('yesterday')"
                 variant="outline"
                 size="sm"
-                :class="{'bg-primary/10 text-primary border-primary': activeTab === 'yesterday'}"
-              >
+                :class="{'bg-primary/10 text-primary border-primary': activeTab === 'yesterday'}">
                 Yesterday
               </Button>
-              <Button 
-                @click="selectDateFilter('current-week')" 
+              <Button
+                @click="selectDateFilter('current-week')"
                 variant="outline"
                 size="sm"
-                :class="{'bg-primary/10 text-primary border-primary': activeTab === 'current-week'}"
-              >
+                :class="{'bg-primary/10 text-primary border-primary': activeTab === 'current-week'}">
                 Current Week
               </Button>
-              <Button 
-                @click="selectDateFilter('6w')" 
+              <Button
+                @click="selectDateFilter('6w')"
                 variant="outline"
                 size="sm"
-                :class="{'bg-primary/10 text-primary border-primary': activeTab === '6w'}"
-              >
+                :class="{'bg-primary/10 text-primary border-primary': activeTab === '6w'}">
                 6 Weeks
               </Button>
-              <Button 
-                @click="selectDateFilter('quarterly')" 
+              <Button
+                @click="selectDateFilter('quarterly')"
                 variant="outline"
                 size="sm"
-                :class="{'bg-primary/10 text-primary border-primary': activeTab === 'quarterly'}"
-              >
+                :class="{'bg-primary/10 text-primary border-primary': activeTab === 'quarterly'}">
                 Quarterly
               </Button>
-              <Button 
-                @click="selectDateFilter('full')" 
+              <Button
+                @click="selectDateFilter('full')"
                 variant="outline"
                 size="sm"
-                :class="{'bg-primary/10 text-primary border-primary': activeTab === 'full'}"
-              >
+                :class="{'bg-primary/10 text-primary border-primary': activeTab === 'full'}">
                 Full
               </Button>
             </div>
@@ -91,31 +87,15 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full">
               <div>
                 <Label for="search">Search</Label>
-                <Input 
-                  id="search"
-                  v-model="filters.search" 
-                  type="text" 
-                  placeholder="Search by driver or type..." 
-                  @input="applyFilters"
-                />
+                <Input id="search" v-model="filters.search" type="text" placeholder="Search by driver or type..." @input="applyFilters" />
               </div>
               <div>
                 <Label for="dateFrom">Date From</Label>
-                <Input 
-                  id="dateFrom"
-                  v-model="filters.dateFrom" 
-                  type="date" 
-                  @change="applyFilters"
-                />
+                <Input id="dateFrom" v-model="filters.dateFrom" type="date" @change="applyFilters" />
               </div>
               <div>
                 <Label for="dateTo">Date To</Label>
-                <Input 
-                  id="dateTo"
-                  v-model="filters.dateTo" 
-                  type="date" 
-                  @change="applyFilters"
-                />
+                <Input id="dateTo" v-model="filters.dateTo" type="date" @change="applyFilters" />
               </div>
               <div>
                 <Label for="delayCode">Delay Code</Label>
@@ -123,8 +103,7 @@
                   id="delayCode"
                   v-model="filters.delayCode"
                   @change="applyFilters"
-                  class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                >
+                  class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
                   <option value="">All Codes</option>
                   <option v-for="code in delay_codes" :key="code.id" :value="code.id">
                     {{ code.code }}
@@ -137,8 +116,7 @@
                   id="disputed"
                   v-model="filters.disputed"
                   @change="applyFilters"
-                  class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                >
+                  class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
                   <option value="">All</option>
                   <option value="true">Disputed</option>
                   <option value="false">Not Disputed</option>
@@ -150,8 +128,7 @@
                   id="controllable"
                   v-model="filters.controllable"
                   @change="applyFilters"
-                  class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                >
+                  class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
                   <option value="">All</option>
                   <option value="true">Yes</option>
                   <option value="false">No</option>
@@ -160,11 +137,7 @@
               </div>
             </div>
             <div class="flex justify-end">
-              <Button 
-                @click="resetFilters" 
-                variant="ghost"
-                size="sm"
-              >
+              <Button @click="resetFilters" variant="ghost" size="sm">
                 <Icon name="rotate-ccw" class="mr-2 h-4 w-4" />
                 Reset Filters
               </Button>
@@ -181,9 +154,9 @@
               <TableHeader>
                 <TableRow>
                   <TableHead v-if="isSuperAdmin">Company Name</TableHead>
-                  <TableHead 
-                    v-for="col in tableColumns" 
-                    :key="col" 
+                  <TableHead
+                    v-for="col in tableColumns"
+                    :key="col"
                     class="cursor-pointer"
                     @click="sortBy(col)"
                   >
@@ -228,6 +201,7 @@
                     </template>
                     <template v-else-if="col === 'delay_code'">
                       {{ delay.delay_code?.code || '—' }}
+                      <span v-if="delay.delay_code?.deleted_at" class="ml-1 text-xs text-red-500">(Deleted Code)</span>
                     </template>
                     <template v-else>
                       {{ delay[col] }}
@@ -249,7 +223,6 @@
               </TableBody>
             </Table>
           </div>
-          
           <div class="bg-muted/20 px-4 py-3 border-t" v-if="delays.links">
             <div class="flex justify-between items-center">
               <div class="text-sm text-muted-foreground">
@@ -271,11 +244,11 @@
                   </select>
                 </div>
                 <div class="flex">
-                  <Button 
-                    v-for="link in delays.links" 
-                    :key="link.label" 
-                    @click="visitPage(link.url)" 
-                    :disabled="!link.url" 
+                  <Button
+                    v-for="link in delays.links"
+                    :key="link.label"
+                    @click="visitPage(link.url)"
+                    :disabled="!link.url"
                     variant="ghost"
                     size="sm"
                     class="mx-1"
@@ -290,7 +263,7 @@
         </CardContent>
       </Card>
 
-      <!-- Delay Form Modal -->
+      <!-- Delay Form Modal (Pass only active delay codes) -->
       <Dialog v-model:open="formModal">
         <DialogContent class="sm:max-w-2xl">
           <DialogHeader>
@@ -301,7 +274,7 @@
           </DialogHeader>
           <DelayForm
             :delay="selectedDelay"
-            :delay-codes="delay_codes"
+            :delay-codes="activeDelayCodes"
             :tenants="tenants"
             :is-super-admin="isSuperAdmin"
             :tenant-slug="tenantSlug"
@@ -327,34 +300,54 @@
                 Add New Code
               </Button>
             </div>
-            
             <div class="max-h-[400px] overflow-y-auto">
               <div v-if="!delay_codes || delay_codes.length === 0" class="text-center py-8 text-muted-foreground border rounded-md">
                 No delay codes found
               </div>
-              
               <div v-else class="space-y-2">
-                <div 
-                  v-for="code in delay_codes" 
-                  :key="code.id" 
+                <div
+                  v-for="code in delay_codes"
+                  :key="code.id"
                   class="flex items-center justify-between p-3 border rounded-md hover:bg-muted/50 group"
                 >
                   <div class="flex-1 cursor-pointer" @click="editCode(code)">
-                    <div class="font-medium">{{ code.code }}</div>
+                    <div class="font-medium">
+                      {{ code.code }}
+                      <span v-if="code.deleted_at" class="ml-2 text-xs text-red-500">(Deleted)</span>
+                    </div>
                     <div v-if="code.description" class="text-sm text-muted-foreground mt-1">
                       {{ code.description }}
                     </div>
                   </div>
                   <div class="opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button @click="confirmDeleteCode(code.id)" size="sm" variant="ghost" class="h-8 w-8 p-0 text-destructive hover:text-destructive/90 hover:bg-destructive/10">
-                      <Icon name="trash" class="h-4 w-4" />
-                      <span class="sr-only">Delete</span>
-                    </Button>
+                    <template v-if="isSuperAdmin">
+                      <template v-if="code.deleted_at">
+                        <Button @click="restoreCode(code.id)" size="sm" variant="outline">
+                          <Icon name="refresh" class="mr-2 h-4 w-4" />
+                          Restore
+                        </Button>
+                        <Button @click="forceDeleteCode(code.id)" size="sm" variant="destructive">
+                          <Icon name="trash" class="mr-2 h-4 w-4" />
+                          Permanently Delete
+                        </Button>
+                      </template>
+                      <template v-else>
+                        <Button @click="confirmDeleteCode(code.id)" size="sm" variant="destructive">
+                          <Icon name="trash" class="mr-2 h-4 w-4" />
+                          Delete
+                        </Button>
+                      </template>
+                    </template>
+                    <template v-else>
+                      <Button @click="confirmDeleteCode(code.id)" size="sm" variant="destructive">
+                        <Icon name="trash" class="mr-2 h-4 w-4" />
+                        Delete
+                      </Button>
+                    </template>
                   </div>
                 </div>
               </div>
             </div>
-            
             <div v-if="showCodeForm" class="border rounded-md p-4 space-y-4">
               <h3 class="text-sm font-medium">{{ editingCode ? 'Edit' : 'Add' }} Delay Code</h3>
               <div class="space-y-3">
@@ -373,13 +366,12 @@
               </div>
             </div>
           </div>
-          
           <DialogFooter class="mt-6">
             <Button @click="codeModal = false" variant="outline">Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
+
       <!-- Delete Code Confirmation Dialog -->
       <Dialog v-model:open="codeDeleteConfirm">
         <DialogContent>
@@ -400,7 +392,7 @@
         </DialogContent>
       </Dialog>
 
-      <!-- Delete Confirmation Dialog -->
+      <!-- Delete Delay Confirmation Dialog -->
       <Dialog v-model:open="showDeleteModal">
         <DialogContent>
           <DialogHeader>
@@ -425,7 +417,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue';
-import { useForm, Head } from '@inertiajs/vue3';
+import { useForm, Head, router } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import Button from '@/components/ui/button/Button.vue';
 import {
@@ -437,18 +429,27 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import DelayForm from '@/components/DelayForm.vue';
-import CodeManager from '@/components/CodeManager.vue';
-import { router } from '@inertiajs/vue3';
 import Icon from '@/components/Icon.vue';
-import { 
-  Card, CardHeader, CardTitle, CardContent,
-  Table, TableHeader, TableBody, TableHead, TableRow, TableCell,
-  Label, Input,
-  Alert, AlertTitle, AlertDescription
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+  Label,
+  Input,
+  Alert,
+  AlertTitle,
+  AlertDescription,
 } from '@/components/ui';
 
 const props = defineProps({
-  delays:  {
+  delays: {
     type: Object,
     default: () => ({ data: [], links: [] }),
   },
@@ -457,21 +458,18 @@ const props = defineProps({
   tenants: { type: Array, default: () => [] },
   isSuperAdmin: { type: Boolean, default: false },
   dateRange: { type: Object, default: null },
-  dateFilter: { type: String, default: 'full' }
+  dateFilter: { type: String, default: 'full' },
 });
 
 const breadcrumbs = [
   {
     title: props.tenantSlug ? 'Dashboard' : 'Admin Dashboard',
-    href: props.tenantSlug
-      ? route('dashboard', { tenantSlug: props.tenantSlug })
-      : route('admin.dashboard'),
+    href: props.tenantSlug ? route('dashboard', { tenantSlug: props.tenantSlug }) : route('admin.dashboard'),
   },
   {
     title: 'On-Time',
-    href: props.tenantSlug
-     ? route('ontime.index', { tenantSlug: props.tenantSlug }) : route('ontime.index.admin'),
-  }
+    href: props.tenantSlug ? route('ontime.index', { tenantSlug: props.tenantSlug }) : route('ontime.index.admin'),
+  },
 ];
 
 // UI state
@@ -485,10 +483,7 @@ const delayToDelete = ref(null);
 // Code management state
 const showCodeForm = ref(false);
 const editingCode = ref(null);
-const codeForm = ref({
-  code: '',
-  description: ''
-});
+const codeForm = ref({ code: '', description: '' });
 const codeDeleteConfirm = ref(false);
 const codeToDelete = ref(null);
 
@@ -503,61 +498,46 @@ const filters = ref({
   dateTo: '',
   delayCode: '',
   disputed: '',
-  controllable: ''
+  controllable: '',
 });
 
 // Table columns
-const tableColumns = [
-  'date',
-  'delay_type',
-  'driver_name',
-  'penalty',
-  'delay_code',
-  'disputed',
-  'driver_controllable'
-];
+const tableColumns = ['date', 'delay_type', 'driver_name', 'penalty', 'delay_code', 'disputed', 'driver_controllable'];
 
-// Computed property for filtered and sorted delays
+// Computed property: Filtered and sorted delays
 const filteredDelays = computed(() => {
   let result = [...props.delays.data];
-  
-  // Apply search filter
+
+  // Search filter
   if (filters.value.search) {
-    const searchTerm = filters.value.search.toLowerCase();
-    result = result.filter(item => 
-      item.driver_name?.toLowerCase().includes(searchTerm) || 
-      item.delay_type?.toLowerCase().includes(searchTerm) ||
-      item.delay_code?.code?.toLowerCase().includes(searchTerm)
+    const term = filters.value.search.toLowerCase();
+    result = result.filter(item =>
+      item.driver_name?.toLowerCase().includes(term) ||
+      item.delay_type?.toLowerCase().includes(term) ||
+      item.delay_code?.code?.toLowerCase().includes(term)
     );
   }
-  
-  // Apply date filters
+
+  // Date filters
   if (filters.value.dateFrom) {
-    result = result.filter(item => 
-      item.date && item.date >= filters.value.dateFrom
-    );
+    result = result.filter(item => item.date && item.date >= filters.value.dateFrom);
   }
-  
   if (filters.value.dateTo) {
-    result = result.filter(item => 
-      item.date && item.date <= filters.value.dateTo
-    );
+    result = result.filter(item => item.date && item.date <= filters.value.dateTo);
   }
-  
-  // Apply delay code filter
+
+  // Delay code filter
   if (filters.value.delayCode) {
-    result = result.filter(item => 
-      item.delay_code?.id === parseInt(filters.value.delayCode)
-    );
+    result = result.filter(item => item.delay_code?.id === parseInt(filters.value.delayCode));
   }
-  
-  // Apply disputed filter
+
+  // Disputed filter
   if (filters.value.disputed !== '') {
     const isDisputed = filters.value.disputed === 'true';
     result = result.filter(item => item.disputed === isDisputed);
   }
-  
-  // Apply controllable filter
+
+  // Controllable filter
   if (filters.value.controllable !== '') {
     if (filters.value.controllable === 'null') {
       result = result.filter(item => item.driver_controllable === null);
@@ -566,56 +546,49 @@ const filteredDelays = computed(() => {
       result = result.filter(item => item.driver_controllable === isControllable);
     }
   }
-  
-  // Apply sorting
+
+  // Sorting logic
   result.sort((a, b) => {
-    let valA, valB;
-    
-    // Special handling for delay_code column
+    let aVal, bVal;
     if (sortColumn.value === 'delay_code') {
-      valA = a.delay_code?.code || '';
-      valB = b.delay_code?.code || '';
+      aVal = a.delay_code?.code || '';
+      bVal = b.delay_code?.code || '';
     } else {
-      valA = a[sortColumn.value];
-      valB = b[sortColumn.value];
+      aVal = a[sortColumn.value];
+      bVal = b[sortColumn.value];
     }
-    
-    // Handle null values
-    if (valA === null) return 1;
-    if (valB === null) return -1;
-    
-    // String comparison
-    if (typeof valA === 'string') {
-      valA = valA.toLowerCase();
-      valB = valB.toLowerCase();
+    if (aVal === null) return 1;
+    if (bVal === null) return -1;
+    if (typeof aVal === 'string') {
+      aVal = aVal.toLowerCase();
+      bVal = bVal.toLowerCase();
     }
-    
-    if (valA < valB) return sortDirection.value === 'asc' ? -1 : 1;
-    if (valA > valB) return sortDirection.value === 'asc' ? 1 : -1;
+    if (aVal < bVal) return sortDirection.value === 'asc' ? -1 : 1;
+    if (aVal > bVal) return sortDirection.value === 'asc' ? 1 : -1;
     return 0;
   });
-  
   return result;
 });
 
-// Sort function
+// Computed property: Only active (non-trashed) delay codes for the DelayForm dropdown
+const activeDelayCodes = computed(() => {
+  return props.delay_codes.filter(code => !code.deleted_at);
+});
+
+// Sorting handler
 function sortBy(column) {
   if (sortColumn.value === column) {
-    // Toggle direction if clicking the same column
     sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc';
   } else {
-    // Set new column and default to ascending
     sortColumn.value = column;
     sortDirection.value = 'asc';
   }
 }
 
-// Filter functions
+// Filter handlers
 function applyFilters() {
-  // This function is triggered by input/change events
-  // The filtering is handled by the computed property
+  // Automatic via computed property
 }
-
 function resetFilters() {
   filters.value = {
     search: '',
@@ -623,122 +596,28 @@ function resetFilters() {
     dateTo: '',
     delayCode: '',
     disputed: '',
-    controllable: ''
+    controllable: '',
   };
 }
 
-// Delay form functions
-const openForm = (delay = null) => {
-  selectedDelay.value = delay;
-  formModal.value = true;
-};
+// Pagination & Date Filter Functions
+const perPage = ref(10);
+const activeTab = ref(props.dateFilter || 'full');
 
-// Code management functions
-const openCodeModal = () => {
-  codeModal.value = true;
-  showCodeForm.value = false;
-  editingCode.value = null;
-};
-
-const openNewCodeForm = () => {
-  codeForm.value = {
-    code: '',
-    description: ''
-  };
-  editingCode.value = null;
-  showCodeForm.value = true;
-};
-
-const editCode = (code) => {
-  codeForm.value = {
-    code: code.code,
-    description: code.description || ''
-  };
-  editingCode.value = code.id;
-  showCodeForm.value = true;
-};
-
-const cancelCodeEdit = () => {
-  showCodeForm.value = false;
-  editingCode.value = null;
-};
-
-const confirmDeleteCode = (id) => {
-  codeToDelete.value = id;
-  codeDeleteConfirm.value = true;
-};
-
-const saveCode = () => {
-  const form = useForm({
-    code: codeForm.value.code,
-    description: codeForm.value.description
-  });
-
-  const routeName = editingCode.value 
-    ? (props.isSuperAdmin ? 'delay-codes.update.admin' : 'delay-codes.update')
-    : (props.isSuperAdmin ? 'delay-codes.store.admin' : 'delay-codes.store');
-  
-  const routeParams = editingCode.value
-    ? props.isSuperAdmin ? { code: editingCode.value } : { tenantSlug: props.tenantSlug, code: editingCode.value }
-    : props.isSuperAdmin ? {} : { tenantSlug: props.tenantSlug };
-
-  const method = editingCode.value ? form.put : form.post;
-  
-  method.call(form, route(routeName, routeParams), {
-    onSuccess: () => {
-      successMessage.value = editingCode.value ? 'Delay code updated successfully.' : 'Delay code created successfully.';
-      showCodeForm.value = false;
-      editingCode.value = null;
-      router.reload({ only: ['delay_codes'] });
-    },
-    onError: (errors) => {
-      // Handle errors
-      console.error(errors);
-    }
-  });
-};
-
-const deleteCode = (id) => {
-  const form = useForm({});
-  const routeName = props.isSuperAdmin ? 'delay-codes.destroy.admin' : 'delay-codes.destroy';
-  const routeParams = props.isSuperAdmin ? { code: id } : { tenantSlug: props.tenantSlug, code: id };
-  
-  form.delete(route(routeName, routeParams), {
-    onSuccess: () => {
-      successMessage.value = 'Delay code deleted successfully.';
-      codeDeleteConfirm.value = false;
-      router.reload({ only: ['delay_codes'] });
-    }
-  });
-};
-
-// Delete delay confirmation
-const confirmDelete = (id) => {
-  delayToDelete.value = id;
-  showDeleteModal.value = true;
-};
-
-const deleteDelay = (id) => {
-  const form = useForm({});
-  const routeName = props.isSuperAdmin ? 'ontime.destroy.admin' : 'ontime.destroy';
-  const routeParams = props.isSuperAdmin ? { delay: id } : { tenantSlug: props.tenantSlug, delay: id };
-  
-  form.delete(route(routeName, routeParams), {
-    preserveScroll: true,
-    onSuccess: () => {
-      successMessage.value = 'Delay record deleted successfully.';
-      showDeleteModal.value = false;
-    }
-  });
-};
-
-const visitPage = (url) => {
+function changePerPage() {
+  const routeName = props.tenantSlug ? route('ontime.index', { tenantSlug: props.tenantSlug }) : route('ontime.index.admin');
+  router.get(routeName, { dateFilter: activeTab.value, perPage: perPage.value }, { preserveState: true });
+}
+function selectDateFilter(filter) {
+  activeTab.value = filter;
+  const routeName = props.tenantSlug ? route('ontime.index', { tenantSlug: props.tenantSlug }) : route('ontime.index.admin');
+  router.get(routeName, { dateFilter: filter, perPage: perPage.value }, { preserveState: true });
+}
+function visitPage(url) {
   if (url) {
-    router.get(url, {}, { only: ['delays']});
+    router.get(url, {}, { only: ['delays'] });
   }
-};
-
-// Format date string from YYYY-MM-DD to m/d/Y
+}
 function formatDate(dateStr) {
   if (!dateStr) return '';
   const parts = dateStr.split('-');
@@ -747,7 +626,120 @@ function formatDate(dateStr) {
   return `${Number(month)}/${Number(day)}/${year}`;
 }
 
-// Auto-hide success message after 5 seconds
+// Delay Form Functions
+const openForm = (delay = null) => {
+  selectedDelay.value = delay;
+  formModal.value = true;
+};
+
+// Add the missing confirmDelete function
+const confirmDelete = (id) => {
+  delayToDelete.value = id;
+  showDeleteModal.value = true;
+};
+
+// Code Management Functions
+const openCodeModal = () => {
+  codeModal.value = true;
+  showCodeForm.value = false;
+  editingCode.value = null;
+};
+const openNewCodeForm = () => {
+  codeForm.value = { code: '', description: '' };
+  editingCode.value = null;
+  showCodeForm.value = true;
+};
+const editCode = (code) => {
+  codeForm.value = { code: code.code, description: code.description || '' };
+  editingCode.value = code.id;
+  showCodeForm.value = true;
+};
+const cancelCodeEdit = () => {
+  showCodeForm.value = false;
+  editingCode.value = null;
+};
+const confirmDeleteCode = (id) => {
+  codeToDelete.value = id;
+  codeDeleteConfirm.value = true;
+};
+
+// Add the missing deleteCode function
+const deleteCode = (id) => {
+  const form = useForm({});
+  const routeName = props.isSuperAdmin ? 'delay_codes.destroy.admin' : 'delay_codes.destroy';
+  const routeParams = props.isSuperAdmin ? { id: id } : { tenantSlug: props.tenantSlug, delay_code: id };
+  
+  form.delete(route(routeName, routeParams), {
+    onSuccess: () => {
+      successMessage.value = 'Delay code deleted successfully.';
+      codeDeleteConfirm.value = false;
+      router.reload({ only: ['delay_codes'] });
+    },
+    onError: (errors) => {
+      console.error(errors);
+    }
+  });
+};
+
+const saveCode = () => {
+  const form = useForm({ code: codeForm.value.code, description: codeForm.value.description });
+  const routeName = editingCode.value
+    ? (props.isSuperAdmin ? 'delay_codes.update.admin' : 'delay_codes.update')
+    : (props.isSuperAdmin ? 'delay_codes.store.admin' : 'delay_codes.store');
+  const routeParams = editingCode.value
+    ? (props.isSuperAdmin ? { id: editingCode.value } : { tenantSlug: props.tenantSlug, id: editingCode.value })
+    : (props.isSuperAdmin ? {} : { tenantSlug: props.tenantSlug });
+  const method = editingCode.value ? form.put : form.post;
+  method.call(form, route(routeName, routeParams), {
+    onSuccess: () => {
+      successMessage.value = editingCode.value ? 'Delay code updated successfully.' : 'Delay code created successfully.';
+      showCodeForm.value = false;
+      editingCode.value = null;
+      router.reload({ only: ['delay_codes'] });
+    },
+    onError: (errors) => {
+      console.error(errors);
+    },
+  });
+};
+const restoreCode = (id) => {
+  const form = useForm({});
+  form.post(route(props.isSuperAdmin ? 'delay_codes.restore.admin' : 'delay_codes.restore', { id }), {
+    onSuccess: () => {
+      successMessage.value = 'Delay code restored successfully.';
+      router.reload({ only: ['delay_codes'] });
+    },
+    onError: (errors) => {
+      console.error(errors);
+    },
+  });
+};
+const forceDeleteCode = (id) => {
+  const form = useForm({});
+  form.delete(route(props.isSuperAdmin ? 'delay_codes.forceDelete.admin' : 'delay_codes.forceDelete', { id }), {
+    onSuccess: () => {
+      successMessage.value = 'Delay code permanently deleted successfully.';
+      router.reload({ only: ['delay_codes'] });
+    },
+    onError: (errors) => {
+      console.error(errors);
+    },
+  });
+};
+const deleteDelay = (id) => {
+  const form = useForm({});
+  const routeName = props.isSuperAdmin ? 'ontime.destroy.admin' : 'ontime.destroy';
+  const routeParams = props.isSuperAdmin ? { delay: id } : { tenantSlug: props.tenantSlug, delay: id };
+  form.delete(route(routeName, routeParams), {
+    preserveScroll: true,
+    onSuccess: () => {
+      successMessage.value = 'Delay record deleted successfully.';
+      showDeleteModal.value = false;
+    },
+  });
+};
+
+// Auto-hide success message
 watch(successMessage, (newValue) => {
   if (newValue) {
     setTimeout(() => {
@@ -755,36 +747,4 @@ watch(successMessage, (newValue) => {
     }, 5000);
   }
 });
-
-// Add activeTab ref
-const activeTab = ref(props.dateFilter || 'full');
-
-// Add perPage ref
-const perPage = ref(10);
-
-// Function to handle per page change
-function changePerPage() {
-  const routeName = props.tenantSlug 
-    ? route('ontime.index', { tenantSlug: props.tenantSlug }) 
-    : route('ontime.index.admin');
-    
-  router.get(routeName, { 
-    dateFilter: activeTab.value,
-    perPage: perPage.value 
-  }, { preserveState: true });
-}
-
-// Function to handle date filter selection
-function selectDateFilter(filter) {
-  activeTab.value = filter;
-  
-  const routeName = props.tenantSlug 
-    ? route('ontime.index', { tenantSlug: props.tenantSlug }) 
-    : route('ontime.index.admin');
-    
-  router.get(routeName, { 
-    dateFilter: filter,
-    perPage: perPage.value 
-  }, { preserveState: true });
-}
 </script>

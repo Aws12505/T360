@@ -18,7 +18,7 @@ class AreasOfConcernService
     }
 
     /**
-     * Delete an area of concern.
+     * Soft delete an area of concern.
      *
      * @param int $id
      * @return void
@@ -27,5 +27,29 @@ class AreasOfConcernService
     {
         $areaOfConcern = AreaOfConcern::findOrFail($id);
         $areaOfConcern->delete();
+    }
+    
+    /**
+     * Restore a soft-deleted area of concern.
+     *
+     * @param int $id
+     * @return void
+     */
+    public function restoreAreaOfConcern($id)
+    {
+        $areaOfConcern = AreaOfConcern::withTrashed()->findOrFail($id);
+        $areaOfConcern->restore();
+    }
+
+    /**
+     * Permanently force delete an area of concern.
+     *
+     * @param int $id
+     * @return void
+     */
+    public function forceDeleteAreaOfConcern($id)
+    {
+        $areaOfConcern = AreaOfConcern::withTrashed()->findOrFail($id);
+        $areaOfConcern->forceDelete();
     }
 }

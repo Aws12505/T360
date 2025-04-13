@@ -4,6 +4,7 @@ namespace App\Http\Requests\Acceptance;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 /**
  * Class StoreRejectionRequest
@@ -27,7 +28,10 @@ class StoreRejectionRequest extends FormRequest
             'driver_name'      => 'required|string',
             'rejection_type'   => 'required|in:block,load',
             'rejection_category'=> 'required|in:more_than_6,within_6,after_start',
-            'reason_code_id'   => 'required|exists:rejection_reason_codes,id',
+            'reason_code_id'   => [
+                'required',
+                Rule::exists('rejection_reason_codes', 'id')->whereNull('deleted_at'),
+            ],
             'disputed'         => 'required|boolean',
             'driver_controllable' => 'nullable|boolean',
             'tenant_id' => 'required|exists:tenants,id',
@@ -35,10 +39,10 @@ class StoreRejectionRequest extends FormRequest
     }
 
     protected function prepareForValidation()
-{
-    // If the authenticated user is not a SuperAdmin, always use the user's tenant_id.
-    if (!is_null(Auth::user()->tenant_id)) {
-        $this->merge(['tenant_id' => Auth::user()->tenant_id]);
+    {
+        // If the authenticated user is not a SuperAdmin, always use the user's tenant_id.
+        if (!is_null(Auth::user()->tenant_id)) {
+            $this->merge(['tenant_id' => Auth::user()->tenant_id]);
+        }
     }
-}
 }

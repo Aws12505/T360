@@ -2,7 +2,7 @@
   <div class="bg-card rounded-lg border shadow-sm p-6 mb-6">
     <h3 class="text-xl font-semibold mb-4">Additional Performance Metrics</h3>
     
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <!-- VCR Preventable -->
       <div class="p-4 border rounded-lg">
         <h4 class="text-lg font-medium mb-2">VCR Preventable</h4>
@@ -27,6 +27,20 @@
         <div class="mt-2">
           <Badge :variant="getRatingVariant(performanceRatings.open_boc)" class="text-xs">
             {{ formatRating(performanceRatings.open_boc) }}
+          </Badge>
+        </div>
+      </div>
+      
+      <!-- VMCR-P -->
+      <div class="p-4 border rounded-lg">
+        <h4 class="text-lg font-medium mb-2">VMCR-P</h4>
+        <div class="text-sm text-muted-foreground mb-1">Score</div>
+        <div class="text-3xl font-bold text-indigo-600 mb-3">
+          {{ formatNumber(performanceData.vmcr_p) }}
+        </div>
+        <div class="mt-2">
+          <Badge :variant="getRatingVariant(performanceRatings.vmcr_p)" class="text-xs">
+            {{ formatRating(performanceRatings.vmcr_p) }}
           </Badge>
         </div>
       </div>

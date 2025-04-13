@@ -100,6 +100,30 @@ public function export()
         $this->areasOfConcernService->deleteAreaOfConcern($id);
         return redirect()->back()->with('success', 'Area of Concern deleted successfully.');
     }
+    
+    /**
+     * Restore a soft-deleted area of concern.
+     *
+     * @param int $id
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function restoreAreaOfConcern($id)
+    {
+        $this->areasOfConcernService->restoreAreaOfConcern($id);
+        return redirect()->back()->with('success', 'Area of Concern restored successfully.');
+    }
+    
+    /**
+     * Permanently delete an area of concern.
+     *
+     * @param int $id
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function forceDeleteAreaOfConcern($id)
+    {
+        $this->areasOfConcernService->forceDeleteAreaOfConcern($id);
+        return redirect()->back()->with('success', 'Area of Concern permanently deleted.');
+    }
 
     /**
      * Create a new vendor.
@@ -123,5 +147,29 @@ public function export()
     {
         $this->vendorsService->deleteVendor($id);
         return redirect()->back()->with('success', 'Vendor deleted successfully.');
+    }
+    
+    /**
+     * Restore a soft-deleted vendor.
+     *
+     * @param int $id
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function restoreVendor($id)
+    {
+        $this->vendorsService->restoreVendor($id);
+        return redirect()->back()->with('success', 'Vendor restored successfully.');
+    }
+    
+    /**
+     * Permanently delete a vendor.
+     *
+     * @param int $id
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function forceDeleteVendor($id)
+    {
+        $this->vendorsService->forceDeleteVendor($id);
+        return redirect()->back()->with('success', 'Vendor permanently deleted.');
     }
 }

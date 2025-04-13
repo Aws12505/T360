@@ -32,7 +32,12 @@ class RepairOrderService
      */
     public function getIndexData(): array
     {
-        $query = RepairOrder::with(['truck', 'vendor', 'areasOfConcern', 'tenant']);
+        // Properly load the areasOfConcern relationship with withPivot to get all pivot data
+        $query = RepairOrder::with(['truck', 'vendor' => function ($query) {
+            $query->withTrashed();
+        }, 'areasOfConcern' => function ($query) {
+            $query->withTrashed()->get();
+        }, 'tenant']);
         
         // Apply date filtering if requested
         $dateFilter = $this->filteringService->getDateFilter();
@@ -62,8 +67,8 @@ class RepairOrderService
             'SuperAdmin' => $isSuperAdmin,
             'tenants' => $tenants,
             'trucks' => Truck::get(),
-            'vendors' => Vendor::get(),
-            'areasOfConcern' => AreaOfConcern::get(),
+            'vendors' => Vendor::withTrashed()->get(),
+            'areasOfConcern' => AreaOfConcern::withTrashed()->get(),
             'dateRange' => $dateRange,
             'dateFilter' => $dateFilter,
         ];
@@ -78,9 +83,12 @@ class RepairOrderService
     public function createRepairOrder(array $data)
     {
         $repairOrder = RepairOrder::create($data);
-        if (isset($data['area_of_concerns'])) {
+        
+        // Properly handle the many-to-many relationship with the pivot table
+        if (isset($data['area_of_concerns']) && is_array($data['area_of_concerns'])) {
             $repairOrder->areasOfConcern()->sync($data['area_of_concerns']);
         }
+        
         return $repairOrder;
     }
 
@@ -95,9 +103,12 @@ class RepairOrderService
     {
         $repairOrder = RepairOrder::findOrFail($id);
         $repairOrder->update($data);
-        if (isset($data['area_of_concerns'])) {
+        
+        // Properly handle the many-to-many relationship with the pivot table
+        if (isset($data['area_of_concerns']) && is_array($data['area_of_concerns'])) {
             $repairOrder->areasOfConcern()->sync($data['area_of_concerns']);
         }
+        
         return $repairOrder;
     }
 
@@ -110,6 +121,7 @@ class RepairOrderService
     public function deleteRepairOrder($id)
     {
         $repairOrder = RepairOrder::findOrFail($id);
+        // This will automatically handle the pivot table deletion due to cascade
         $repairOrder->delete();
         return true;
     }

@@ -44,7 +44,12 @@ class RejectionService
         $perPage = $this->filteringService->getPerPage();
         
         // Build query
-        $query = Rejection::with(['tenant', 'reasonCode']);
+        $query = Rejection::with([
+            'tenant',
+            'reasonCode' => function ($query) {
+                $query->withTrashed();
+            }
+        ]);
         
         // Apply date filtering
         $dateRange = [];
@@ -58,7 +63,7 @@ class RejectionService
             'tenantSlug'           => $isSuperAdmin ? null : $user->tenant->slug,
             'isSuperAdmin'         => $isSuperAdmin,
             'tenants'              => $isSuperAdmin ? Tenant::all() : [],
-            'rejection_reason_codes' => RejectionReasonCode::all(),
+            'rejection_reason_codes' => RejectionReasonCode::withTrashed()->get(),
             'dateFilter'           => $dateFilter,
             'dateRange'            => $dateRange,
             'perPage'              => $perPage,
