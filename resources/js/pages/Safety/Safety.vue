@@ -118,7 +118,7 @@
           <div class="overflow-x-auto bg-background dark:bg-background border-t border-border">
             <Table class="relative h-[500px] overflow-auto">
               <TableHeader>
-                <TableRow class="sticky top-0 ">
+                <TableRow class="sticky top-0 bg-background border-b z-10">
                   <!-- If SuperAdmin, show Tenant column -->
                   <TableHead v-if="SuperAdmin">Company Name</TableHead>
                   <!-- Dynamically render table columns from the tableColumns array -->
