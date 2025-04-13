@@ -56,6 +56,7 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::post('/safety', [SafetyDataController::class, 'store'])->name('safety.store');
         Route::put('/safety/{id}', [SafetyDataController::class, 'update'])->name('safety.update');
         Route::delete('/safety/{id}', [SafetyDataController::class, 'destroy'])->name('safety.destroy');
+        Route::delete('/safety-bulk', [SafetyDataController::class, 'destroyBulk'])->name('safety.destroyBulk');
         Route::post('/safety/import', [SafetyDataController::class, 'import'])->name('safety.import');
         Route::get('/safety/export', [SafetyDataController::class, 'export'])->name('safety.export');
 

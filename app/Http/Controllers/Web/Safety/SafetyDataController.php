@@ -138,4 +138,31 @@ class SafetyDataController extends Controller
     {
         return $this->safetyImportExportService->exportData();
     }
+
+    /**
+     * Delete multiple safety data entries.
+     *
+     * @param Request $request
+     * @param string|null $tenantSlug
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function destroyBulk(Request $request, $tenantSlug = null)
+    {
+        $ids = $request->input('ids', []);
+        $this->safetyDataService->deleteMultipleEntries($ids);
+        return redirect()->back()->with('success', 'Entries deleted successfully.');
+    }
+
+    /**
+     * Delete multiple safety data entries as Admin.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function destroyBulkAdmin(Request $request)
+    {
+        $ids = $request->input('ids', []);
+        $this->safetyDataService->deleteMultipleEntries($ids);
+        return redirect()->back()->with('success', 'Entries deleted successfully.');
+    }
 }

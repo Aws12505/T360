@@ -99,4 +99,28 @@ class SafetyDataService
         $entry = SafetyData::findOrFail($id);
         $entry->delete();
     }
+
+    /**
+     * Delete multiple safety data entries.
+     *
+     * @param array $ids
+     * @return void
+     */
+    public function deleteMultipleEntries(array $ids)
+    {
+        if (empty($ids)) {
+            return;
+        }
+        
+        // For security, ensure the user can only delete entries they have access to
+        $query = SafetyData::whereIn('id', $ids);
+        
+        // If not a super admin, restrict to tenant's entries
+        $user = Auth::user();
+        if (!is_null($user->tenant_id)) {
+            $query->where('tenant_id', $user->tenant_id);
+        }
+        
+        $query->delete();
+    }
 }

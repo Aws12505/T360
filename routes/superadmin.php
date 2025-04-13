@@ -53,6 +53,7 @@ Route::middleware(['auth', 'superAdmin'])->group(function () {
     Route::post('/safety', [SafetyDataController::class, 'store'])->name('safety.store.admin');
     Route::put('/safety/{id}', [SafetyDataController::class, 'updateAdmin'])->name('safety.update.admin');
     Route::delete('/safety/{id}', [SafetyDataController::class, 'destroyAdmin'])->name('safety.destroy.admin');
+    Route::delete('/safety-bulk', [SafetyDataController::class, 'destroyBulkAdmin'])->name('safety.destroyBulk.admin');
     Route::post('/safety/import', [SafetyDataController::class, 'import'])->name('safety.import.admin');
     Route::get('/safety/export', [SafetyDataController::class, 'export'])->name('safety.export.admin');
 

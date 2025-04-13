@@ -18,6 +18,16 @@
             <Icon name="plus" class="mr-2 h-4 w-4" />
             Create New Entry
           </Button>
+          
+          <!-- Delete Selected button - only shows when items are selected -->
+          <Button 
+            v-if="selectedEntries.length > 0" 
+            @click="confirmDeleteSelected()" 
+            variant="destructive"
+          >
+            <Icon name="trash" class="mr-2 h-4 w-4" />
+            Delete Selected ({{ selectedEntries.length }})
+          </Button>
 
           <!-- Tenant selection for SuperAdmin (only visible if SuperAdmin) -->
           <div v-if="SuperAdmin" class="flex items-center gap-2">
@@ -119,6 +129,17 @@
             <Table class="relative h-[500px] overflow-auto">
               <TableHeader>
                 <TableRow class="sticky top-0 bg-background border-b z-10">
+                  <!-- Checkbox column for selecting all -->
+                  <TableHead class="w-[50px]">
+                    <div class="flex items-center justify-center">
+                      <input 
+                        type="checkbox" 
+                        @change="toggleSelectAll" 
+                        :checked="isAllSelected"
+                        class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      />
+                    </div>
+                  </TableHead>
                   <!-- If SuperAdmin, show Tenant column -->
                   <TableHead v-if="SuperAdmin">Company Name</TableHead>
                   <!-- Dynamically render table columns from the tableColumns array -->
@@ -134,11 +155,20 @@
               </TableHeader>
               <TableBody>
                 <TableRow v-if="entries.data.length === 0">
-                  <TableCell :colspan="SuperAdmin ? tableColumns.length + 2 : tableColumns.length + 1" class="text-center py-8">
+                  <TableCell :colspan="SuperAdmin ? tableColumns.length + 3 : tableColumns.length + 2" class="text-center py-8">
                     No entries found
                   </TableCell>
                 </TableRow>
                 <TableRow v-for="item in entries.data" :key="item.id" class="hover:bg-muted/50">
+                  <!-- Checkbox for selecting individual row -->
+                  <TableCell class="text-center">
+                    <input 
+                      type="checkbox" 
+                      :value="item.id" 
+                      v-model="selectedEntries"
+                      class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                    />
+                  </TableCell>
                   <!-- Display Tenant name for SuperAdmin -->
                   <TableCell v-if="SuperAdmin">{{ item.tenant?.name ?? '—' }}</TableCell>
                   <!-- Render each field for the entry -->
@@ -266,7 +296,25 @@
           </form>
         </DialogContent>
       </Dialog>
-
+<!-- Delete Selected Entries Confirmation Dialog -->
+<Dialog v-model:open="showDeleteSelectedModal">
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>Confirm Bulk Deletion</DialogTitle>
+      <DialogDescription>
+        Are you sure you want to delete {{ selectedEntries.length }} safety records? This action cannot be undone.
+      </DialogDescription>
+    </DialogHeader>
+    <DialogFooter class="mt-4">
+      <Button type="button" @click="showDeleteSelectedModal = false" variant="outline">
+        Cancel
+      </Button>
+      <Button type="button" @click="deleteSelectedEntries()" variant="destructive">
+        Delete Selected
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
       <!-- Hidden form for CSV export -->
       <form ref="exportForm" method="GET" class="hidden" />
     </div>
@@ -274,7 +322,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { router, Head } from '@inertiajs/vue3';
@@ -312,6 +360,8 @@ const formAction = ref('Create');
 const exportForm = ref(null);
 const activeTab = ref(props.dateFilter || 'full');
 const perPage = ref(10);
+const selectedEntries = ref([]);
+const showDeleteSelectedModal = ref(false);
 
 // Define breadcrumbs for the layout
 const breadcrumbs = [
@@ -575,4 +625,47 @@ function visitPage(url) {
     router.get(urlObj.href, {}, { only: ['entries'] });
   }
 }
+
+// Computed property for "Select All" checkbox state
+const isAllSelected = computed(() => {
+  return props.entries.data.length > 0 && selectedEntries.value.length === props.entries.data.length;
+});
+
+// Bulk selection functions
+function toggleSelectAll(event) {
+  if (event.target.checked) {
+    selectedEntries.value = props.entries.data.map(entry => entry.id);
+  } else {
+    selectedEntries.value = [];
+  }
+}
+
+function confirmDeleteSelected() {
+  if (selectedEntries.value.length > 0) {
+    showDeleteSelectedModal.value = true;
+  }
+}
+
+function deleteSelectedEntries() {
+  const form = useForm({
+    ids: selectedEntries.value
+  });
+  
+  const routeName = props.SuperAdmin ? 'safety.destroyBulk.admin' : 'safety.destroyBulk';
+  const routeParams = props.SuperAdmin ? {} : { tenantSlug: props.tenantSlug };
+  
+  form.delete(route(routeName, routeParams), {
+    preserveScroll: true,
+    onSuccess: () => {
+      successMessage.value = `${selectedEntries.value.length} safety records deleted successfully.`;
+      selectedEntries.value = [];
+      showDeleteSelectedModal.value = false;
+    },
+    onError: (errors) => {
+      console.error(errors);
+    }
+  });
+}
 </script>
+
+
