@@ -16,6 +16,15 @@
             <Icon name="plus" class="mr-2 h-4 w-4" />
             Add Rejection
           </Button>
+          <!-- Add Delete Selected button -->
+          <Button 
+            v-if="selectedRejections.length > 0" 
+            @click="confirmDeleteSelected()" 
+            variant="destructive"
+          >
+            <Icon name="trash" class="mr-2 h-4 w-4" />
+            Delete Selected ({{ selectedRejections.length }})
+          </Button>
           <Button v-if="isSuperAdmin"@click="openCodeModal()" variant="outline">
             <Icon name="settings" class="mr-2 h-4 w-4" />
             Manage Reason Codes
@@ -210,6 +219,17 @@
             <Table class="relative h-[500px] overflow-auto">
               <TableHeader>
                 <TableRow class="sticky top-0 bg-background border-b z-10">
+                  <!-- Add checkbox column for selecting all -->
+                  <TableHead class="w-[50px]">
+                    <div class="flex items-center justify-center">
+                      <input 
+                        type="checkbox" 
+                        @change="toggleSelectAll" 
+                        :checked="isAllSelected"
+                        class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      />
+                    </div>
+                  </TableHead>
                   <TableHead v-if="isSuperAdmin">Company Name</TableHead>
                   <TableHead 
                     v-for="col in tableColumns" 
@@ -240,11 +260,20 @@
               </TableHeader>
               <TableBody>
                 <TableRow v-if="filteredRejections.length === 0">
-                  <TableCell :colspan="isSuperAdmin ? tableColumns.length + 2 : tableColumns.length + 1" class="text-center py-8">
+                  <TableCell :colspan="isSuperAdmin ? tableColumns.length + 3 : tableColumns.length + 2" class="text-center py-8">
                     No rejections found matching your criteria
                   </TableCell>
                 </TableRow>
                 <TableRow v-for="rejection in filteredRejections" :key="rejection.id" class="hover:bg-muted/50">
+                  <!-- Add checkbox for selecting individual row -->
+                  <TableCell class="text-center">
+                    <input 
+                      type="checkbox" 
+                      :value="rejection.id" 
+                      v-model="selectedRejections"
+                      class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                    />
+                  </TableCell>
                   <TableCell v-if="isSuperAdmin">{{ rejection.tenant?.name || '—' }}</TableCell>
                   <TableCell v-for="col in tableColumns" :key="col" class="whitespace-nowrap">
                     <template v-if="col === 'date'">
@@ -451,6 +480,26 @@
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <!-- Add Delete Selected Confirmation Dialog -->
+<Dialog v-model:open="showDeleteSelectedModal">
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>Confirm Bulk Deletion</DialogTitle>
+      <DialogDescription>
+        Are you sure you want to delete {{ selectedRejections.length }} rejection records? This action cannot be undone.
+      </DialogDescription>
+    </DialogHeader>
+    <DialogFooter class="mt-4">
+      <Button type="button" @click="showDeleteSelectedModal = false" variant="outline">
+        Cancel
+      </Button>
+      <Button type="button" @click="deleteSelectedRejections()" variant="destructive">
+        Delete Selected
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
+
     </div>
   </AppLayout>
 </template>
@@ -516,6 +565,8 @@ const selectedRejection = ref(null);
 const successMessage = ref('');
 const activeTab = ref(props.dateFilter || 'full');
 const perPage = ref(props.perPage);
+const selectedRejections = ref([]);
+const showDeleteSelectedModal = ref(false);
 
 // Code management state
 const showCodeForm = ref(false);
@@ -864,4 +915,46 @@ function forceDeleteCode(id) {
 const activeReasonCodes = computed(() => {
   return props.rejection_reason_codes.filter(code => !code.deleted_at);
 });
+
+// Computed property for "Select All" checkbox state
+const isAllSelected = computed(() => {
+  return filteredRejections.value.length > 0 && selectedRejections.value.length === filteredRejections.value.length;
+});
+
+// Bulk selection functions
+function toggleSelectAll(event) {
+  if (event.target.checked) {
+    selectedRejections.value = filteredRejections.value.map(rejection => rejection.id);
+  } else {
+    selectedRejections.value = [];
+  }
+}
+
+function confirmDeleteSelected() {
+  if (selectedRejections.value.length > 0) {
+    showDeleteSelectedModal.value = true;
+  }
+}
+
+function deleteSelectedRejections() {
+  const form = useForm({
+    ids: selectedRejections.value
+  });
+  
+  const routeName = props.isSuperAdmin ? 'acceptance.destroyBulk.admin' : 'acceptance.destroyBulk';
+  const routeParams = props.isSuperAdmin ? {} : { tenantSlug: props.tenantSlug };
+  
+  form.delete(route(routeName, routeParams), {
+    preserveScroll: true,
+    onSuccess: () => {
+      successMessage.value = `${selectedRejections.value.length} rejection records deleted successfully.`;
+      selectedRejections.value = [];
+      showDeleteSelectedModal.value = false;
+    },
+    onError: (errors) => {
+      console.error(errors);
+    }
+  });
+}
 </script>
+
