@@ -68,10 +68,12 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::get('/trucks/export', [TruckController::class, 'export'])->name('truck.export');
 
         // Delays routes
+        Route::get('/ontime', [DelaysController::class, 'index'])->name('ontime.index');
         Route::post('/ontime', [DelaysController::class, 'store'])->name('ontime.store');
         Route::put('/ontime/{delay}', [DelaysController::class, 'update'])->name('ontime.update');
         Route::delete('/ontime/{delay}', [DelaysController::class, 'destroy'])->name('ontime.destroy');
-        Route::get('/ontime', [DelaysController::class, 'index'])->name('ontime.index');
+        // The issue is likely here - the route pattern conflicts with the {delay} parameter route
+        Route::delete('/ontime-bulk', [DelaysController::class, 'destroyBulk'])->name('ontime.destroyBulk');
 
 // Regular Driver routes
 Route::get('/drivers', [DriverController::class, 'index'])->name('driver.index');

@@ -78,9 +78,12 @@ Route::middleware(['auth', 'superAdmin'])->group(function () {
     Route::delete('/rejection-reason-codes/{id}/force', [RejectionsController::class, 'forceDeleteCode'])->name('rejection_reason_codes.forceDelete.admin');
 
     // Admin delays routes
+    // Admin delays routes
     Route::post('/ontime', [DelaysController::class, 'store'])->name('ontime.store.admin');
     Route::put('/ontime/{delay}', [DelaysController::class, 'updateAdmin'])->name('ontime.update.admin');
     Route::delete('/ontime/{delay}', [DelaysController::class, 'destroyAdmin'])->name('ontime.destroy.admin');
+    // The issue is likely here - the route pattern conflicts with the {delay} parameter route
+    Route::delete('/ontime-bulk', [DelaysController::class, 'destroyBulkAdmin'])->name('ontime.destroyBulk.admin');
 
 // Admin Driver routes
 Route::get('/drivers', [DriverController::class, 'index'])->name('driver.index.admin');

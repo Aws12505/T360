@@ -17,6 +17,14 @@
             <Icon name="plus" class="mr-2 h-4 w-4" />
             Add Delay
           </Button>
+          <Button 
+            v-if="selectedDelays.length > 0" 
+            @click="confirmDeleteSelected()" 
+            variant="destructive"
+          >
+            <Icon name="trash" class="mr-2 h-4 w-4" />
+            Delete Selected ({{ selectedDelays.length }})
+          </Button>
           <Button v-if="isSuperAdmin" @click="openCodeModal()" variant="outline">
             <Icon name="settings" class="mr-2 h-4 w-4" />
             Manage Delay Codes
@@ -153,6 +161,16 @@
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead class="w-[50px]">
+                    <div class="flex items-center justify-center">
+                      <input 
+                        type="checkbox" 
+                        @change="toggleSelectAll" 
+                        :checked="isAllSelected"
+                        class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      />
+                    </div>
+                  </TableHead>
                   <TableHead v-if="isSuperAdmin">Company Name</TableHead>
                   <TableHead
                     v-for="col in tableColumns"
@@ -188,6 +206,14 @@
                   </TableCell>
                 </TableRow>
                 <TableRow v-for="delay in filteredDelays" :key="delay.id" class="hover:bg-muted/50">
+                  <TableCell class="text-center">
+                    <input 
+                      type="checkbox" 
+                      :value="delay.id" 
+                      v-model="selectedDelays"
+                      class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                    />
+                  </TableCell>
                   <TableCell v-if="isSuperAdmin">{{ delay.tenant?.name || '—' }}</TableCell>
                   <TableCell v-for="col in tableColumns" :key="col" class="whitespace-nowrap">
                     <template v-if="col === 'date'">
@@ -411,6 +437,25 @@
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <!-- Delete Selected Delays Confirmation Dialog -->
+<Dialog v-model:open="showDeleteSelectedModal">
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>Confirm Bulk Deletion</DialogTitle>
+      <DialogDescription>
+        Are you sure you want to delete {{ selectedDelays.length }} delay records? This action cannot be undone.
+      </DialogDescription>
+    </DialogHeader>
+    <DialogFooter class="mt-4">
+      <Button type="button" @click="showDeleteSelectedModal = false" variant="outline">
+        Cancel
+      </Button>
+      <Button type="button" @click="deleteSelectedDelays()" variant="destructive">
+        Delete Selected
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
     </div>
   </AppLayout>
 </template>
@@ -479,6 +524,8 @@ const selectedDelay = ref(null);
 const successMessage = ref('');
 const showDeleteModal = ref(false);
 const delayToDelete = ref(null);
+const selectedDelays = ref([]);
+const showDeleteSelectedModal = ref(false);
 
 // Code management state
 const showCodeForm = ref(false);
@@ -747,4 +794,51 @@ watch(successMessage, (newValue) => {
     }, 5000);
   }
 });
+
+// Computed property for "Select All" checkbox state
+const isAllSelected = computed(() => {
+  return filteredDelays.value.length > 0 && selectedDelays.value.length === filteredDelays.value.length;
+});
+
+// Bulk selection functions
+function toggleSelectAll(event) {
+  if (event.target.checked) {
+    selectedDelays.value = filteredDelays.value.map(delay => delay.id);
+  } else {
+    selectedDelays.value = [];
+  }
+}
+
+function confirmDeleteSelected() {
+  if (selectedDelays.value.length > 0) {
+    showDeleteSelectedModal.value = true;
+  }
+}
+
+function deleteSelectedDelays() {
+  const form = useForm({
+    ids: selectedDelays.value
+  });
+  
+  const routeName = props.isSuperAdmin ? 'ontime.destroyBulk.admin' : 'ontime.destroyBulk';
+  const routeParams = props.isSuperAdmin ? {} : { tenantSlug: props.tenantSlug };
+  
+  form.delete(route(routeName, routeParams), {
+    preserveScroll: true,
+    onSuccess: () => {
+      successMessage.value = `${selectedDelays.value.length} delay records deleted successfully.`;
+      selectedDelays.value = [];
+      showDeleteSelectedModal.value = false;
+      // Reload the page to refresh the data
+      router.reload();
+    },
+    onError: (errors) => {
+      console.error(errors);
+    }
+  });
+}
 </script>
+
+
+
+

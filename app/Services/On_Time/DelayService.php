@@ -123,4 +123,28 @@ class DelayService
         $delay = Delay::findOrFail($id);
         $delay->delete();
     }
+
+    /**
+     * Delete multiple delay records.
+     *
+     * @param array $ids
+     * @return void
+     */
+    public function deleteMultipleDelays(array $ids)
+    {
+        if (empty($ids)) {
+            return;
+        }
+        
+        // For security, ensure the user can only delete delays they have access to
+        $query = Delay::whereIn('id', $ids);
+        
+        // If not a super admin, restrict to tenant's delays
+        $user = Auth::user();
+        if (!is_null($user->tenant_id)) {
+            $query->where('tenant_id', $user->tenant_id);
+        }
+        
+        $query->delete();
+    }
 }

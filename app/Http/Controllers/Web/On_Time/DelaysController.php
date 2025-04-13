@@ -10,6 +10,7 @@ use Inertia\Inertia;
 use App\Http\Requests\On_Time\StoreDelayRequest;
 use App\Http\Requests\On_Time\UpdateDelayRequest;
 use App\Http\Requests\On_Time\StoreDelayCode;
+use Illuminate\Http\Request;
 
 class DelaysController extends Controller
 {
@@ -57,6 +58,20 @@ class DelaysController extends Controller
     public function destroyAdmin($id)
     {
         $this->delayService->deleteDelay($id);
+        return back();
+    }
+
+    public function destroyBulk(Request $request, $tenantSlug = null)
+    {
+        $ids = $request->input('ids', []);
+        $this->delayService->deleteMultipleDelays($ids);
+        return back();
+    }
+
+    public function destroyBulkAdmin(Request $request)
+    {
+        $ids = $request->input('ids', []);
+        $this->delayService->deleteMultipleDelays($ids);
         return back();
     }
 
