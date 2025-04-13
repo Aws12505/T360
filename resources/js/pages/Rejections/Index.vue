@@ -207,7 +207,7 @@
       <Card>
         <CardContent class="p-0">
           <div class="overflow-x-auto">
-            <Table>
+            <Table >
               <TableHeader>
                 <TableRow>
                   <TableHead v-if="isSuperAdmin">Company Name</TableHead>
