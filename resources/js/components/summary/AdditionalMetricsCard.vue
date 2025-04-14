@@ -65,7 +65,7 @@ const props = defineProps({
 // Format number for display
 const formatNumber = (value) => {
   if (value === undefined || value === null) return '0';
-  return parseFloat(value).toFixed(2);
+  return Math.round(parseFloat(value)).toString();
 };
 
 // Format rating for display

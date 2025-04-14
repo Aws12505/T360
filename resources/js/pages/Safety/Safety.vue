@@ -110,16 +110,31 @@
                 Full
               </Button>
             </div>
-            <div v-if="dateRange" class="text-sm text-muted-foreground">
-              <span v-if="activeTab === 'yesterday' && dateRange.start">
-                Showing data from {{ formatDate(dateRange.start) }}
-              </span>
-              <span v-else-if="dateRange.start && dateRange.end">
-                Showing data from {{ formatDate(dateRange.start) }} to {{ formatDate(dateRange.end) }}
-              </span>
-              <span v-else>
-                {{ dateRange.label }}
-              </span>
+            
+            <!-- Date range info and Freeze Column toggle in separate row -->
+            <div class="flex justify-between items-center">
+              <div v-if="dateRange" class="text-sm text-muted-foreground">
+                <span v-if="activeTab === 'yesterday' && dateRange.start">
+                  Showing data from {{ formatDate(dateRange.start) }}
+                </span>
+                <span v-else-if="dateRange.start && dateRange.end">
+                  Showing data from {{ formatDate(dateRange.start) }} to {{ formatDate(dateRange.end) }}
+                </span>
+                <span v-else>
+                  {{ dateRange.label }}
+                </span>
+              </div>
+              
+              <!-- Toggle Freeze Column Button -->
+              <Button 
+                @click="toggleFreezeColumn" 
+                variant="outline"
+                size="sm"
+                :class="{'bg-primary/10 text-primary border-primary': freezeColumns}"
+              >
+                <Icon :name="freezeColumns ? 'lock' : 'unlock'" class="mr-2 h-4 w-4" />
+                {{ freezeColumns ? 'Unfreeze Names' : 'Freeze Names' }}
+              </Button>
             </div>
           </div>
         </CardContent>
@@ -133,7 +148,7 @@
               <TableHeader>
                 <TableRow class="sticky top-0 bg-background border-b z-10">
                   <!-- Checkbox column for selecting all -->
-                  <TableHead class="w-[50px]">
+                  <TableHead class="w-[50px]" :class="{ 'sticky left-0 z-20 bg-background': freezeColumns }">
                     <div class="flex items-center justify-center">
                       <input 
                         type="checkbox" 
@@ -144,15 +159,21 @@
                     </div>
                   </TableHead>
                   <!-- If SuperAdmin, show Tenant column -->
-                  <TableHead v-if="SuperAdmin">Company Name</TableHead>
+                  <TableHead v-if="SuperAdmin" :class="{ 'sticky left-[50px] z-20 bg-background': freezeColumns }">Company Name</TableHead>
                   <!-- Dynamically render table columns from the tableColumns array -->
                   <TableHead
                     v-for="col in tableColumns"
                     :key="col"
                     class="whitespace-nowrap"
+                    :class="{
+                      'sticky z-20 bg-background': freezeColumns && col === 'driver_name',
+                      'left-[50px]': freezeColumns && col === 'driver_name' && !SuperAdmin, 
+                      'left-[150px]': freezeColumns && col === 'driver_name' && SuperAdmin
+                    }"
                   >
-                    {{ col.replace(/_/g, ' ') }}
+                    {{ col.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) }}
                   </TableHead>
+                  <!-- Actions column - removed freezing -->
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -164,7 +185,7 @@
                 </TableRow>
                 <TableRow v-for="item in entries.data" :key="item.id" class="hover:bg-muted/50">
                   <!-- Checkbox for selecting individual row -->
-                  <TableCell class="text-center">
+                  <TableCell class="text-center" :class="{ 'sticky left-0 z-10 bg-background': freezeColumns }">
                     <input 
                       type="checkbox" 
                       :value="item.id" 
@@ -173,16 +194,21 @@
                     />
                   </TableCell>
                   <!-- Display Tenant name for SuperAdmin -->
-                  <TableCell v-if="SuperAdmin">{{ item.tenant?.name ?? '—' }}</TableCell>
+                  <TableCell v-if="SuperAdmin" :class="{ 'sticky left-[50px] z-10 bg-background': freezeColumns }">{{ item.tenant?.name ?? '—' }}</TableCell>
                   <!-- Render each field for the entry -->
                   <TableCell
                     v-for="col in tableColumns"
                     :key="col"
                     class="whitespace-nowrap"
+                    :class="{
+                      'sticky z-10 bg-background': freezeColumns && col === 'driver_name',
+                      'left-[50px]': freezeColumns && col === 'driver_name' && !SuperAdmin, 
+                      'left-[150px]': freezeColumns && col === 'driver_name' && SuperAdmin
+                    }"
                   >
                     {{ item[col] }}
                   </TableCell>
-                  <!-- Actions for each entry -->
+                  <!-- Actions for each entry - removed freezing -->
                   <TableCell>
                     <div class="flex space-x-2">
                       <Button @click="openEditModal(item)" variant="warning" size="sm">
@@ -365,6 +391,7 @@ const activeTab = ref(props.dateFilter || 'full');
 const perPage = ref(10);
 const selectedEntries = ref([]);
 const showDeleteSelectedModal = ref(false);
+const freezeColumns = ref(false); // Changed to false by default
 
 // Define breadcrumbs for the layout
 const breadcrumbs = [
@@ -380,6 +407,11 @@ const breadcrumbs = [
      ? route('safety.index', { tenantSlug: props.tenantSlug }) : route('safety.index.admin')
   }
 ];
+
+// Toggle column freezing function
+function toggleFreezeColumn() {
+  freezeColumns.value = !freezeColumns.value;
+}
 
 // Field definitions based on your migration
 const fieldTypes = {
@@ -670,5 +702,28 @@ function deleteSelectedEntries() {
   });
 }
 </script>
+
+<style scoped>
+/* Ensure proper table scrolling behavior */
+:deep(.overflow-x-auto) {
+  position: relative;
+}
+
+:deep(table) {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+/* Add shadow effect to frozen columns for better visual separation */
+:deep(.sticky) {
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Ensure the table container has proper overflow handling */
+:deep(.h-[500px]) {
+  overflow: auto;
+  position: relative;
+}
+</style>
 
 

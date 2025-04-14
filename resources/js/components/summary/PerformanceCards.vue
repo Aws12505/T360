@@ -188,9 +188,9 @@ const topRejections = computed(() => {
 
 // Format percentage for display
 const formatPercentage = (value) => {
-  if (value === undefined || value === null) return '0.00%';
+  if (value === undefined || value === null) return '0%';
   // Don't multiply by 100 since values are already percentages
-  return `${parseFloat(value).toFixed(2)}%`;
+  return `${Math.round(parseFloat(value))}%`;
 };
 
 // Format decimal for display
@@ -201,14 +201,14 @@ const formatDecimal = (value) => {
     value = parseFloat(value);
   }
   
-  if (value === undefined || value === null || isNaN(value)) return '0.00';
-  return value.toFixed(2);
+  if (value === undefined || value === null || isNaN(value)) return '0';
+  return Math.round(value).toString();
 };
 
 // Format currency for display
 const formatCurrency = (value) => {
-  if (value === undefined || value === null || typeof value !== 'number') return '0.00';
-  return value.toFixed(2);
+  if (value === undefined || value === null || typeof value !== 'number') return '0';
+  return Math.round(value).toString();
 };
 
 // Format rating for display
