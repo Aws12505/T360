@@ -142,4 +142,28 @@ class PerformanceService
         }
         $performance->delete();
     }
+
+    /**
+     * Delete multiple performance entries.
+     *
+     * @param array $ids Array of performance IDs to delete
+     * @param int|null $tenantId
+     * @return void
+     */
+    public function deleteMultiplePerformances(array $ids, $tenantId = null)
+    {
+        if (empty($ids)) {
+            return;
+        }
+        
+        // For security, ensure the user can only delete performances they have access to
+        $query = Performance::whereIn('id', $ids);
+        
+        // If not a super admin, restrict to tenant's performances
+        if ($tenantId) {
+            $query->where('tenant_id', $tenantId);
+        }
+        
+        $query->delete();
+    }
 }

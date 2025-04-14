@@ -41,13 +41,16 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::post('/performance', [PerformanceController::class, 'store'])->name('performance.store');
         Route::put('/performance/{performance}', [PerformanceController::class, 'update'])->name('performance.update');
         Route::delete('/performance/{performance}', [PerformanceController::class, 'destroy'])->name('performance.destroy');
+        Route::delete('/performance-bulk', [PerformanceController::class, 'destroyBulk'])->name('performance.destroyBulk');
         Route::post('/performance/import', [PerformanceController::class, 'import'])->name('performance.import');
         Route::get('/performance/export', [PerformanceController::class, 'export'])->name('performance.export');
         
+        // Repair Orders routes
         Route::get('/repair-orders', [RepairOrderController::class, 'index'])->name('repair_orders.index');
         Route::post('/repair-orders', [RepairOrderController::class, 'store'])->name('repair_orders.store');
         Route::put('/repair-orders/{repair_order}', [RepairOrderController::class, 'update'])->name('repair_orders.update');
         Route::delete('/repair-orders/{repair_order}', [RepairOrderController::class, 'destroy'])->name('repair_orders.destroy');
+        Route::delete('/repair-orders-bulk', [RepairOrderController::class, 'destroyBulk'])->name('repair_orders.destroyBulk');
         Route::post('/repair-orders/import', [RepairOrderController::class, 'import'])->name('repair_orders.import');
         Route::get('/repair-orders/export', [RepairOrderController::class, 'export'])->name('repair_orders.export');
     
@@ -65,6 +68,7 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::post('/trucks', [TruckController::class, 'store'])->name('truck.store');
         Route::put('/trucks/{truck}', [TruckController::class, 'update'])->name('truck.update');
         Route::delete('/trucks/{truck}', [TruckController::class, 'destroy'])->name('truck.destroy');
+        Route::delete('/trucks-bulk', [TruckController::class, 'destroyBulk'])->name('truck.destroyBulk');
         Route::post('/trucks/import', [TruckController::class, 'import'])->name('truck.import');
         Route::get('/trucks/export', [TruckController::class, 'export'])->name('truck.export');
 

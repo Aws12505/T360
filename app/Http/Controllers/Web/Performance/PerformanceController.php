@@ -135,4 +135,31 @@ class PerformanceController extends Controller
     {
         return $this->PerformanceImportExportService->exportPerformances();
     }
+
+    /**
+     * Delete multiple performance entries.
+     *
+     * @param Request $request
+     * @param string|null $tenantSlug
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function destroyBulk(Request $request, $tenantSlug = null)
+    {
+        $ids = $request->input('ids', []);
+        $this->PerformanceService->deleteMultiplePerformances($ids, Auth::user()->tenant_id);
+        return redirect()->back()->with('success', 'Performance records deleted successfully.');
+    }
+
+    /**
+     * Delete multiple performance entries as Admin.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function destroyBulkAdmin(Request $request)
+    {
+        $ids = $request->input('ids', []);
+        $this->PerformanceService->deleteMultiplePerformances($ids);
+        return redirect()->back()->with('success', 'Performance records deleted successfully.');
+    }
 }

@@ -13,6 +13,7 @@ use App\Http\Requests\Maintenance\StoreAreaOfConcernRequest;
 use App\Http\Requests\Maintenance\StoreVendorRequest;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Auth;
 
 class RepairOrderController extends Controller
 {
@@ -171,5 +172,32 @@ public function export()
     {
         $this->vendorsService->forceDeleteVendor($id);
         return redirect()->back()->with('success', 'Vendor permanently deleted.');
+    }
+
+    /**
+     * Delete multiple repair order entries.
+     *
+     * @param Request $request
+     * @param string|null $tenantSlug
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function destroyBulk(Request $request, $tenantSlug = null)
+    {
+        $ids = $request->input('ids', []);
+        $this->repairOrderService->deleteMultipleRepairOrders($ids, Auth::user()->tenant_id);
+        return redirect()->back()->with('success', 'Repair Orders deleted successfully.');
+    }
+
+    /**
+     * Delete multiple repair order entries as Admin.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function destroyBulkAdmin(Request $request)
+    {
+        $ids = $request->input('ids', []);
+        $this->repairOrderService->deleteMultipleRepairOrders($ids);
+        return redirect()->back()->with('success', 'Repair Orders deleted successfully.');
     }
 }

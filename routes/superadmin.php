@@ -45,6 +45,7 @@ Route::middleware(['auth', 'superAdmin'])->group(function () {
     Route::post('/performance', [PerformanceController::class, 'store'])->name('performance.store.admin');
     Route::put('/performance/{performance}', [PerformanceController::class, 'adminUpdate'])->name('performance.update.admin');
     Route::delete('/performance/{performance}', [PerformanceController::class, 'adminDestroy'])->name('performance.destroy.admin');
+    Route::delete('/performance-bulk', [PerformanceController::class, 'destroyBulkAdmin'])->name('performance.destroyBulk.admin');
     Route::post('/performance/import', [PerformanceController::class, 'import'])->name('performance.import.admin');
     Route::get('/performance/export', [PerformanceController::class, 'export'])->name('performance.export.admin');
 
@@ -62,6 +63,7 @@ Route::middleware(['auth', 'superAdmin'])->group(function () {
     Route::post('/trucks', [TruckController::class, 'store'])->name('truck.store.admin');
     Route::put('/trucks/{truck}', [TruckController::class, 'updateAdmin'])->name('truck.update.admin');
     Route::delete('/trucks/{truck}', [TruckController::class, 'destroyAdmin'])->name('truck.destroy.admin');
+    Route::delete('/trucks-bulk', [TruckController::class, 'destroyBulkAdmin'])->name('truck.destroyBulk.admin');
     Route::post('/trucks/import', [TruckController::class, 'import'])->name('truck.import.admin');
     Route::get('/trucks/export', [TruckController::class, 'export'])->name('truck.export.admin');
 
@@ -107,11 +109,12 @@ Route::get('/drivers/export', [DriverController::class, 'export'])->name('driver
 Route::delete('/drivers-bulk', [DriverController::class, 'destroyBulkAdmin'])->name('driver.destroyBulk.admin');
 
 
-// Admin repair order routes
+// Admin repair orders routes
 Route::get('/repair-orders', [RepairOrderController::class, 'index'])->name('repair_orders.index.admin');
 Route::post('/repair-orders', [RepairOrderController::class, 'store'])->name('repair_orders.store.admin');
 Route::put('/repair-orders/{repair_order}', [RepairOrderController::class, 'updateAdmin'])->name('repair_orders.update.admin');
 Route::delete('/repair-orders/{repair_order}', [RepairOrderController::class, 'destroyAdmin'])->name('repair_orders.destroy.admin');
+Route::delete('/repair-orders-bulk', [RepairOrderController::class, 'destroyBulkAdmin'])->name('repair_orders.destroyBulk.admin');
 Route::post('/repair-orders/import', [RepairOrderController::class, 'import'])->name('repair_orders.import.admin');
 Route::get('/repair-orders/export', [RepairOrderController::class, 'export'])->name('repair_orders.export.admin');
 

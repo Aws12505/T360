@@ -17,7 +17,17 @@
             <Icon name="plus" class="mr-2 h-4 w-4" />
             Create New Performance
           </Button>
-
+          
+          <!-- Add Delete Selected button -->
+          <Button 
+            v-if="selectedPerformances.length > 0" 
+            @click="confirmDeleteSelected()" 
+            variant="destructive"
+          >
+            <Icon name="trash" class="mr-2 h-4 w-4" />
+            Delete Selected ({{ selectedPerformances.length }})
+          </Button>
+          
           <label class="cursor-pointer">
             <Button variant="secondary" as="span">
               <Icon name="upload" class="mr-2 h-4 w-4" />
@@ -25,7 +35,7 @@
             </Button>
             <input type="file" class="hidden" @change="handleImport" accept=".csv" />
           </label>
-
+          
           <Button @click.prevent="exportCSV" variant="outline">
             <Icon name="download" class="mr-2 h-4 w-4" />
             Export CSV
@@ -101,6 +111,17 @@
             <Table class="relative h-[600px] overflow-auto">
               <TableHeader>
                 <TableRow class="sticky top-0 bg-background border-b z-10">
+                  <!-- Add checkbox column for selecting all -->
+                  <TableHead class="w-[50px]">
+                    <div class="flex items-center justify-center">
+                      <input 
+                        type="checkbox" 
+                        @change="toggleSelectAll" 
+                        :checked="isAllSelected"
+                        class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      />
+                    </div>
+                  </TableHead>
                   <TableHead v-if="SuperAdmin">Company Name</TableHead>
                   <TableHead 
                     v-for="col in tableColumns" 
@@ -131,11 +152,20 @@
               </TableHeader>
               <TableBody>
                 <TableRow v-if="filteredPerformances.length === 0">
-                  <TableCell :colspan="SuperAdmin ? tableColumns.length + 2 : tableColumns.length + 1" class="text-center py-8">
+                  <TableCell :colspan="SuperAdmin ? tableColumns.length + 3 : tableColumns.length + 2" class="text-center py-8">
                     No performance records found matching your criteria
                   </TableCell>
                 </TableRow>
                 <TableRow v-for="item in filteredPerformances" :key="item.id" class="hover:bg-muted/50">
+                  <!-- Add checkbox for selecting individual row -->
+                  <TableCell class="text-center">
+                    <input 
+                      type="checkbox" 
+                      :value="item.id" 
+                      v-model="selectedPerformances"
+                      class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                    />
+                  </TableCell>
                   <TableCell v-if="SuperAdmin">
                     {{ item.tenant?.name ?? '—' }}
                   </TableCell>
@@ -374,6 +404,25 @@
           </DialogFooter>
         </DialogContent>
       </Dialog>
+<!-- Add Delete Selected Confirmation Dialog -->
+<Dialog v-model:open="showDeleteSelectedModal">
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>Confirm Bulk Deletion</DialogTitle>
+      <DialogDescription>
+        Are you sure you want to delete {{ selectedPerformances.length }} performance records? This action cannot be undone.
+      </DialogDescription>
+    </DialogHeader>
+    <DialogFooter class="mt-4">
+      <Button type="button" @click="showDeleteSelectedModal = false" variant="outline">
+        Cancel
+      </Button>
+      <Button type="button" @click="deleteSelectedPerformances()" variant="destructive">
+        Delete Selected
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
 
       <!-- Hidden Export Form -->
       <form ref="exportForm" method="GET" class="hidden" />
@@ -409,9 +458,15 @@ const props = defineProps({
   perPage: { type: Number, default: 10 }
 })
 
-// Add this after other refs
-const perPage = ref(props.perPage || 10)
-
+// UI state
+const successMessage = ref('');
+const showModal = ref(false);
+const formTitle = ref('Create Performance');
+const formAction = ref('Create');
+const activeTab = ref(props.dateFilter || 'full');
+const perPage = ref(props.perPage || 10);
+const selectedPerformances = ref([]);
+const showDeleteSelectedModal = ref(false);
 // Add this function to handle per page changes
 function changePerPage() {
   const routeName = props.tenantSlug 
@@ -436,14 +491,7 @@ function visitPage(url) {
   }
 }
 
-const successMessage = ref('')
-const showModal = ref(false)
-const showDeleteModal = ref(false)
-const formTitle = ref('Create Performance')
-const formAction = ref('Create')
-const exportForm = ref(null)
-const performanceToDelete = ref(null)
-const activeTab = ref(props.dateFilter || 'full')
+
 
 // Sorting state
 const sortColumn = ref('date')
@@ -734,4 +782,46 @@ function confirmDelete() {
     }
   })
 }
+
+// Computed property for "Select All" checkbox state
+const isAllSelected = computed(() => {
+  return filteredPerformances.value.length > 0 && selectedPerformances.value.length === filteredPerformances.value.length;
+});
+
+// Bulk selection functions
+function toggleSelectAll(event) {
+  if (event.target.checked) {
+    selectedPerformances.value = filteredPerformances.value.map(performance => performance.id);
+  } else {
+    selectedPerformances.value = [];
+  }
+}
+
+function confirmDeleteSelected() {
+  if (selectedPerformances.value.length > 0) {
+    showDeleteSelectedModal.value = true;
+  }
+}
+
+function deleteSelectedPerformances() {
+  const form = useForm({
+    ids: selectedPerformances.value
+  });
+  
+  const routeName = props.SuperAdmin ? 'performance.destroyBulk.admin' : 'performance.destroyBulk';
+  const routeParams = props.SuperAdmin ? {} : { tenantSlug: props.tenantSlug };
+  
+  form.delete(route(routeName, routeParams), {
+    preserveScroll: true,
+    onSuccess: () => {
+      successMessage.value = `${selectedPerformances.value.length} performance records deleted successfully.`;
+      selectedPerformances.value = [];
+      showDeleteSelectedModal.value = false;
+    },
+    onError: (errors) => {
+      console.error(errors);
+    }
+  });
+}
 </script>
+

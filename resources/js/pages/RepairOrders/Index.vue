@@ -16,7 +16,15 @@
             <Icon name="plus" class="mr-2 h-4 w-4" />
             Create New Repair Order
           </Button>
-          
+          <!-- Add Delete Selected button -->
+    <Button 
+      v-if="selectedRepairOrders.length > 0" 
+      @click="confirmDeleteSelected()" 
+      variant="destructive"
+    >
+      <Icon name="trash" class="mr-2 h-4 w-4" />
+      Delete Selected ({{ selectedRepairOrders.length }})
+    </Button>
           <!-- Manage Areas of Concern button - only for SuperAdmin -->
           <Button v-if="SuperAdmin" @click="openAreasOfConcernModal" variant="outline">
             <Icon name="settings" class="mr-2 h-4 w-4" />
@@ -169,6 +177,17 @@
             <Table class="relative h-[600px] overflow-auto">
               <TableHeader>
                 <TableRow class="sticky top-0 bg-background border-b z-10">
+                  <!-- Add checkbox column for selecting all -->
+            <TableHead class="w-[50px]">
+              <div class="flex items-center justify-center">
+                <input 
+                  type="checkbox" 
+                  @change="toggleSelectAll" 
+                  :checked="isAllSelected"
+                  class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                />
+              </div>
+            </TableHead>
                   <TableHead class="whitespace-nowrap cursor-pointer" @click="sortBy('ro_number')">
                     <div class="flex items-center">
                       RO#
@@ -210,6 +229,15 @@
                   </TableCell>
                 </TableRow>
                 <TableRow v-for="order in repairOrders.data" :key="order.id" class="hover:bg-muted/50">
+                  <!-- Add checkbox for selecting individual row -->
+            <TableCell class="text-center">
+              <input 
+                type="checkbox" 
+                :value="order.id" 
+                v-model="selectedRepairOrders"
+                class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+              />
+            </TableCell>
                   <TableCell class="whitespace-nowrap">{{ order.ro_number }}</TableCell>
                   <!-- Add Tenant cell for SuperAdmin -->
                   <TableCell v-if="SuperAdmin" class="whitespace-nowrap">{{ order.tenant?.name ?? '—' }}</TableCell>
@@ -676,6 +704,24 @@
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <Dialog v-model:open="showDeleteSelectedModal">
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>Confirm Bulk Deletion</DialogTitle>
+      <DialogDescription>
+        Are you sure you want to delete {{ selectedRepairOrders.length }} repair orders? This action cannot be undone.
+      </DialogDescription>
+    </DialogHeader>
+    <DialogFooter class="mt-4">
+      <Button type="button" @click="showDeleteSelectedModal = false" variant="outline">
+        Cancel
+      </Button>
+      <Button type="button" @click="deleteSelectedRepairOrders()" variant="destructive">
+        Delete Selected
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
     </div>
   </AppLayout>
 </template>
@@ -734,6 +780,55 @@ const sortColumn = ref('ro_number')
 const sortDirection = ref('asc')
 const activeTab = ref(props.dateFilter || 'full')
 const perPage = ref(10)
+// Add these new refs
+const selectedRepairOrders = ref([]);
+const showDeleteSelectedModal = ref(false);
+
+// Add this computed property for "Select All" checkbox state
+const isAllSelected = computed(() => {
+  return props.repairOrders.data.length > 0 && 
+         props.repairOrders.data.every(order => selectedRepairOrders.value.includes(order.id));
+});
+
+// Add these new functions for bulk selection and deletion
+// Add these new functions for bulk selection and deletion
+function toggleSelectAll(event) {
+  if (event.target.checked) {
+    // Select all visible repair orders
+    selectedRepairOrders.value = props.repairOrders.data.map(order => order.id);
+  } else {
+    // Deselect all
+    selectedRepairOrders.value = [];
+  }
+}
+
+function confirmDeleteSelected() {
+  if (selectedRepairOrders.value.length > 0) {
+    showDeleteSelectedModal.value = true;
+  }
+}
+
+function deleteSelectedRepairOrders() {
+  const bulkDeleteForm = useForm({
+    ids: selectedRepairOrders.value
+  });
+  
+  const routeName = props.SuperAdmin ? 'repair_orders.destroyBulk.admin' : 'repair_orders.destroyBulk';
+  const routeParams = props.SuperAdmin ? {} : { tenantSlug: props.tenantSlug };
+  
+  bulkDeleteForm.delete(route(routeName, routeParams), {
+    preserveScroll: true,
+    onSuccess: () => {
+      successMessage.value = `${selectedRepairOrders.value.length} repair orders deleted successfully.`;
+      selectedRepairOrders.value = [];
+      showDeleteSelectedModal.value = false;
+    },
+    onError: (errors) => {
+      console.error(errors);
+      alert('Error deleting repair orders');
+    }
+  });
+}
 
 // Filters
 const filters = ref({

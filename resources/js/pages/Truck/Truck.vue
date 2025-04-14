@@ -16,7 +16,17 @@
             <Icon name="plus" class="mr-2 h-4 w-4" />
             Create New Truck
           </Button>
-
+          
+          <!-- Add Delete Selected button -->
+          <Button 
+            v-if="selectedTrucks.length > 0" 
+            @click="confirmDeleteSelected()" 
+            variant="destructive"
+          >
+            <Icon name="trash" class="mr-2 h-4 w-4" />
+            Delete Selected ({{ selectedTrucks.length }})
+          </Button>
+      
           <label class="cursor-pointer">
             <Button variant="secondary" as="span">
               <Icon name="upload" class="mr-2 h-4 w-4" />
@@ -24,7 +34,7 @@
             </Button>
             <input type="file" class="hidden" @change="handleImport" accept=".csv, .txt" />
           </label>
-
+      
           <Button @click.prevent="exportCSV" variant="outline">
             <Icon name="download" class="mr-2 h-4 w-4" />
             Export CSV
@@ -99,6 +109,17 @@
             <Table class="relative h-[500px] overflow-auto">
               <TableHeader>
                 <TableRow class="sticky top-0 bg-background border-b z-10">
+                  <!-- Add checkbox column for selecting all -->
+                  <TableHead class="w-[50px]">
+                    <div class="flex items-center justify-center">
+                      <input 
+                        type="checkbox" 
+                        @change="toggleSelectAll" 
+                        :checked="isAllSelected"
+                        class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      />
+                    </div>
+                  </TableHead>
                   <TableHead v-if="SuperAdmin">Company Name</TableHead>
                   <TableHead 
                     v-for="col in tableColumns" 
@@ -137,11 +158,20 @@
               </TableHeader>
               <TableBody>
                 <TableRow v-if="filteredEntries.length === 0">
-                  <TableCell :colspan="SuperAdmin ? tableColumns.length + 2 : tableColumns.length + 1" class="text-center py-8">
+                  <TableCell :colspan="SuperAdmin ? tableColumns.length + 3 : tableColumns.length + 2" class="text-center py-8">
                     No trucks found matching your criteria
                   </TableCell>
                 </TableRow>
                 <TableRow v-for="item in filteredEntries" :key="item.id" class="hover:bg-muted/50">
+                  <!-- Add checkbox for selecting individual row -->
+                  <TableCell class="text-center">
+                    <input 
+                      type="checkbox" 
+                      :value="item.id" 
+                      v-model="selectedTrucks"
+                      class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                    />
+                  </TableCell>
                   <TableCell v-if="SuperAdmin">
                     {{ item.tenant?.name ?? '—' }}
                   </TableCell>
@@ -406,6 +436,27 @@
             </Button>
             <Button type="button" @click="confirmDelete" variant="destructive">
               Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <!-- After the Delete Confirmation Dialog -->
+      <!-- Delete Selected Confirmation Dialog -->
+      <Dialog v-model:open="showDeleteSelectedModal">
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Bulk Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete {{ selectedTrucks.length }} trucks? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter class="mt-4">
+            <Button type="button" @click="showDeleteSelectedModal = false" variant="outline">
+              Cancel
+            </Button>
+            <Button type="button" @click="deleteSelectedTrucks()" variant="destructive">
+              Delete Selected
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -717,4 +768,53 @@ watch(successMessage, (newValue) => {
     }, 5000);
   }
 });
+
+// Add these new refs
+const selectedTrucks = ref([]);
+const showDeleteSelectedModal = ref(false);
+
+// Add this computed property for "Select All" checkbox state
+const isAllSelected = computed(() => {
+  return filteredEntries.value.length > 0 && 
+         filteredEntries.value.every(truck => selectedTrucks.value.includes(truck.id));
+});
+
+// Add these new functions for bulk selection and deletion
+function toggleSelectAll(event) {
+  if (event.target.checked) {
+    // Select all visible trucks (filtered entries)
+    selectedTrucks.value = filteredEntries.value.map(truck => truck.id);
+  } else {
+    // Deselect all
+    selectedTrucks.value = [];
+  }
+}
+
+function confirmDeleteSelected() {
+  if (selectedTrucks.value.length > 0) {
+    showDeleteSelectedModal.value = true;
+  }
+}
+
+function deleteSelectedTrucks() {
+  const bulkDeleteForm = useForm({
+    ids: selectedTrucks.value
+  });
+  
+  const routeName = props.SuperAdmin ? 'truck.destroyBulk.admin' : 'truck.destroyBulk';
+  const routeParams = props.SuperAdmin ? {} : { tenantSlug: props.tenantSlug };
+  
+  bulkDeleteForm.delete(route(routeName, routeParams), {
+    preserveScroll: true,
+    onSuccess: () => {
+      successMessage.value = `${selectedTrucks.value.length} trucks deleted successfully.`;
+      selectedTrucks.value = [];
+      showDeleteSelectedModal.value = false;
+    },
+    onError: (errors) => {
+      console.error(errors);
+      alert('Error deleting trucks');
+    }
+  });
+}
 </script>

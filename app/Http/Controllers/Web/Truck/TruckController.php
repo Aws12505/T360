@@ -91,4 +91,24 @@ class TruckController extends Controller
     {
         return $this->truckImportExportService->exportData();
     }
+
+    /**
+ * Delete multiple truck entries.
+ */
+public function destroyBulk(Request $request, $tenantSlug = null)
+{
+    $ids = $request->input('ids', []);
+    $this->truckDataService->deleteMultipleTrucks($ids);
+    return redirect()->back()->with('success', 'Trucks deleted successfully.');
+}
+
+/**
+ * Delete multiple truck entries as Admin.
+ */
+public function destroyBulkAdmin(Request $request)
+{
+    $ids = $request->input('ids', []);
+    $this->truckDataService->deleteMultipleTrucks($ids);
+    return redirect()->back()->with('success', 'Trucks deleted successfully.');
+}
 }

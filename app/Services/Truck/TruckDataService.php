@@ -50,4 +50,16 @@ class TruckDataService
         $truck = Truck::findOrFail($id);
         $truck->delete();
     }
+
+    /**
+     * Delete multiple truck entries.
+     */
+    public function deleteMultipleTrucks(array $ids)
+    {
+        if (empty($ids)) {
+            return;
+        }
+        
+        Truck::whereIn('id', $ids)->delete();
+    }
 }

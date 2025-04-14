@@ -125,4 +125,28 @@ class RepairOrderService
         $repairOrder->delete();
         return true;
     }
+
+    /**
+     * Delete multiple repair order entries.
+     *
+     * @param array $ids Array of repair order IDs to delete
+     * @param int|null $tenantId
+     * @return void
+     */
+    public function deleteMultipleRepairOrders(array $ids, $tenantId = null)
+    {
+        if (empty($ids)) {
+            return;
+        }
+        
+        // For security, ensure the user can only delete repair orders they have access to
+        $query = RepairOrder::whereIn('id', $ids);
+        
+        // If not a super admin, restrict to tenant's repair orders
+        if ($tenantId) {
+            $query->where('tenant_id', $tenantId);
+        }
+        
+        $query->delete();
+    }
 }
