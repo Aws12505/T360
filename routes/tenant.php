@@ -77,8 +77,10 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::post('/ontime', [DelaysController::class, 'store'])->name('ontime.store');
         Route::put('/ontime/{delay}', [DelaysController::class, 'update'])->name('ontime.update');
         Route::delete('/ontime/{delay}', [DelaysController::class, 'destroy'])->name('ontime.destroy');
-        // The issue is likely here - the route pattern conflicts with the {delay} parameter route
         Route::delete('/ontime-bulk', [DelaysController::class, 'destroyBulk'])->name('ontime.destroyBulk');
+        // Add new import/export routes
+        Route::post('/ontime/import', [DelaysController::class, 'import'])->name('ontime.import');
+        Route::get('/ontime/export', [DelaysController::class, 'export'])->name('ontime.export');
 
 // Regular Driver routes
 Route::get('/drivers', [DriverController::class, 'index'])->name('driver.index');
@@ -103,7 +105,11 @@ Route::get('/miles-driven', [MilesDrivenController::class, 'index'])->name('mile
 Route::post('/miles-driven', [MilesDrivenController::class, 'store'])->name('miles_driven.store');
 Route::put('/miles-driven/{milesDriven}', [MilesDrivenController::class, 'update'])->name('miles_driven.update');
 Route::delete('/miles-driven/{milesDriven}', [MilesDrivenController::class, 'destroy'])->name('miles_driven.destroy');
-    
+    // Add new import/export routes for rejections
+Route::post('/acceptance/import', [RejectionsController::class, 'import'])->name('acceptance.import');
+Route::get('/acceptance/export', [RejectionsController::class, 'export'])->name('acceptance.export');
+
     });
 });
+
 

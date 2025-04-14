@@ -25,13 +25,27 @@
             <Icon name="trash" class="mr-2 h-4 w-4" />
             Delete Selected ({{ selectedDelays.length }})
           </Button>
+          <label class="cursor-pointer">
+            <Button variant="secondary" as="span">
+              <Icon name="upload" class="mr-2 h-4 w-4" />
+              Import CSV
+            </Button>
+            <input type="file" class="hidden" @change="handleImport" accept=".csv" />
+          </label>
+          <Button @click.prevent="exportCSV" variant="outline">
+            <Icon name="download" class="mr-2 h-4 w-4" />
+            Export CSV
+          </Button>
           <Button v-if="isSuperAdmin" @click="openCodeModal()" variant="outline">
             <Icon name="settings" class="mr-2 h-4 w-4" />
             Manage Delay Codes
           </Button>
         </div>
       </div>
-
+      
+      <!-- Hidden Export Form -->
+      <form ref="exportForm" :action="exportUrl" method="GET" class="hidden"></form>
+      
       <!-- Date Filter Tabs -->
       <Card>
         <CardContent class="p-4">
@@ -526,6 +540,7 @@ const showDeleteModal = ref(false);
 const delayToDelete = ref(null);
 const selectedDelays = ref([]);
 const showDeleteSelectedModal = ref(false);
+const exportForm = ref(null); // Add this line to define the exportForm ref
 
 // Code management state
 const showCodeForm = ref(false);
@@ -648,7 +663,7 @@ function resetFilters() {
 }
 
 // Pagination & Date Filter Functions
-const perPage = ref(10);
+const perPage = ref(props.delays.per_page || 10);
 const activeTab = ref(props.dateFilter || 'full');
 
 function changePerPage() {
@@ -662,7 +677,10 @@ function selectDateFilter(filter) {
 }
 function visitPage(url) {
   if (url) {
-    router.get(url, {}, { only: ['delays'] });
+    // Add perPage parameter to the URL
+    const urlObj = new URL(url);
+    urlObj.searchParams.set('perPage', perPage.value);
+    router.get(urlObj.href, {}, { preserveScroll: true, preserveState: true, only: ['delays'] });
   }
 }
 function formatDate(dateStr) {
@@ -837,6 +855,42 @@ function deleteSelectedDelays() {
     }
   });
 }
+// Add these functions for import/export
+function handleImport(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  const formData = new FormData();
+  formData.append('csv_file', file);
+  
+  const routeName = props.isSuperAdmin 
+    ? route('ontime.import.admin') 
+    : route('ontime.import', { tenantSlug: props.tenantSlug });
+  
+  router.post(routeName, formData, {
+    onSuccess: () => {
+      successMessage.value = 'Delays imported successfully';
+      event.target.value = ''; // Reset the file input
+    },
+    onError: (errors) => {
+      console.error(errors);
+      event.target.value = ''; // Reset the file input
+    }
+  });
+}
+
+function exportCSV() {
+  // Submit the hidden form to trigger the download
+  if (exportForm.value) {
+    exportForm.value.submit();
+  }
+}
+// Computed property for export URL
+const exportUrl = computed(() => {
+  return props.tenantSlug 
+    ? route('ontime.export', { tenantSlug: props.tenantSlug }) 
+    : route('ontime.export.admin');
+});
 </script>
 
 

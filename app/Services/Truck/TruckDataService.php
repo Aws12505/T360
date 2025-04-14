@@ -5,6 +5,7 @@ namespace App\Services\Truck;
 use App\Models\Truck;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Tenant;
+use Illuminate\Support\Facades\Request;
 
 class TruckDataService
 {
@@ -13,7 +14,10 @@ class TruckDataService
      */
     public function getTruckIndex()
     {
-        $trucks = Truck::with('tenant')->paginate(10);
+        // Get per page parameter from request, default to 10
+        $perPage = Request::input('perPage', 10);
+        
+        $trucks = Truck::with('tenant')->paginate($perPage);
         $isSuperAdmin = is_null(Auth::user()->tenant_id);
         $tenantSlug = $isSuperAdmin ? null : Auth::user()->tenant->slug;
         $tenants = $isSuperAdmin ? Tenant::all() : [];
@@ -22,6 +26,7 @@ class TruckDataService
             'tenantSlug' => $tenantSlug,
             'SuperAdmin' => $isSuperAdmin,
             'tenants'    => $tenants,
+            'perPage'    => $perPage,
         ];
     }
 

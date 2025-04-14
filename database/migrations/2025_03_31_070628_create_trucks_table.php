@@ -18,8 +18,8 @@ class CreateTrucksTable extends Migration
             $table->integer('license');
             $table->string('vin')->unique();
             $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
-            // Active/Inactive status (default is active)
-            $table->boolean('is_active')->default(true);
+            // Replace boolean is_active with enum status
+            $table->enum('status', ['active', 'inactive', 'Returned to AMZ'])->default('active');
             $table->timestamps();
         });
     }
