@@ -90,7 +90,10 @@
               </Button>
             </div>
             <div v-if="dateRange" class="text-sm text-muted-foreground">
-              <span v-if="dateRange.start && dateRange.end">
+              <span v-if="activeTab === 'yesterday' && dateRange.start">
+                Showing data from {{ formatDate(dateRange.start) }}
+              </span>
+              <span v-else-if="dateRange.start && dateRange.end">
                 Showing data from {{ formatDate(dateRange.start) }} to {{ formatDate(dateRange.end) }}
               </span>
               <span v-else>
