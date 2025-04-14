@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web\Acceptance;
 
 use App\Http\Controllers\Controller;
 use App\Services\Acceptance\RejectionReasonCodesService;
+use App\Services\Acceptance\RejectionImportExportService;
 use Illuminate\Http\Request;
 use App\Http\Requests\Acceptance\StoreRejectionRequest;
 use App\Http\Requests\Acceptance\UpdateRejectionRequest;
@@ -24,17 +25,24 @@ class RejectionsController extends Controller
 {
     protected RejectionService $rejectionService;
     protected RejectionReasonCodesService $rejectionReasonCodesService;
+    protected RejectionImportExportService $rejectionImportExportService;
 
     /**
      * Constructor.
      *
      * @param RejectionService $rejectionService Service for rejection processing.
      * @param RejectionReasonCodesService $rejectionReasonCodesService
+     * @param RejectionImportExportService $rejectionImportExportService
      */
-    public function __construct(RejectionService $rejectionService, RejectionReasonCodesService $rejectionReasonCodesService)
+    public function __construct(
+        RejectionService $rejectionService, 
+        RejectionReasonCodesService $rejectionReasonCodesService,
+        RejectionImportExportService $rejectionImportExportService
+    )
     {
         $this->rejectionService = $rejectionService;
         $this->rejectionReasonCodesService = $rejectionReasonCodesService;
+        $this->rejectionImportExportService = $rejectionImportExportService;
     }
 
     /**
@@ -192,5 +200,37 @@ public function storeCode(StoreRejectionReasonCode $request)
         $ids = $request->input('ids', []);
         $this->rejectionService->deleteMultipleRejections($ids);
         return redirect()->back()->with('success', 'Rejections deleted successfully.');
+    }
+
+    /**
+     * Import rejections from CSV file.
+     */
+    public function import(Request $request, $tenantSlug = null)
+    {
+        return $this->rejectionImportExportService->importRejections($request);
+    }
+
+    /**
+     * Import rejections from CSV file for admin.
+     */
+    public function importAdmin(Request $request)
+    {
+        return $this->rejectionImportExportService->importRejections($request);
+    }
+
+    /**
+     * Export rejections to CSV file.
+     */
+    public function export($tenantSlug = null)
+    {
+        return $this->rejectionImportExportService->exportRejections();
+    }
+
+    /**
+     * Export rejections to CSV file for admin.
+     */
+    public function exportAdmin()
+    {
+        return $this->rejectionImportExportService->exportRejections();
     }
 }

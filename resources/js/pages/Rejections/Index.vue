@@ -25,13 +25,27 @@
             <Icon name="trash" class="mr-2 h-4 w-4" />
             Delete Selected ({{ selectedRejections.length }})
           </Button>
+          <label class="cursor-pointer">
+            <Button variant="secondary" as="span">
+              <Icon name="upload" class="mr-2 h-4 w-4" />
+              Import CSV
+            </Button>
+            <input type="file" class="hidden" @change="handleImport" accept=".csv" />
+          </label>
+          <Button @click.prevent="exportCSV" variant="outline">
+            <Icon name="download" class="mr-2 h-4 w-4" />
+            Export CSV
+          </Button>
           <Button v-if="isSuperAdmin"@click="openCodeModal()" variant="outline">
             <Icon name="settings" class="mr-2 h-4 w-4" />
             Manage Reason Codes
           </Button>
         </div>
       </div>
-
+ 
+      <!-- Hidden Export Form -->
+      <form ref="exportForm" :action="exportUrl" method="GET" class="hidden"></form>
+      
       <!-- Date Filter Tabs -->
       <Card>
         <CardContent class="p-4">
@@ -570,6 +584,7 @@ const activeTab = ref(props.dateFilter || 'full');
 const perPage = ref(props.perPage);
 const selectedRejections = ref([]);
 const showDeleteSelectedModal = ref(false);
+const exportForm = ref(null); // Add this line to define the exportForm ref
 
 // Code management state
 const showCodeForm = ref(false);
@@ -842,7 +857,10 @@ const deleteRejection = (id) => {
 // Function to handle pagination
 const visitPage = (url) => {
   if (url) {
-    router.get(url, {}, { only: ['rejections'] });
+    // Add perPage parameter to the URL
+    const urlObj = new URL(url);
+    urlObj.searchParams.set('perPage', perPage.value);
+    router.get(urlObj.href, {}, { preserveScroll: true, preserveState: true, only: ['rejections'] });
   }
 };
 
@@ -959,5 +977,42 @@ function deleteSelectedRejections() {
     }
   });
 }
+
+// Add these functions for import/export
+function handleImport(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  const formData = new FormData();
+  formData.append('csv_file', file);
+  
+  const routeName = props.isSuperAdmin 
+    ? route('acceptance.import.admin') 
+    : route('acceptance.import', { tenantSlug: props.tenantSlug });
+  
+  router.post(routeName, formData, {
+    onSuccess: () => {
+      successMessage.value = 'Delays imported successfully';
+      event.target.value = ''; // Reset the file input
+    },
+    onError: (errors) => {
+      console.error(errors);
+      event.target.value = ''; // Reset the file input
+    }
+  });
+}
+
+function exportCSV() {
+  // Submit the hidden form to trigger the download
+  if (exportForm.value) {
+    exportForm.value.submit();
+  }
+}
+// Computed property for export URL
+const exportUrl = computed(() => {
+  return props.tenantSlug 
+    ? route('acceptance.export', { tenantSlug: props.tenantSlug }) 
+    : route('acceptance.export.admin');
+});
 </script>
 

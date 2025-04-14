@@ -9,7 +9,7 @@ class AddInspectionFieldsToTrucksTable extends Migration
     public function up()
     {
         Schema::table('trucks', function (Blueprint $table) {
-            $table->enum('inspection_status', ['good', 'expired'])->default('good')->after('is_active');
+            $table->enum('inspection_status', ['good', 'expired'])->default('good');
             $table->date('inspection_expiry_date')->nullable()->after('inspection_status');
         });
     }

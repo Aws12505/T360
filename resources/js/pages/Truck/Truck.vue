@@ -121,6 +121,7 @@
                     </div>
                   </TableHead>
                   <TableHead v-if="SuperAdmin">Company Name</TableHead>
+                  <!-- In the TableHead section, update the column label -->
                   <TableHead 
                     v-for="col in tableColumns" 
                     :key="col" 
@@ -133,6 +134,9 @@
                       </template>
                       <template v-else-if="col === 'inspection_expiry_date'">
                         Annual Inspection Expiration Date
+                      </template>
+                      <template v-else-if="col === 'status'">
+                        Status
                       </template>
                       <template v-else>
                         {{ col.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) }}
@@ -177,28 +181,27 @@
                   </TableCell>
                   <!-- In the TableCell section, add handling for the new columns -->
                   <TableCell v-for="col in tableColumns" :key="col" class="whitespace-nowrap">
-                    <template v-if="col === 'is_active'">
-                      <span :class="item[col] ? 'text-green-600' : 'text-red-600'">
-                        {{ item[col] ? 'Yes' : 'No' }}
-                      </span>
-                    </template>
-                    <template v-else-if="col === 'is_returned'">
-                      <span :class="item[col] ? 'text-red-600' : 'text-green-600'" class="px-2 py-1 rounded-full text-xs font-medium" :style="{ backgroundColor: item[col] ? 'rgba(239, 68, 68, 0.1)' : 'rgba(22, 163, 74, 0.1)' }">
-                        {{ item[col] ? 'Returned' : 'With Company' }}
-                      </span>
-                    </template>
-                    <template v-else-if="col === 'inspection_status'">
-                      <span :class="item[col] === 'good' ? 'text-green-600' : 'text-red-600'">
-                        {{ item[col] === 'good' ? 'Good' : 'Expired' }}
-                      </span>
-                    </template>
-                    <template v-else-if="col === 'inspection_expiry_date'">
-                      {{ formatDate(item[col]) }}
-                    </template>
-                    <template v-else>
-                      {{ typeof item[col] === 'string' ? item[col].charAt(0).toUpperCase() + item[col].slice(1) : item[col] }}
-                    </template>
-                  </TableCell>
+  <template v-if="col === 'status'">
+    <span :class="{
+      'text-green-600': item[col] === 'active',
+      'text-red-600': item[col] === 'inactive',
+      'text-blue-600': item[col] === 'Returned to AMZ'
+    }">
+      {{ item[col] }}
+    </span>
+  </template>
+  <template v-else-if="col === 'inspection_status'">
+    <span :class="item[col] === 'good' ? 'text-green-600' : 'text-red-600'">
+      {{ item[col] === 'good' ? 'Good' : 'Expired' }}
+    </span>
+  </template>
+  <template v-else-if="col === 'inspection_expiry_date'">
+    {{ formatDate(item[col]) }}
+  </template>
+  <template v-else>
+    {{ typeof item[col] === 'string' ? item[col].charAt(0).toUpperCase() + item[col].slice(1) : item[col] }}
+  </template>
+</TableCell>
                   <TableCell>
                     <div class="flex space-x-2">
                       <Button @click="openEditModal(item)" variant="warning" size="sm">
@@ -218,8 +221,19 @@
           
           <div class="bg-muted/20 px-4 py-3 border-t" v-if="entries.links">
             <div class="flex justify-between items-center">
-              <div class="text-sm text-muted-foreground">
-                Showing {{ filteredEntries.length }} of {{ entries.data.length }} entries
+              <div class="text-sm text-muted-foreground flex items-center gap-4">
+                <span>Showing {{ filteredEntries.length }} of {{ entries.data.length }} entries</span>
+                
+                <div class="flex items-center gap-2">
+                  <span class="text-sm">Show:</span>
+                  <select 
+                    v-model="perPage" 
+                    @change="changePerPage"
+                    class="h-8 rounded-md border border-input bg-background px-2 py-1 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  >
+                    <option v-for="size in [10, 25, 50, 100]" :key="size" :value="size">{{ size }}</option>
+                  </select>
+                </div>
               </div>
               <div class="flex">
                 <Button 
@@ -381,31 +395,25 @@
               />
             </div>
 
-            <div class="sm:col-span-2">
-              <div class="flex items-center space-x-2">
-                <input 
-                  type="checkbox" 
-                  id="is_active" 
-                  v-model="form.is_active"
-                  class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                />
-                <Label for="is_active">Active Status</Label>
-              </div>
-            </div>
-
-            <div class="sm:col-span-2">
-              <div class="flex items-center space-x-2">
-                <input 
-                  type="checkbox" 
-                  id="is_returned" 
-                  v-model="form.is_returned"
-                  class="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-600"
-                />
-                <Label for="is_returned" class="flex items-center">
-                  Returned Status
-                  <span v-if="form.is_returned" class="ml-2 text-xs text-red-600 bg-red-100 px-2 py-0.5 rounded-full">Truck Returned</span>
-                  <span v-else class="ml-2 text-xs text-green-600 bg-green-100 px-2 py-0.5 rounded-full">With Company</span>
-                </Label>
+            <!-- Replace is_active and is_returned checkboxes with status dropdown -->
+            <div>
+              <Label for="status">Status</Label>
+              <div class="relative">
+                <select 
+                  id="status" 
+                  v-model="form.status" 
+                  class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
+                  required
+                >
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                  <option value="Returned to AMZ">Returned to AMZ</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                  <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                  </svg>
+                </div>
               </div>
             </div>
 
@@ -487,7 +495,33 @@ const props = defineProps({
   tenantSlug: String,
   SuperAdmin: Boolean,
   tenants: Array,
+  perPage: { type: Number, default: 10 }
 });
+
+// Add this ref for perPage
+const perPage = ref(props.perPage || 10);
+
+// Add this function to handle per page changes
+function changePerPage() {
+  const routeName = props.SuperAdmin
+    ? route('truck.index.admin')
+    : route('truck.index', { tenantSlug: props.tenantSlug });
+    
+  router.get(routeName, { 
+    perPage: perPage.value 
+  }, { preserveState: true });
+}
+
+// Update the visitPage function to preserve perPage
+function visitPage(url) {
+  if (url) {
+    // Add perPage parameter to the URL
+    const urlObj = new URL(url);
+    urlObj.searchParams.set('perPage', perPage.value);
+    
+    router.get(urlObj.href, {}, { only: ['entries'] });
+  }
+}
 
 const successMessage = ref('');
 const showModal = ref(false);
@@ -531,9 +565,9 @@ const tableColumns = [
   'vin',
   'inspection_status',
   'inspection_expiry_date',
-  'is_active',
-  'is_returned'
+  'status'
 ];
+
 
 // Update the form initialization to include the new field
 const form = useForm({
@@ -545,8 +579,7 @@ const form = useForm({
   license: null,
   vin: '',
   tenant_id: props.SuperAdmin ? '' : null,
-  is_active: true,
-  is_returned: false,
+  status: 'active',
   inspection_status: 'good',
   inspection_expiry_date: new Date().toISOString().split('T')[0], // Today's date as default
 });
@@ -581,6 +614,13 @@ const filteredEntries = computed(() => {
   if (filters.value.make) {
     result = result.filter(item => 
       item.make?.toLowerCase() === filters.value.make.toLowerCase()
+    );
+  }
+  
+  // Apply status filter
+  if (filters.value.status) {
+    result = result.filter(item => 
+      item.status === filters.value.status
     );
   }
   
@@ -635,14 +675,14 @@ function resetFilters() {
 
 function openCreateModal() {
   form.reset();
-  form.is_active = true;
+  form.status = 'active'; // Set default status to active
   form.tenant_id = null;
   formTitle.value = 'Create Truck';
   formAction.value = 'Create';
   showModal.value = true;
 }
 
-// Update the openEditModal function to include the new field
+// Update the openEditModal function to include the status field
 function openEditModal(item) {
   form.id = item.id;
   form.truckid = item.truckid;
@@ -651,8 +691,7 @@ function openEditModal(item) {
   form.fuel = item.fuel;
   form.license = item.license;
   form.vin = item.vin;
-  form.is_active = Boolean(item.is_active);
-  form.is_returned = Boolean(item.is_returned);
+  form.status = item.status; // Use status instead of is_active and is_returned
   form.tenant_id = item.tenant_id;
   form.inspection_status = item.inspection_status || 'good';
   form.inspection_expiry_date = item.inspection_expiry_date || new Date().toISOString().split('T')[0];
@@ -666,7 +705,7 @@ function closeModal() {
   showModal.value = false;
 }
 
-// Update the submitForm function to include the new field in the payload
+// Update the submitForm function to include the status field in the payload
 function submitForm() {
   const payload = {
     truckid: Number(form.truckid),
@@ -675,8 +714,7 @@ function submitForm() {
     fuel: form.fuel,
     license: Number(form.license),
     vin: form.vin,
-    is_active: form.is_active ? 1 : 0,
-    is_returned: form.is_returned ? 1 : 0,
+    status: form.status, // Use status instead of is_active and is_returned
     tenant_id: form.tenant_id,
     inspection_status: form.inspection_status,
     inspection_expiry_date: form.inspection_expiry_date
@@ -745,9 +783,7 @@ function exportCSV() {
   exportForm.value?.submit();
 }
 
-function visitPage(url) {
-  if (url) router.get(url, {}, { only: ['entries'] });
-}
+
 
 // Add this function to format dates properly
 function formatDate(dateString) {

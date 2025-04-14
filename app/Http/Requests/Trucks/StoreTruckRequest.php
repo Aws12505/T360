@@ -21,8 +21,7 @@ class StoreTruckRequest extends FormRequest
             'license'   => 'required|integer',
             'vin'       => 'required|string|unique:trucks,vin',
             'tenant_id' => 'required|exists:tenants,id',
-            'is_active'    => 'sometimes|boolean',
-            'is_returned'  => 'sometimes|boolean',
+            'status'    => 'required|in:active,inactive,Returned to AMZ', // Changed from is_active to status
             'inspection_status' => 'required|in:good,expired',
             'inspection_expiry_date' => 'required|date',
         ];

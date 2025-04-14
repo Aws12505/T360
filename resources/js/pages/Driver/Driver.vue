@@ -154,44 +154,101 @@
       <!-- Data Table -->
       <Card>
         <CardContent class="p-0">
-          <DataTable 
-            :columns="columns" 
-            :data="filteredEntries"
-            :options="{
-              enableSorting: true,
-              manualSorting: true,
-              enableColumnFilters: true,
-            }"
-            :selectable="true"
-            :selectedIds="selectedDrivers"
-            @selectionChange="handleSelectionChange"
-          >
-            <template #tableViewOptions="{ table }">
-              <DataTableViewOptions :table="table" />
-            </template>
-            
-            <template #cell-actions="{ cell }">
-              <div class="flex space-x-2">
-                <Button @click="cell.edit()" variant="warning" size="sm">
-                  <Icon name="pencil" class="mr-1 h-4 w-4" />
-                  Edit
-                </Button>
-                <Button @click="cell.delete()" variant="destructive" size="sm">
-                  <Icon name="trash" class="mr-1 h-4 w-4" />
-                  Delete
-                </Button>
-              </div>
-            </template>
-          </DataTable>
+          <div class="overflow-x-auto">
+            <Table class="relative h-[600px] overflow-auto">
+              <TableHeader>
+                <TableRow class="sticky top-0 bg-background border-b z-10">
+                  <!-- Add checkbox column for selecting all -->
+                  <TableHead class="w-[50px]">
+                    <div class="flex items-center justify-center">
+                      <input 
+                        type="checkbox" 
+                        @change="toggleSelectAll" 
+                        :checked="isAllSelected"
+                        class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      />
+                    </div>
+                  </TableHead>
+                  <TableHead v-if="SuperAdmin">Company Name</TableHead>
+                  <TableHead 
+                    v-for="col in tableColumns" 
+                    :key="col" 
+                    class="cursor-pointer"
+                    @click="sortBy(col)"
+                  >
+                    <div class="flex items-center">
+                      {{ col.replace(/_/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') }}
+                      <div v-if="sortColumn === col" class="ml-2">
+                        <svg v-if="sortDirection === 'asc'" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M8 15l4-4 4 4" />
+                        </svg>
+                        <svg v-else class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M16 9l-4 4-4-4" />
+                        </svg>
+                      </div>
+                      <div v-else class="ml-2 opacity-50">
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M8 10l4-4 4 4" />
+                          <path d="M16 14l-4 4-4-4" />
+                        </svg>
+                      </div>
+                    </div>
+                  </TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow v-if="entries.data.length === 0">
+                  <TableCell :colspan="SuperAdmin ? tableColumns.length + 3 : tableColumns.length + 2" class="text-center py-8">
+                    No driver records found matching your criteria
+                  </TableCell>
+                </TableRow>
+                <TableRow v-for="driver in entries.data" :key="driver.id">
+                  <!-- Checkbox for row selection -->
+                  <TableCell class="text-center">
+                    <input 
+                      type="checkbox" 
+                      :value="driver.id" 
+                      v-model="selectedDrivers"
+                      class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                    />
+                  </TableCell>
+                  <!-- Company Name column for SuperAdmin -->
+                  <TableCell v-if="SuperAdmin">{{ driver.tenant?.name ?? '—' }}</TableCell>
+                  <!-- Dynamic columns based on tableColumns array -->
+                  <TableCell v-for="col in tableColumns" :key="col">
+                    <template v-if="col === 'hiring_date'">
+                      {{ formatDate(driver[col]) }}
+                    </template>
+                    <template v-else>
+                      {{ driver[col] }}
+                    </template>
+                  </TableCell>
+                  <!-- Actions column -->
+                  <TableCell>
+                    <div class="flex space-x-2">
+                      <Button @click="openEditModal(driver)" variant="warning" size="sm">
+                        <Icon name="pencil" class="mr-1 h-4 w-4" />
+                        Edit
+                      </Button>
+                      <Button @click="deleteEntry(driver.id)" variant="destructive" size="sm">
+                        <Icon name="trash" class="mr-1 h-4 w-4" />
+                        Delete
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
           
           <div class="bg-muted/20 px-4 py-3 border-t" v-if="entries.links">
             <div class="flex justify-between items-center">
-              <div class="text-sm text-muted-foreground">
-                Showing {{ filteredEntries.length }} of {{ entries.data.length }} entries
-              </div>
-              <div class="flex items-center gap-4">
+              <div class="text-sm text-muted-foreground flex items-center gap-4">
+                <span>Showing {{ entries.from }} to {{ entries.to }} of {{ entries.total }} entries</span>
+                
                 <div class="flex items-center gap-2">
-                  <Label for="perPage" class="text-sm">Per page:</Label>
+                  <span class="text-sm">Show:</span>
                   <select 
                     id="perPage" 
                     v-model="perPage" 
@@ -204,20 +261,20 @@
                     <option value="100">100</option>
                   </select>
                 </div>
-                <div class="flex">
-                  <Button 
-                    v-for="link in entries.links" 
-                    :key="link.label" 
-                    @click="visitPage(link.url)" 
-                    :disabled="!link.url" 
-                    variant="ghost"
-                    size="sm"
-                    class="mx-1"
-                    :class="{'bg-primary/10 text-primary border-primary': link.active}"
-                  >
-                    <span v-html="link.label"></span>
-                  </Button>
-                </div>
+              </div>
+              <div class="flex">
+                <Button 
+                  v-for="link in entries.links" 
+                  :key="link.label" 
+                  @click="visitPage(link.url)" 
+                  :disabled="!link.url" 
+                  variant="ghost"
+                  size="sm"
+                  class="mx-1"
+                  :class="{'bg-primary/10 text-primary border-primary': link.active}"
+                >
+                  <span v-html="link.label"></span>
+                </Button>
               </div>
             </div>
           </div>
@@ -348,15 +405,16 @@ import {
   Card, CardHeader, CardTitle, CardContent,
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
   Label, Input,
-  Alert, AlertTitle, AlertDescription
+  Alert, AlertTitle, AlertDescription,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from '@/components/ui';
 
-// Import data table components
-import { 
-  DataTable, 
-  DataTableColumnHeader,
-  DataTableViewOptions 
-} from '@/components/ui/data-table';
+// Remove or comment out the DataTable imports since we're not using them anymore
+// import { 
+//   DataTable, 
+//   DataTableColumnHeader,
+//   DataTableViewOptions 
+// } from '@/components/ui/data-table';
 
 // Import or create Select components
 import { 
@@ -680,7 +738,17 @@ function exportCSV() {
 }
 
 function visitPage(url) {
-  if (url) router.get(url, {}, { only: ['entries'] });
+  if (url) {
+    // Parse the URL to add perPage parameter
+    const urlObj = new URL(url);
+    urlObj.searchParams.set('perPage', perPage.value);
+    
+    // Use the modified URL with the perPage parameter
+    router.get(urlObj.href, {}, { 
+      only: ['entries'],
+      preserveState: true
+    });
+  }
 }
 
 // Auto-hide success message after 5 seconds
@@ -737,7 +805,7 @@ const isAllSelected = computed(() => {
 // Bulk selection functions
 function toggleSelectAll(event) {
   if (event.target.checked) {
-    selectedDrivers.value = filteredEntries.value.map(driver => driver.id);
+    selectedDrivers.value = props.entries.data.map(driver => driver.id);
   } else {
     selectedDrivers.value = [];
   }

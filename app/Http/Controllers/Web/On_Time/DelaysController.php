@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web\On_Time;
 use App\Http\Controllers\Controller;
 use App\Services\On_Time\DelayCodesService;
 use App\Services\On_Time\DelayService;
+use App\Services\On_Time\DelayImportExportService;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use App\Http\Requests\On_Time\StoreDelayRequest;
@@ -16,11 +17,17 @@ class DelaysController extends Controller
 {
     protected DelayService $delayService;
     protected DelayCodesService $delayCodesService;
+    protected DelayImportExportService $delayImportExportService;
 
-    public function __construct(DelayService $delayService, DelayCodesService $delayCodesService)
+    public function __construct(
+        DelayService $delayService, 
+        DelayCodesService $delayCodesService,
+        DelayImportExportService $delayImportExportService
+    )
     {
         $this->delayService = $delayService;
         $this->delayCodesService = $delayCodesService;
+        $this->delayImportExportService = $delayImportExportService;
     }
 
     // Delay records actions
@@ -107,5 +114,37 @@ class DelaysController extends Controller
     {
         $this->delayCodesService->forceDeleteDelayCode($id);
         return back();
+    }
+
+    /**
+     * Import delays from CSV file.
+     */
+    public function import(Request $request, $tenantSlug = null)
+    {
+        return $this->delayImportExportService->importDelays($request);
+    }
+
+    /**
+     * Import delays from CSV file for admin.
+     */
+    public function importAdmin(Request $request)
+    {
+        return $this->delayImportExportService->importDelays($request);
+    }
+
+    /**
+     * Export delays to CSV file.
+     */
+    public function export($tenantSlug = null)
+    {
+        return $this->delayImportExportService->exportDelays();
+    }
+
+    /**
+     * Export delays to CSV file for admin.
+     */
+    public function exportAdmin()
+    {
+        return $this->delayImportExportService->exportDelays();
     }
 }

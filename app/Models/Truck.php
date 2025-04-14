@@ -18,8 +18,7 @@ class Truck extends Model
         'license',
         'vin',
         'tenant_id',
-        'is_active',
-        'is_returned',
+        'status', // Changed from is_active to status
         'inspection_status',
         'inspection_expiry_date',
     ];

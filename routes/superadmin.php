@@ -73,7 +73,9 @@ Route::middleware(['auth', 'superAdmin'])->group(function () {
     Route::put('/acceptance/{rejection}', [RejectionsController::class, 'updateAdmin'])->name('acceptance.update.admin');
     Route::delete('/acceptance/{rejection}', [RejectionsController::class, 'destroyAdmin'])->name('acceptance.destroy.admin');
     Route::delete('/acceptance-bulk', [RejectionsController::class, 'destroyBulkAdmin'])->name('acceptance.destroyBulk.admin');
-
+// Add new import/export routes for rejections
+Route::post('/acceptance/import', [RejectionsController::class, 'importAdmin'])->name('acceptance.import.admin');
+Route::get('/acceptance/export', [RejectionsController::class, 'exportAdmin'])->name('acceptance.export.admin');
     // Admin rejection reason codes routes
     Route::post('/rejection-reason-codes', [RejectionsController::class, 'storeReasonCodeAdmin'])->name('rejection_reason_codes.store.admin');
     Route::put('/rejection-reason-codes/{code}', [RejectionsController::class, 'updateReasonCodeAdmin'])->name('rejection_reason_codes.update.admin');
@@ -93,11 +95,14 @@ Route::middleware(['auth', 'superAdmin'])->group(function () {
 
     // Admin delays routes
     // Admin delays routes
+    Route::get('/ontime', [DelaysController::class, 'index'])->name('ontime.index.admin');
     Route::post('/ontime', [DelaysController::class, 'store'])->name('ontime.store.admin');
     Route::put('/ontime/{delay}', [DelaysController::class, 'updateAdmin'])->name('ontime.update.admin');
     Route::delete('/ontime/{delay}', [DelaysController::class, 'destroyAdmin'])->name('ontime.destroy.admin');
-    // The issue is likely here - the route pattern conflicts with the {delay} parameter route
     Route::delete('/ontime-bulk', [DelaysController::class, 'destroyBulkAdmin'])->name('ontime.destroyBulk.admin');
+    // Add new import/export routes
+    Route::post('/ontime/import', [DelaysController::class, 'importAdmin'])->name('ontime.import.admin');
+    Route::get('/ontime/export', [DelaysController::class, 'exportAdmin'])->name('ontime.export.admin');
 
 // Admin Driver routes
 Route::get('/drivers', [DriverController::class, 'index'])->name('driver.index.admin');

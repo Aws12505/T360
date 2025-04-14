@@ -1,6 +1,20 @@
 version: '3.8'
 
 services:
+  # Apache + PHP Service
+  web:
+    image: php:8.2-apache
+    container_name: vuestarter_web
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./www:/var/www/html
+    networks:
+      - vuestarter_network
+    depends_on:
+      - mariadb
+
   # MariaDB Service
   mariadb:
     image: mariadb:latest
@@ -43,33 +57,10 @@ services:
     networks:
       - vuestarter_network
 
-  # Matomo Service
-  matomo:
-    image: matomo:latest
-    container_name: vuestarter_matomo
-    restart: unless-stopped
-    environment:
-      MATOMO_DATABASE_HOST: mariadb
-      MATOMO_DATABASE_ADAPTER: mysql
-      MATOMO_DATABASE_TABLES_PREFIX: matomo_
-      MATOMO_DATABASE_USERNAME: ${DB_USERNAME}
-      MATOMO_DATABASE_PASSWORD: ${DB_PASSWORD}
-      MATOMO_DATABASE_DBNAME: matomo
-    ports:
-      - "8090:80"
-    volumes:
-      - matomo_data:/var/www/html
-    networks:
-      - vuestarter_network
-    depends_on:
-      - mariadb
-
 networks:
   vuestarter_network:
     driver: bridge
 
 volumes:
   mariadb_data:
-    driver: local
-  matomo_data:
     driver: local
