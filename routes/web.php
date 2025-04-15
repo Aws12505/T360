@@ -18,14 +18,23 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
-use Illuminate\Support\Facades\Cookie;
 
 Route::get('/refresh-csrf', function () {
     $token = csrf_token();
 
-    return response()->json(['csrfToken' => $token])
-        ->cookie('XSRF-TOKEN', $token, 120, '/', '.trucking360solutions.com', false, false);
-});
+    return response()->json([
+        'csrfToken' => $token
+    ])->cookie(
+        'XSRF-TOKEN',
+        $token,
+        120, // minutes
+        '/',
+        request()->getHost(), // or '.yourdomain.com' for subdomain coverage
+        false, // secure: true if using HTTPS
+        false  // httpOnly: false so JavaScript can access it
+    );
+})->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+
 
 Route::post('/zoho/webhook', [ZohoWebhookController::class, 'handleZohoWebhook'])
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
