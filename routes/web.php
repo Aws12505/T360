@@ -18,9 +18,15 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
-Route::get('/csrf-token', function () {
-    return response()->json(['csrfToken' => csrf_token()]);
+use Illuminate\Support\Facades\Cookie;
+
+Route::get('/refresh-csrf', function () {
+    $token = csrf_token();
+
+    return response()->json(['csrfToken' => $token])
+        ->cookie('XSRF-TOKEN', $token, 120, '/', '.yourdomain.com', false, false);
 });
+
 Route::post('/zoho/webhook', [ZohoWebhookController::class, 'handleZohoWebhook'])
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 

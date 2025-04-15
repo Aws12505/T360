@@ -33,18 +33,23 @@
             }
         </style>
 <script>
-    // On page load, fetch a new CSRF token and update it
-    fetch('/csrf-token')
-        .then(res => res.json())
-        .then(data => {
-            const token = data.csrfToken;
-            document.querySelector('meta[name="csrf-token"]').setAttribute('content', token);
-            // If using Axios, also set it globally
-            if (window.axios) {
-                window.axios.defaults.headers.common['X-CSRF-TOKEN'] = token;
-            }
-        });
+    fetch('/refresh-csrf', {
+        credentials: 'same-origin'
+    })
+    .then(res => res.json())
+    .then(data => {
+        const token = data.csrfToken;
+
+        // Update the meta tag
+        document.querySelector('meta[name="csrf-token"]').setAttribute('content', token);
+
+        // If using Axios, also update default headers
+        if (window.axios) {
+            window.axios.defaults.headers.common['X-XSRF-TOKEN'] = token;
+        }
+    });
 </script>
+
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
