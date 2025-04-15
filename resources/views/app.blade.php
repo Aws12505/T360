@@ -33,29 +33,18 @@
             }
         </style>
  <script>
-    fetch('/refresh-csrf', {
-        credentials: 'same-origin'
-    })
-    .then(res => {
-        if (!res.ok) {
-            throw new Error('Failed to refresh CSRF token');
-        }
-        return res.json();
-    })
-    .then(data => {
-        console.log('New CSRF Token:', data.csrfToken);
+    fetch('/refresh-csrf', { credentials: 'same-origin' })
+        .then(res => res.json())
+        .then(data => {
+            const token = data.csrfToken;
+            console.log('Subdomain CSRF Token:', token);
 
-        // Update meta tag
-        document.querySelector('meta[name="csrf-token"]').setAttribute('content', data.csrfToken);
+            // Set the token in meta
+            document.querySelector('meta[name="csrf-token"]').setAttribute('content', token);
 
-        // Optional: If using Axios
-        if (window.axios) {
-            window.axios.defaults.headers.common['X-XSRF-TOKEN'] = data.csrfToken;
-        }
-    })
-    .catch(err => {
-        console.error('Error refreshing CSRF:', err);
-    });
+            // Manually add to headers for fetch requests (if no axios)
+            window.csrfToken = token;
+        });
 </script>
 
 

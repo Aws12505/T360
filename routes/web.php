@@ -23,17 +23,16 @@ Route::get('/', function () {
 Route::get('/refresh-csrf', function () {
     $token = csrf_token();
 
-    return response()->json([
-        'csrfToken' => $token
-    ])->cookie(
-        'XSRF-TOKEN',      // Cookie name Laravel looks for
-        $token,            // The actual token
-        120,               // Expire time in minutes
-        '/',               // Path
-        'dashboard.trucking360solutions.com',  // Domain — subdomain only
-        false,             // Secure: set to true if you're using HTTPS
-        false              // httpOnly: false so it's visible in JS + browser
-    );
+    return response()->json(['csrfToken' => $token])
+        ->cookie(
+            'XSRF-TOKEN',
+            $token,
+            120,                     // minutes
+            '/',                    // path
+            'dashboard.trucking360solutions.com', // exact subdomain only
+            false,                   // secure (set to false for localhost)
+            false                   // httpOnly: must be false so fetch can read it
+        );
 })->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 
 
