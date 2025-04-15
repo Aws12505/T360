@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\Web\Zoho\ZohoWebhookController;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cookie;
 
 Route::get('/', function () {
     // Safely get the authenticated user's tenant slug if available
@@ -25,13 +26,13 @@ Route::get('/refresh-csrf', function () {
     return response()->json([
         'csrfToken' => $token
     ])->cookie(
-        'XSRF-TOKEN',
-        $token,
-        120, // minutes
-        '/',
-        request()->getHost(), // or '.yourdomain.com' for subdomain coverage
-        false, // secure: true if using HTTPS
-        false  // httpOnly: false so JavaScript can access it
+        'XSRF-TOKEN',      // Cookie name Laravel looks for
+        $token,            // The actual token
+        120,               // Expire time in minutes
+        '/',               // Path
+        'dashboard.trucking360solutions.com',  // Domain — subdomain only
+        false,             // Secure: set to true if you're using HTTPS
+        false              // httpOnly: false so it's visible in JS + browser
     );
 })->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 
