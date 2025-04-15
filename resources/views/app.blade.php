@@ -5,6 +5,7 @@
 
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
 
         {{-- Inline script to detect system dark mode preference and apply it immediately --}}
         <script>
@@ -31,6 +32,19 @@
                 background-color: oklch(0.145 0 0);
             }
         </style>
+<script>
+    // On page load, fetch a new CSRF token and update it
+    fetch('/csrf-token')
+        .then(res => res.json())
+        .then(data => {
+            const token = data.csrfToken;
+            document.querySelector('meta[name="csrf-token"]').setAttribute('content', token);
+            // If using Axios, also set it globally
+            if (window.axios) {
+                window.axios.defaults.headers.common['X-CSRF-TOKEN'] = token;
+            }
+        });
+</script>
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 

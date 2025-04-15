@@ -18,7 +18,9 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
-
+Route::get('/csrf-token', function () {
+    return response()->json(['csrfToken' => csrf_token()]);
+});
 Route::post('/zoho/webhook', [ZohoWebhookController::class, 'handleZohoWebhook'])
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 
