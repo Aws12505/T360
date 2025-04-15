@@ -24,7 +24,7 @@ Route::get('/refresh-csrf', function () {
     $token = csrf_token();
 
     return response()->json(['csrfToken' => $token])
-        ->cookie('XSRF-TOKEN', $token, 120, '/', '.yourdomain.com', false, false);
+        ->cookie('XSRF-TOKEN', $token, 120, '/', '.trucking360solutions.com', false, false);
 });
 
 Route::post('/zoho/webhook', [ZohoWebhookController::class, 'handleZohoWebhook'])

@@ -32,13 +32,16 @@
                 background-color: oklch(0.145 0 0);
             }
         </style>
-<script>
+ <script>
     fetch('/refresh-csrf', {
         credentials: 'same-origin'
     })
     .then(res => res.json())
     .then(data => {
         const token = data.csrfToken;
+
+        // Log the new CSRF token to the console
+        console.log('New CSRF Token:', token);
 
         // Update the meta tag
         document.querySelector('meta[name="csrf-token"]').setAttribute('content', token);
@@ -47,6 +50,9 @@
         if (window.axios) {
             window.axios.defaults.headers.common['X-XSRF-TOKEN'] = token;
         }
+    })
+    .catch(error => {
+        console.error('Error fetching new CSRF token:', error);
     });
 </script>
 
