@@ -35,6 +35,7 @@
  <script>
         const isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
 if(!isAuthenticated){
+    console.log('User is not authenticated.');
     fetch('/refresh-csrf', { credentials: 'same-origin' })
         .then(res => res.json())
         .then(data => {
