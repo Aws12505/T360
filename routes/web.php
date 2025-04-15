@@ -29,7 +29,7 @@ Route::get('/refresh-csrf', function () {
             $token,
             120,                     // minutes
             '/',                    // path
-            'dashboard.trucking360solutions.com', // exact subdomain only
+            'test.trucking360solutions.com', // exact subdomain only
             false,                   // secure (set to false for localhost)
             false                   // httpOnly: must be false so fetch can read it
         );
