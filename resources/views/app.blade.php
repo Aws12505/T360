@@ -33,6 +33,8 @@
             }
         </style>
  <script>
+        const isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
+if(!isAuthenticated){
     fetch('/refresh-csrf', { credentials: 'same-origin' })
         .then(res => res.json())
         .then(data => {
@@ -44,7 +46,7 @@
 
             // Manually add to headers for fetch requests (if no axios)
             window.csrfToken = token;
-        });
+        });}
 </script>
 
 
