@@ -269,7 +269,7 @@
 
       <!-- Modal for creating/editing an entry -->
       <Dialog v-model:open="showModal">
-        <DialogContent class="sm:max-w-4xl">
+        <DialogContent class="sm:max-w-lg md:max-w-2xl lg:max-w-4xl w-[90vw]">
           <DialogHeader>
             <DialogTitle>{{ formTitle }}</DialogTitle>
             <DialogDescription>
@@ -277,9 +277,9 @@
             </DialogDescription>
           </DialogHeader>
           
-          <form @submit.prevent="submitForm" class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto">
+          <form @submit.prevent="submitForm" class="grid gap-6 max-h-[70vh] overflow-y-auto p-1">
             <!-- Tenant dropdown for SuperAdmin users -->
-            <div v-if="SuperAdmin" class="col-span-2">
+            <div v-if="SuperAdmin" class="col-span-full">
               <Label for="tenant">Company Name</Label>
               <div class="relative">
                 <select 
@@ -300,9 +300,27 @@
               </div>
             </div>
             
-            <!-- Dynamically render form fields based on formColumns -->
-            <template v-for="col in formColumns" :key="col">
-              <div>
+            <!-- Date field (important, so keep it separate at the top) -->
+            <div class="col-span-full">
+              <Label for="date" class="font-medium">Date</Label>
+              <Input
+                id="date"
+                v-model="form.date"
+                type="date"
+                required
+                class="w-full"
+              />
+            </div>
+            
+            <!-- Group fields into sections for better organization -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              <!-- Driver Information Section -->
+              <div class="col-span-full mb-2">
+                <h3 class="text-md font-semibold border-b pb-1">Driver Information</h3>
+              </div>
+              
+              <div v-for="col in ['driver_name', 'user_name', 'group', 'group_hierarchy', 'vehicle_type']" :key="col" 
+                   class="space-y-1">
                 <Label :for="col" class="capitalize">{{ col.replace(/_/g, ' ') }}</Label>
                 <Input
                   :id="col"
@@ -312,13 +330,52 @@
                   :min="getMin(col)"
                 />
               </div>
-            </template>
+              
+              <!-- Performance Metrics Section -->
+              <div class="col-span-full mt-4 mb-2">
+                <h3 class="text-md font-semibold border-b pb-1">Performance Metrics</h3>
+              </div>
+              
+              <div v-for="col in ['minutes_analyzed', 'green_minutes_percent', 'overspeeding_percent', 'driver_score', 'safety_normalisation_factor']" :key="col" 
+                   class="space-y-1">
+                <Label :for="col" class="capitalize">{{ col.replace(/_/g, ' ') }}</Label>
+                <Input
+                  :id="col"
+                  v-model="form[col]"
+                  :type="getInputType(col)"
+                  :step="getStep(col)"
+                  :min="getMin(col)"
+                />
+              </div>
+              
+              <!-- Events Section -->
+              <div class="col-span-full mt-4 mb-2">
+                <h3 class="text-md font-semibold border-b pb-1">Events & Violations</h3>
+              </div>
+              
+              <!-- Remaining fields in a grid -->
+              <div v-for="col in formColumns.filter(c => 
+                !['driver_name', 'user_name', 'group', 'group_hierarchy', 'vehicle_type', 
+                  'minutes_analyzed', 'green_minutes_percent', 'overspeeding_percent', 'driver_score', 
+                  'safety_normalisation_factor', 'date'].includes(c))" 
+                :key="col" 
+                class="space-y-1">
+                <Label :for="col" class="capitalize text-sm">{{ col.replace(/_/g, ' ') }}</Label>
+                <Input
+                  :id="col"
+                  v-model="form[col]"
+                  :type="getInputType(col)"
+                  :step="getStep(col)"
+                  :min="getMin(col)"
+                />
+              </div>
+            </div>
             
-            <DialogFooter class="col-span-2 mt-4">
-              <Button type="button" @click="closeModal" variant="outline">
+            <DialogFooter class="flex-col space-y-2 sm:space-y-0 sm:flex-row sm:justify-end sm:space-x-2 mt-6 pt-4 border-t">
+              <Button type="button" @click="closeModal" variant="outline" class="w-full sm:w-auto">
                 Cancel
               </Button>
-              <Button type="submit" variant="default">
+              <Button type="submit" variant="default" class="w-full sm:w-auto">
                 {{ formAction }}
               </Button>
             </DialogFooter>
