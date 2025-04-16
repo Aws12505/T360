@@ -7,6 +7,7 @@ use App\Http\Requests\UserManagement\UpdateTenantRequest;
 use App\Services\Tenants\TenantService;
 use Inertia\Inertia;
 use App\Models\Tenant;
+use App\Models\Subscription;
 use Illuminate\Support\Facades\Auth;
 
 class TenantSettingsController extends Controller
@@ -39,9 +40,13 @@ class TenantSettingsController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // Get the tenant's subscription
+        $subscription = Subscription::where('tenant_id', $tenant->id)->latest()->first();
+
         return Inertia::render('settings/TenantSettings', [
             'tenant' => $tenant,
             'tenantSlug' => $tenantSlug,
+            'subscription' => $subscription,
         ]);
     }
 
