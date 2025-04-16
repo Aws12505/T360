@@ -20,22 +20,6 @@ Route::get('/', function () {
 })->name('home');
 
 
-Route::get('/refresh-csrf', function () {
-    $token = csrf_token();
-
-    return response()->json(['csrfToken' => $token])
-        ->cookie(
-            'XSRF-TOKEN',
-            $token,
-            120,                     // minutes
-            '/',                    // path
-            null, // exact subdomain only
-            false,                   // secure (set to false for localhost)
-            false                   // httpOnly: must be false so fetch can read it
-        );
-})->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
-
-
 Route::post('/zoho/webhook', [ZohoWebhookController::class, 'handleZohoWebhook'])
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 

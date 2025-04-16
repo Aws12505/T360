@@ -5,7 +5,6 @@
 
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="csrf-token" content="{{ csrf_token() }}">
 
         {{-- Inline script to detect system dark mode preference and apply it immediately --}}
         <script>
@@ -32,25 +31,7 @@
                 background-color: oklch(0.145 0 0);
             }
         </style>
- <script>
-        const isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
-if(!isAuthenticated){
-    console.log('User is not authenticated.');
-    fetch('/refresh-csrf', { credentials: 'same-origin' })
-        .then(res => res.json())
-        .then(data => {
-            const token = data.csrfToken;
-            console.log('Subdomain CSRF Token:', token);
-
-            // Set the token in meta
-            document.querySelector('meta[name="csrf-token"]').setAttribute('content', token);
-
-            // Manually add to headers for fetch requests (if no axios)
-            window.csrfToken = token;
-        });}
-</script>
-
-
+ 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
         <link rel="preconnect" href="https://fonts.bunny.net">
