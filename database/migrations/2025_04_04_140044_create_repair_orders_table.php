@@ -34,21 +34,10 @@ class CreateRepairOrdersTable extends Migration
             $table->foreign('tenant_id')->references('id')->on('tenants')->onDelete('cascade');
             $table->timestamps();
         });
-
-        // Pivot table for many-to-many: RepairOrder ↔ AreasOfConcern
-        Schema::create('area_of_concern_repair_order', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('repair_order_id');
-            $table->unsignedBigInteger('area_of_concern_id');
-            $table->foreign('repair_order_id')->references('id')->on('repair_orders')->onDelete('cascade');
-            $table->foreign('area_of_concern_id')->references('id')->on('area_of_concerns')->onDelete('cascade');
-            $table->timestamps();
-        });
     }
 
     public function down()
     {
-        Schema::dropIfExists('area_of_concern_repair_order');
         Schema::dropIfExists('repair_orders');
     }
 }
