@@ -257,7 +257,7 @@
 
       <!-- Modal for Create/Edit Performance -->
       <Dialog v-model:open="showModal">
-        <DialogContent class="sm:max-w-lg">
+        <DialogContent class="sm:max-w-lg md:max-w-2xl lg:max-w-3xl w-[90vw]">
           <DialogHeader>
             <DialogTitle>{{ formTitle }}</DialogTitle>
             <DialogDescription>
@@ -287,72 +287,99 @@
                 </div>
               </div>
             </div>
-            <!-- Date Field -->
-            <div>
-              <Label for="date">Date</Label>
-              <Input
-                id="date"
-                v-model="form.date"
-                type="date"
-                required
-              />
+            
+            <!-- Form Fields in Grid Layout for larger screens -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- Date Field -->
+              <div>
+                <Label for="date">Date</Label>
+                <Input
+                  id="date"
+                  v-model="form.date"
+                  type="date"
+                  required
+                />
+              </div>
+              <!-- Acceptance Field -->
+              <div>
+                <Label for="acceptance">Acceptance</Label>
+                <Input
+                  id="acceptance"
+                  v-model="form.acceptance"
+                  type="number"
+                  step="0.01"
+                  required
+                />
+              </div>
+              <!-- On Time to Origin Field -->
+              <div>
+                <Label for="on_time_to_origin">On Time to Origin</Label>
+                <Input
+                  id="on_time_to_origin"
+                  v-model="form.on_time_to_origin"
+                  type="number"
+                  step="0.01"
+                  required
+                />
+              </div>
+              <!-- On Time to Destination Field -->
+              <div>
+                <Label for="on_time_to_destination">On Time to Destination</Label>
+                <Input
+                  id="on_time_to_destination"
+                  v-model="form.on_time_to_destination"
+                  type="number"
+                  step="0.01"
+                  required
+                />
+              </div>
+              <!-- Maintenance Variance to Spend Field -->
+              <div>
+                <Label for="maintenance_variance_to_spend">Maintenance Variance to Spend</Label>
+                <Input
+                  id="maintenance_variance_to_spend"
+                  v-model="form.maintenance_variance_to_spend"
+                  type="number"
+                  step="0.01"
+                  required
+                />
+              </div>
+              <!-- Open BOC Field -->
+              <div>
+                <Label for="open_boc">Open BOC</Label>
+                <Input
+                  id="open_boc"
+                  v-model="form.open_boc"
+                  type="number"
+                  step="1"
+                  required
+                />
+              </div>
+              <!-- VCR Preventable Field -->
+              <div>
+                <Label for="vcr_preventable">VCR Preventable</Label>
+                <Input
+                  id="vcr_preventable"
+                  v-model="form.vcr_preventable"
+                  type="number"
+                  step="1"
+                  required
+                />
+              </div>
+              <!-- VMCR P Field -->
+              <div>
+                <Label for="vmcr_p">VMCR P</Label>
+                <Input
+                  id="vmcr_p"
+                  v-model="form.vmcr_p"
+                  type="number"
+                  step="1"
+                  required
+                />
+              </div>
             </div>
-            <!-- Acceptance Field -->
-            <div>
-              <Label for="acceptance">Acceptance</Label>
-              <Input
-                id="acceptance"
-                v-model="form.acceptance"
-                type="number"
-                step="0.01"
-                required
-              />
-            </div>
-            <!-- On Time to Origin Field -->
-            <div>
-              <Label for="on_time_to_origin">On Time to Origin</Label>
-              <Input
-                id="on_time_to_origin"
-                v-model="form.on_time_to_origin"
-                type="number"
-                step="0.01"
-                required
-              />
-            </div>
-            <!-- On Time to Destination Field -->
-            <div>
-              <Label for="on_time_to_destination">On Time to Destination</Label>
-              <Input
-                id="on_time_to_destination"
-                v-model="form.on_time_to_destination"
-                type="number"
-                step="0.01"
-                required
-              />
-            </div>
-            <!-- Maintenance Variance to Spend Field -->
-            <div>
-              <Label for="maintenance_variance_to_spend">Maintenance Variance to Spend</Label>
-              <Input
-                id="maintenance_variance_to_spend"
-                v-model="form.maintenance_variance_to_spend"
-                type="number"
-                step="0.01"
-                required
-              />
-            </div>
-            <!-- Open BOC Field -->
-            <div>
-              <Label for="open_boc">Open BOC</Label>
-              <Input
-                id="open_boc"
-                v-model="form.open_boc"
-                type="number"
-                step="1"
-                required
-              />
-            </div>
-            <!-- Safety Bonus Checkbox -->
+            
+            <!-- Safety Bonus Checkbox (full width) -->
             <div class="flex items-center gap-2">
               <input
                 id="meets_safety_bonus_criteria"
@@ -364,23 +391,13 @@
                 Meets Safety Bonus Criteria
               </Label>
             </div>
-            <!-- VCR Preventable Field -->
-            <div>
-              <Label for="vcr_preventable">VCR Preventable</Label>
-              <Input
-                id="vcr_preventable"
-                v-model="form.vcr_preventable"
-                type="number"
-                step="1"
-                required
-              />
-            </div>
+            
             <!-- Action Buttons -->
-            <DialogFooter>
-              <Button type="button" @click="closeModal" variant="outline">
+            <DialogFooter class="flex-col space-y-2 sm:space-y-0 sm:flex-row sm:justify-end sm:space-x-2">
+              <Button type="button" @click="closeModal" variant="outline" class="w-full sm:w-auto">
                 Cancel
               </Button>
-              <Button type="submit" variant="default">
+              <Button type="submit" variant="default" class="w-full sm:w-auto">
                 {{ formAction }}
               </Button>
             </DialogFooter>

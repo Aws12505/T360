@@ -1,70 +1,130 @@
 <template>
-  <form @submit.prevent="submit">
-    <div class="grid grid-cols-2 gap-4">
-      <!-- Tenant dropdown for SuperAdmin users -->
-      <div v-if="isSuperAdmin">
+  <form @submit.prevent="submit" class="space-y-6">
+    <!-- Tenant dropdown for SuperAdmin users -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div v-if="isSuperAdmin" class="col-span-full">
         <Label>Company Name</Label>
-        <select v-model="form.tenant_id" class="w-full border rounded px-2 py-1">
-          <option :value="null" disabled>Select Company</option>
-          <option v-for="tenant in tenants" :key="tenant.id" :value="tenant.id">
-            {{ tenant.name }}
-          </option>
-        </select>
+        <div class="relative">
+          <select 
+            v-model="form.tenant_id" 
+            class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
+          >
+            <option :value="null" disabled>Select Company</option>
+            <option v-for="tenant in tenants" :key="tenant.id" :value="tenant.id">
+              {{ tenant.name }}
+            </option>
+          </select>
+          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+            <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+          </div>
+        </div>
       </div>
+      
       <!-- Date Field -->
-      <div>
+      <div class="col-span-full">
         <Label>Date</Label>
         <Input type="date" v-model="form.date" class="w-full" />
       </div>
-      <!-- Driver Name Field -->
+      
+      <!-- Main form fields in a responsive grid -->
       <div>
         <Label>Driver Name</Label>
         <Input v-model="form.driver_name" class="w-full" />
       </div>
+      
       <!-- Delay Type Field -->
       <div>
         <Label>Delay Type</Label>
-        <select v-model="form.delay_type" class="w-full border rounded px-2 py-1">
-          <option value="origin">Origin</option>
-          <option value="destination">Destination</option>
-        </select>
+        <div class="relative">
+          <select 
+            v-model="form.delay_type" 
+            class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
+          >
+            <option value="origin">Origin</option>
+            <option value="destination">Destination</option>
+          </select>
+          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+            <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+          </div>
+        </div>
       </div>
+      
       <!-- Delay Category Field -->
       <div>
         <Label>Delay Category</Label>
-        <select v-model="form.delay_category" class="w-full border rounded px-2 py-1">
-          <option value="1_120">1–120 min</option>
-          <option value="121_600">121–600 min</option>
-          <option value="601_plus">601+ min</option>
-        </select>
+        <div class="relative">
+          <select 
+            v-model="form.delay_category" 
+            class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
+          >
+            <option value="1_120">1–120 min</option>
+            <option value="121_600">121–600 min</option>
+            <option value="601_plus">601+ min</option>
+          </select>
+          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+            <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+          </div>
+        </div>
       </div>
+      
       <!-- Delay Code Field -->
       <div>
         <Label>Delay Code</Label>
-        <select v-model="form.delay_code_id" class="w-full border rounded px-2 py-1">
-          <option v-for="code in delayCodes" :key="code.id" :value="code.id">
-            {{ code.code }}
-          </option>
-        </select>
+        <div class="relative">
+          <select 
+            v-model="form.delay_code_id" 
+            class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
+          >
+            <option v-for="code in delayCodes" :key="code.id" :value="code.id">
+              {{ code.code }}
+            </option>
+          </select>
+          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+            <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+          </div>
+        </div>
       </div>
-      <!-- Disputed Checkbox -->
-      <div class="flex items-center space-x-2">
-        <Checkbox v-model:checked="form.disputed" />
-        <Label>Disputed</Label>
-      </div>
+      
       <!-- Driver Controllable Field -->
       <div>
         <Label>Driver Controllable</Label>
-        <select v-model="form.driver_controllable" class="w-full border rounded px-2 py-1">
-          <option :value="null">N/A</option>
-          <option :value="true">Yes</option>
-          <option :value="false">No</option>
-        </select>
+        <div class="relative">
+          <select 
+            v-model="form.driver_controllable" 
+            class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
+          >
+            <option :value="null">N/A</option>
+            <option :value="true">Yes</option>
+            <option :value="false">No</option>
+          </select>
+          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+            <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Disputed Checkbox -->
+      <div class="flex items-center space-x-2">
+        <Checkbox v-model:checked="form.disputed" id="disputed" />
+        <Label for="disputed">Disputed</Label>
       </div>
     </div>
 
-    <div class="mt-6 flex justify-end">
-      <Button type="submit" :disabled="form.processing">
+    <div class="flex-col space-y-2 sm:space-y-0 sm:flex-row sm:justify-end sm:space-x-2 pt-4 border-t flex">
+      <Button type="button" @click="emit('close')" variant="outline" class="w-full sm:w-auto">
+        Cancel
+      </Button>
+      <Button type="submit" :disabled="form.processing" class="w-full sm:w-auto">
         {{ form.id ? 'Update' : 'Create' }}
       </Button>
     </div>
