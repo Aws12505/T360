@@ -1,6 +1,7 @@
 <template>
   <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
-    <Head title="Acceptance"/>
+
+    <Head title="Acceptance" />
     <div class="max-w-7xl mx-auto p-6 space-y-8">
       <!-- Success Message -->
       <Alert v-if="successMessage" variant="success">
@@ -17,11 +18,7 @@
             Add Rejection
           </Button>
           <!-- Add Delete Selected button -->
-          <Button 
-            v-if="selectedRejections.length > 0" 
-            @click="confirmDeleteSelected()" 
-            variant="destructive"
-          >
+          <Button v-if="selectedRejections.length > 0" @click="confirmDeleteSelected()" variant="destructive">
             <Icon name="trash" class="mr-2 h-4 w-4" />
             Delete Selected ({{ selectedRejections.length }})
           </Button>
@@ -36,59 +33,39 @@
             <Icon name="download" class="mr-2 h-4 w-4" />
             Export CSV
           </Button>
-          <Button v-if="isSuperAdmin"@click="openCodeModal()" variant="outline">
+          <Button v-if="isSuperAdmin" @click="openCodeModal()" variant="outline">
             <Icon name="settings" class="mr-2 h-4 w-4" />
             Manage Reason Codes
           </Button>
         </div>
       </div>
- 
+
       <!-- Hidden Export Form -->
       <form ref="exportForm" :action="exportUrl" method="GET" class="hidden"></form>
-      
+
       <!-- Date Filter Tabs -->
       <Card>
-        <CardContent class="p-4">
+        <CardContent class="p-4 ">
           <div class="flex flex-col gap-2">
             <div class="flex flex-wrap gap-2">
-              <Button 
-                @click="selectDateFilter('yesterday')" 
-                variant="outline"
-                size="sm"
-                :class="{'bg-primary/10 text-primary border-primary': activeTab === 'yesterday'}"
-              >
+              <Button @click="selectDateFilter('yesterday')" variant="outline" size="sm"
+                :class="{ 'bg-primary/10 text-primary border-primary': activeTab === 'yesterday' }">
                 Yesterday
               </Button>
-              <Button 
-                @click="selectDateFilter('current-week')" 
-                variant="outline"
-                size="sm"
-                :class="{'bg-primary/10 text-primary border-primary': activeTab === 'current-week'}"
-              >
+              <Button @click="selectDateFilter('current-week')" variant="outline" size="sm"
+                :class="{ 'bg-primary/10 text-primary border-primary': activeTab === 'current-week' }">
                 Current Week
               </Button>
-              <Button 
-                @click="selectDateFilter('6w')" 
-                variant="outline"
-                size="sm"
-                :class="{'bg-primary/10 text-primary border-primary': activeTab === '6w'}"
-              >
+              <Button @click="selectDateFilter('6w')" variant="outline" size="sm"
+                :class="{ 'bg-primary/10 text-primary border-primary': activeTab === '6w' }">
                 6 Weeks
               </Button>
-              <Button 
-                @click="selectDateFilter('quarterly')" 
-                variant="outline"
-                size="sm"
-                :class="{'bg-primary/10 text-primary border-primary': activeTab === 'quarterly'}"
-              >
+              <Button @click="selectDateFilter('quarterly')" variant="outline" size="sm"
+                :class="{ 'bg-primary/10 text-primary border-primary': activeTab === 'quarterly' }">
                 Quarterly
               </Button>
-              <Button 
-                @click="selectDateFilter('full')" 
-                variant="outline"
-                size="sm"
-                :class="{'bg-primary/10 text-primary border-primary': activeTab === 'full'}"
-              >
+              <Button @click="selectDateFilter('full')" variant="outline" size="sm"
+                :class="{ 'bg-primary/10 text-primary border-primary': activeTab === 'full' }">
                 Full
               </Button>
             </div>
@@ -117,43 +94,24 @@
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
               <div>
                 <Label for="search">Search</Label>
-                <Input 
-                  id="search"
-                  v-model="filters.search" 
-                  type="text" 
-                  placeholder="Search by driver name..." 
-                  @input="applyFilters"
-                />
+                <Input id="search" v-model="filters.search" type="text" placeholder="Search by driver name..."
+                  @input="applyFilters" class="w-full" />
               </div>
               <div>
                 <Label for="dateFrom">Date From</Label>
-                <Input 
-                  id="dateFrom"
-                  v-model="filters.dateFrom" 
-                  type="date" 
-                  @change="applyFilters"
-                />
+                <Input id="dateFrom" v-model="filters.dateFrom" type="date" @change="applyFilters" class="w-full" />
               </div>
               <div>
                 <Label for="dateTo">Date To</Label>
-                <Input 
-                  id="dateTo"
-                  v-model="filters.dateTo" 
-                  type="date" 
-                  @change="applyFilters"
-                />
+                <Input id="dateTo" v-model="filters.dateTo" type="date" @change="applyFilters" class="w-full" />
               </div>
             </div>
-            
+
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
               <div>
                 <Label for="rejectionType">Rejection Type</Label>
-                <select 
-                  id="rejectionType" 
-                  v-model="filters.rejectionType" 
-                  @change="applyFilters"
-                  class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
-                >
+                <select id="rejectionType" v-model="filters.rejectionType" @change="applyFilters"
+                  class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                   <option value="">All Types</option>
                   <option value="pickup">Pickup</option>
                   <option value="delivery">Delivery</option>
@@ -161,12 +119,8 @@
               </div>
               <div>
                 <Label for="reasonCode">Reason Code</Label>
-                <select 
-                  id="reasonCode" 
-                  v-model="filters.reasonCode" 
-                  @change="applyFilters"
-                  class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
-                >
+                <select id="reasonCode" v-model="filters.reasonCode" @change="applyFilters"
+                  class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                   <option value="">All Reason Codes</option>
                   <option v-for="code in rejection_reason_codes" :key="code.id" :value="code.id">
                     {{ code.reason_code }}
@@ -175,25 +129,16 @@
               </div>
               <div>
                 <Label for="penalty">Penalty</Label>
-                <Input 
-                  id="penalty"
-                  v-model="filters.penalty" 
-                  type="text" 
-                  placeholder="Filter by penalty..." 
-                  @input="applyFilters"
-                />
+                <Input id="penalty" v-model="filters.penalty" type="text" placeholder="Filter by penalty..."
+                  @input="applyFilters" class="w-full" />
               </div>
             </div>
-            
+
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
               <div>
                 <Label for="disputed">Disputed</Label>
-                <select 
-                  id="disputed" 
-                  v-model="filters.disputed" 
-                  @change="applyFilters"
-                  class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
-                >
+                <select id="disputed" v-model="filters.disputed" @change="applyFilters"
+                  class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                   <option value="">All</option>
                   <option value="true">Yes</option>
                   <option value="false">No</option>
@@ -201,12 +146,8 @@
               </div>
               <div>
                 <Label for="driverControllable">Driver Controllable</Label>
-                <select 
-                  id="driverControllable" 
-                  v-model="filters.driverControllable" 
-                  @change="applyFilters"
-                  class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
-                >
+                <select id="driverControllable" v-model="filters.driverControllable" @change="applyFilters"
+                  class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                   <option value="">All</option>
                   <option value="true">Yes</option>
                   <option value="false">No</option>
@@ -214,13 +155,9 @@
                 </select>
               </div>
             </div>
-            
+
             <div class="flex justify-end">
-              <Button 
-                @click="resetFilters" 
-                variant="ghost"
-                size="sm"
-              >
+              <Button @click="resetFilters" variant="ghost" size="sm">
                 <Icon name="rotate-ccw" class="mr-2 h-4 w-4" />
                 Reset Filters
               </Button>
@@ -235,32 +172,25 @@
           <div class="overflow-x-auto">
             <Table class="relative h-[500px] overflow-auto">
               <TableHeader>
-                <TableRow class="sticky top-0 bg-background border-b z-10">
+                <TableRow class="sticky top-0 bg-background border-b z-10 hover:bg-background">
                   <!-- Add checkbox column for selecting all -->
                   <TableHead class="w-[50px]">
                     <div class="flex items-center justify-center">
-                      <input 
-                        type="checkbox" 
-                        @change="toggleSelectAll" 
-                        :checked="isAllSelected"
-                        class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                      />
+                      <input type="checkbox" @change="toggleSelectAll" :checked="isAllSelected"
+                        class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
                     </div>
                   </TableHead>
                   <TableHead v-if="isSuperAdmin">Company Name</TableHead>
-                  <TableHead 
-                    v-for="col in tableColumns" 
-                    :key="col" 
-                    class="cursor-pointer"
-                    @click="sortBy(col)"
-                  >
+                  <TableHead v-for="col in tableColumns" :key="col" class="cursor-pointer" @click="sortBy(col)">
                     <div class="flex items-center">
-                      {{ col.replace(/_/g, ' ').replace(/^./, str => str.toUpperCase()) }}
+                      {{col.replace(/_/g, ' ').replace(/^./, str => str.toUpperCase())}}
                       <div v-if="sortColumn === col" class="ml-2">
-                        <svg v-if="sortDirection === 'asc'" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <svg v-if="sortDirection === 'asc'" class="h-4 w-4" viewBox="0 0 24 24" fill="none"
+                          stroke="currentColor" stroke-width="2">
                           <path d="M8 15l4-4 4 4" />
                         </svg>
-                        <svg v-else class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <svg v-else class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                          stroke-width="2">
                           <path d="M16 9l-4 4-4-4" />
                         </svg>
                       </div>
@@ -277,19 +207,16 @@
               </TableHeader>
               <TableBody>
                 <TableRow v-if="filteredRejections.length === 0">
-                  <TableCell :colspan="isSuperAdmin ? tableColumns.length + 3 : tableColumns.length + 2" class="text-center py-8">
+                  <TableCell :colspan="isSuperAdmin ? tableColumns.length + 3 : tableColumns.length + 2"
+                    class="text-center py-8">
                     No rejections found matching your criteria
                   </TableCell>
                 </TableRow>
                 <TableRow v-for="rejection in filteredRejections" :key="rejection.id" class="hover:bg-muted/50">
                   <!-- Add checkbox for selecting individual row -->
                   <TableCell class="text-center">
-                    <input 
-                      type="checkbox" 
-                      :value="rejection.id" 
-                      v-model="selectedRejections"
-                      class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                    />
+                    <input type="checkbox" :value="rejection.id" v-model="selectedRejections"
+                      class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
                   </TableCell>
                   <TableCell v-if="isSuperAdmin">{{ rejection.tenant?.name || '—' }}</TableCell>
                   <TableCell v-for="col in tableColumns" :key="col" class="whitespace-nowrap">
@@ -329,34 +256,24 @@
               </TableBody>
             </Table>
           </div>
-          
+
           <div class="bg-muted/20 px-4 py-3 border-t" v-if="rejections.links">
             <div class="flex justify-between items-center">
               <div class="text-sm text-muted-foreground flex items-center gap-4">
                 <span>Showing {{ filteredRejections.length }} of {{ rejections.data.length }} entries</span>
-                
+
                 <div class="flex items-center gap-2">
                   <span class="text-sm">Show:</span>
-                  <select 
-                    v-model="perPage" 
-                    @change="changePerPage"
-                    class="h-8 rounded-md border border-input bg-background px-2 py-1 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                  >
+                  <select v-model="perPage" @change="changePerPage"
+                    class="h-8 rounded-md border border-input bg-background px-2 py-1 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
                     <option v-for="size in [10, 25, 50, 100]" :key="size" :value="size">{{ size }}</option>
                   </select>
                 </div>
               </div>
               <div class="flex">
-                <Button 
-                  v-for="link in rejections.links" 
-                  :key="link.label" 
-                  @click="visitPage(link.url)" 
-                  :disabled="!link.url" 
-                  variant="ghost"
-                  size="sm"
-                  class="mx-1"
-                  :class="{'bg-primary/10 text-primary border-primary': link.active}"
-                >
+                <Button v-for="link in rejections.links" :key="link.label" @click="visitPage(link.url)"
+                  :disabled="!link.url" variant="ghost" size="sm" class="mx-1"
+                  :class="{ 'bg-primary/10 text-primary border-primary': link.active }">
                   <span v-html="link.label"></span>
                 </Button>
               </div>
@@ -374,14 +291,8 @@
               Fill in the details to {{ selectedRejection ? 'update' : 'add' }} a rejection.
             </DialogDescription>
           </DialogHeader>
-          <RejectionForm
-            :rejection="selectedRejection"
-            :reasons="rejection_reason_codes"
-            :tenants="tenants"
-            :is-super-admin="isSuperAdmin"
-            :tenant-slug="tenantSlug"
-            @close="formModal = false"
-          />
+          <RejectionForm :rejection="selectedRejection" :reasons="rejection_reason_codes" :tenants="tenants"
+            :is-super-admin="isSuperAdmin" :tenant-slug="tenantSlug" @close="formModal = false" />
         </DialogContent>
       </Dialog>
 
@@ -402,18 +313,16 @@
                 Add New Code
               </Button>
             </div>
-            
+
             <div class="max-h-[400px] overflow-y-auto">
-              <div v-if="!rejection_reason_codes || rejection_reason_codes.length === 0" class="text-center py-8 text-muted-foreground border rounded-md">
+              <div v-if="!rejection_reason_codes || rejection_reason_codes.length === 0"
+                class="text-center py-8 text-muted-foreground border rounded-md">
                 No reason codes found
               </div>
-              
+
               <div v-else class="space-y-2">
-                <div 
-                  v-for="code in rejection_reason_codes" 
-                  :key="code.id" 
-                  class="flex items-center justify-between p-3 border rounded-md hover:bg-muted/50 group"
-                >
+                <div v-for="code in rejection_reason_codes" :key="code.id"
+                  class="flex items-center justify-between p-3 border rounded-md hover:bg-muted/50 group">
                   <div class="flex-1 cursor-pointer" @click="editCode(code)">
                     <div class="font-medium">
                       {{ code.reason_code }}
@@ -453,7 +362,7 @@
               </div>
             </div>
           </div>
-          
+
           <div v-if="showCodeForm" class="border rounded-md p-4 space-y-4">
             <h3 class="text-sm font-medium">{{ editingCode ? 'Edit' : 'Add' }} Reason Code</h3>
             <div class="space-y-3">
@@ -471,13 +380,13 @@
               </div>
             </div>
           </div>
-          
+
           <DialogFooter class="mt-6">
             <Button @click="codeModal = false" variant="outline">Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
+
       <!-- Delete Code Confirmation Dialog -->
       <Dialog v-model:open="codeDeleteConfirm">
         <DialogContent>
@@ -498,24 +407,25 @@
         </DialogContent>
       </Dialog>
       <!-- Add Delete Selected Confirmation Dialog -->
-<Dialog v-model:open="showDeleteSelectedModal">
-  <DialogContent>
-    <DialogHeader>
-      <DialogTitle>Confirm Bulk Deletion</DialogTitle>
-      <DialogDescription>
-        Are you sure you want to delete {{ selectedRejections.length }} rejection records? This action cannot be undone.
-      </DialogDescription>
-    </DialogHeader>
-    <DialogFooter class="mt-4">
-      <Button type="button" @click="showDeleteSelectedModal = false" variant="outline">
-        Cancel
-      </Button>
-      <Button type="button" @click="deleteSelectedRejections()" variant="destructive">
-        Delete Selected
-      </Button>
-    </DialogFooter>
-  </DialogContent>
-</Dialog>
+      <Dialog v-model:open="showDeleteSelectedModal">
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Bulk Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete {{ selectedRejections.length }} rejection records? This action cannot be
+              undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter class="mt-4">
+            <Button type="button" @click="showDeleteSelectedModal = false" variant="outline">
+              Cancel
+            </Button>
+            <Button type="button" @click="deleteSelectedRejections()" variant="destructive">
+              Delete Selected
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
     </div>
   </AppLayout>
@@ -539,7 +449,7 @@ import CodeManager from '@/components/CodeManager.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { router } from '@inertiajs/vue3';
 import Icon from '@/components/Icon.vue';
-import { 
+import {
   Card, CardHeader, CardTitle, CardContent,
   Table, TableHeader, TableBody, TableHead, TableRow, TableCell,
   Label, Input,
@@ -547,7 +457,7 @@ import {
 } from '@/components/ui';
 
 const props = defineProps({
-  rejections:  {
+  rejections: {
     type: Object,
     default: () => ({ data: [], links: [] }),
   },
@@ -571,7 +481,7 @@ const breadcrumbs = [
   {
     title: 'Acceptance',
     href: props.tenantSlug
-     ?  route('acceptance.index', { tenantSlug: props.tenantSlug }) : route('acceptance.index.admin'),
+      ? route('acceptance.index', { tenantSlug: props.tenantSlug }) : route('acceptance.index.admin'),
   }
 ];
 
@@ -626,58 +536,58 @@ const filters = ref({
 // Computed property for filtered and sorted rejections
 const filteredRejections = computed(() => {
   let result = [...props.rejections.data];
-  
+
   // Apply search filter
   if (filters.value.search) {
     const searchTerm = filters.value.search.toLowerCase();
-    result = result.filter(item => 
+    result = result.filter(item =>
       item.driver_name?.toLowerCase().includes(searchTerm) ||
       item.rejection_type?.toLowerCase().includes(searchTerm) ||
       item.reason_code?.reason_code?.toLowerCase().includes(searchTerm)
     );
   }
-  
+
   // Apply date filters
   if (filters.value.dateFrom) {
-    result = result.filter(item => 
+    result = result.filter(item =>
       item.date && item.date >= filters.value.dateFrom
     );
   }
-  
+
   if (filters.value.dateTo) {
-    result = result.filter(item => 
+    result = result.filter(item =>
       item.date && item.date <= filters.value.dateTo
     );
   }
-  
+
   // Apply rejection type filter
   if (filters.value.rejectionType) {
-    result = result.filter(item => 
+    result = result.filter(item =>
       item.rejection_type === filters.value.rejectionType
     );
   }
-  
+
   // Apply reason code filter
   if (filters.value.reasonCode) {
-    result = result.filter(item => 
+    result = result.filter(item =>
       item.reason_code && item.reason_code.id === parseInt(filters.value.reasonCode)
     );
   }
-  
+
   // Apply penalty filter
   if (filters.value.penalty) {
     const penaltyTerm = filters.value.penalty.toLowerCase();
-    result = result.filter(item => 
+    result = result.filter(item =>
       item.penalty && item.penalty.toString().toLowerCase().includes(penaltyTerm)
     );
   }
-  
+
   // Apply disputed filter
   if (filters.value.disputed !== '') {
     const isDisputed = filters.value.disputed === 'true';
     result = result.filter(item => item.disputed === isDisputed);
   }
-  
+
   // Apply driver controllable filter
   if (filters.value.driverControllable !== '') {
     if (filters.value.driverControllable === 'null') {
@@ -687,33 +597,33 @@ const filteredRejections = computed(() => {
       result = result.filter(item => item.driver_controllable === isControllable);
     }
   }
-  
+
   // Apply sorting
   result.sort((a, b) => {
     let valA = a[sortColumn.value];
     let valB = b[sortColumn.value];
-    
+
     // Special handling for reason_code which is an object
     if (sortColumn.value === 'reason_code') {
       valA = a.reason_code?.reason_code || '';
       valB = b.reason_code?.reason_code || '';
     }
-    
+
     // Handle null values
     if (valA === null) return 1;
     if (valB === null) return -1;
-    
+
     // String comparison
     if (typeof valA === 'string') {
       valA = valA.toLowerCase();
       valB = valB.toLowerCase();
     }
-    
+
     if (valA < valB) return sortDirection.value === 'asc' ? -1 : 1;
     if (valA > valB) return sortDirection.value === 'asc' ? 1 : -1;
     return 0;
   });
-  
+
   return result;
 });
 
@@ -747,7 +657,7 @@ function resetFilters() {
     disputed: '',
     driverControllable: ''
   };
-  
+
   // Reset date filter to full
   selectDateFilter('full');
 }
@@ -800,16 +710,16 @@ const saveCode = () => {
     description: codeForm.value.description
   });
 
-  const routeName = editingCode.value 
+  const routeName = editingCode.value
     ? (props.isSuperAdmin ? 'rejection_reason_codes.update.admin' : 'rejection_reason_codes.update')
     : (props.isSuperAdmin ? 'rejection_reason_codes.store.admin' : 'rejection_reason_codes.store');
-  
+
   const routeParams = editingCode.value
     ? props.isSuperAdmin ? { code: editingCode.value } : { tenantSlug: props.tenantSlug, code: editingCode.value }
     : props.isSuperAdmin ? {} : { tenantSlug: props.tenantSlug };
 
   const method = editingCode.value ? form.put : form.post;
-  
+
   method.call(form, route(routeName, routeParams), {
     onSuccess: () => {
       successMessage.value = editingCode.value ? 'Reason code updated successfully.' : 'Reason code created successfully.';
@@ -828,7 +738,7 @@ const deleteCode = (id) => {
   const form = useForm({});
   const routeName = props.isSuperAdmin ? 'rejection_reason_codes.destroy.admin' : 'rejection_reason_codes.destroy';
   const routeParams = props.isSuperAdmin ? { id: id } : { tenantSlug: props.tenantSlug, code: id };
-  
+
   form.delete(route(routeName, routeParams), {
     onSuccess: () => {
       successMessage.value = 'Reason code deleted successfully.';
@@ -841,11 +751,11 @@ const deleteCode = (id) => {
 // Function to delete a rejection using Inertia form helper
 const deleteRejection = (id) => {
   if (!confirm('Are you sure you want to delete this rejection?')) return;
-  
+
   const form = useForm({});
   const routeName = props.isSuperAdmin ? 'acceptance.destroy.admin' : 'acceptance.destroy';
   const routeParams = props.isSuperAdmin ? { rejection: id } : { tenantSlug: props.tenantSlug, rejection: id };
-  
+
   form.delete(route(routeName, routeParams), {
     preserveScroll: true,
     onSuccess: () => {
@@ -867,26 +777,26 @@ const visitPage = (url) => {
 // Function to handle date filter selection
 function selectDateFilter(filter) {
   activeTab.value = filter;
-  
-  const routeName = props.tenantSlug 
-    ? route('acceptance.index', { tenantSlug: props.tenantSlug }) 
+
+  const routeName = props.tenantSlug
+    ? route('acceptance.index', { tenantSlug: props.tenantSlug })
     : route('acceptance.index.admin');
-    
-  router.get(routeName, { 
+
+  router.get(routeName, {
     dateFilter: filter,
-    perPage: perPage.value 
+    perPage: perPage.value
   }, { preserveState: true });
 }
 
 // Function to handle per page change
 function changePerPage() {
-  const routeName = props.tenantSlug 
-    ? route('acceptance.index', { tenantSlug: props.tenantSlug }) 
+  const routeName = props.tenantSlug
+    ? route('acceptance.index', { tenantSlug: props.tenantSlug })
     : route('acceptance.index.admin');
-    
-  router.get(routeName, { 
+
+  router.get(routeName, {
     dateFilter: activeTab.value,
-    perPage: perPage.value 
+    perPage: perPage.value
   }, { preserveState: true });
 }
 
@@ -961,10 +871,10 @@ function deleteSelectedRejections() {
   const form = useForm({
     ids: selectedRejections.value
   });
-  
+
   const routeName = props.isSuperAdmin ? 'acceptance.destroyBulk.admin' : 'acceptance.destroyBulk';
   const routeParams = props.isSuperAdmin ? {} : { tenantSlug: props.tenantSlug };
-  
+
   form.delete(route(routeName, routeParams), {
     preserveScroll: true,
     onSuccess: () => {
@@ -982,14 +892,14 @@ function deleteSelectedRejections() {
 function handleImport(event) {
   const file = event.target.files[0];
   if (!file) return;
-  
+
   const formData = new FormData();
   formData.append('csv_file', file);
-  
-  const routeName = props.isSuperAdmin 
-    ? route('acceptance.import.admin') 
+
+  const routeName = props.isSuperAdmin
+    ? route('acceptance.import.admin')
     : route('acceptance.import', { tenantSlug: props.tenantSlug });
-  
+
   router.post(routeName, formData, {
     onSuccess: () => {
       successMessage.value = 'Delays imported successfully';
@@ -1010,9 +920,8 @@ function exportCSV() {
 }
 // Computed property for export URL
 const exportUrl = computed(() => {
-  return props.tenantSlug 
-    ? route('acceptance.export', { tenantSlug: props.tenantSlug }) 
+  return props.tenantSlug
+    ? route('acceptance.export', { tenantSlug: props.tenantSlug })
     : route('acceptance.export.admin');
 });
 </script>
-

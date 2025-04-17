@@ -108,7 +108,7 @@
           <div class="overflow-x-auto">
             <Table class="relative h-[500px] overflow-auto">
               <TableHeader>
-                <TableRow class="sticky top-0 bg-background border-b z-10">
+                <TableRow class="sticky top-0 bg-background border-b z-10 hover:bg-background">
                   <!-- Add checkbox column for selecting all -->
                   <TableHead class="w-[50px]">
                     <div class="flex items-center justify-center">
