@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
-
+use App\Services\Tenants\TenantService;
 class ProfileController extends Controller
 {
     /**
@@ -54,10 +54,23 @@ class ProfileController extends Controller
         ]);
 
         $user = $request->user();
+        $tenantId = $user->tenant_id;
+        
+        // Check if this is the last user in the tenant
+        $isLastUserInTenant = false;
+        if ($tenantId && $user->tenant->users()->count() === 1) {
+            $isLastUserInTenant = true;
+        }
 
         Auth::logout();
-
-        $user->delete();
+        
+        if ($isLastUserInTenant) {
+            // This is the last user, so delete the tenant too
+            app(TenantService::class)->deleteTenant($tenantId);
+        } else {
+            // Just delete the user
+            $user->delete();
+        }
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

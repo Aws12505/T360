@@ -27,7 +27,7 @@ const sidebarNavItems: NavItem[] = [
     },
     // Add tenant settings only for tenant users (not SuperAdmin)
     ...(showTenantSettings ? [{
-        title: 'Company Settings',
+        title: 'Company',
         href: `/${tenantSlug}/settings/tenant`,
     }] : []),
 ];

@@ -40,8 +40,8 @@ class TenantSettingsController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        // Get the tenant's subscription
-        $subscription = Subscription::where('tenant_id', $tenant->id)->latest()->first();
+        // Get the tenant's subscription using the relationship
+        $subscription = $tenant->subscription;
 
         return Inertia::render('settings/TenantSettings', [
             'tenant' => $tenant,
