@@ -31,14 +31,14 @@
           <label class="cursor-pointer">
             <Button variant="secondary" as="span">
               <Icon name="upload" class="mr-2 h-4 w-4" />
-              Import CSV
+              Upload CSV
             </Button>
             <input type="file" class="hidden" @change="handleImport" accept=".csv" />
           </label>
           
           <Button @click.prevent="exportCSV" variant="outline">
             <Icon name="download" class="mr-2 h-4 w-4" />
-            Export CSV
+            Download CSV
           </Button>
         </div>
       </div>
@@ -175,33 +175,33 @@
                   <TableCell>{{ formatDate(item.date) }}</TableCell>
                   <TableCell>
                     <div>{{ item.acceptance }}</div>
-                    <div class="text-xs italic text-gray-500">({{ item.acceptance_rating }})</div>
+                    <div class="text-xs italic text-gray-500">({{ formatRating(item.acceptance_rating) }})</div>
                   </TableCell>
                   <TableCell>{{ item.on_time_to_origin }}</TableCell>
                   <TableCell>{{ item.on_time_to_destination }}</TableCell>
                   <TableCell>
                     <div>{{ item.on_time }}</div>
-                    <div class="text-xs italic text-gray-500">({{ item.on_time_rating }})</div>
+                    <div class="text-xs italic text-gray-500">({{ formatRating(item.on_time_rating) }})</div>
                   </TableCell>
                   <TableCell>
                     <div>{{ item.maintenance_variance_to_spend }}</div>
-                    <div class="text-xs italic text-gray-500">({{ item.maintenance_variance_to_spend_rating }})</div>
+                    <div class="text-xs italic text-gray-500">({{ formatRating(item.maintenance_variance_to_spend_rating) }})</div>
                   </TableCell>
                   <TableCell>
                     <div>{{ item.open_boc }}</div>
-                    <div class="text-xs italic text-gray-500">({{ item.open_boc_rating }})</div>
+                    <div class="text-xs italic text-gray-500">({{ formatRating(item.open_boc_rating) }})</div>
                   </TableCell>
                   <TableCell>
                     <div>{{ item.meets_safety_bonus_criteria ? 'Yes' : 'No' }}</div>
-                    <div class="text-xs italic text-gray-500">({{ item.meets_safety_bonus_criteria_rating }})</div>
+                    <div class="text-xs italic text-gray-500">({{ formatRating(item.meets_safety_bonus_criteria_rating) }})</div>
                   </TableCell>
                   <TableCell>
                     <div>{{ item.vcr_preventable }}</div>
-                    <div class="text-xs italic text-gray-500">({{ item.vcr_preventable_rating }})</div>
+                    <div class="text-xs italic text-gray-500">({{ formatRating(item.vcr_preventable_rating) }})</div>
                   </TableCell>
                   <TableCell>
                     <div>{{ item.vmcr_p }}</div>
-                    <div class="text-xs italic text-gray-500">({{ item.vmcr_p_rating }})</div>
+                    <div class="text-xs italic text-gray-500">({{ formatRating(item.vmcr_p_rating) }})</div>
                   </TableCell>
                   <TableCell>
                     <div class="flex space-x-2">
@@ -843,5 +843,30 @@ function deleteSelectedPerformances() {
     }
   });
 }
+
+const formatRating = (rating) => {
+  if (!rating) return 'Not Available';
+
+  switch (rating) {
+    case 'gold':
+      return 'Gold Tier';
+    case 'silver':
+      return 'Silver Tier';
+    case 'not_eligible':
+      return 'Not Eligible';
+    case 'fantastic_plus':
+      return 'Fantastic+';
+    case 'fantastic':
+      return 'Fantastic';
+    case 'good':
+      return 'Good';
+    case 'fair':
+      return 'Fair';
+    case 'poor':
+      return 'Poor';
+    default:
+      return rating;
+  }
+};
 </script>
 

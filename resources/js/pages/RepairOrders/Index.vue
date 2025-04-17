@@ -40,13 +40,13 @@
           <label class="cursor-pointer">
             <Button variant="secondary" as="span">
               <Icon name="upload" class="mr-2 h-4 w-4" />
-              Import CSV
+              Upload CSV
             </Button>
             <input type="file" class="hidden" @change="handleImport" accept=".csv" />
           </label>
           <Button @click.prevent="exportCSV" variant="outline">
             <Icon name="download" class="mr-2 h-4 w-4" />
-            Export CSV
+            Download CSV
           </Button>
         </div>
       </div>

@@ -1,6 +1,8 @@
 <template>
   <div class="mb-6">
-    <h2 class="text-2xl font-bold" :class="scoreColorClass">{{ operationalExcellenceScore }}</h2>
+    <h2 class="text-4xl font-bold tracking-tight" :class="[scoreColorClass, 'transition-colors duration-300']">
+      {{ operationalExcellenceScore }}
+    </h2>
   </div>
 </template>
 

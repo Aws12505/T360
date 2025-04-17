@@ -19,7 +19,8 @@ const props = defineProps({
     type: String,
     default: 'default',
     validator: (value: string) => {
-      return ['default', 'secondary', 'destructive', 'outline'].includes(value);
+      return ['default', 'secondary', 'destructive', 'outline', 'success', 'warning', 
+              'gold', 'silver', 'not-eligible', 'fantastic-plus', 'fantastic', 'good', 'fair', 'poor'].includes(value);
     }
   },
   size: {
@@ -39,7 +40,17 @@ const variantClasses = {
   default: 'border-transparent bg-primary text-primary-foreground hover:bg-primary/80',
   secondary: 'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80',
   destructive: 'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80',
-  outline: 'text-foreground'
+  outline: 'text-foreground',
+  success: 'border-transparent bg-green-600 text-white hover:bg-green-700',
+  warning: 'border-transparent bg-amber-500 text-white hover:bg-amber-600',
+  gold: 'border-2 border-amber-600 bg-transparent text-amber-600',
+  silver: 'border-2 border-slate-600 bg-transparent text-slate-600',
+  'not-eligible': 'border-2 border-red-600 bg-transparent text-red-600',
+  'fantastic-plus': 'border-2 border-green-600 bg-transparent text-green-600',
+  'fantastic': 'border-2 border-emerald-600 bg-transparent text-emerald-600',
+  'good': 'border-2 border-blue-600 bg-transparent text-blue-600',
+  'fair': 'border-2 border-amber-600 bg-transparent text-amber-600',
+  'poor': 'border-2 border-red-600 bg-transparent text-red-600'
 };
 
 const sizeClasses = {

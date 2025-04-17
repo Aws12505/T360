@@ -5,12 +5,12 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <!-- VCR Preventable -->
       <div class="p-4 border rounded-lg">
-        <h4 class="text-lg font-medium mb-2">VCR Preventable</h4>
+        <h4 class="text-lg font-medium mb-2">VCR-P Preventable</h4>
         <div class="text-sm text-muted-foreground mb-1">Score</div>
-        <div class="text-3xl font-bold text-indigo-600 mb-3">
-          {{ formatNumber(performanceData.vcr_preventable) }}
-        </div>
-        <div class="mt-2">
+        <div class="flex items-center justify-between gap-3 mb-3">
+          <div class="text-3xl font-bold" :class="getScoreColorClass(performanceRatings.vcr_preventable)">
+            {{ formatNumber(performanceData.vcr_preventable) }}
+          </div>
           <Badge :variant="getRatingVariant(performanceRatings.vcr_preventable)" class="text-xs">
             {{ formatRating(performanceRatings.vcr_preventable) }}
           </Badge>
@@ -21,10 +21,10 @@
       <div class="p-4 border rounded-lg">
         <h4 class="text-lg font-medium mb-2">Open BOC</h4>
         <div class="text-sm text-muted-foreground mb-1">Score</div>
-        <div class="text-3xl font-bold text-indigo-600 mb-3">
-          {{ formatNumber(performanceData.open_boc) }}
-        </div>
-        <div class="mt-2">
+        <div class="flex items-center justify-between gap-3 mb-3">
+          <div class="text-3xl font-bold" :class="getScoreColorClass(performanceRatings.open_boc)">
+            {{ formatNumber(performanceData.open_boc) }}
+          </div>
           <Badge :variant="getRatingVariant(performanceRatings.open_boc)" class="text-xs">
             {{ formatRating(performanceRatings.open_boc) }}
           </Badge>
@@ -35,10 +35,10 @@
       <div class="p-4 border rounded-lg">
         <h4 class="text-lg font-medium mb-2">VMCR-P</h4>
         <div class="text-sm text-muted-foreground mb-1">Score</div>
-        <div class="text-3xl font-bold text-indigo-600 mb-3">
-          {{ formatNumber(performanceData.vmcr_p) }}
-        </div>
-        <div class="mt-2">
+        <div class="flex items-center justify-between gap-3 mb-3">
+          <div class="text-3xl font-bold" :class="getScoreColorClass(performanceRatings.vmcr_p)">
+            {{ formatNumber(performanceData.vmcr_p) }}
+          </div>
           <Badge :variant="getRatingVariant(performanceRatings.vmcr_p)" class="text-xs">
             {{ formatRating(performanceRatings.vmcr_p) }}
           </Badge>
@@ -74,7 +74,7 @@ const formatRating = (rating) => {
   
   switch (rating) {
     case 'fantastic_plus':
-      return 'Fantastic +';
+      return 'Fantastic+';
     case 'fantastic':
       return 'Fantastic';
     case 'good':
@@ -94,16 +94,37 @@ const getRatingVariant = (rating) => {
   
   switch (rating) {
     case 'fantastic_plus':
+      return 'fantastic-plus';
     case 'fantastic':
-      return 'success';
+      return 'fantastic';
     case 'good':
-      return 'secondary';
+      return 'good';
     case 'fair':
-      return 'warning';
+      return 'fair';
     case 'poor':
-      return 'destructive';
+      return 'poor';
     default:
       return 'outline';
+  }
+};
+
+// Get score color class based on rating
+const getScoreColorClass = (rating) => {
+  if (!rating) return 'text-gray-600';
+
+  switch (rating) {
+    case 'fantastic_plus':
+      return 'text-green-600';
+    case 'fantastic':
+      return 'text-emerald-600';
+    case 'good':
+      return 'text-blue-600';
+    case 'fair':
+      return 'text-amber-600';
+    case 'poor':
+      return 'text-red-600';
+    default:
+      return 'text-indigo-600';
   }
 };
 </script>

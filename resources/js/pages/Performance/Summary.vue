@@ -239,16 +239,16 @@ const operationalExcellenceScore = computed(() => {
     'vmcr_p'
   ];
   
-  // Find the worst rating
-  let worstRating = 'fantastic_plus';
+  // Find the best rating
+  let bestRating = 'fantastic_plus';
   for (const key of ratingKeys) {
-    if (ratings[key] && ratingValues[ratings[key]] < ratingValues[worstRating]) {
-      worstRating = ratings[key];
+    if (ratings[key] && ratingValues[ratings[key]] < ratingValues[bestRating]) {
+      bestRating = ratings[key];
     }
   }
   
   // Map the rating to a display value
-  switch (worstRating) {
+  switch (bestRating) {
     case 'fantastic_plus':
       return 'Fantastic +';
     case 'fantastic':
