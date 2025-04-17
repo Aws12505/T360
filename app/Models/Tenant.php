@@ -46,4 +46,14 @@ class Tenant extends Model
     {
         return $this->hasOne(PerformanceMetricRule::class);
     }
+
+    /**
+     * Get the subscription associated with the tenant.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function subscription()
+    {
+        return $this->hasOne(Subscription::class);
+    }
 }

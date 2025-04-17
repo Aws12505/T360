@@ -7,6 +7,7 @@ use App\Models\Tenant;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Role;
+use App\Services\Tenants\TenantService;
 /**
  * Class UserService
  *
@@ -121,7 +122,15 @@ class UserService
     public function deleteUser($userId)
     {
         $user = User::findOrFail($userId);
-        $user->delete();
+        
+        // Check if this is the last user in the tenant
+        if ($user->tenant_id && $user->tenant->users()->count() === 1) {
+            // This is the last user, so delete the tenant too
+            app(TenantService::class)->deleteTenant($user->tenant_id);
+        } else {
+            // Just delete the user
+            $user->delete();
+        }
     }
 
 }
