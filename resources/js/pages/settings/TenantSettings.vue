@@ -1,110 +1,126 @@
 <template>
   <AppLayout :breadcrumbs="props.breadcrumbItems" :tenantSlug="props.tenantSlug">
-    <Head title="Company Settings" />
+    <Head title="Company" />
 
     <SettingsLayout>
       <div class="space-y-6">
         <HeadingSmall 
-          title="Company Settings" 
-          description="Update your company information and logo"
+          title="Company" 
+          description="Manage your company information and subscription"
         />
         
         <Separator />
         
-        <!-- Company Logo Preview Section -->
-        <div v-if="tenant.image_path" class="flex flex-col items-center space-y-3 p-4 border rounded-md bg-muted/50">
-          <div class="text-sm font-medium">Current Company Logo</div>
-          <div class="w-32 h-32 rounded-md overflow-hidden border border-border flex items-center justify-center bg-white">
-            <img 
-              :src="`/storage/${tenant.image_path}`" 
-              alt="Company Logo" 
-              class="max-w-full max-h-full object-contain"
-            />
-          </div>
-          <div class="text-xs text-muted-foreground">
-            Logo is optimized and converted to SVG for better quality
+        <!-- Tabs -->
+        <div class="border-b">
+          <div class="flex space-x-8">
+            <button
+              @click="activeTab = 'company'"
+              class="py-2 px-1 -mb-px font-medium text-sm"
+              :class="activeTab === 'company' ? 'border-b-2 border-primary text-primary' : 'text-muted-foreground hover:text-foreground'"
+            >
+              Company Settings
+            </button>
+            <button
+              @click="activeTab = 'subscription'"
+              class="py-2 px-1 -mb-px font-medium text-sm"
+              :class="activeTab === 'subscription' ? 'border-b-2 border-primary text-primary' : 'text-muted-foreground hover:text-foreground'"
+            >
+              Subscription Details
+            </button>
           </div>
         </div>
         
-        <form @submit.prevent="updateTenant" class="space-y-6" enctype="multipart/form-data">
-          <!-- Company Name -->
-          <div class="grid gap-2">
-            <Label for="name">Company Name</Label>
-            <Input 
-              id="name" 
-              v-model="form.name" 
-              placeholder="Enter company name"
-              class="mt-1 block w-full"
-            />
-            <p v-if="form.errors.name" class="text-sm text-destructive">{{ form.errors.name }}</p>
-          </div>
-          
-          <!-- Slug -->
-          <div class="grid gap-2">
-            <Label for="slug">Slug</Label>
-            <Input 
-              id="slug" 
-              v-model="form.slug" 
-              placeholder="Enter company slug"
-              class="mt-1 block w-full"
-            />
-            <p v-if="form.errors.slug" class="text-sm text-destructive">{{ form.errors.slug }}</p>
-          </div>
-          
-          <!-- Company Logo -->
-          <div class="grid gap-2">
-            <Label for="image">Update Company Logo</Label>
-            <div class="flex items-start space-x-4">
-              <div v-if="imagePreview" class="w-24 h-24 rounded-md overflow-hidden border border-border flex items-center justify-center bg-white">
-                <img 
-                  :src="imagePreview" 
-                  alt="New Company Logo Preview" 
-                  class="max-w-full max-h-full object-contain"
-                />
-              </div>
-              <div class="flex-1">
-                <Input 
-                  id="image" 
-                  type="file" 
-                  @change="handleImageChange" 
-                  accept="image/jpeg,image/png,image/gif,image/svg+xml"
-                  class="mt-1 block w-full"
-                />
-                <p class="text-xs text-muted-foreground mt-1">
-                  Accepted formats: JPEG, PNG, GIF, SVG. Max size: 2MB. Will be optimized and converted to SVG.
-                </p>
-                <p v-if="form.errors.image" class="text-sm text-destructive">{{ form.errors.image }}</p>
-              </div>
+        <!-- Company Settings Tab Content -->
+        <div v-if="activeTab === 'company'" class="space-y-6">
+          <!-- Company Logo Preview Section -->
+          <div v-if="tenant.image_path" class="flex flex-col items-center space-y-3 p-4 border rounded-md bg-muted/50">
+            <div class="text-sm font-medium">Current Company Logo</div>
+            <div class="w-32 h-32 rounded-md overflow-hidden border border-border flex items-center justify-center bg-white">
+              <img 
+                :src="`/storage/${tenant.image_path}`" 
+                alt="Company Logo" 
+                class="max-w-full max-h-full object-contain"
+              />
+            </div>
+            <div class="text-xs text-muted-foreground">
+              Logo is optimized and converted to SVG for better quality
             </div>
           </div>
           
-          <div class="flex items-center gap-4">
-            <Button type="submit" :disabled="form.processing">
-              <span v-if="form.processing">Updating...</span>
-              <span v-else>Save Changes</span>
-            </Button>
+          <form @submit.prevent="updateTenant" class="space-y-6" enctype="multipart/form-data">
+            <!-- Company Name -->
+            <div class="grid gap-2">
+              <Label for="name">Company Name</Label>
+              <Input 
+                id="name" 
+                v-model="form.name" 
+                placeholder="Enter company name"
+                class="mt-1 block w-full"
+              />
+              <p v-if="form.errors.name" class="text-sm text-destructive">{{ form.errors.name }}</p>
+            </div>
             
-            <Transition
-              enter-active-class="transition ease-in-out"
-              enter-from-class="opacity-0"
-              leave-active-class="transition ease-in-out"
-              leave-to-class="opacity-0"
-            >
-              <p v-show="form.recentlySuccessful" class="text-sm text-neutral-600">Saved.</p>
-            </Transition>
-          </div>
-        </form>
+            <!-- Slug -->
+            <div class="grid gap-2">
+              <Label for="slug">Slug</Label>
+              <Input 
+                id="slug" 
+                v-model="form.slug" 
+                placeholder="Enter company slug"
+                class="mt-1 block w-full"
+              />
+              <p v-if="form.errors.slug" class="text-sm text-destructive">{{ form.errors.slug }}</p>
+            </div>
+            
+            <!-- Company Logo -->
+            <div class="grid gap-2">
+              <Label for="image">Update Company Logo</Label>
+              <div class="flex items-start space-x-4">
+                <div v-if="imagePreview" class="w-24 h-24 rounded-md overflow-hidden border border-border flex items-center justify-center bg-white">
+                  <img 
+                    :src="imagePreview" 
+                    alt="New Company Logo Preview" 
+                    class="max-w-full max-h-full object-contain"
+                  />
+                </div>
+                <div class="flex-1">
+                  <Input 
+                    id="image" 
+                    type="file" 
+                    @change="handleImageChange" 
+                    accept="image/jpeg,image/png,image/gif,image/svg+xml"
+                    class="mt-1 block w-full"
+                  />
+                  <p class="text-xs text-muted-foreground mt-1">
+                    Accepted formats: JPEG, PNG, GIF, SVG. Max size: 2MB. Will be optimized and converted to SVG.
+                  </p>
+                  <p v-if="form.errors.image" class="text-sm text-destructive">{{ form.errors.image }}</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="flex items-center gap-4">
+              <Button type="submit" :disabled="form.processing">
+                <span v-if="form.processing">Updating...</span>
+                <span v-else>Save Changes</span>
+              </Button>
+              
+              <Transition
+                enter-active-class="transition ease-in-out"
+                enter-from-class="opacity-0"
+                leave-active-class="transition ease-in-out"
+                leave-to-class="opacity-0"
+              >
+                <p v-show="form.recentlySuccessful" class="text-sm text-neutral-600">Saved.</p>
+              </Transition>
+            </div>
+          </form>
+        </div>
 
-        <!-- Subscription Information Section -->
-        <div v-if="subscription" class="mt-8">
-          <HeadingSmall 
-            title="Subscription Details" 
-            description="Your current subscription information"
-          />
-          
-          <Separator class="my-4" />
-          
-          <div class="bg-card rounded-lg border shadow-sm p-6">
+        <!-- Subscription Tab Content -->
+        <div v-if="activeTab === 'subscription'" class="space-y-6">
+          <div v-if="subscription" class="bg-card rounded-lg border shadow-sm p-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <!-- Subscription Name and Description -->
               <div class="space-y-2">
@@ -170,6 +186,11 @@
               </div>
             </div>
           </div>
+          
+          <div v-else class="bg-muted/50 p-6 rounded-lg border text-center">
+            <h3 class="text-lg font-medium mb-2">No Subscription Found</h3>
+            <p class="text-muted-foreground">Your company doesn't have an active subscription.</p>
+          </div>
         </div>
       </div>
     </SettingsLayout>
@@ -204,6 +225,9 @@ const props = defineProps({
     default: null
   }
 });
+
+// Active tab state
+const activeTab = ref('company');
 
 // Make breadcrumbItems reactive with computed property
 const breadcrumbItems = computed(() => [
