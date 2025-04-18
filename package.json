@@ -7,7 +7,8 @@
         "dev": "vite",
         "format": "prettier --write resources/",
         "format:check": "prettier --check resources/",
-        "lint": "eslint . --fix"
+        "lint": "eslint . --fix",
+        "analyze": "npm run build && npx source-map-explorer dist/assets/*.js"
     },
     "devDependencies": {
         "@eslint/js": "^9.19.0",
@@ -19,6 +20,8 @@
         "prettier": "^3.4.2",
         "prettier-plugin-organize-imports": "^4.1.0",
         "prettier-plugin-tailwindcss": "^0.6.9",
+        "rollup-plugin-visualizer": "^5.14.0",
+        "source-map-explorer": "^2.5.3",
         "typescript-eslint": "^8.23.0",
         "vue-tsc": "^2.2.4"
     },

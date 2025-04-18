@@ -158,7 +158,7 @@
 
             <div class="flex justify-end">
               <Button @click="resetFilters" variant="ghost" size="sm">
-                <Icon name="rotate-ccw" class="mr-2 h-4 w-4" />
+                <Icon name="rotate_ccw" class="mr-2 h-4 w-4" />
                 Reset Filters
               </Button>
             </div>

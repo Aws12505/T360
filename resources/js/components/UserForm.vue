@@ -195,7 +195,6 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import InputError from '@/components/InputError.vue';
-import { X, Loader2 } from 'lucide-vue-next';
 
 const props = defineProps({
   user: { type: Object, default: null },

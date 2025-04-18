@@ -99,7 +99,6 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import InputError from '@/components/InputError.vue';
-import { X, Loader2 } from 'lucide-vue-next';
 
 const emit = defineEmits(['saved', 'close']);
 

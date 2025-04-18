@@ -5,7 +5,6 @@ import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, UserCog, BarChart, ShieldCheck, CheckCircle, Clock, Truck, Users, ClipboardList, LineChart, PieChart, Gauge } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { computed } from 'vue';
 
@@ -19,78 +18,102 @@ const props = withDefaults(defineProps<Props>(), {
     tenantSlug: null, 
 });
 
-// Make mainNavItems reactive with computed property
-const mainNavItems = computed(() => [
-    {
-        title: props.tenantSlug ? 'Dashboard' : 'Admin Dashboard', 
-        href: props.tenantSlug ? route('dashboard', { tenantSlug: props.tenantSlug }) : route('admin.dashboard'),
-        icon: LayoutGrid,
-    },
-    {
-        title: 'User Management',
-        href: props.tenantSlug ? route('users.roles.index', { tenantSlug: props.tenantSlug }) : route('admin.users.roles.index'),
-        icon: UserCog,
-    },
-    // Metrics management is only available to Admin
-    ...(props.tenantSlug ? [] : [{
-        title: 'Metrics Management',
-        href: route('performance-metrics.edit'),
-        icon: Gauge,
-    }]),
-    {
-        title: 'Performance',
-        href: props.tenantSlug ? route('performance.index', { tenantSlug: props.tenantSlug }) : route('performance.index.admin'),
-        icon: BarChart,
-    },
-    {
-        title: 'Safety',
-        href: props.tenantSlug ? route('safety.index', { tenantSlug: props.tenantSlug }) : route('safety.index.admin'),
-        icon: ShieldCheck,
-    },
-    {
-        title: 'Acceptance',
-        href: props.tenantSlug ? route('acceptance.index', { tenantSlug: props.tenantSlug }) : route('acceptance.index.admin'),
-        icon: CheckCircle,
-    },
-    {
-        title: 'On-Time',
-        href: props.tenantSlug ? route('ontime.index', { tenantSlug: props.tenantSlug }) : route('ontime.index.admin'),
-        icon: Clock,
-    },
-    {
-        title: 'Trucks',
-        href: props.tenantSlug ? route('truck.index', { tenantSlug: props.tenantSlug }) : route('truck.index.admin'),
-        icon: Truck,
-    },
-    {
-        title: 'Drivers',
-        href: props.tenantSlug ? route('driver.index', { tenantSlug: props.tenantSlug }) : route('driver.index.admin'),
-        icon: Users,
-    },
-    {
-        title: 'Repair Orders',
-        href: props.tenantSlug ? route('repair_orders.index', { tenantSlug: props.tenantSlug }) : route('repair_orders.index.admin'),
-        icon: ClipboardList,
-    },
-    {
-        title: 'Miles Driven',
-        href: props.tenantSlug? route('miles_driven.index', { tenantSlug: props.tenantSlug }) : route('miles_driven.index.admin'),
-        icon: LineChart,
-    }
+const mainNavItems = computed<NavItem[]>(() => [
+  {
+    title: props.tenantSlug ? 'Dashboard' : 'Admin Dashboard',
+    href: props.tenantSlug
+      ? route('dashboard', { tenantSlug: props.tenantSlug })
+      : route('admin.dashboard'),
+    icon: 'layoutGrid',
+  },
+  {
+    title: 'User Management',
+    href: props.tenantSlug
+      ? route('users.roles.index', { tenantSlug: props.tenantSlug })
+      : route('admin.users.roles.index'),
+    icon: 'userCog',
+  },
+  // Only show this for global Admin
+  ...(!props.tenantSlug
+    ? [
+        {
+          title: 'Metrics Management',
+          href: route('performance-metrics.edit'),
+          icon: 'gauge',
+        },
+      ]
+    : []),
+  {
+    title: 'Performance',
+    href: props.tenantSlug
+      ? route('performance.index', { tenantSlug: props.tenantSlug })
+      : route('performance.index.admin'),
+    icon: 'barChart',
+  },
+  {
+    title: 'Safety',
+    href: props.tenantSlug
+      ? route('safety.index', { tenantSlug: props.tenantSlug })
+      : route('safety.index.admin'),
+    icon: 'shieldCheck',
+  },
+  {
+    title: 'Acceptance',
+    href: props.tenantSlug
+      ? route('acceptance.index', { tenantSlug: props.tenantSlug })
+      : route('acceptance.index.admin'),
+    icon: 'checkCircle',
+  },
+  {
+    title: 'On-Time',
+    href: props.tenantSlug
+      ? route('ontime.index', { tenantSlug: props.tenantSlug })
+      : route('ontime.index.admin'),
+    icon: 'clock',
+  },
+  {
+    title: 'Trucks',
+    href: props.tenantSlug
+      ? route('truck.index', { tenantSlug: props.tenantSlug })
+      : route('truck.index.admin'),
+    icon: 'truck',
+  },
+  {
+    title: 'Drivers',
+    href: props.tenantSlug
+      ? route('driver.index', { tenantSlug: props.tenantSlug })
+      : route('driver.index.admin'),
+    icon: 'users',
+  },
+  {
+    title: 'Repair Orders',
+    href: props.tenantSlug
+      ? route('repair_orders.index', { tenantSlug: props.tenantSlug })
+      : route('repair_orders.index.admin'),
+    icon: 'clipboardList',
+  },
+  {
+    title: 'Miles Driven',
+    href: props.tenantSlug
+      ? route('miles_driven.index', { tenantSlug: props.tenantSlug })
+      : route('miles_driven.index.admin'),
+    icon: 'lineChart',
+  },
 ]);
 
 const footerNavItems: NavItem[] = [
-    {
-        title: 'Github Repo',
-        href: 'https://github.com/laravel/vue-starter-kit',
-        icon: Folder,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits',
-        icon: BookOpen,
-    },
+  {
+    title: 'Github Repo',
+    href: 'https://github.com/laravel/vue-starter-kit',
+    icon: 'folder',
+  },
+  {
+    title: 'Documentation',
+    href: 'https://laravel.com/docs/starter-kits',
+    icon: 'bookOpen',
+  },
 ];
+
 </script>
 
 <template>

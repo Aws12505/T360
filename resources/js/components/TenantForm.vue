@@ -67,7 +67,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import InputError from '@/components/InputError.vue';
-import { X, Loader2 } from 'lucide-vue-next';
 
 const props = defineProps({
   tenant: { type: Object, default: null },
