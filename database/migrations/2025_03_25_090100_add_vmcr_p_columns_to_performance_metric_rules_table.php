@@ -15,15 +15,45 @@ return new class extends Migration {
         Schema::table('performance_metric_rules', function (Blueprint $table) {
             // VMCR-P thresholds
             $table->integer('vmcr_p_fantastic_plus')->nullable()->comment('Threshold for fantastic plus VMCR-P');
-            $table->string('vmcr_p_fantastic_plus_operator')->nullable()->comment('Operator for fantastic plus VMCR-P');
+            $table->enum('vmcr_p_fantastic_plus_operator', [
+                'less',
+                'equal',
+                'less_or_equal',
+                'more_or_equal',
+                'more',
+            ])->default('equal')->nullable()->comment('Operator for fantastic plus VMCR-P');
             $table->integer('vmcr_p_fantastic')->nullable()->comment('Threshold for fantastic VMCR-P');
-            $table->string('vmcr_p_fantastic_operator')->nullable()->comment('Operator for fantastic VMCR-P');
+            $table->enum('vmcr_p_fantastic_operator', [
+                'less',
+                'equal',
+                'less_or_equal',
+                'more_or_equal',
+                'more',
+            ])->default('equal')->nullable()->comment('Operator for fantastic VMCR-P');
             $table->integer('vmcr_p_good')->nullable()->comment('Threshold for good VMCR-P');
-            $table->string('vmcr_p_good_operator')->nullable()->comment('Operator for good VMCR-P');
+            $table->enum('vmcr_p_good_operator', [
+                'less',
+                'equal',
+                'less_or_equal',
+                'more_or_equal',
+                'more',
+            ])->default('equal')->nullable()->comment('Operator for good VMCR-P');
             $table->integer('vmcr_p_fair')->nullable()->comment('Threshold for fair VMCR-P');
-            $table->string('vmcr_p_fair_operator')->nullable()->comment('Operator for fair VMCR-P');
+            $table->enum('vmcr_p_fair_operator', [
+                'less',
+                'equal',
+                'less_or_equal',
+                'more_or_equal',
+                'more',
+            ])->default('equal')->nullable()->comment('Operator for fair VMCR-P');
             $table->integer('vmcr_p_poor')->nullable()->comment('Threshold for poor VMCR-P');
-            $table->string('vmcr_p_poor_operator')->nullable()->comment('Operator for poor VMCR-P');
+            $table->enum('vmcr_p_poor_operator', [
+                'less',
+                'equal',
+                'less_or_equal',
+                'more_or_equal',
+                'more',
+            ])->default('equal')->nullable()->comment('Operator for poor VMCR-P');
         });
     }
 

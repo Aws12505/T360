@@ -16,7 +16,7 @@ class CreateSafetyDataTable extends Migration
         Schema::create('safety_data', function (Blueprint $table) {
             $table->id();
             $table->foreignId('tenant_id')->constrained()->onDelete('cascade')->comment('Tenant associated with the safety data');
-            $table->string('driver_name')->nullable()->comment('Driver name');
+            $table->string('driver_name',75)->nullable()->comment('Driver name');
             $table->string('user_name')->comment('User name');
             $table->string('group')->nullable()->comment('Group name');
             $table->string('group_hierarchy')->nullable()->comment('Group hierarchy details');

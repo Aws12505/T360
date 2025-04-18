@@ -15,7 +15,7 @@ class CreateDelayCodesTable extends Migration
     {
         Schema::create('delay_codes', function (Blueprint $table) {
             $table->id();
-            $table->string('code')->unique()->comment('Unique delay code');
+            $table->string('code',75)->unique()->comment('Unique delay code');
             $table->timestamps();
         });
     }

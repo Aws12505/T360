@@ -15,7 +15,7 @@ class CreateVendorsTable extends Migration
     {
         Schema::create('vendors', function (Blueprint $table) {
             $table->id();
-            $table->string('vendor_name')->unique()->comment('Unique vendor name');
+            $table->string('vendor_name',75)->unique()->comment('Unique vendor name');
             $table->timestamps();
         });
     }

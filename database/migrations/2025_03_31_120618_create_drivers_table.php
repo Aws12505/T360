@@ -10,10 +10,10 @@ class CreateDriversTable extends Migration
     {
         Schema::create('drivers', function (Blueprint $table) {
             $table->id();
-            $table->string('first_name');
-            $table->string('last_name');
+            $table->string('first_name',50);
+            $table->string('last_name',50);
             $table->string('email')->unique();
-            $table->string('mobile_phone');
+            $table->string('mobile_phone',30);
             $table->date('hiring_date');
             $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
             $table->timestamps();

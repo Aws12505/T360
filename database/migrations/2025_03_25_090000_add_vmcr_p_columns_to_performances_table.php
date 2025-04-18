@@ -14,7 +14,7 @@ return new class extends Migration {
     {
         Schema::table('performances', function (Blueprint $table) {
             $table->integer('vmcr_p')->comment('VMCR-P count');
-            $table->string('vmcr_p_rating')->comment('Calculated rating for VMCR-P');
+            $table->string('vmcr_p_rating',30)->comment('Calculated rating for VMCR-P');
         });
     }
 

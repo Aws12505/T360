@@ -23,7 +23,7 @@ class CreateSubscriptionsTable extends Migration
             $table->string('subscription_id')->unique();
 
             // Basic plan info
-            $table->string('name')->nullable();
+            $table->string('name',75)->nullable();
             $table->text('description')->nullable();
 
             // Pricing
@@ -38,8 +38,8 @@ class CreateSubscriptionsTable extends Migration
             $table->year('expiry_year')->nullable();
             $table->tinyInteger('expiry_month')->nullable();
             $table->string('last_four_digits', 4)->nullable();
-            $table->string('card_type')->nullable();
-            $table->string('payment_gateway')->nullable();
+            $table->string('card_type',75)->nullable();
+            $table->string('payment_gateway',75)->nullable();
 
             // Billing Address stored as JSON
             $table->json('billing_address')->nullable();

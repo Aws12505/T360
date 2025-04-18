@@ -15,7 +15,7 @@ class CreateRejectionReasonCodesTable extends Migration
     {
         Schema::create('rejection_reason_codes', function (Blueprint $table) {
             $table->id();
-            $table->string('reason_code')->unique()->comment('Unique rejection reason code');
+            $table->string('reason_code',75)->unique()->comment('Unique rejection reason code');
             $table->timestamps();
         });
     }

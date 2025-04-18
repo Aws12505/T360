@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('area_of_concerns', function (Blueprint $table) {
             $table->id();
-            $table->string('concern')->unique()->comment('Unique area of concern');
+            $table->string('concern',75)->unique()->comment('Unique area of concern');
             $table->timestamps();
         });
     }

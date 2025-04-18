@@ -18,7 +18,7 @@ class CreateDelaysTable extends Migration
             $table->foreignId('tenant_id')->constrained()->onDelete('cascade')->comment('Tenant associated with the delay');
             $table->date('date')->comment('Date of delay event');
             $table->enum('delay_type', ['origin', 'destination'])->comment('Indicates if the delay occurred at origin or destination');
-            $table->string('driver_name')->comment('Driver name');
+            $table->string('driver_name',75)->comment('Driver name');
             $table->enum('delay_category', ['1_120', '121_600', '601_plus'])->comment('Delay category determining the penalty');
             $table->integer('penalty')->comment('Computed penalty value');
             $table->foreignId('delay_code_id')->constrained()->onDelete('cascade')->comment('References the delay code');

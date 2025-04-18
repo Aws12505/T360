@@ -20,8 +20,8 @@ return new class extends Migration
     {
         Schema::create('tenants', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique()->comment('Unique tenant name');
-            $table->string('slug')->unique()->comment('Unique slug identifier for the tenant');
+            $table->string('name',75)->unique()->comment('Unique tenant name');
+            $table->string('slug',30)->unique()->comment('Unique slug identifier for the tenant');
             $table->timestamps();
         });
     }

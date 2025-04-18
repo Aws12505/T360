@@ -18,7 +18,7 @@ class CreateRejectionsTable extends Migration
             $table->foreignId('tenant_id')->constrained()->onDelete('cascade')->comment('Tenant associated with the rejection');
             $table->date('date')->comment('Date of rejection event');
             $table->enum('rejection_type', ['block', 'load'])->comment('Type of rejection');
-            $table->string('driver_name')->comment('Driver name');
+            $table->string('driver_name',75)->comment('Driver name');
             $table->enum('rejection_category', ['more_than_6', 'within_6', 'after_start'])->comment('Rejection time category');
             $table->integer('penalty')->comment('Computed penalty for the rejection');
             // Fix the foreign key reference to point to the correct table
