@@ -781,6 +781,15 @@ function deleteSelectedEntries() {
   overflow: auto;
   position: relative;
 }
+
+/* Add column dividers that work in both light and dark mode */
+:deep(th), :deep(td) {
+  border-right: 1px solid hsl(var(--border));
+}
+
+:deep(th:last-child), :deep(td:last-child) {
+  border-right: none;
+}
 </style>
 
 

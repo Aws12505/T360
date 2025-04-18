@@ -51,17 +51,15 @@ html {
     }
 
     .dark {
-        /* Updated background to #081027 (darker blue) */
-        --background: 228 70% 9%;
+        /* Updated background color to #081027 (deep navy blue) instead of black */
+        --background: 222 85% 9%;
         --foreground: 0 0% 98%;
-        /* Updated card background to #081027 (darker blue) */
-        --card: 228 70% 9%;
+        --card: 222 85% 9%;
         --card-foreground: 0 0% 98%;
-        /* Updated popover background to #081027 (darker blue) */
-        --popover: 228 70% 9%;
+        --popover: 222 85% 9%;
         --popover-foreground: 0 0% 98%;
         
-        /* Rest of the dark mode variables remain unchanged */
+        /* Updated primary color for dark mode */
         --primary: 235 51% 60%;
         --primary-foreground: 0 0% 9%;
         
@@ -83,8 +81,7 @@ html {
         --chart-3: 30 80% 55%;
         --chart-4: 280 65% 60%;
         --chart-5: 340 75% 55%;
-        /* Updated sidebar background to match the darker theme */
-        --sidebar-background: 226 65% 13%;
+        --sidebar-background: 235 51% 10%;
         --sidebar-foreground: 235 51% 95.9%;
         --sidebar-primary: 235 51% 60%;
         --sidebar-primary-foreground: 0 0% 100%;
