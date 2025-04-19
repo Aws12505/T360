@@ -29,21 +29,14 @@ class StoreMilesDrivenRequest extends FormRequest
             'week_end_date' => 'required|date|after_or_equal:week_start_date',
             'miles' => 'required|numeric|min:0',
             'notes' => 'nullable|string',
+            'tenant_id' => 'required|exists:tenants,id',
         ];
 
-        // Only require tenant_id for super admins
-        if (Auth::user()->tenant_id === null) {
-            $rules['tenant_id'] = 'required|exists:tenants,id';
-        }
+        
 
         return $rules;
     }
 
-    /**
-     * Prepare the data for validation.
-     *
-     * @return void
-     */
     protected function prepareForValidation()
     {
         // If user is not a super admin, set tenant_id automatically

@@ -23,7 +23,7 @@ return new class extends Migration
             $table->foreignId('tenant_id')->constrained()->onDelete('cascade')->comment('Tenant associated with the miles driven record');
             $table->date('week_start_date')->comment('Start date of the week');
             $table->date('week_end_date')->comment('End date of the week');
-            $table->decimal('miles', 10, 2)->comment('Miles driven during the week');
+            $table->decimal('miles', 10, 4)->comment('Miles driven during the week');
             $table->text('notes')->nullable()->comment('Additional notes about the miles driven');
             $table->timestamps();
             
