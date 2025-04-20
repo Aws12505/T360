@@ -86,10 +86,16 @@
 
       <!-- Filters Section -->
       <Card>
-        <CardHeader>
-          <CardTitle>Filters</CardTitle>
+        <CardHeader class="pb-2">
+          <div class="flex justify-between items-center">
+            <CardTitle>Filters</CardTitle>
+            <Button variant="ghost" size="sm" @click="showFilters = !showFilters">
+              {{ showFilters ? 'Hide Filters' : 'Show Filters' }}
+              <Icon :name="showFilters ? 'chevron-up' : 'chevron-down'" class="ml-2 h-4 w-4" />
+            </Button>
+          </div>
         </CardHeader>
-        <CardContent>
+        <CardContent v-if="showFilters" class="pt-2">
           <div class="flex flex-col gap-4">
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
               <div>
@@ -494,7 +500,8 @@ const activeTab = ref(props.dateFilter || 'full');
 const perPage = ref(props.perPage);
 const selectedRejections = ref([]);
 const showDeleteSelectedModal = ref(false);
-const exportForm = ref(null); // Add this line to define the exportForm ref
+const exportForm = ref(null);
+const showFilters = ref(false); // Add this line to control filter visibility
 
 // Code management state
 const showCodeForm = ref(false);

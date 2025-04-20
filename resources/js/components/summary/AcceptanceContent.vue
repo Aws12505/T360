@@ -40,7 +40,7 @@
     <!-- Chart Section -->
     <div class="bg-card rounded-lg border shadow-sm">
       <div class="p-4 border-b">
-        <h3 class="text-lg font-semibold">Rejections By Reason</h3>
+        <h3 class="text-lg font-semibold">Rejections by Reason</h3>
       </div>
       <div class="p-4 flex flex-col items-center">
         <DonutChart 

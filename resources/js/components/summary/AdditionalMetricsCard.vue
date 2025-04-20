@@ -5,7 +5,7 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <!-- VCR Preventable -->
       <div class="p-4 border rounded-lg">
-        <h4 class="text-lg font-medium mb-2">VCR-P Preventable</h4>
+        <h4 class="text-lg font-medium mb-2">VCR-P</h4>
         <div class="text-sm text-muted-foreground mb-1">Score</div>
         <div class="flex items-center justify-between gap-3 mb-3">
           <div class="text-3xl font-bold" :class="getScoreColorClass(performanceRatings.vcr_preventable)">

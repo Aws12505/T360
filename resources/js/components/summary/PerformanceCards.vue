@@ -2,8 +2,8 @@
   <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-6">
     <!-- On-Time Score Card -->
     <div class="bg-card rounded-lg border shadow-sm p-4">
-      <h3 class="text-lg font-semibold mb-2">On-Time</h3>
-      <div class="text-sm text-muted-foreground mb-1">Total Score</div>
+      <h3 class="text-base font-semibold mb-1">On-Time</h3>
+      <div class="text-xs text-muted-foreground mb-1">Total Score</div>
       <div class="flex items-center justify-between gap-3 mb-4">
         <div class="text-4xl font-bold" :class="getScoreColorClass(performanceRatings.average_on_time)">
           {{ formatPercentage(performanceData.average_on_time) }}
@@ -14,7 +14,7 @@
       </div>
 
       <div class="text-sm mb-2 flex justify-between">
-        <span class="font-semibold">Delays By Reason</span>
+        <span class="font-semibold">Delays by Reason</span>
         <span class="font-semibold">Total</span>
       </div>
       <div class="space-y-2 text-sm max-h-40 overflow-y-auto">
@@ -27,8 +27,8 @@
 
     <!-- Acceptance Score Card -->
     <div class="bg-card rounded-lg border shadow-sm p-4">
-      <h3 class="text-lg font-semibold mb-2">Acceptance</h3>
-      <div class="text-sm text-muted-foreground mb-1">Total Score</div>
+      <h3 class="text-base font-semibold mb-1">Acceptance</h3>
+      <div class="text-xs text-muted-foreground mb-1">Total Score</div>
       <div class="flex items-center justify-between gap-3 mb-4">
         <div class="text-4xl font-bold" :class="getScoreColorClass(performanceRatings.average_acceptance)">
           {{ formatPercentage(performanceData.average_acceptance) }}
@@ -39,7 +39,7 @@
       </div>
 
       <div class="text-sm mb-2 flex justify-between">
-        <span class="font-semibold">Rejections By Reason</span>
+        <span class="font-semibold">Rejections by Reason</span>
         <span class="font-semibold">Total</span>
       </div>
       <div class="space-y-2 text-sm max-h-40 overflow-y-auto">
@@ -52,8 +52,8 @@
 
     <!-- Maintenance Metrics Card -->
     <div class="bg-card rounded-lg border shadow-sm p-4">
-      <h3 class="text-lg font-semibold mb-2">Maintenance</h3>
-      <div class="text-sm text-muted-foreground mb-1">MVtS Score</div>
+      <h3 class="text-base font-semibold mb-1">Maintenance</h3>
+      <div class="text-xs text-muted-foreground mb-1">MVtS Score</div>
       <div class="flex items-center justify-between gap-3 mb-4">
         <div class="text-4xl font-bold"
           :class="getScoreColorClass(performanceRatings.average_maintenance_variance_to_spend)">
@@ -82,8 +82,8 @@
 
     <!-- Safety Score Card -->
     <div class="bg-card rounded-lg border shadow-sm p-4">
-      <h3 class="text-lg font-semibold mb-2">Netradyne Alerts Bonus Criteria</h3>
-      <div class="text-sm text-muted-foreground mb-1">Green Zone Score</div>
+      <h3 class="text-base font-semibold mb-1">Netradyne Alerts Bonus Criteria</h3>
+      <div class="text-xs text-muted-foreground mb-1">Green Zone Score</div>
       <div class="flex items-center justify-between gap-3 mb-4">
         <div class="text-4xl font-bold text-indigo-600">
           {{ formatDecimal(safetyData.average_driver_score || 'N/A') }}
@@ -107,9 +107,8 @@
         <div class="flex justify-between items-center">
           <span>Distracted Driving</span>
           <div class="flex items-center gap-2">
-            <span class="w-12 text-right">{{ safetyData.driver_distraction }}</span>
-            <span class="w-16 text-right text-xs text-muted-foreground">{{
-              formatDecimal(safetyData.rates?.driver_distraction) }}</span>
+            <span class="w-12 text-right">{{ formatDecimal(safetyData.driver_distraction) }}</span>
+            <span class="w-16 text-right">{{ formatDecimal(safetyData.rates?.driver_distraction) }}</span>
           </div>
         </div>
 
@@ -117,9 +116,8 @@
         <div class="flex justify-between items-center">
           <span>Speeding</span>
           <div class="flex items-center gap-2">
-            <span class="w-12 text-right">{{ safetyData.speeding_violations }}</span>
-            <span class="w-16 text-right text-xs text-muted-foreground">{{
-              formatDecimal(safetyData.rates?.speeding_violations) }}</span>
+            <span class="w-12 text-right">{{ formatDecimal(safetyData.speeding_violations) }}</span>
+            <span class="w-16 text-right">{{ formatDecimal(safetyData.rates?.speeding_violations) }}</span>
           </div>
         </div>
 
@@ -127,9 +125,8 @@
         <div class="flex justify-between items-center">
           <span>Sign Violation</span>
           <div class="flex items-center gap-2">
-            <span class="w-12 text-right">{{ safetyData.sign_violations }}</span>
-            <span class="w-16 text-right text-xs text-muted-foreground">{{
-              formatDecimal(safetyData.rates?.sign_violations) }}</span>
+            <span class="w-12 text-right">{{ formatDecimal(safetyData.sign_violations) }}</span>
+            <span class="w-16 text-right">{{ formatDecimal(safetyData.rates?.sign_violations) }}</span>
           </div>
         </div>
 
@@ -137,9 +134,8 @@
         <div class="flex justify-between items-center">
           <span>Traffic Light Violation</span>
           <div class="flex items-center gap-2">
-            <span class="w-12 text-right">{{ safetyData.traffic_light_violation }}</span>
-            <span class="w-16 text-right text-xs text-muted-foreground">{{
-              formatDecimal(safetyData.rates?.traffic_light_violation) }}</span>
+            <span class="w-12 text-right">{{ formatDecimal(safetyData.traffic_light_violation) }}</span>
+            <span class="w-16 text-right">{{ formatDecimal(safetyData.rates?.traffic_light_violation) }}</span>
           </div>
         </div>
 
@@ -147,9 +143,8 @@
         <div class="flex justify-between items-center">
           <span>Following Distance</span>
           <div class="flex items-center gap-2">
-            <span class="w-12 text-right">{{ safetyData.following_distance_hard_brake }}</span>
-            <span class="w-16 text-right text-xs text-muted-foreground">{{
-              formatDecimal(safetyData.rates?.following_distance_hard_brake) }}</span>
+            <span class="w-12 text-right">{{ formatDecimal(safetyData.following_distance_hard_brake) }}</span>
+            <span class="w-16 text-right">{{ formatDecimal(safetyData.rates?.following_distance_hard_brake) }}</span>
           </div>
         </div>
       </div>

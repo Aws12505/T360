@@ -51,14 +51,14 @@ html {
     }
 
     .dark {
-        /* Updated background to #081027 (darker blue) */
-        --background: 228 70% 9%;
+        /* Background remains the same */
+        --background: 220 16% 12%;
         --foreground: 0 0% 98%;
-        /* Updated card background to #081027 (darker blue) */
-        --card: 228 70% 9%;
+        /* Updated card background to #191c23 (dark slate) */
+        --card: 220 16% 12%;
         --card-foreground: 0 0% 98%;
-        /* Updated popover background to #081027 (darker blue) */
-        --popover: 228 70% 9%;
+        /* Updated popover background to match card */
+        --popover: 220 16% 12%;
         --popover-foreground: 0 0% 98%;
         
         /* Rest of the dark mode variables remain unchanged */
@@ -84,7 +84,7 @@ html {
         --chart-4: 280 65% 60%;
         --chart-5: 340 75% 55%;
         /* Updated sidebar background to match the darker theme */
-        --sidebar-background: 226 65% 13%;
+        --sidebar-background: 222 47% 15%;
         --sidebar-foreground: 235 51% 95.9%;
         --sidebar-primary: 235 51% 60%;
         --sidebar-primary-foreground: 0 0% 100%;
@@ -119,18 +119,18 @@ html {
     }
 
     ::-webkit-scrollbar-thumb {
-        background: hsl(var(--muted-foreground));
+        background: hsl(var(--primary) / 0.7);
         border-radius: 5px;
     }
 
     ::-webkit-scrollbar-thumb:hover {
-        background: hsl(var(--primary) / 0.7);
+        background: hsl(var(--primary));
     }
 
     /* For Firefox */
     * {
         scrollbar-width: thin;
-        scrollbar-color: hsl(var(--muted-foreground)) hsl(var(--muted));
+        scrollbar-color: hsl(var(--primary) / 0.7) hsl(var(--muted));
     }
 
     /* Dark mode specific scrollbar styling */
@@ -139,14 +139,15 @@ html {
     }
 
     .dark ::-webkit-scrollbar-thumb {
-        background: hsl(var(--muted-foreground));
+        background: hsl(var(--sidebar-primary));
+        border-radius: 5px;
     }
 
     .dark ::-webkit-scrollbar-thumb:hover {
-        background: hsl(var(--primary) / 0.8);
+        background: hsl(var(--primary));
     }
 
     .dark * {
-        scrollbar-color: hsl(var(--muted-foreground)) hsl(var(--muted));
+        scrollbar-color: hsl(var(--sidebar-primary)) hsl(var(--muted));
     }
 }
