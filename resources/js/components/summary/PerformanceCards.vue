@@ -143,8 +143,8 @@
         <div class="flex justify-between items-center">
           <span>Following Distance</span>
           <div class="flex items-center gap-2">
-            <span class="w-12 text-right">{{ formatDecimal(safetyData.following_distance_hard_brake) }}</span>
-            <span class="w-16 text-right">{{ formatDecimal(safetyData.rates?.following_distance_hard_brake) }}</span>
+            <span class="w-12 text-right">{{ formatDecimal(safetyData.following_distance) }}</span>
+            <span class="w-16 text-right">{{ formatDecimal(safetyData.rates?.following_distance) }}</span>
           </div>
         </div>
       </div>

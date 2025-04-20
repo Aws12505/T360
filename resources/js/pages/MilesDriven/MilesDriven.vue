@@ -303,6 +303,7 @@
               step="0.0001"
               min="0"
               max="999999.9999"
+              placeholder="Enter miles (max 999999.9999)"
             />
             <p v-if="form.errors.miles" class="text-destructive text-sm mt-1">
               {{ form.errors.miles }}
@@ -595,8 +596,9 @@ function formatDate(s) {
   const utc = new Date(d.getTime() + d.getTimezoneOffset()*60000)
   return utc.toLocaleDateString()
 }
+// Update the formatNumber helper function
 function formatNumber(n) {
-  return Number(n).toLocaleString(undefined, { minimumFractionDigits:2, maximumFractionDigits:2 })
+  return Number(n).toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 4 })
 }
 function truncateText(t,m) {
   if (!t) return ''

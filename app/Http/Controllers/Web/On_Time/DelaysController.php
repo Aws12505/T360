@@ -137,7 +137,11 @@ class DelaysController extends Controller
      */
     public function export($tenantSlug = null)
     {
-        return $this->delayImportExportService->exportDelays();
+        try {
+            return $this->delayImportExportService->exportDelays();
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
     }
 
     /**
@@ -145,6 +149,10 @@ class DelaysController extends Controller
      */
     public function exportAdmin()
     {
-        return $this->delayImportExportService->exportDelays();
+        try {
+            return $this->delayImportExportService->exportDelays();
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
     }
 }

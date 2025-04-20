@@ -423,8 +423,7 @@
             </Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
-<!-- Add Delete Selected Confirmation Dialog -->
+      </Dialog><!-- Add Delete Selected Confirmation Dialog -->
 <Dialog v-model:open="showDeleteSelectedModal">
   <DialogContent>
     <DialogHeader>
@@ -487,17 +486,9 @@ const activeTab = ref(props.dateFilter || 'full');
 const perPage = ref(props.perPage || 10);
 const selectedPerformances = ref([]);
 const showDeleteSelectedModal = ref(false);
-// Add this function to handle per page changes
-function changePerPage() {
-  const routeName = props.tenantSlug 
-    ? route('performance.index', { tenantSlug: props.tenantSlug }) 
-    : route('performance.index.admin')
-    
-  router.get(routeName, { 
-    dateFilter: activeTab.value,
-    perPage: perPage.value 
-  }, { preserveState: true })
-}
+const showDeleteModal = ref(false);
+const performanceToDelete = ref(null);
+const exportForm = ref(null); // Add this line to define exportForm as a ref
 
 // Update the visitPage function to preserve perPage
 function visitPage(url) {

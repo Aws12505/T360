@@ -15,17 +15,38 @@
     </div>
     <div v-if="dateRangeText" class="mt-2 text-sm text-muted-foreground">
       <span>{{ dateRangeText }}</span>
+      <span v-if="weekNumberText" class="ml-1">({{ weekNumberText }})</span>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 
 const props = defineProps({
   dateRangeText: {
     type: String,
     default: ''
+  },
+  weekNumber: {
+    type: Number,
+    default: null
+  },
+  startWeekNumber: {
+    type: Number,
+    default: null
+  },
+  endWeekNumber: {
+    type: Number,
+    default: null
+  },
+  year: {
+    type: Number,
+    default: null
+  },
+  activeTabId: {
+    type: String,
+    default: 'yesterday'
   }
 });
 
@@ -36,8 +57,23 @@ const tabs = [
   { id: 'quarterly', label: 'Quarterly Scores' }
 ];
 
-const activeTab = ref('yesterday');
+const activeTab = ref(props.activeTabId);
 const emit = defineEmits(['tab-change']);
+
+const weekNumberText = computed(() => {
+  // For yesterday and current-week, show single week
+  if ((activeTab.value === 'yesterday' || activeTab.value === 'current-week') && props.weekNumber && props.year) {
+    return `Week ${props.weekNumber}, ${props.year}`;
+  }
+  
+  // For t6w and quarterly, show start-end week range if available
+  if ((activeTab.value === 't6w' || activeTab.value === 'quarterly') && 
+      props.startWeekNumber && props.endWeekNumber && props.year) {
+    return `Weeks ${props.startWeekNumber}-${props.endWeekNumber}, ${props.year}`;
+  }
+  
+  return '';
+});
 
 // Handle tab change and emit the event to parent
 const handleTabChange = (tabId: string) => {

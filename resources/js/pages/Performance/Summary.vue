@@ -19,6 +19,11 @@
       <TimePeriodTabs 
         @tab-change="handleTimePeriodChange" 
         :dateRangeText="currentDateRangeText"
+        :weekNumber="dateRange?.weekNumber"
+        :startWeekNumber="dateRange?.startWeekNumber"
+        :endWeekNumber="dateRange?.endWeekNumber"
+        :year="dateRange?.year"
+        :activeTabId="currentDateFilter"
       />
       
       <!-- Performance Cards -->

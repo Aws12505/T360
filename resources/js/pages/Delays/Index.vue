@@ -8,6 +8,12 @@
         <AlertTitle>Success</AlertTitle>
         <AlertDescription>{{ successMessage }}</AlertDescription>
       </Alert>
+      
+      <!-- Error Message -->
+      <Alert v-if="errorMessage" variant="destructive">
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>{{ errorMessage }}</AlertDescription>
+      </Alert>
 
       <!-- Actions Section -->
       <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
@@ -539,6 +545,7 @@ const formModal = ref(false);
 const codeModal = ref(false);
 const selectedDelay = ref(null);
 const successMessage = ref('');
+const errorMessage = ref('');
 const showDeleteModal = ref(false);
 const delayToDelete = ref(null);
 const selectedDelays = ref([]);
@@ -816,6 +823,21 @@ watch(successMessage, (newValue) => {
   }
 });
 
+
+// Check for flash messages
+if (props.flash && props.flash.error) {
+  errorMessage.value = props.flash.error;
+}
+
+// Auto-hide error message
+watch(errorMessage, (newValue) => {
+  if (newValue) {
+    setTimeout(() => {
+      errorMessage.value = '';
+    }, 5000);
+  }
+});
+
 // Computed property for "Select All" checkbox state
 const isAllSelected = computed(() => {
   return filteredDelays.value.length > 0 && selectedDelays.value.length === filteredDelays.value.length;
@@ -883,6 +905,12 @@ function handleImport(event) {
 }
 
 function exportCSV() {
+  // Check if there are any delays before exporting
+  if (props.delays.data.length === 0) {
+    errorMessage.value = 'No delay data found to export.';
+    return;
+  }
+  
   // Submit the hidden form to trigger the download
   if (exportForm.value) {
     exportForm.value.submit();

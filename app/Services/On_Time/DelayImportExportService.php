@@ -157,17 +157,16 @@ $validatortt=0;
     /**
      * Export delay records.
      *
-     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
-     * @throws \Exception If there are no delay records to export.
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse|\Illuminate\Http\RedirectResponse
      */
     public function exportDelays()
     {
         // Retrieve all delay records along with their related tenant and delay code.
         $delays = Delay::with(['tenant', 'delayCode'])->get();
 
-        // If there are no records, throw an exception or handle accordingly.
+        // If there are no records, return a redirect with a message
         if ($delays->isEmpty()) {
-            throw new \Exception('No delay data to export.');
+            return redirect()->back()->with('error', 'No delay data found to export.');
         }
 
         // Generate a random filename for the CSV export.
