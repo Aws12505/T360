@@ -22,13 +22,24 @@
             <Icon name="trash" class="mr-2 h-4 w-4" />
             Delete Selected ({{ selectedRejections.length }})
           </Button>
-          <label class="cursor-pointer">
-            <Button variant="secondary" as="span">
+          <div class="relative">
+            <Button @click="showUploadOptions = !showUploadOptions" variant="secondary">
               <Icon name="upload" class="mr-2 h-4 w-4" />
               Upload CSV
+              <Icon name="chevron-down" class="ml-2 h-4 w-4" />
             </Button>
-            <input type="file" class="hidden" @change="handleImport" accept=".csv" />
-          </label>
+            <div v-if="showUploadOptions" class="absolute right-0 mt-1 w-48 bg-background rounded-md shadow-lg border z-10">
+              <div class="py-1">
+                <label class="cursor-pointer block px-4 py-2 text-sm hover:bg-muted">
+                  <span>Upload CSV File</span>
+                  <input type="file" class="hidden" @change="handleImport" accept=".csv" />
+                </label>
+                <a :href="templateUrl" download="Rejections Template.csv" class="block px-4 py-2 text-sm hover:bg-muted">
+                  Download Template
+                </a>
+              </div>
+            </div>
+          </div>
           <Button @click.prevent="exportCSV" variant="outline">
             <Icon name="download" class="mr-2 h-4 w-4" />
             Download CSV
@@ -438,7 +449,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useForm, Head } from '@inertiajs/vue3';
 // Import UI components from their correct folders
 import Button from '@/components/ui/button/Button.vue';
@@ -930,5 +941,29 @@ const exportUrl = computed(() => {
   return props.tenantSlug
     ? route('acceptance.export', { tenantSlug: props.tenantSlug })
     : route('acceptance.export.admin');
+});
+
+
+// Add these new refs and computed properties
+const showUploadOptions = ref(false);
+
+// Computed property for template URL
+const templateUrl = computed(() => {
+  return '/storage/upload-data-temps/Rejections Template.csv';
+});
+
+// Close dropdown when clicking outside
+onMounted(() => {
+  const handleClickOutside = (e) => {
+    if (showUploadOptions.value && !e.target.closest('.relative')) {
+      showUploadOptions.value = false;
+    }
+  };
+  
+  document.addEventListener('click', handleClickOutside);
+  
+  onUnmounted(() => {
+    document.removeEventListener('click', handleClickOutside);
+  });
 });
 </script>

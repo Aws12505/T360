@@ -8,15 +8,14 @@
         <AlertDescription>{{ successMessage }}</AlertDescription>
       </Alert>
 
-      <!-- Actions Section -->
       <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-        <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">Repair Orders</h1>
-        <div class="flex flex-wrap gap-3">
-          <Button @click="openCreateModal" variant="default">
-            <Icon name="plus" class="mr-2 h-4 w-4" />
-            Create New Repair Order
-          </Button>
-          <!-- Add Delete Selected button -->
+  <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">Repair Orders</h1>
+  <div class="flex flex-wrap gap-3">
+    <Button @click="openCreateModal" variant="default">
+      <Icon name="plus" class="mr-2 h-4 w-4" />
+      Create New Repair Order
+    </Button>
+    <!-- Add Delete Selected button -->
     <Button 
       v-if="selectedRepairOrders.length > 0" 
       @click="confirmDeleteSelected()" 
@@ -25,31 +24,42 @@
       <Icon name="trash" class="mr-2 h-4 w-4" />
       Delete Selected ({{ selectedRepairOrders.length }})
     </Button>
-          <!-- Manage Areas of Concern button - only for SuperAdmin -->
-          <Button v-if="SuperAdmin" @click="openAreasOfConcernModal" variant="outline">
-            <Icon name="settings" class="mr-2 h-4 w-4" />
-            Manage Areas of Concern
-          </Button>
-          
-          <!-- Manage Vendors button - only for SuperAdmin -->
-          <Button v-if="SuperAdmin" @click="openVendorsModal" variant="outline">
-            <Icon name="settings" class="mr-2 h-4 w-4" />
-            Manage Vendors
-          </Button>
-          
-          <label class="cursor-pointer">
-            <Button variant="secondary" as="span">
-              <Icon name="upload" class="mr-2 h-4 w-4" />
-              Upload CSV
-            </Button>
+    <!-- Manage Areas of Concern button - only for SuperAdmin -->
+    <Button v-if="SuperAdmin" @click="openAreasOfConcernModal" variant="outline">
+      <Icon name="settings" class="mr-2 h-4 w-4" />
+      Manage Areas of Concern
+    </Button>
+    
+    <!-- Manage Vendors button - only for SuperAdmin -->
+    <Button v-if="SuperAdmin" @click="openVendorsModal" variant="outline">
+      <Icon name="settings" class="mr-2 h-4 w-4" />
+      Manage Vendors
+    </Button>
+    
+    <div class="relative">
+      <Button @click="showUploadOptions = !showUploadOptions" variant="secondary">
+        <Icon name="upload" class="mr-2 h-4 w-4" />
+        Upload CSV
+        <Icon name="chevron-down" class="ml-2 h-4 w-4" />
+      </Button>
+      <div v-if="showUploadOptions" class="absolute right-0 mt-1 w-48 bg-background rounded-md shadow-lg border z-10">
+        <div class="py-1">
+          <label class="cursor-pointer block px-4 py-2 text-sm hover:bg-muted">
+            <span>Upload CSV File</span>
             <input type="file" class="hidden" @change="handleImport" accept=".csv" />
           </label>
-          <Button @click.prevent="exportCSV" variant="outline">
-            <Icon name="download" class="mr-2 h-4 w-4" />
-            Download CSV
-          </Button>
+          <a :href="templateUrl" download="Repair Orders Template.csv" class="block px-4 py-2 text-sm hover:bg-muted">
+            Download Template
+          </a>
         </div>
       </div>
+    </div>
+    <Button @click.prevent="exportCSV" variant="outline">
+      <Icon name="download" class="mr-2 h-4 w-4" />
+      Download CSV
+    </Button>
+  </div>
+</div>
 
       <!-- Date Filter Tabs -->
       <Card>
@@ -730,7 +740,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useForm, router, Head } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
 import Icon from '@/components/Icon.vue'
@@ -1186,10 +1196,28 @@ const formatCurrency = (amount) => {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount)
 }
 
-// Initialize component
+const showUploadOptions = ref(false);
+
+// Computed property for template URL
+const templateUrl = computed(() => {
+  return '/storage/upload-data-temps/Repair Orders Template.csv';
+});
+
+// Close dropdown when clicking outside
 onMounted(() => {
-  // Any initialization code can go here
-})
+  const handleClickOutside = (e) => {
+    if (showUploadOptions.value && !e.target.closest('.relative')) {
+      showUploadOptions.value = false;
+    }
+  };
+  
+  document.addEventListener('click', handleClickOutside);
+  
+  onUnmounted(() => {
+    document.removeEventListener('click', handleClickOutside);
+  });
+});
+
 </script>
 
 <style scoped>

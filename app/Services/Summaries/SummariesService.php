@@ -70,33 +70,28 @@ class SummariesService
             break;
     }
 
-    $year = $startDate->copy()->year;
-    $weekNumber = null;
-    $startWeekNumber = null;
-    $endWeekNumber = null;
+     // year for the start of the interval
+     $year = $startDate->year;
 
-    // Custom week number calculation (Sunday-based)
-    $getWeekNumber = function (Carbon $date) {
-        $sundayStart = Carbon::parse($date)->modify('last sunday');
-        return intval($sundayStart->format('W'));
-    };
+     // compute week numbers (Sunday=first day)
+     if (in_array($dateFilter, ['yesterday', 'current-week'])) {
+         $weekNumber      = $this->weekNumberSundayStart($startDate);
+         $startWeekNumber = $endWeekNumber = null;
+     } else {
+         $weekNumber      = null;
+         $startWeekNumber = $this->weekNumberSundayStart($startDate);
+         $endWeekNumber   = $this->weekNumberSundayStart($endDate);
+     }
 
-    if (in_array($dateFilter, ['yesterday', 'current-week'])) {
-        $weekNumber = $getWeekNumber($startDate);
-    } else {
-        $startWeekNumber = $getWeekNumber($startDate);
-        $endWeekNumber = $getWeekNumber($endDate);
-    }
-
-    $dateRange = [
-        'start' => $startDate->format('Y-m-d'),
-        'end' => $endDate->format('Y-m-d'),
-        'label' => $label,
-        'weekNumber' => $weekNumber,
-        'startWeekNumber' => $startWeekNumber,
-        'endWeekNumber' => $endWeekNumber,
-        'year' => $year
-    ];
+     $dateRange = [
+         'start'           => $startDate->toDateString(),
+         'end'             => $endDate->toDateString(),
+         'label'           => $label,
+         'weekNumber'      => $weekNumber,
+         'startWeekNumber' => $startWeekNumber,
+         'endWeekNumber'   => $endWeekNumber,
+         'year'            => $year,
+     ];
 
     // Fetch data
     $summaries = [
@@ -121,5 +116,23 @@ class SummariesService
         'dateRange' => $dateRange
     ];
 }
+ /**
+     * Get the week‐of‐year for a Carbon date, where weeks run Sunday → Saturday.
+     *
+     * @param  Carbon  $date
+     * @return int
+     */
+    private function weekNumberSundayStart(Carbon $date): int
+    {
+        // 1..366
+        $dayOfYear   = $date->dayOfYear;
 
+        // 0=Sunday, …, 6=Saturday for Jan 1
+        $firstDayDow = $date->copy()
+                            ->startOfYear()
+                            ->dayOfWeek;
+
+        // shift so weeks bound on Sunday, then ceil
+        return (int) ceil(($dayOfYear + $firstDayDow) / 7);
+    }
 }

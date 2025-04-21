@@ -31,22 +31,33 @@
             <Icon name="trash" class="mr-2 h-4 w-4" />
             Delete Selected ({{ selectedDelays.length }})
           </Button>
-          <label class="cursor-pointer">
-            <Button variant="secondary" as="span">
+          <div class="relative">
+            <Button @click="showUploadOptions = !showUploadOptions" variant="secondary">
               <Icon name="upload" class="mr-2 h-4 w-4" />
               Upload CSV
+              <Icon name="chevron-down" class="ml-2 h-4 w-4" />
             </Button>
-            <input type="file" class="hidden" @change="handleImport" accept=".csv" />
-          </label>
-          <Button @click.prevent="exportCSV" variant="outline">
-            <Icon name="download" class="mr-2 h-4 w-4" />
-            Download CSV
-          </Button>
-          <Button v-if="isSuperAdmin" @click="openCodeModal()" variant="outline">
-            <Icon name="settings" class="mr-2 h-4 w-4" />
-            Manage Delay Codes
-          </Button>
-        </div>
+            <div v-if="showUploadOptions" class="absolute right-0 mt-1 w-48 bg-background rounded-md shadow-lg border z-10">
+              <div class="py-1">
+                <label class="cursor-pointer block px-4 py-2 text-sm hover:bg-muted">
+                  <span>Upload CSV File</span>
+                  <input type="file" class="hidden" @change="handleImport" accept=".csv" />
+                </label>
+                <a :href="templateUrl" download="Delays Template.csv" class="block px-4 py-2 text-sm hover:bg-muted">
+                  Download Template
+                </a>
+              </div>
+            </div>
+            </div>
+            <Button @click.prevent="exportCSV" variant="outline">
+              <Icon name="download" class="mr-2 h-4 w-4" />
+              Download CSV
+            </Button>
+            <Button v-if="isSuperAdmin" @click="openCodeModal()" variant="outline">
+              <Icon name="settings" class="mr-2 h-4 w-4" />
+              Manage Delay Codes
+            </Button>
+          </div>
       </div>
       
       <!-- Hidden Export Form -->
@@ -484,7 +495,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useForm, Head, router } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import Button from '@/components/ui/button/Button.vue';
@@ -922,6 +933,31 @@ const exportUrl = computed(() => {
     ? route('ontime.export', { tenantSlug: props.tenantSlug }) 
     : route('ontime.export.admin');
 });
+
+// Add these to the existing script setup section
+const showUploadOptions = ref(false);
+
+// Computed property for template URL
+const templateUrl = computed(() => {
+  return '/storage/upload-data-temps/Delays Template.csv';
+});
+
+// Close dropdown when clicking outside
+onMounted(() => {
+  const handleClickOutside = (e) => {
+    if (showUploadOptions.value && !e.target.closest('.relative')) {
+      showUploadOptions.value = false;
+    }
+  };
+  
+  document.addEventListener('click', handleClickOutside);
+  
+  onUnmounted(() => {
+    document.removeEventListener('click', handleClickOutside);
+  });
+});
+
+// Remove the separate onUnmounted hook since it's now inside onMounted
 </script>
 
 

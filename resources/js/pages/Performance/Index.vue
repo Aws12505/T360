@@ -28,13 +28,24 @@
             Delete Selected ({{ selectedPerformances.length }})
           </Button>
           
-          <label class="cursor-pointer">
-            <Button variant="secondary" as="span">
+          <div class="relative">
+            <Button @click="showUploadOptions = !showUploadOptions" variant="secondary">
               <Icon name="upload" class="mr-2 h-4 w-4" />
               Upload CSV
+              <Icon name="chevron-down" class="ml-2 h-4 w-4" />
             </Button>
-            <input type="file" class="hidden" @change="handleImport" accept=".csv" />
-          </label>
+            <div v-if="showUploadOptions" class="absolute right-0 mt-1 w-48 bg-background rounded-md shadow-lg border z-10">
+              <div class="py-1">
+                <label class="cursor-pointer block px-4 py-2 text-sm hover:bg-muted">
+                  <span>Upload CSV File</span>
+                  <input type="file" class="hidden" @change="handleImport" accept=".csv" />
+                </label>
+                <a :href="templateUrl" download="Performances Template.csv" class="block px-4 py-2 text-sm hover:bg-muted">
+                  Download Template
+                </a>
+              </div>
+            </div>
+          </div>
           
           <Button @click.prevent="exportCSV" variant="outline">
             <Icon name="download" class="mr-2 h-4 w-4" />
@@ -450,7 +461,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
 import { router , Head } from '@inertiajs/vue3'
@@ -859,5 +870,27 @@ const formatRating = (rating) => {
       return rating;
   }
 };
+// Add these new refs and computed properties
+const showUploadOptions = ref(false);
+
+// Computed property for template URL
+const templateUrl = computed(() => {
+  return '/storage/upload-data-temps/Performances Template.csv';
+});
+
+// Close dropdown when clicking outside
+onMounted(() => {
+  const handleClickOutside = (e) => {
+    if (showUploadOptions.value && !e.target.closest('.relative')) {
+      showUploadOptions.value = false;
+    }
+  };
+  
+  document.addEventListener('click', handleClickOutside);
+  
+  onUnmounted(() => {
+    document.removeEventListener('click', handleClickOutside);
+  });
+});
 </script>
 
