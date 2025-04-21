@@ -50,7 +50,7 @@ class MilesDriven extends Model
     protected $casts = [
         'week_start_date' => 'date',
         'week_end_date' => 'date',
-        'miles' => 'decimal:2',
+        'miles' => 'decimal:4',
     ];
 
     /**

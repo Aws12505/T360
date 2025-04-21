@@ -106,7 +106,7 @@ const chartData = computed(() => {
   const totalViolations = 
     (props.safetyData.traffic_light_violation || 0) +
     (props.safetyData.speeding_violations || 0) +
-    (props.safetyData.following_distance_hard_brake || 0) +
+    (props.safetyData.following_distance || 0) +
     (props.safetyData.driver_distraction || 0) +
     (props.safetyData.sign_violations || 0);
   
@@ -127,7 +127,7 @@ const chartData = computed(() => {
     },
     { 
       label: 'Following Distance', 
-      value: totalViolations > 0 ? Math.round((props.safetyData.following_distance_hard_brake || 0) / totalViolations * 100 * 10) / 10 : 0 
+      value: totalViolations > 0 ? Math.round((props.safetyData.following_distance || 0) / totalViolations * 100 * 10) / 10 : 0 
     },
     { 
       label: 'Driver Distraction', 

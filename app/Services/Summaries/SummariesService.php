@@ -33,91 +33,106 @@ class SummariesService
     }
 
     public function compileSummaries($dateFilter = null): array
+{
+    $dateFilter = $dateFilter ?? $this->filteringService->getDateFilter('yesterday');
+    $dateRange = [];
+    $now = Carbon::now();
+
+    switch ($dateFilter) {
+        case 'yesterday':
+            $startDate = Carbon::yesterday()->startOfDay();
+            $endDate = Carbon::yesterday()->endOfDay();
+            $label = 'Yesterday';
+            break;
+
+        case 'current-week':
+            $startDate = $now->copy()->startOfDay()->modify('last sunday');
+            $endDate = $startDate->copy()->addDays(6)->endOfDay(); // Saturday
+            $label = 'Current Week';
+            break;
+
+        case 't6w':
+            $startDate = $now->copy()->modify('last sunday')->subWeeks(5)->startOfDay();
+            $endDate = $now->copy()->modify('this saturday')->endOfDay();
+            $label = '6 Weeks';
+            break;
+
+        case 'quarterly':
+            $startDate = $now->copy()->subMonths(3)->modify('last sunday')->startOfDay();
+            $endDate = $now->copy()->modify('this saturday')->endOfDay();
+            $label = 'Quarterly';
+            break;
+
+        default:
+            $startDate = Carbon::yesterday()->startOfDay();
+            $endDate = Carbon::yesterday()->endOfDay();
+            $label = 'Yesterday';
+            break;
+    }
+
+     // year for the start of the interval
+     $year = $startDate->year;
+
+     // compute week numbers (Sunday=first day)
+     if (in_array($dateFilter, ['yesterday', 'current-week'])) {
+         $weekNumber      = $this->weekNumberSundayStart($startDate);
+         $startWeekNumber = $endWeekNumber = null;
+     } else {
+         $weekNumber      = null;
+         $startWeekNumber = $this->weekNumberSundayStart($startDate);
+         $endWeekNumber   = $this->weekNumberSundayStart($endDate);
+     }
+
+     $dateRange = [
+         'start'           => $startDate->toDateString(),
+         'end'             => $endDate->toDateString(),
+         'label'           => $label,
+         'weekNumber'      => $weekNumber,
+         'startWeekNumber' => $startWeekNumber,
+         'endWeekNumber'   => $endWeekNumber,
+         'year'            => $year,
+     ];
+
+    // Fetch data
+    $summaries = [
+        'performance' => $this->performanceDataService->getPerformanceData($startDate, $endDate, $label),
+        'safety' => $this->safetyDataService->getSafetyData($startDate, $endDate),
+        'date_range' => $dateRange
+    ];
+
+    $isSuperAdmin = Auth::check() && is_null(Auth::user()->tenant_id);
+    $tenantSlug = $isSuperAdmin ? null : (Auth::check() ? Auth::user()->tenant->slug : null);
+    $tenants = $isSuperAdmin ? Tenant::all() : [];
+
+    return [
+        'summaries' => $summaries,
+        'tenantSlug' => $tenantSlug,
+        'SuperAdmin' => $isSuperAdmin,
+        'tenants' => $tenants,
+        'delayBreakdowns' => $this->delayBreakdownService->getDelayBreakdown($startDate, $endDate),
+        'rejectionBreakdowns' => $this->rejectionBreakdownService->getRejectionBreakdown($startDate, $endDate),
+        'maintenanceBreakdowns' => $this->maintenanceBreakdownService->getMaintenanceBreakdown($startDate, $endDate),
+        'dateFilter' => $dateFilter,
+        'dateRange' => $dateRange
+    ];
+}
+ /**
+     * Get the week‐of‐year for a Carbon date, where weeks run Sunday → Saturday.
+     *
+     * @param  Carbon  $date
+     * @return int
+     */
+    private function weekNumberSundayStart(Carbon $date): int
     {
-        // Get date filter from request or use the provided parameter
-        $dateFilter = $dateFilter ?? $this->filteringService->getDateFilter('yesterday');
-        
-        // Get date range based on filter
-        $dateRange = [];
-        $now = Carbon::now();
-        
-        switch ($dateFilter) {
-            case 'yesterday':
-                $startDate = Carbon::yesterday()->startOfDay();
-                $endDate = Carbon::yesterday()->endOfDay();
-                $label = 'Yesterday';
-                break;
-                
-            case 'current-week':
-                $startDate = $now->copy()->startOfWeek(Carbon::SUNDAY)->startOfDay();
-                $endDate = $now->copy()->endOfWeek(Carbon::SATURDAY)->endOfDay();
-                $label = 'Current Week';
-                break;
-                
-            case 't6w':
-                $startDate = $now->copy()->startOfWeek(Carbon::SUNDAY)->subWeeks(5)->startOfDay();
-                $endDate = $now->copy()->endOfWeek(Carbon::SATURDAY)->endOfDay();
-                $label = '6 Weeks';
-                break;
-                
-            case 'quarterly':
-                $startDate = $now->copy()->subMonths(3)->startOfDay();
-                $endDate = $now->copy()->endOfDay();
-                $label = 'Quarterly';
-                break;
-                
-            default:
-                // Default to yesterday if an invalid filter is provided
-                $startDate = Carbon::yesterday()->startOfDay();
-                $endDate = Carbon::yesterday()->endOfDay();
-                $label = 'Yesterday';
-                break;
-        }
-        
-        $dateRange = [
-            'start' => $startDate->format('Y-m-d'),
-            'end' => $endDate->format('Y-m-d'),
-            'label' => $label
-        ];
-        
-        // Get data for the selected date range only
-        // Note: PerformanceDataService will still use a 6-week rolling window for specific metrics
-        $summaries = [
-            'performance' => $this->performanceDataService->getPerformanceData(
-                $startDate,
-                $endDate,
-                $label
-            ),
-            'safety' => $this->safetyDataService->getSafetyData(
-                $startDate,
-                $endDate
-            ),
-            'date_range' => $dateRange
-        ];
-        
-        $isSuperAdmin = Auth::check() && is_null(Auth::user()->tenant_id);
-        $tenantSlug = $isSuperAdmin ? null : (Auth::check() ? Auth::user()->tenant->slug : null);
-        $tenants = $isSuperAdmin ? Tenant::all() : [];
-        
-        return [
-            'summaries' => $summaries,
-            'tenantSlug' => $tenantSlug,
-            'SuperAdmin' => $isSuperAdmin,
-            'tenants' => $tenants,
-            'delayBreakdowns' => $this->delayBreakdownService->getDelayBreakdown(
-                $startDate,
-                $endDate
-            ),
-            'rejectionBreakdowns' => $this->rejectionBreakdownService->getRejectionBreakdown(
-                $startDate,
-                $endDate
-            ),
-            'maintenanceBreakdowns' => $this->maintenanceBreakdownService->getMaintenanceBreakdown(
-                $startDate,
-                $endDate
-            ),
-            'dateFilter' => $dateFilter,
-            'dateRange' => $dateRange
-        ];
+        // 1..366
+        $dayOfYear   = $date->dayOfYear;
+
+        // 0=Sunday, …, 6=Saturday for Jan 1
+        $firstDayDow = $date->copy()
+                            ->startOfYear()
+                            ->dayOfWeek;
+
+        // shift so weeks bound on Sunday, then ceil
+        return (int) ceil(($dayOfYear + $firstDayDow) / 7);
     }
 }

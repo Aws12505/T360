@@ -70,12 +70,16 @@
           <span>${{ formatCurrency(maintenanceBreakdowns.cpm) }}</span>
         </div>
         <div class="flex justify-between">
-          <span>QS Cost per mile</span>
-          <span>${{ formatCurrency(maintenanceBreakdowns.qs_cpm) }}</span>
+          <span>Num of WOs</span>
+          <span>{{ maintenanceBreakdowns.total_repair_orders }}</span>
         </div>
         <div class="flex justify-between">
-          <span>QS MVtS</span>
-          <span>{{ formatDecimal(maintenanceBreakdowns.qs_MVtS) }}</span>
+          <span>Current Costs</span>
+          <span>${{ formatCurrency(maintenanceBreakdowns.total_invoice_amount) }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Missing Invoices</span>
+          <span>{{ maintenanceBreakdowns.missing_invoices_count || 0 }}</span>
         </div>
       </div>
     </div>
@@ -143,8 +147,8 @@
         <div class="flex justify-between items-center">
           <span>Following Distance</span>
           <div class="flex items-center gap-2">
-            <span class="w-12 text-right">{{ formatDecimal(safetyData.following_distance_hard_brake) }}</span>
-            <span class="w-16 text-right">{{ formatDecimal(safetyData.rates?.following_distance_hard_brake) }}</span>
+            <span class="w-12 text-right">{{ formatDecimal(safetyData.following_distance) }}</span>
+            <span class="w-16 text-right">{{ formatDecimal(safetyData.rates?.following_distance) }}</span>
           </div>
         </div>
       </div>
@@ -222,8 +226,13 @@ const formatDecimal = (value) => {
 
 // Format currency for display
 const formatCurrency = (value) => {
-  if (value === undefined || value === null || typeof value !== 'number') return '0';
-  return Math.round(value).toString();
+  // Convert string values to numbers
+  if (typeof value === 'string') {
+    value = parseFloat(value);
+  }
+  
+  if (value === undefined || value === null || isNaN(value)) return '0.00';
+  return value.toFixed(2);
 };
 
 // Format rating for display

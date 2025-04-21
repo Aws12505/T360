@@ -62,6 +62,22 @@ class MaintenanceBreakdownService
         
         $qsInvoiceAmount = $qsInvoiceAmountQuery->sum('invoice_amount') ?? 0;
         
+        // Get count of missing invoices (where on_qs is false and invoice_received is false)
+        // No date filtering to get all missing invoices
+        $missingInvoicesQuery = DB::table('repair_orders')
+            ->where('on_qs', false)
+            ->where('invoice_received', false)
+            ->where(function($query) {
+                $query->where('wo_status', '!=', 'Canceled')
+                      ->orWhereNull('wo_status');
+            });
+            
+        if (Auth::check() && Auth::user()->tenant_id !== null) {
+            $missingInvoicesQuery->where('tenant_id', Auth::user()->tenant_id);
+        }
+        
+        $missingInvoicesCount = $missingInvoicesQuery->count();
+        
         // Get total miles driven
         $milesQuery = DB::table('miles_driven')
             ->whereBetween('week_start_date', [$startDate, $endDate]);
@@ -131,6 +147,7 @@ class MaintenanceBreakdownService
             'total_repair_orders' => $totalRepairOrders,
             'total_invoice_amount' => $totalInvoiceAmount,
             'qs_invoice_amount' => $qsInvoiceAmount,
+            'missing_invoices_count' => $missingInvoicesCount,
             'total_miles' => $totalMiles,
             'cpm' => $cpm,
             'qs_cpm' => $qsCpm,

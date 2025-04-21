@@ -8,6 +8,12 @@
         <AlertTitle>Success</AlertTitle>
         <AlertDescription>{{ successMessage }}</AlertDescription>
       </Alert>
+      
+      <!-- Error Message -->
+      <Alert v-if="errorMessage" variant="destructive">
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>{{ errorMessage }}</AlertDescription>
+      </Alert>
 
       <!-- Actions Section -->
       <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
@@ -25,22 +31,33 @@
             <Icon name="trash" class="mr-2 h-4 w-4" />
             Delete Selected ({{ selectedDelays.length }})
           </Button>
-          <label class="cursor-pointer">
-            <Button variant="secondary" as="span">
+          <div class="relative">
+            <Button @click="showUploadOptions = !showUploadOptions" variant="secondary">
               <Icon name="upload" class="mr-2 h-4 w-4" />
               Upload CSV
+              <Icon name="chevron-down" class="ml-2 h-4 w-4" />
             </Button>
-            <input type="file" class="hidden" @change="handleImport" accept=".csv" />
-          </label>
-          <Button @click.prevent="exportCSV" variant="outline">
-            <Icon name="download" class="mr-2 h-4 w-4" />
-            Download CSV
-          </Button>
-          <Button v-if="isSuperAdmin" @click="openCodeModal()" variant="outline">
-            <Icon name="settings" class="mr-2 h-4 w-4" />
-            Manage Delay Codes
-          </Button>
-        </div>
+            <div v-if="showUploadOptions" class="absolute right-0 mt-1 w-48 bg-background rounded-md shadow-lg border z-10">
+              <div class="py-1">
+                <label class="cursor-pointer block px-4 py-2 text-sm hover:bg-muted">
+                  <span>Upload CSV File</span>
+                  <input type="file" class="hidden" @change="handleImport" accept=".csv" />
+                </label>
+                <a :href="templateUrl" download="Delays Template.csv" class="block px-4 py-2 text-sm hover:bg-muted">
+                  Download Template
+                </a>
+              </div>
+            </div>
+            </div>
+            <Button @click.prevent="exportCSV" variant="outline">
+              <Icon name="download" class="mr-2 h-4 w-4" />
+              Download CSV
+            </Button>
+            <Button v-if="isSuperAdmin" @click="openCodeModal()" variant="outline">
+              <Icon name="settings" class="mr-2 h-4 w-4" />
+              Manage Delay Codes
+            </Button>
+          </div>
       </div>
       
       <!-- Hidden Export Form -->
@@ -478,7 +495,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useForm, Head, router } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import Button from '@/components/ui/button/Button.vue';
@@ -539,6 +556,7 @@ const formModal = ref(false);
 const codeModal = ref(false);
 const selectedDelay = ref(null);
 const successMessage = ref('');
+const errorMessage = ref('');
 const showDeleteModal = ref(false);
 const delayToDelete = ref(null);
 const selectedDelays = ref([]);
@@ -816,6 +834,21 @@ watch(successMessage, (newValue) => {
   }
 });
 
+
+// Check for flash messages
+if (props.flash && props.flash.error) {
+  errorMessage.value = props.flash.error;
+}
+
+// Auto-hide error message
+watch(errorMessage, (newValue) => {
+  if (newValue) {
+    setTimeout(() => {
+      errorMessage.value = '';
+    }, 5000);
+  }
+});
+
 // Computed property for "Select All" checkbox state
 const isAllSelected = computed(() => {
   return filteredDelays.value.length > 0 && selectedDelays.value.length === filteredDelays.value.length;
@@ -883,6 +916,12 @@ function handleImport(event) {
 }
 
 function exportCSV() {
+  // Check if there are any delays before exporting
+  if (props.delays.data.length === 0) {
+    errorMessage.value = 'No delay data found to export.';
+    return;
+  }
+  
   // Submit the hidden form to trigger the download
   if (exportForm.value) {
     exportForm.value.submit();
@@ -894,6 +933,31 @@ const exportUrl = computed(() => {
     ? route('ontime.export', { tenantSlug: props.tenantSlug }) 
     : route('ontime.export.admin');
 });
+
+// Add these to the existing script setup section
+const showUploadOptions = ref(false);
+
+// Computed property for template URL
+const templateUrl = computed(() => {
+  return '/storage/upload-data-temps/Delays Template.csv';
+});
+
+// Close dropdown when clicking outside
+onMounted(() => {
+  const handleClickOutside = (e) => {
+    if (showUploadOptions.value && !e.target.closest('.relative')) {
+      showUploadOptions.value = false;
+    }
+  };
+  
+  document.addEventListener('click', handleClickOutside);
+  
+  onUnmounted(() => {
+    document.removeEventListener('click', handleClickOutside);
+  });
+});
+
+// Remove the separate onUnmounted hook since it's now inside onMounted
 </script>
 
 

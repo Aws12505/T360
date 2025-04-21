@@ -10,11 +10,12 @@ class SafetyDataService
 {
     public function getSafetyData($startDate, $endDate): array
     {
+        
         $query = DB::table('safety_data')
             ->selectRaw("
                 SUM(traffic_light_violation) AS traffic_light_violation,
                 SUM(speeding_violations) AS speeding_violations,
-                SUM(following_distance_hard_brake) AS following_distance_hard_brake,
+                SUM(following_distance) AS following_distance,
                 SUM(driver_distraction) AS driver_distraction,
                 SUM(sign_violations) AS sign_violations,
                 SUM(minutes_analyzed) AS total_minutes_analyzed,
@@ -32,7 +33,7 @@ class SafetyDataService
         // Calculate violation rates per 1000 hours
         $trafficLightRate = $totalHours > 0 ? ($safetyData->traffic_light_violation ?? 0) / $totalHours * 1000 : 0;
         $speedingRate = $totalHours > 0 ? ($safetyData->speeding_violations ?? 0) / $totalHours * 1000 : 0;
-        $followingDistanceRate = $totalHours > 0 ? ($safetyData->following_distance_hard_brake ?? 0) / $totalHours * 1000 : 0;
+        $followingDistanceRate = $totalHours > 0 ? ($safetyData->following_distance ?? 0) / $totalHours * 1000 : 0;
         $distractionRate = $totalHours > 0 ? ($safetyData->driver_distraction ?? 0) / $totalHours * 1000 : 0;
         $signViolationRate = $totalHours > 0 ? ($safetyData->sign_violations ?? 0) / $totalHours * 1000 : 0;
 
@@ -90,7 +91,7 @@ class SafetyDataService
         return [
             'traffic_light_violation'       => $safetyData->traffic_light_violation ?? 0,
             'speeding_violations'           => $safetyData->speeding_violations ?? 0,
-            'following_distance_hard_brake' => $safetyData->following_distance_hard_brake ?? 0,
+            'following_distance' => $safetyData->following_distance ?? 0,
             'driver_distraction'            => $safetyData->driver_distraction ?? 0,
             'sign_violations'               => $safetyData->sign_violations ?? 0,
             'average_driver_score'          => $safetyData->average_driver_score ?? 0,
@@ -101,7 +102,7 @@ class SafetyDataService
             'rates' => [
                 'traffic_light_violation'       => $trafficLightRate,
                 'speeding_violations'           => $speedingRate,
-                'following_distance_hard_brake' => $followingDistanceRate,
+                'following_distance' => $followingDistanceRate,
                 'driver_distraction'            => $distractionRate,
                 'sign_violations'               => $signViolationRate,
             ],
