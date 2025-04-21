@@ -764,31 +764,107 @@ function deleteSelectedEntries() {
 /* Ensure proper table scrolling behavior */
 :deep(.overflow-x-auto) {
   position: relative;
+  background-color: hsl(var(--background));
 }
 
 :deep(table) {
   border-collapse: separate;
   border-spacing: 0;
+  width: 100%; /* Ensure table takes full width */
+  background-color: hsl(var(--background));
 }
 
-/* Add shadow effect to frozen columns for better visual separation */
+/* Enhanced styling for frozen columns */
 :deep(.sticky) {
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  position: sticky !important;
+  z-index: 10;
+  box-shadow: 4px 0 6px -2px rgba(0, 0, 0, 0.1);
+  /* Use the exact same background color variable as the rest of the table */
+  background-color: hsl(var(--background)) !important;
+  background-clip: padding-box;
+  isolation: isolate;
 }
 
-/* Ensure the table container has proper overflow handling */
-:deep(.h-[500px]) {
-  overflow: auto;
-  position: relative;
+/* Higher z-index for header cells to ensure they stay on top */
+:deep(thead .sticky) {
+  z-index: 30 !important;
+  /* Ensure header cells have the same background */
+  background-color: hsl(var(--background)) !important;
 }
 
 /* Add column dividers that work in both light and dark mode */
 :deep(th), :deep(td) {
   border-right: 1px solid hsl(var(--border));
+  /* Ensure all cells have the same background color */
+  background-color: hsl(var(--background));
 }
 
 :deep(th:last-child), :deep(td:last-child) {
   border-right: none;
+}
+
+/* Ensure header row stays fixed at the top */
+:deep(thead tr) {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background-color: hsl(var(--background));
+}
+
+/* Add a subtle border to the bottom of the header for better visual separation */
+:deep(thead th) {
+  border-bottom: 2px solid hsl(var(--border));
+}
+
+/* For hover states, ensure the background color is consistent */
+:deep(tbody tr:hover td) {
+  background-color: hsl(var(--muted)) !important;
+}
+
+:deep(tbody tr:hover td.sticky) {
+  background-color: hsl(var(--muted)) !important;
+}
+
+/* Fill any gaps at the bottom of the table */
+:deep(.h-[500px]) {
+  overflow: auto;
+  position: relative;
+  min-height: 500px; /* Ensure minimum height */
+  background-color: hsl(var(--background)); /* Match table background */
+}
+
+/* Ensure the table container fills available space */
+:deep(.overflow-x-auto) {
+  background-color: hsl(var(--background));
+  min-height: 500px;
+}
+
+/* Add a bottom border to the last row to ensure visual closure */
+:deep(tbody tr:last-child td) {
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+/* Ensure proper stacking context for frozen columns */
+:deep(.sticky.left-0),
+:deep(.sticky.left-\[50px\]),
+:deep(.sticky.left-\[150px\]) {
+  border-right: 2px solid hsl(var(--border));
+}
+
+/* Fill any gaps between cells */
+:deep(tbody) {
+  background-color: hsl(var(--background));
+}
+
+:deep(tr) {
+  background-color: hsl(var(--background));
+}
+
+/* Ensure no white space between rows */
+:deep(tr td), :deep(tr th) {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  background-color: hsl(var(--background));
 }
 </style>
 
