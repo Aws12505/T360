@@ -22,7 +22,7 @@ class CreateRepairOrdersTable extends Migration
             $table->unsignedBigInteger('vendor_id')->comment('Vendor ID');
             $table->foreign('vendor_id')->references('id')->on('vendors')->onDelete('cascade');
             $table->string('wo_number')->nullable()->comment('WO#');
-            $table->enum('wo_status', ['Completed', 'Canceled', 'Closed', 'Pending verification', 'Scheduled'])->comment('WO Status');
+            $table->enum('wo_status', ['Completed', 'Canceled', 'Closed', 'Pending verification', 'Scheduled','Not on relay','Work in progress'])->comment('WO Status');
             $table->string('invoice')->nullable()->comment('Invoice number with dashes');
             $table->decimal('invoice_amount', 15, 2)->nullable()->comment('Invoice Amount');
             $table->boolean('invoice_received')->comment('Did we receive the invoice?');

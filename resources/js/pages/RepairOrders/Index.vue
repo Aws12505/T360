@@ -170,6 +170,8 @@
                   <option value="Closed">Closed</option>
                   <option value="Pending verification">Pending verification</option>
                   <option value="Scheduled">Scheduled</option>
+                  <option value="Not on relay">Not On Relay</option>
+                  <option value="Work in progress">Work In Progress</option>
                 </select>
               </div>
             </div>
@@ -481,6 +483,8 @@
                   <option value="Closed">Closed</option>
                   <option value="Pending verification">Pending verification</option>
                   <option value="Scheduled">Scheduled</option>
+                  <option value="Not on relay">Not On Relay</option>
+                  <option value="Work in progress">Work In Progress</option>
                 </select>
                 <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                   <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">

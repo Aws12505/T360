@@ -220,7 +220,7 @@ class RepairOrderImportExportService
                 'truck_id'         => 'required|exists:trucks,id',
                 'vendor_id'        => 'required|exists:vendors,id',
                 'wo_number'        => 'nullable|string', // Changed from required to nullable
-                'wo_status'        => 'required|in:Completed,Canceled,Closed,Pending verification,Scheduled',
+                'wo_status'           => 'required|in:Completed,Canceled,Closed,Pending verification,Scheduled,Not on relay,Work in progress',
                 'invoice'          => 'nullable|string', // Changed from required to nullable
                 'invoice_amount'   => 'nullable|numeric',
                 'invoice_received' => 'required|boolean',
@@ -245,6 +245,21 @@ class RepairOrderImportExportService
                 }
             }
             // dd('After validation:', $data);
+
+            // Check if ro_number has no digits and already exists
+            if (!preg_match('/\d/', $data['ro_number'])) {
+                $baseRoNumber = $data['ro_number'];
+                $count = 1;
+                
+                // Check if this non-numeric RO number already exists for this tenant
+                while (RepairOrder::where('ro_number', $data['ro_number'])
+                                  ->where('tenant_id', $data['tenant_id'])
+                                  ->exists()) {
+                    // Append counter to make it unique
+                    $data['ro_number'] = $baseRoNumber . '-' . $count;
+                    $count++;
+                }
+            }
 
             // Update or create the repair order based on unique ro_number and tenant_id.
             $repairOrder = RepairOrder::updateOrCreate(

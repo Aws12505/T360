@@ -16,7 +16,21 @@ class StoreRepairOrderRequest extends FormRequest
     public function rules()
     {
         return [
-            'ro_number'           => 'required|string|unique:repair_orders,ro_number',
+            'ro_number'           => [
+                'required',
+                'string',
+                function ($attribute, $value, $fail) {
+                    // Only enforce uniqueness if ro_number contains digits
+                    if (preg_match('/\d/', $value)) {
+                        $exists = \App\Models\RepairOrder::where('ro_number', $value)
+                            ->where('tenant_id', $this->input('tenant_id'))
+                            ->exists();
+                        if ($exists) {
+                            $fail('The repair order number has already been taken.');
+                        }
+                    }
+                },
+            ],
             'ro_open_date'        => 'required|date',
             'ro_close_date'       => 'nullable|date',
             'truck_id'            => 'required|exists:trucks,id',
@@ -25,7 +39,7 @@ class StoreRepairOrderRequest extends FormRequest
             'repairs_made'        => 'nullable|string',
             'vendor_id'           => 'required|exists:vendors,id',
             'wo_number'           => 'nullable|string', 
-            'wo_status'           => 'required|in:Completed,Canceled,Closed,Pending verification,Scheduled',
+            'wo_status'           => 'required|in:Completed,Canceled,Closed,Pending verification,Scheduled,Not on relay,Work in progress',
             'invoice'             => 'nullable|string', 
             'invoice_amount'      => 'nullable|numeric',
             'invoice_received'    => 'required|boolean',
