@@ -40,6 +40,12 @@ class AddSoftDeleteToModels extends Migration
                 $table->softDeletes();
             }
         });
+
+        Schema::table('wo_statuses', function (Blueprint $table) {
+            if (!Schema::hasColumn('wo_statuses', 'deleted_at')) {
+                $table->softDeletes();
+            }
+        });
     }
 
     /**

@@ -35,7 +35,11 @@
       <Icon name="settings" class="mr-2 h-4 w-4" />
       Manage Vendors
     </Button>
-    
+    <!-- Manage WO Statuses button - only for SuperAdmin -->
+  <Button v-if="SuperAdmin" @click="openWoStatusesModal" variant="outline">
+    <Icon name="settings" class="mr-2 h-4 w-4" />
+    Manage WO Statuses
+  </Button>
     <div class="relative">
       <Button @click="showUploadOptions = !showUploadOptions" variant="secondary">
         <Icon name="upload" class="mr-2 h-4 w-4" />
@@ -274,8 +278,7 @@
   <span v-else>—</span>
 </TableCell>
                   <TableCell class="whitespace-nowrap">{{ order.wo_number }}</TableCell>
-                  <TableCell class="whitespace-nowrap">{{ order.wo_status }}</TableCell>
-                  <TableCell class="whitespace-nowrap">{{ order.invoice }}</TableCell>
+                  <TableCell class="whitespace-nowrap">{{ order.wo_status?.name || '—' }}</TableCell>                  <TableCell class="whitespace-nowrap">{{ order.invoice }}</TableCell>
                   <TableCell class="whitespace-nowrap">{{ formatCurrency(order.invoice_amount) }}</TableCell>
                   <TableCell class="whitespace-nowrap">{{ order.invoice_received ? 'Yes' : 'No' }}</TableCell>
                   <TableCell class="whitespace-nowrap">{{ order.on_qs ? 'Yes' : 'No' }}</TableCell>
@@ -474,25 +477,21 @@
             
             <!-- WO Status -->
             <div>
-              <Label for="wo_status">WO Status</Label>
-              <div class="relative">
-                <select id="wo_status" v-model="form.wo_status" required class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none">
-                  <option disabled value="">Select status</option>
-                  <option value="Completed">Completed</option>
-                  <option value="Canceled">Canceled</option>
-                  <option value="Closed">Closed</option>
-                  <option value="Pending verification">Pending verification</option>
-                  <option value="Scheduled">Scheduled</option>
-                  <option value="Not on relay">Not On Relay</option>
-                  <option value="Work in progress">Work In Progress</option>
-                </select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                  <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                  </svg>
-                </div>
-              </div>
-            </div>
+  <Label for="wo_status_id">WO Status</Label>
+  <div class="relative">
+    <select id="wo_status_id" v-model="form.wo_status_id" required class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none">
+      <option disabled value="">Select status</option>
+      <option v-for="status in woStatuses" :key="status.id" :value="status.id" :disabled="status.deleted_at">
+        {{ status.name }} {{ status.deleted_at ? '(Deleted)' : '' }}
+      </option>
+    </select>
+    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+      <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+      </svg>
+    </div>
+  </div>
+</div>
             
             <!-- Invoice -->
             <div>
@@ -739,6 +738,71 @@
     </DialogFooter>
   </DialogContent>
 </Dialog>
+<!-- Add the WO Statuses Management Modal -->
+<Dialog v-model:open="showWoStatusesModal">
+  <DialogContent class="sm:max-w-[600px]">
+    <DialogHeader>
+      <DialogTitle>Manage Work Order Statuses</DialogTitle>
+      <DialogDescription>
+        Add or remove work order statuses for repair orders.
+      </DialogDescription>
+    </DialogHeader>
+    
+    <div class="space-y-6">
+      <!-- Add new WO status form -->
+      <form @submit.prevent="submitWoStatusForm" class="space-y-4">
+        <div class="space-y-2">
+          <Label for="status_name">Status Name</Label>
+          <Input id="status_name" v-model="woStatusForm.name" required />
+        </div>
+        
+        <Button type="submit" class="w-full">Add Work Order Status</Button>
+      </form>
+      
+      <!-- List of existing WO statuses -->
+      <div class="border rounded-md overflow-hidden">
+        <div class="max-h-[300px] overflow-y-auto">
+          <Table>
+            <TableHeader class="sticky top-0 bg-background z-10">
+              <TableRow class="sticky top-0 bg-background border-b z-10">
+                <TableHead>Status Name</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow v-if="woStatuses.length === 0">
+                <TableCell colspan="2" class="text-center py-4">No work order statuses found.</TableCell>
+              </TableRow>
+              <TableRow v-for="status in woStatuses" :key="status.id">
+                <TableCell>
+                  {{ status.name }}
+                  <span v-if="status.deleted_at" class="ml-1 text-xs text-red-500">(Deleted)</span>
+                </TableCell>
+                <TableCell>
+                  <div class="flex space-x-2">
+                    <Button v-if="status.deleted_at" @click="restoreWoStatus(status.id)" variant="outline" size="sm">
+                      <Icon name="undo" class="h-4 w-4" />
+                    </Button>
+                    <Button v-if="!status.deleted_at" @click="deleteWoStatus(status.id)" variant="destructive" size="sm">
+                      <Icon name="trash" class="h-4 w-4" />
+                    </Button>
+                    <Button v-if="status.deleted_at" @click="forceDeleteWoStatus(status.id)" variant="destructive" size="sm">
+                      <Icon name="x" class="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    </div>
+    
+    <DialogFooter>
+      <Button @click="showWoStatusesModal = false" variant="outline">Close</Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
     </div>
   </AppLayout>
 </template>
@@ -765,7 +829,8 @@ const props = defineProps({
   vendors: { type: Array, default: () => [] },
   areasOfConcern: { type: Array, default: () => [] },
   dateRange: { type: Object, default: null },
-  dateFilter: { type: String, default: 'full' }
+  dateFilter: { type: String, default: 'full' },
+  woStatuses: { type: Array, default: () => [] }
 })
 
 // Define breadcrumbs for the layout
@@ -783,7 +848,11 @@ const breadcrumbs = [
       : route('repair_orders.index.admin')
   }
 ]
-
+const woStatuses = ref(props.woStatuses || []);
+const showWoStatusesModal = ref(false);
+const woStatusForm = ref({
+  name: '',
+});
 // State variables
 const successMessage = ref('')
 const showModal = ref(false)
@@ -864,7 +933,7 @@ const form = useForm({
   truck_id: '',
   vendor_id: '',
   wo_number: '',
-  wo_status: '',
+  wo_status_id: '',
   invoice: '',
   invoice_amount: '',
   invoice_received: false,
@@ -923,7 +992,7 @@ const openEditModal = (order) => {
   form.truck_id = order.truck_id
   form.vendor_id = order.vendor_id
   form.wo_number = order.wo_number
-  form.wo_status = order.wo_status
+  form.wo_status_id = order.wo_status_id;
   form.invoice = order.invoice
   form.invoice_amount = order.invoice_amount
   // Handle boolean values that might come as 0/1 or true/false
@@ -1221,6 +1290,63 @@ onMounted(() => {
     document.removeEventListener('click', handleClickOutside);
   });
 });
+
+function openWoStatusesModal() {
+  showWoStatusesModal.value = true;
+  woStatusForm.value = {
+    name: '',
+  };
+}
+
+function submitWoStatusForm() {
+  
+  router.post(route('wo_statuses.store.admin'), woStatusForm.value, {
+    onSuccess: () => {
+      woStatusForm.value.name = '';
+      successMessage.value = 'Work order status created successfully.';
+      setTimeout(() => {
+        successMessage.value = '';
+      }, 3000);
+    }
+  });
+}
+
+function deleteWoStatus(id) {
+  if (!confirm('Are you sure you want to delete this work order status?')) return;
+  
+  router.delete(route('wo_statuses.destroy.admin', id), {
+    onSuccess: () => {
+      successMessage.value = 'Work order status deleted successfully.';
+      setTimeout(() => {
+        successMessage.value = '';
+      }, 3000);
+    }
+  });
+}
+
+function restoreWoStatus(id) {
+  router.post(route('wo_statuses.restore.admin', id), {}, {
+    onSuccess: () => {
+      successMessage.value = 'Work order status restored successfully.';
+      setTimeout(() => {
+        successMessage.value = '';
+      }, 3000);
+    }
+  });
+}
+
+function forceDeleteWoStatus(id) {
+  if (!confirm('Are you sure you want to permanently delete this work order status? This action cannot be undone.')) return;
+  
+  router.delete(route('wo_statuses.forceDelete.admin', id), {
+    onSuccess: () => {
+      successMessage.value = 'Work order status permanently deleted.';
+      setTimeout(() => {
+        successMessage.value = '';
+      }, 3000);
+    }
+  });
+}
 
 </script>
 

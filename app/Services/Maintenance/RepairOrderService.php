@@ -10,7 +10,8 @@ use App\Models\Tenant;
 use App\Services\Filtering\FilteringService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Request;
-
+use App\Models\WoStatus;
+//
 /**
  * Class RepairOrderService
  *
@@ -37,7 +38,7 @@ class RepairOrderService
             $query->withTrashed();
         }, 'areasOfConcern' => function ($query) {
             $query->withTrashed()->get();
-        }, 'tenant']);
+        }, 'woStatus', 'tenant']);
         
         // Apply date filtering if requested
         $dateFilter = $this->filteringService->getDateFilter();
@@ -69,6 +70,7 @@ class RepairOrderService
             'trucks' => Truck::get(),
             'vendors' => Vendor::withTrashed()->get(),
             'areasOfConcern' => AreaOfConcern::withTrashed()->get(),
+            'woStatuses' => WoStatus::withTrashed()->get(),
             'dateRange' => $dateRange,
             'dateFilter' => $dateFilter,
         ];

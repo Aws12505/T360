@@ -10,7 +10,7 @@ class CreateRepairOrdersTable extends Migration
     {
         Schema::create('repair_orders', function (Blueprint $table) {
             $table->id();
-            $table->string('ro_number')->comment('RO# with dashes');
+            $table->string('ro_number')->nullable()->comment('RO# with dashes');
             $table->date('ro_open_date')->comment('RO Open Date');
             $table->date('ro_close_date')->nullable()->comment('RO Close Date');
             // Foreign key: reference the trucks table (using its id; you can display truckid from the Truck model)
@@ -22,7 +22,7 @@ class CreateRepairOrdersTable extends Migration
             $table->unsignedBigInteger('vendor_id')->comment('Vendor ID');
             $table->foreign('vendor_id')->references('id')->on('vendors')->onDelete('cascade');
             $table->string('wo_number')->nullable()->comment('WO#');
-            $table->enum('wo_status', ['Completed', 'Canceled', 'Closed', 'Pending verification', 'Scheduled','Not on relay','Work in progress'])->comment('WO Status');
+            $table->foreignId('wo_status_id')->constrained('wo_statuses')->comment('WO Status ID');
             $table->string('invoice')->nullable()->comment('Invoice number with dashes');
             $table->decimal('invoice_amount', 15, 2)->nullable()->comment('Invoice Amount');
             $table->boolean('invoice_received')->comment('Did we receive the invoice?');

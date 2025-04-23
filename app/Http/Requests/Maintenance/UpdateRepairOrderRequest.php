@@ -14,25 +14,8 @@ class UpdateRepairOrderRequest extends FormRequest
 
     public function rules()
     {
-        $repairOrderId = $this->route('repair_order'); // or use $this->repair_order if using route model binding
-
         return [
-            'ro_number'           => [
-                'required',
-                'string',
-                function ($attribute, $value, $fail) use ($repairOrderId) {
-                    // Only enforce uniqueness if ro_number contains digits
-                    if (preg_match('/\d/', $value)) {
-                        $exists = \App\Models\RepairOrder::where('ro_number', $value)
-                            ->where('tenant_id', $this->input('tenant_id'))
-                            ->where('id', '!=', $repairOrderId)
-                            ->exists();
-                        if ($exists) {
-                            $fail('The repair order number has already been taken.');
-                        }
-                    }
-                },
-            ],
+            'ro_number'           => 'required|string',
             'ro_open_date'        => 'required|date',
             'ro_close_date'       => 'nullable|date',
             'truck_id'            => 'required|exists:trucks,id',
@@ -41,7 +24,7 @@ class UpdateRepairOrderRequest extends FormRequest
             'repairs_made'        => 'nullable|string',
             'vendor_id'           => 'required|exists:vendors,id',
             'wo_number'           => 'nullable|string',
-            'wo_status'           => 'required|in:Completed,Canceled,Closed,Pending verification,Scheduled,Not on relay,Work in progress',
+            'wo_status_id'        => 'required|exists:wo_statuses,id', // Changed from enum validation to foreign key
             'invoice'             => 'nullable|string',
             'invoice_amount'      => 'nullable|numeric',
             'invoice_received'    => 'required|boolean',

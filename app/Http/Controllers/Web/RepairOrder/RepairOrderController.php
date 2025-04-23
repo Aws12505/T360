@@ -9,8 +9,10 @@ use App\Services\Maintenance\RepairOrderService;
 use App\Services\Maintenance\RepairOrderImportExportService;
 use App\Services\Maintenance\AreasOfConcernService;
 use App\Services\Maintenance\VendorsService;
+use App\Services\Maintenance\WoStatusService;
 use App\Http\Requests\Maintenance\StoreAreaOfConcernRequest;
 use App\Http\Requests\Maintenance\StoreVendorRequest;
+use App\Http\Requests\Maintenance\StoreWoStatusRequest;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
@@ -21,17 +23,20 @@ class RepairOrderController extends Controller
     protected $repairOrderImportExportService;
     protected $areasOfConcernService;
     protected $vendorsService;
+    protected $woStatusService;
     
     public function __construct(
         RepairOrderService $repairOrderService, 
         RepairOrderImportExportService $repairOrderImportExportService,
         AreasOfConcernService $areasOfConcernService,
-        VendorsService $vendorsService
+        VendorsService $vendorsService,
+        WoStatusService $woStatusService
     ) {
         $this->repairOrderService = $repairOrderService;
         $this->repairOrderImportExportService = $repairOrderImportExportService;
         $this->areasOfConcernService = $areasOfConcernService;
         $this->vendorsService = $vendorsService;
+        $this->woStatusService = $woStatusService;
     }
 
     public function index(Request $request)
@@ -199,5 +204,53 @@ public function export()
         $ids = $request->input('ids', []);
         $this->repairOrderService->deleteMultipleRepairOrders($ids);
         return redirect()->back()->with('success', 'Repair Orders deleted successfully.');
+    }
+
+    /**
+     * Create a new work order status.
+     *
+     * @param \App\Http\Requests\Maintenance\StoreWoStatusRequest $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function storeWoStatus(StoreWoStatusRequest $request)
+    {
+        $woStatus = $this->woStatusService->createWoStatus($request->validated());
+        return redirect()->back()->with('success', 'Work Order Status created successfully.');
+    }
+
+    /**
+     * Delete a work order status.
+     *
+     * @param int $id
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function destroyWoStatus($id)
+    {
+        $this->woStatusService->deleteWoStatus($id);
+        return redirect()->back()->with('success', 'Work Order Status deleted successfully.');
+    }
+    
+    /**
+     * Restore a soft-deleted work order status.
+     *
+     * @param int $id
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function restoreWoStatus($id)
+    {
+        $this->woStatusService->restoreWoStatus($id);
+        return redirect()->back()->with('success', 'Work Order Status restored successfully.');
+    }
+    
+    /**
+     * Permanently delete a work order status.
+     *
+     * @param int $id
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function forceDeleteWoStatus($id)
+    {
+        $this->woStatusService->forceDeleteWoStatus($id);
+        return redirect()->back()->with('success', 'Work Order Status permanently deleted.');
     }
 }

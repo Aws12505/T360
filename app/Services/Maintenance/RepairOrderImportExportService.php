@@ -6,6 +6,7 @@ use App\Models\RepairOrder;
 use App\Models\Vendor;
 use App\Models\AreaOfConcern;
 use App\Models\Truck;
+use App\Models\WoStatus;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Tenant;
 use Illuminate\Support\Facades\Validator;
@@ -154,6 +155,23 @@ class RepairOrderImportExportService
             unset($data['vendor']);
             // dd('After processing vendor:', $data);
 
+            // Process WO Status: look up by name
+            $woStatus = WoStatus::where('name', $data['wo_status'])->first();
+            if (!$woStatus) {
+                dd('WO Status not found:', $data['wo_status'], $row);
+                $rowsSkipped++;
+                continue;
+            }
+            // Check if WO Status is soft-deleted
+            if ($woStatus->trashed()) {
+                dd('WO Status is soft-deleted:', $data['wo_status'], $row);
+                $rowsSkipped++;
+                continue;
+            }
+            $data['wo_status_id'] = $woStatus->id;
+            unset($data['wo_status']);
+            // dd('After processing WO Status:', $data);
+
             // Sanitize repairs_made field to handle special characters
             if (isset($data['repairs_made'])) {
                 // Convert to UTF-8 and clean special characters
@@ -219,9 +237,9 @@ class RepairOrderImportExportService
                 'ro_close_date'    => 'nullable|date',
                 'truck_id'         => 'required|exists:trucks,id',
                 'vendor_id'        => 'required|exists:vendors,id',
-                'wo_number'        => 'nullable|string', // Changed from required to nullable
-                'wo_status'           => 'required|in:Completed,Canceled,Closed,Pending verification,Scheduled,Not on relay,Work in progress',
-                'invoice'          => 'nullable|string', // Changed from required to nullable
+                'wo_number'        => 'nullable|string',
+                'wo_status_id'     => 'required|exists:wo_statuses,id', // Changed from wo_status to wo_status_id
+                'invoice'          => 'nullable|string',
                 'invoice_amount'   => 'nullable|numeric',
                 'invoice_received' => 'required|boolean',
                 'on_qs'            => 'required|boolean',
@@ -246,34 +264,24 @@ class RepairOrderImportExportService
             }
             // dd('After validation:', $data);
 
-            // Check if ro_number has no digits and already exists
-            if (!preg_match('/\d/', $data['ro_number'])) {
-                $baseRoNumber = $data['ro_number'];
-                $count = 1;
-                
-                // Check if this non-numeric RO number already exists for this tenant
-                while (RepairOrder::where('ro_number', $data['ro_number'])
-                                  ->where('tenant_id', $data['tenant_id'])
-                                  ->exists()) {
-                    // Append counter to make it unique
-                    $data['ro_number'] = $baseRoNumber . '-' . $count;
-                    $count++;
-                }
-            }
+            // Handle RO number logic
+            if ($data['ro_number'] === '-') {
+                // If RO number is "-", create a new entry
+                $repairOrder = RepairOrder::create($data);
+            } else {
 
-            // Update or create the repair order based on unique ro_number and tenant_id.
-            $repairOrder = RepairOrder::updateOrCreate(
-                ['ro_number' => $data['ro_number'], 'tenant_id' => $data['tenant_id']],
-                $data
-            );
+                // Update or create the repair order based on unique ro_number and tenant_id.
+                $repairOrder = RepairOrder::updateOrCreate(
+                    ['ro_number' => $data['ro_number'], 'tenant_id' => $data['tenant_id']],
+                    $data
+                );
+            }
             // dd('After updateOrCreate:', $repairOrder);
 
             // Sync areas of concern.
             if (!empty($data['area_of_concerns'])) {
                 $repairOrder->areasOfConcern()->sync($data['area_of_concerns']);
             }
-            // dd('After syncing areas of concern:', $data);
-
             $rowsImported++;
         }
 
@@ -298,7 +306,6 @@ class RepairOrderImportExportService
     public function exportRepairOrders()
     {
         // Retrieve all repair orders with related data.
-        // Include trashed vendors and areas of concern to show their status
         $repairOrders = RepairOrder::with([
             'truck', 
             'vendor' => function($query) {
@@ -306,7 +313,10 @@ class RepairOrderImportExportService
             }, 
             'areasOfConcern' => function($query) {
                 $query->withTrashed();
-            }, 
+            },
+            'woStatus' => function($query) {
+                $query->withTrashed();
+            },
             'tenant'
         ])->get();
 
@@ -353,7 +363,7 @@ class RepairOrderImportExportService
                 // Output the vendor's name with indicator if soft-deleted.
                 $ro->vendor ? ($ro->vendor->trashed() ? $ro->vendor->vendor_name . ' (Deleted)' : $ro->vendor->vendor_name) : '—',
                 $ro->wo_number,
-                $ro->wo_status,
+                $ro->woStatus ? ($ro->woStatus->trashed() ? $ro->woStatus->name . ' (Deleted)' : $ro->woStatus->name) : '—',
                 $ro->invoice,
                 $ro->invoice_amount,
                 $ro->invoice_received ? 'Yes' : 'No',

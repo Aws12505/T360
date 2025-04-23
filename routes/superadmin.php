@@ -134,6 +134,12 @@ Route::delete('/vendors/{id}', [RepairOrderController::class, 'destroyVendor'])-
 Route::post('/vendors/{id}/restore', [RepairOrderController::class, 'restoreVendor'])->name('vendors.restore.admin');
 Route::delete('/vendors/{id}/force', [RepairOrderController::class, 'forceDeleteVendor'])->name('vendors.forceDelete.admin');
 
+// WO Statuses management routes
+Route::post('/wo-statuses', [RepairOrderController::class, 'storeWoStatus'])->name('wo_statuses.store.admin');
+Route::delete('/wo-statuses/{id}', [RepairOrderController::class, 'destroyWoStatus'])->name('wo_statuses.destroy.admin');
+Route::post('/wo-statuses/{id}/restore', [RepairOrderController::class, 'restoreWoStatus'])->name('wo_statuses.restore.admin');
+Route::delete('/wo-statuses/{id}/force', [RepairOrderController::class, 'forceDeleteWoStatus'])->name('wo_statuses.forceDelete.admin');
+
     // Admin delay codes routes
     Route::post('/delay-codes', [DelaysController::class, 'storeCode'])->name('delay_codes.store.admin');
 

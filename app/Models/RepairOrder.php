@@ -15,7 +15,7 @@ class RepairOrder extends Model
         'repairs_made',
         'vendor_id',
         'wo_number',
-        'wo_status',
+        'wo_status_id',
         'invoice',
         'invoice_amount',
         'invoice_received',
@@ -50,6 +50,12 @@ class RepairOrder extends Model
     public function tenant()
     {
         return $this->belongsTo(Tenant::class);
+    }
+
+    // Relationship to WoStatus
+    public function woStatus()
+    {
+        return $this->belongsTo(WoStatus::class);
     }
 
     protected static function booted()
