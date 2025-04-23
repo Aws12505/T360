@@ -144,7 +144,10 @@
                     @click="sortBy(col)"
                   >
                     <div class="flex items-center">
-                      {{ col.replace(/_/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') }}
+                      <!-- Display abbreviated or custom names with title attribute for hover tooltip -->
+                      <span :title="getFullColumnName(col)">
+                        {{ getDisplayColumnName(col) }}
+                      </span>
                       <div v-if="sortColumn === col" class="ml-2">
                         <svg v-if="sortDirection === 'asc'" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                           <path d="M8 15l4-4 4 4" />
@@ -857,7 +860,7 @@ const formatRating = (rating) => {
     case 'not_eligible':
       return 'Not Eligible';
     case 'fantastic_plus':
-      return 'Fantastic+';
+      return 'Fantastic +';
     case 'fantastic':
       return 'Fantastic';
     case 'good':
@@ -892,5 +895,33 @@ onMounted(() => {
     document.removeEventListener('click', handleClickOutside);
   });
 });
+
+// Helper function to get display name for columns
+const getDisplayColumnName = (column) => {
+  const displayNames = {
+    'on_time_to_origin': 'OTO',
+    'on_time_to_destination': 'OTD',
+    'maintenance_variance_to_spend': 'MVtS',
+    'open_boc': 'Open BOC',
+    'vcr_preventable': 'VCR-P',
+    'vmcr_p': 'VMCR-P'
+  };
+  
+  return displayNames[column] || column.replace(/_/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+};
+
+// Helper function to get full column name for tooltip
+const getFullColumnName = (column) => {
+  const fullNames = {
+    'on_time_to_origin': 'On Time to Origin',
+    'on_time_to_destination': 'On Time to Destination',
+    'maintenance_variance_to_spend': 'Maintenance Variance to Spend',
+    'open_boc': 'Open BOC',
+    'vcr_preventable': 'VCR Preventable',
+    'vmcr_p': 'VMCR P'
+  };
+  
+  return fullNames[column] || column.replace(/_/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+};
 </script>
 

@@ -247,7 +247,7 @@ const formatRating = (rating) => {
     case 'not_eligible':
       return 'Not Eligible';
     case 'fantastic_plus':
-      return 'Fantastic+';
+      return 'Fantastic +';
     case 'fantastic':
       return 'Fantastic';
     case 'good':

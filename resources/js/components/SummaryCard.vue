@@ -152,7 +152,7 @@ const formatValue = (key: string, val: any) => {
 // Helper: Return Tailwind CSS classes for rating badges.
 const ratingBadgeClass = (rating: string) => {
   switch (rating) {
-    case 'Fantastic+':
+    case 'Fantastic +':
       return 'bg-green-600 text-white'
     case 'Fantastic':
       return 'bg-green-400 text-white'

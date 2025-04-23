@@ -6,7 +6,7 @@
       <!-- VCR Preventable -->
       <div class="p-4 border rounded-lg">
         <h4 class="text-lg font-medium mb-2">VCR-P</h4>
-        <div class="text-sm text-muted-foreground mb-1">Score</div>
+        <div class="text-sm text-muted-foreground mb-1">Count</div>
         <div class="flex items-center justify-between gap-3 mb-3">
           <div class="text-3xl font-bold" :class="getScoreColorClass(performanceRatings.vcr_preventable)">
             {{ formatNumber(performanceData.vcr_preventable) }}
@@ -20,7 +20,7 @@
       <!-- Open BOC -->
       <div class="p-4 border rounded-lg">
         <h4 class="text-lg font-medium mb-2">Open BOC</h4>
-        <div class="text-sm text-muted-foreground mb-1">Score</div>
+        <div class="text-sm text-muted-foreground mb-1">Count</div>
         <div class="flex items-center justify-between gap-3 mb-3">
           <div class="text-3xl font-bold" :class="getScoreColorClass(performanceRatings.open_boc)">
             {{ formatNumber(performanceData.open_boc) }}
@@ -34,7 +34,7 @@
       <!-- VMCR-P -->
       <div class="p-4 border rounded-lg">
         <h4 class="text-lg font-medium mb-2">VMCR-P</h4>
-        <div class="text-sm text-muted-foreground mb-1">Score</div>
+        <div class="text-sm text-muted-foreground mb-1">Count</div>
         <div class="flex items-center justify-between gap-3 mb-3">
           <div class="text-3xl font-bold" :class="getScoreColorClass(performanceRatings.vmcr_p)">
             {{ formatNumber(performanceData.vmcr_p) }}
@@ -74,7 +74,7 @@ const formatRating = (rating) => {
   
   switch (rating) {
     case 'fantastic_plus':
-      return 'Fantastic+';
+      return 'Fantastic +';
     case 'fantastic':
       return 'Fantastic';
     case 'good':
