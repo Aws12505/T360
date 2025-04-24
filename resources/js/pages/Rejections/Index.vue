@@ -99,7 +99,35 @@
       <Card>
         <CardHeader class="pb-2">
           <div class="flex justify-between items-center">
-            <CardTitle>Filters</CardTitle>
+            <div class="flex items-center gap-2">
+              <CardTitle>Filters</CardTitle>
+              <div v-if="!showFilters && hasActiveFilters" class="flex flex-wrap gap-2 ml-4">
+                <div v-if="filters.search" class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
+                  Search: {{ filters.search }}
+                </div>
+                <div v-if="filters.dateFrom" class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
+                  From: {{ formatDate(filters.dateFrom) }}
+                </div>
+                <div v-if="filters.dateTo" class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
+                  To: {{ formatDate(filters.dateTo) }}
+                </div>
+                <div v-if="filters.rejectionType" class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
+                  Type: <span class="capitalize">{{ filters.rejectionType }}</span>
+                </div>
+                <div v-if="filters.reasonCode" class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
+                  Reason: {{ getReasonCodeLabel(filters.reasonCode) }}
+                </div>
+                <div v-if="filters.penalty" class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
+                  Penalty: {{ filters.penalty }}
+                </div>
+                <div v-if="filters.disputed" class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
+                  Disputed: {{ filters.disputed === 'true' ? 'Yes' : 'No' }}
+                </div>
+                <div v-if="filters.driverControllable" class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
+                  Driver Controllable: {{ filters.driverControllable === 'true' ? 'Yes' : (filters.driverControllable === 'false' ? 'No' : 'N/A') }}
+                </div>
+              </div>
+            </div>
             <Button variant="ghost" size="sm" @click="showFilters = !showFilters">
               {{ showFilters ? 'Hide Filters' : 'Show Filters' }}
               <Icon :name="showFilters ? 'chevron-up' : 'chevron-down'" class="ml-2 h-4 w-4" />
@@ -966,4 +994,22 @@ onMounted(() => {
     document.removeEventListener('click', handleClickOutside);
   });
 });
+// Add these to your script section
+const hasActiveFilters = computed(() => {
+  return filters.value.search || 
+         filters.value.dateFrom || 
+         filters.value.dateTo || 
+         filters.value.rejectionType || 
+         filters.value.reasonCode || 
+         filters.value.penalty || 
+         filters.value.disputed || 
+         filters.value.driverControllable;
+});
+
+// Helper method to get the reason code text
+function getReasonCodeLabel(codeId) {
+  if (!codeId) return '';
+  const code = props.rejection_reason_codes.find(c => c.id == codeId);
+  return code ? code.reason_code : '';
+}
 </script>

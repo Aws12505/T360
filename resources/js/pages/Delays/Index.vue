@@ -121,10 +121,38 @@
 
       <!-- Filters Section -->
       <Card>
-        <CardHeader>
-          <CardTitle>Filters</CardTitle>
+        <CardHeader class="pb-2">
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-2">
+              <CardTitle>Filters</CardTitle>
+              <div v-if="!showFilters && hasActiveFilters" class="flex flex-wrap gap-2 ml-4">
+                <div v-if="filters.search" class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
+                  Search: {{ filters.search }}
+                </div>
+                <div v-if="filters.dateFrom" class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
+                  From: {{ formatDate(filters.dateFrom) }}
+                </div>
+                <div v-if="filters.dateTo" class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
+                  To: {{ formatDate(filters.dateTo) }}
+                </div>
+                <div v-if="filters.delayCode" class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
+                  Code: {{ getDelayCodeLabel(filters.delayCode) }}
+                </div>
+                <div v-if="filters.disputed" class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
+                  Disputed: {{ filters.disputed === 'true' ? 'Yes' : 'No' }}
+                </div>
+                <div v-if="filters.controllable" class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
+                  Driver Controllable: {{ filters.controllable === 'true' ? 'Yes' : (filters.controllable === 'false' ? 'No' : 'N/A') }}
+                </div>
+              </div>
+            </div>
+            <Button variant="ghost" size="sm" @click="showFilters = !showFilters">
+              {{ showFilters ? 'Hide Filters' : 'Show Filters' }}
+              <Icon :name="showFilters ? 'chevron-up' : 'chevron-down'" class="ml-2 h-4 w-4" />
+            </Button>
+          </div>
         </CardHeader>
-        <CardContent>
+        <CardContent v-if="showFilters" class="pt-2">
           <div class="flex flex-col justify-between gap-4">
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full">
               <div>
@@ -749,22 +777,38 @@ const confirmDeleteCode = (id) => {
   codeDeleteConfirm.value = true;
 };
 
+// Add these variables to your script setup section
+const showFilters = ref(false);
+
+// Add this computed property to check if any filters are active
+const hasActiveFilters = computed(() => {
+  return filters.value.search || 
+         filters.value.dateFrom || 
+         filters.value.dateTo || 
+         filters.value.delayCode || 
+         filters.value.disputed || 
+         filters.value.controllable;
+});
+
+// Add this helper function to get the delay code label
+const getDelayCodeLabel = (codeId) => {
+  if (!codeId) return '';
+  const code = props.delay_codes.find(c => c.id === parseInt(codeId));
+  return code ? code.code : '';
+};
+
 // Add the missing deleteCode function
-const deleteCode = (id) => {
-  const form = useForm({});
-  const routeName = props.isSuperAdmin ? 'delay_codes.destroy.admin' : 'delay_codes.destroy';
-  const routeParams = props.isSuperAdmin ? { id: id } : { tenantSlug: props.tenantSlug, delay_code: id };
-  
-  form.delete(route(routeName, routeParams), {
-    onSuccess: () => {
-      successMessage.value = 'Delay code deleted successfully.';
-      codeDeleteConfirm.value = false;
-      router.reload({ only: ['delay_codes'] });
-    },
-    onError: (errors) => {
-      console.error(errors);
-    }
-  });
+const deleteCode = async (id) => {
+  try {
+    await router.delete(route('delay-codes.destroy', id), {
+      onSuccess: () => {
+        codeDeleteConfirm.value = false;
+        successMessage.value = 'Delay code deleted successfully';
+      }
+    });
+  } catch (error) {
+    console.error('Error deleting delay code:', error);
+  }
 };
 
 const saveCode = () => {
