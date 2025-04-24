@@ -38,6 +38,12 @@ import {
   Undo,
   Lock,
   Unlock,
+  Eye,
+  Send,
+  TicketIcon,
+  MessageCircle,
+  HelpCircle,
+  // Add these new icons
 } from 'lucide-vue-next';
 
 // Map of icon names to components
@@ -75,7 +81,12 @@ export type IconName =
   | 'x'
   | 'undo'
   | 'lock'
-  | 'unlock';
+  | 'unlock'
+  | 'eye'
+  | 'send'
+  | 'ticket'
+  | 'messageCircle'
+  | 'helpCircle';
 
 const ICONS: Record<IconName, Component> = {
   truck: Truck,
@@ -112,6 +123,11 @@ const ICONS: Record<IconName, Component> = {
   undo: Undo,
   lock: Lock,
   unlock: Unlock,
+  eye: Eye,
+  send: Send,
+  ticket: TicketIcon,
+  messageCircle: MessageCircle,
+  helpCircle: HelpCircle,
 };
 
 // 3. Define props, with defaults for optional values:

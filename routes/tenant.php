@@ -12,6 +12,8 @@ use App\Http\Controllers\Web\Driver\DriverController;
 use App\Http\Controllers\Web\RepairOrder\RepairOrderController;
 use App\Http\Controllers\Web\Miles\MilesDrivenController;
 use App\Http\Controllers\Settings\TenantSettingsController;
+use App\Http\Controllers\Web\Support\TicketController;
+use App\Http\Controllers\Web\Support\TicketResponseController;
 
 Route::middleware(['auth', 'tenant'])->group(function () {
     Route::prefix('{tenantSlug}')->group(function () {
@@ -108,8 +110,18 @@ Route::delete('/miles-driven/{milesDriven}', [MilesDrivenController::class, 'des
     // Add new import/export routes for rejections
 Route::post('/acceptance/import', [RejectionsController::class, 'import'])->name('acceptance.import');
 Route::get('/acceptance/export', [RejectionsController::class, 'export'])->name('acceptance.export');
-
-    });
+Route::get  ('/support',                       [TicketController::class, 'index'])
+                                                           ->name('support.index');
+        Route::get  ('/support/{ticket}',              [TicketController::class, 'show'])
+                                                           ->name('support.show');
+        Route::post ('/support',                       [TicketController::class, 'store'])
+                                                           ->name('support.store');
+        Route::put  ('/support/{ticket}/status',       [TicketController::class, 'updateStatus'])
+                                                           ->name('support.update.status');
+        Route::delete('/support/{ticket}',              [TicketController::class, 'destroy'])
+                                                           ->name('support.destroy');
+        Route::post ('/support/responses',             [TicketResponseController::class, 'store'])
+                                                           ->name('support.responses.store'); });
 });
 
 

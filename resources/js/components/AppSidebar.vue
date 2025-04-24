@@ -99,18 +99,16 @@ const mainNavItems = computed<NavItem[]>(() => [
       : route('miles_driven.index.admin'),
     icon: 'lineChart',
   },
+  
 ]);
 
 const footerNavItems: NavItem[] = [
   {
-    title: 'Github Repo',
-    href: 'https://github.com/laravel/vue-starter-kit',
-    icon: 'folder',
-  },
-  {
-    title: 'Documentation',
-    href: 'https://laravel.com/docs/starter-kits',
-    icon: 'bookOpen',
+    title: 'Support',
+    href: props.tenantSlug
+      ? route('support.index', { tenantSlug: props.tenantSlug })
+      : route('support.index.admin'),
+    icon: 'helpCircle',
   },
 ];
 
@@ -135,8 +133,8 @@ const footerNavItems: NavItem[] = [
             <NavMain :items="mainNavItems" />
         </SidebarContent>
 
-        <SidebarFooter>
-            <!-- <NavFooter :items="footerNavItems" />  -->
+        <SidebarFooter class="border-t border-sidebar-border/30 pt-2">
+             <NavFooter :items="footerNavItems" class="mb-2" />  
             <NavUser :tenantSlug="props.tenantSlug" />
         </SidebarFooter>
     </Sidebar>
