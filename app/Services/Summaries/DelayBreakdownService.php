@@ -7,10 +7,12 @@ use Illuminate\Support\Facades\Auth;
 
 class DelayBreakdownService
 {
-    public function getDelayBreakdown($startDate, $endDate): array
+    /**
+     * Get delay breakdown by driver
+     */
+    public function getDelaysByDriver($startDate, $endDate)
     {
-        // Query for breakdown by driver
-        $queryDriver = DB::table('delays')
+        $query = DB::table('delays')
             ->selectRaw("
                 driver_name,
                 COUNT(*) as total_delays,
@@ -22,19 +24,18 @@ class DelayBreakdownService
             ")
             ->whereBetween('date', [$startDate, $endDate]);
 
-        if (Auth::check() && Auth::user()->tenant_id !== null) {
-            $queryDriver->where('tenant_id', Auth::user()->tenant_id);
-        }
+        $this->applyTenantFilter($query);
+        $this->applyDriverControllableFilter($query);
 
-        $queryDriver->where(function ($q) {
-            $q->whereNull('driver_controllable')->orWhere('driver_controllable', true);
-        })
-        ->groupBy('driver_name');
+        return $query->groupBy('driver_name')->get();
+    }
 
-        $byDriver = $queryDriver->get();
-
-        // Query for breakdown by code
-        $queryCode = DB::table('delays')
+    /**
+     * Get delay breakdown by delay code
+     */
+    public function getDelaysByCode($startDate, $endDate)
+    {
+        $query = DB::table('delays')
             ->join('delay_codes', 'delays.delay_code_id', '=', 'delay_codes.id')
             ->selectRaw("
                 delay_codes.code,
@@ -47,20 +48,42 @@ class DelayBreakdownService
             ")
             ->whereBetween('delays.date', [$startDate, $endDate]);
 
+        $this->applyTenantFilter($query, 'delays');
+        $this->applyDriverControllableFilter($query);
+
+        return $query->groupBy('delay_codes.code')->get();
+    }
+
+    /**
+     * Apply tenant filter to query if user is authenticated
+     */
+    public function applyTenantFilter($query, $tablePrefix = '')
+    {
         if (Auth::check() && Auth::user()->tenant_id !== null) {
-            $queryCode->where('delays.tenant_id', Auth::user()->tenant_id);
+            $columnName = $tablePrefix ? "{$tablePrefix}.tenant_id" : 'tenant_id';
+            $query->where($columnName, Auth::user()->tenant_id);
         }
+    }
 
-        $queryCode->where(function ($q) {
-            $q->whereNull('driver_controllable')->orWhere('driver_controllable', true);
-        })
-        ->groupBy('delay_codes.code');
+    /**
+     * Apply driver controllable filter to query
+     */
+    public function applyDriverControllableFilter($query)
+    {
+        $query->where(function ($q) {
+            $q->whereNull('driver_controllable')
+              ->orWhere('driver_controllable', true);
+        });
+    }
 
-        $byCode = $queryCode->get();
-
+    /**
+     * Get complete delay breakdown data for the specified date range
+     */
+    public function getDelayBreakdown($startDate, $endDate): array
+    {
         return [
-            'by_driver' => $byDriver,
-            'by_code'   => $byCode,
+            'by_driver' => $this->getDelaysByDriver($startDate, $endDate),
+            'by_code'   => $this->getDelaysByCode($startDate, $endDate),
         ];
     }
 }

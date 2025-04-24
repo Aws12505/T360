@@ -8,9 +8,11 @@ use App\Models\PerformanceMetricRule;
 
 class SafetyDataService
 {
-    public function getSafetyData($startDate, $endDate): array
+    /**
+     * Get aggregate safety data for the specified date range
+     */
+    public function getAggregateSafetyData($startDate, $endDate)
     {
-        
         $query = DB::table('safety_data')
             ->selectRaw("
                 SUM(traffic_light_violation) AS traffic_light_violation,
@@ -23,96 +25,129 @@ class SafetyDataService
             ")
             ->whereBetween('date', [$startDate, $endDate]);
 
+        $this->applyTenantFilter($query);
+        return $query->first();
+    }
+
+    /**
+     * Calculate violation rates per 1000 hours
+     */
+    public function calculateViolationRates($safetyData, $totalHours): array
+    {
+        return [
+            'traffic_light_violation' => $totalHours > 0 ? ($safetyData->traffic_light_violation ?? 0) / $totalHours * 1000 : 0,
+            'speeding_violations' => $totalHours > 0 ? ($safetyData->speeding_violations ?? 0) / $totalHours * 1000 : 0,
+            'following_distance' => $totalHours > 0 ? ($safetyData->following_distance ?? 0) / $totalHours * 1000 : 0,
+            'driver_distraction' => $totalHours > 0 ? ($safetyData->driver_distraction ?? 0) / $totalHours * 1000 : 0,
+            'sign_violations' => $totalHours > 0 ? ($safetyData->sign_violations ?? 0) / $totalHours * 1000 : 0,
+        ];
+    }
+
+    /**
+     * Get top drivers by score
+     */
+    public function getTopDrivers($startDate, $endDate, $limit = 5)
+    {
+        $query = $this->getDriverScoreQuery($startDate, $endDate)
+            ->orderBy('average_score', 'desc')
+            ->limit($limit);
+
+        return $this->mapDriverResults($query->get());
+    }
+
+    /**
+     * Get bottom drivers by score
+     */
+    public function getBottomDrivers($startDate, $endDate, $limit = 5)
+    {
+        $query = $this->getDriverScoreQuery($startDate, $endDate)
+            ->orderBy('average_score', 'asc')
+            ->limit($limit);
+
+        return $this->mapDriverResults($query->get());
+    }
+
+    /**
+     * Get base query for driver scores
+     */
+    public function getDriverScoreQuery($startDate, $endDate)
+    {
+        $query = DB::table('safety_data')
+            ->select('driver_name', DB::raw('AVG(driver_score) as average_score'))
+            ->whereBetween('date', [$startDate, $endDate])
+            ->whereNotNull('driver_name')
+            ->where('driver_name', '!=', '');
+
+        $this->applyTenantFilter($query);
+        return $query->groupBy('driver_name');
+    }
+
+    /**
+     * Map driver query results to formatted array
+     */
+    public function mapDriverResults($drivers)
+    {
+        return $drivers->map(function($driver, $index) {
+            return [
+                'name' => $driver->driver_name,
+                'score' => round($driver->average_score, 1),
+                'rank' => $index + 1
+            ];
+        });
+    }
+
+    /**
+     * Apply tenant filter to query if user is authenticated
+     */
+    public function applyTenantFilter($query)
+    {
         if (Auth::check() && Auth::user()->tenant_id !== null) {
             $query->where('tenant_id', Auth::user()->tenant_id);
         }
+    }
 
-        $safetyData = $query->first();
+    /**
+     * Calculate safety ratings for all violation types
+     */
+    public function calculateSafetyRatings($rates, $rules): array
+    {
+        return [
+            'traffic_light_violation' => $this->getSafetyRating($rates['traffic_light_violation'], $rules, 'traffic_light_violation'),
+            'speeding_violations' => $this->getSafetyRating($rates['speeding_violations'], $rules, 'speeding_violation'),
+            'following_distance' => $this->getSafetyRating($rates['following_distance'], $rules, 'following_distance'),
+            'driver_distraction' => $this->getSafetyRating($rates['driver_distraction'], $rules, 'driver_distraction'),
+            'sign_violations' => $this->getSafetyRating($rates['sign_violations'], $rules, 'sign_violation'),
+        ];
+    }
+
+    /**
+     * Get complete safety data for the specified date range
+     */
+    public function getSafetyData($startDate, $endDate): array
+    {
+        $safetyData = $this->getAggregateSafetyData($startDate, $endDate);
         $totalHours = ($safetyData->total_minutes_analyzed ?? 0) / 60;
-
-        // Calculate violation rates per 1000 hours
-        $trafficLightRate = $totalHours > 0 ? ($safetyData->traffic_light_violation ?? 0) / $totalHours * 1000 : 0;
-        $speedingRate = $totalHours > 0 ? ($safetyData->speeding_violations ?? 0) / $totalHours * 1000 : 0;
-        $followingDistanceRate = $totalHours > 0 ? ($safetyData->following_distance ?? 0) / $totalHours * 1000 : 0;
-        $distractionRate = $totalHours > 0 ? ($safetyData->driver_distraction ?? 0) / $totalHours * 1000 : 0;
-        $signViolationRate = $totalHours > 0 ? ($safetyData->sign_violations ?? 0) / $totalHours * 1000 : 0;
-
-        // Get the performance metric rules
         $rules = PerformanceMetricRule::first();
-
-        // Get top 5 drivers by score
-        $topDriversQuery = DB::table('safety_data')
-            ->select('driver_name', DB::raw('AVG(driver_score) as average_score'))
-            ->whereBetween('date', [$startDate, $endDate])
-            ->whereNotNull('driver_name')
-            ->where('driver_name', '!=', '');
-
-        if (Auth::check() && Auth::user()->tenant_id !== null) {
-            $topDriversQuery->where('tenant_id', Auth::user()->tenant_id);
-        }
-
-        $topDrivers = $topDriversQuery
-            ->groupBy('driver_name')
-            ->orderBy('average_score', 'desc')
-            ->limit(5)
-            ->get()
-            ->map(function($driver, $index) {
-                return [
-                    'name' => $driver->driver_name,
-                    'score' => round($driver->average_score, 1),
-                    'rank' => $index + 1
-                ];
-            });
-
-        // Get bottom 5 drivers by score
-        $bottomDriversQuery = DB::table('safety_data')
-            ->select('driver_name', DB::raw('AVG(driver_score) as average_score'))
-            ->whereBetween('date', [$startDate, $endDate])
-            ->whereNotNull('driver_name')
-            ->where('driver_name', '!=', '');
-
-        if (Auth::check() && Auth::user()->tenant_id !== null) {
-            $bottomDriversQuery->where('tenant_id', Auth::user()->tenant_id);
-        }
-
-        $bottomDrivers = $bottomDriversQuery
-            ->groupBy('driver_name')
-            ->orderBy('average_score', 'asc')
-            ->limit(5)
-            ->get()
-            ->map(function($driver, $index) {
-                return [
-                    'name' => $driver->driver_name,
-                    'score' => round($driver->average_score, 1),
-                    'rank' => $index + 1
-                ];
-            });
+        
+        $rates = $this->calculateViolationRates($safetyData, $totalHours);
+        $ratings = $this->calculateSafetyRatings($rates, $rules);
+        
+        $topDrivers = $this->getTopDrivers($startDate, $endDate);
+        $bottomDrivers = $this->getBottomDrivers($startDate, $endDate);
 
         return [
-            'traffic_light_violation'       => $safetyData->traffic_light_violation ?? 0,
-            'speeding_violations'           => $safetyData->speeding_violations ?? 0,
+            'traffic_light_violation' => $safetyData->traffic_light_violation ?? 0,
+            'speeding_violations' => $safetyData->speeding_violations ?? 0,
             'following_distance' => $safetyData->following_distance ?? 0,
-            'driver_distraction'            => $safetyData->driver_distraction ?? 0,
-            'sign_violations'               => $safetyData->sign_violations ?? 0,
-            'average_driver_score'          => $safetyData->average_driver_score ?? 0,
-            'total_minutes_analyzed'        => $safetyData->total_minutes_analyzed ?? 0,
-            'total_hours'                   => $totalHours,
-            'top_drivers'                   => $topDrivers,
-            'bottom_drivers'                => $bottomDrivers,
-            'rates' => [
-                'traffic_light_violation'       => $trafficLightRate,
-                'speeding_violations'           => $speedingRate,
-                'following_distance' => $followingDistanceRate,
-                'driver_distraction'            => $distractionRate,
-                'sign_violations'               => $signViolationRate,
-            ],
-            'ratings' => [
-                'traffic_light_violation'       => $this->getSafetyRating($trafficLightRate, $rules, 'traffic_light_violation'),
-                'speeding_violations'           => $this->getSafetyRating($speedingRate, $rules, 'speeding_violation'),
-                'following_distance'            => $this->getSafetyRating($followingDistanceRate, $rules, 'following_distance'),
-                'driver_distraction'            => $this->getSafetyRating($distractionRate, $rules, 'driver_distraction'),
-                'sign_violations'               => $this->getSafetyRating($signViolationRate, $rules, 'sign_violation'),
-            ],
+            'driver_distraction' => $safetyData->driver_distraction ?? 0,
+            'sign_violations' => $safetyData->sign_violations ?? 0,
+            'average_driver_score' => $safetyData->average_driver_score ?? 0,
+            'total_minutes_analyzed' => $safetyData->total_minutes_analyzed ?? 0,
+            'total_hours' => $totalHours,
+            'top_drivers' => $topDrivers,
+            'bottom_drivers' => $bottomDrivers,
+            'rates' => $rates,
+            'ratings' => $ratings,
         ];
     }
 
@@ -124,7 +159,7 @@ class SafetyDataService
      * @param string $metricPrefix The prefix for the metric in the rules table
      * @return string The safety rating (gold, silver, or not_eligible)
      */
-    private function getSafetyRating($rate, $rules, $metricPrefix): string
+    public function getSafetyRating($rate, $rules, $metricPrefix): string
     {
         if (!$rules) {
             return 'not_eligible';
@@ -158,7 +193,7 @@ class SafetyDataService
      * @param string $operator The comparison operator
      * @return bool Whether the comparison is true
      */
-    private function compareValues($value, $threshold, $operator): bool
+    public function compareValues($value, $threshold, $operator): bool
     {
         return match ($operator) {
             'less'          => $value < $threshold,

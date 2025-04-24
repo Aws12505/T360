@@ -7,10 +7,12 @@ use Illuminate\Support\Facades\Auth;
 
 class RejectionBreakdownService
 {
-    public function getRejectionBreakdown($startDate, $endDate): array
+    /**
+     * Get rejection breakdown by driver
+     */
+    public function getRejectionsByDriver($startDate, $endDate)
     {
-        // Query for breakdown by driver
-        $queryDriver = DB::table('rejections')
+        $query = DB::table('rejections')
             ->selectRaw("
                 driver_name,
                 COUNT(*) as total_rejections,
@@ -22,19 +24,18 @@ class RejectionBreakdownService
             ")
             ->whereBetween('date', [$startDate, $endDate]);
 
-        if (Auth::check() && Auth::user()->tenant_id !== null) {
-            $queryDriver->where('tenant_id', Auth::user()->tenant_id);
-        }
+        $this->applyTenantFilter($query);
+        $this->applyDriverControllableFilter($query);
 
-        $queryDriver->where(function ($q) {
-            $q->whereNull('driver_controllable')->orWhere('driver_controllable', true);
-        })
-        ->groupBy('driver_name');
+        return $query->groupBy('driver_name')->get();
+    }
 
-        $byDriver = $queryDriver->get();
-
-        // Query for breakdown by reason
-        $queryReason = DB::table('rejections')
+    /**
+     * Get rejection breakdown by reason code
+     */
+    public function getRejectionsByReason($startDate, $endDate)
+    {
+        $query = DB::table('rejections')
             ->join('rejection_reason_codes', 'rejections.reason_code_id', '=', 'rejection_reason_codes.id')
             ->selectRaw("
                 rejection_reason_codes.reason_code,
@@ -47,20 +48,42 @@ class RejectionBreakdownService
             ")
             ->whereBetween('rejections.date', [$startDate, $endDate]);
 
+        $this->applyTenantFilter($query, 'rejections');
+        $this->applyDriverControllableFilter($query);
+
+        return $query->groupBy('rejection_reason_codes.reason_code')->get();
+    }
+
+    /**
+     * Apply tenant filter to query if user is authenticated
+     */
+    public function applyTenantFilter($query, $tablePrefix = '')
+    {
         if (Auth::check() && Auth::user()->tenant_id !== null) {
-            $queryReason->where('rejections.tenant_id', Auth::user()->tenant_id);
+            $columnName = $tablePrefix ? "{$tablePrefix}.tenant_id" : 'tenant_id';
+            $query->where($columnName, Auth::user()->tenant_id);
         }
+    }
 
-        $queryReason->where(function ($q) {
-            $q->whereNull('driver_controllable')->orWhere('driver_controllable', true);
-        })
-        ->groupBy('rejection_reason_codes.reason_code');
+    /**
+     * Apply driver controllable filter to query
+     */
+    public function applyDriverControllableFilter($query)
+    {
+        $query->where(function ($q) {
+            $q->whereNull('driver_controllable')
+              ->orWhere('driver_controllable', true);
+        });
+    }
 
-        $byReason = $queryReason->get();
-
+    /**
+     * Get complete rejection breakdown data for the specified date range
+     */
+    public function getRejectionBreakdown($startDate, $endDate): array
+    {
         return [
-            'by_driver' => $byDriver,
-            'by_reason' => $byReason,
+            'by_driver' => $this->getRejectionsByDriver($startDate, $endDate),
+            'by_reason' => $this->getRejectionsByReason($startDate, $endDate),
         ];
     }
 }
