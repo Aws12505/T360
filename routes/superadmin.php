@@ -12,6 +12,9 @@ use App\Http\Controllers\Web\Truck\TruckController;
 use App\Http\Controllers\Web\Driver\DriverController;
 use App\Http\Controllers\Web\RepairOrder\RepairOrderController;
 use App\Http\Controllers\Web\Miles\MilesDrivenController;
+use App\Http\Controllers\Web\Support\TicketController;
+use App\Http\Controllers\Web\Support\TicketResponseController;
+
 Route::middleware(['auth', 'superAdmin'])->group(function () {
     Route::get('/dashboard', function () {
         return Inertia::render('Dashboard');
@@ -151,4 +154,17 @@ Route::delete('/miles-driven/{milesDriven}', [MilesDrivenController::class, 'des
 Route::delete('/delay-codes/{id}', [DelaysController::class, 'destroyCode'])->name('delay_codes.destroy.admin');
 Route::post('/delay-codes/{id}/restore', [DelaysController::class, 'restoreCode'])->name('delay_codes.restore.admin');
 Route::delete('/delay-codes/{id}/force', [DelaysController::class, 'forceDeleteCode'])->name('delay_codes.forceDelete.admin');
+Route::get  ('/support',                           [TicketController::class, 'index'])
+->name('support.index.admin');
+Route::get  ('/support/{ticket}',                  [TicketController::class, 'showAdmin'])
+->name('support.show.admin');
+Route::post ('/support',                           [TicketController::class, 'store'])
+->name('support.store.admin');
+Route::put  ('/support/{ticket}/status',           [TicketController::class, 'updateStatusAdmin'])
+->name('support.update.status.admin');
+Route::delete('/support/{ticket}',                  [TicketController::class, 'destroyAdmin'])
+->name('support.destroy.admin');
+Route::post ('/support/responses',                 [TicketResponseController::class, 'store'])
+->name('support.responses.store.admin');
+
 });
