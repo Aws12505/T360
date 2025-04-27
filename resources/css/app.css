@@ -105,6 +105,30 @@ html {
     }
 }
 
+
+/* Add custom border styling for thicker borders */
+@layer utilities {
+    .border {
+        @apply border-2;
+    }
+    
+    .border-t {
+        @apply border-t-2;
+    }
+    
+    .border-r {
+        @apply border-r-2;
+    }
+    
+    .border-b {
+        @apply border-b-2;
+    }
+    
+    .border-l {
+        @apply border-l-2;
+    }
+}
+
 /* Custom scrollbar styling */
 @layer utilities {
     /* Webkit browsers (Chrome, Safari, newer Edge) */
