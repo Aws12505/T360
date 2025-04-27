@@ -129,22 +129,26 @@
                 </span>
               </div>
               
-              <!-- Toggle Freeze Column Button -->
-              <Button 
-                @click="toggleFreezeColumn" 
-                variant="outline"
-                size="sm"
-                :class="{'bg-primary/10 text-primary border-primary': freezeColumns}"
-              >
-                <Icon :name="freezeColumns ? 'lock' : 'unlock'" class="mr-2 h-4 w-4" />
-                {{ freezeColumns ? 'Unfreeze Names' : 'Freeze Names' }}
-              </Button>
+             
             </div>
           </div>
         </CardContent>
       </Card>
 
+      <!-- Safety Summary Component -->
+      <SafetySummary :data="safetyData" />
+
       <!-- Data Table Section -->
+        <!-- Toggle Freeze Column Button -->
+        <Button 
+        @click="toggleFreezeColumn" 
+        variant="outline"
+        size="sm"
+        :class="{'bg-primary/10 text-primary border-primary': freezeColumns}"
+      >
+        <Icon :name="freezeColumns ? 'lock' : 'unlock'" class="mr-2 h-4 w-4" />
+        {{ freezeColumns ? 'Unfreeze Names' : 'Freeze Names' }}
+      </Button>
       <Card>
         <CardContent class="p-0">
           <div class="overflow-x-auto bg-background dark:bg-background border-t border-border">
@@ -165,8 +169,12 @@
                   <!-- If SuperAdmin, show Tenant column -->
                   <TableHead v-if="SuperAdmin" :class="{ 'sticky left-[50px] z-20 bg-background': freezeColumns }">Company Name</TableHead>
                   <!-- Dynamically render table columns from the tableColumns array -->
+                  <!-- here where we filter out the user_name, group, and group_hierarchy columns and the impact columns -->
                   <TableHead
-                    v-for="col in tableColumns"
+                    v-for="col in tableColumns.filter(col => 
+                      !['user_name', 'group', 'group_hierarchy'].includes(col) && 
+                      !col.toLowerCase().includes('impact')
+                    )"
                     :key="col"
                     class="whitespace-nowrap"
                     :class="{
@@ -201,7 +209,10 @@
                   <TableCell v-if="SuperAdmin" :class="{ 'sticky left-[50px] z-10 bg-background': freezeColumns }">{{ item.tenant?.name ?? '—' }}</TableCell>
                   <!-- Render each field for the entry -->
                   <TableCell
-                    v-for="col in tableColumns"
+                    v-for="col in tableColumns.filter(col => 
+                      !['user_name', 'group', 'group_hierarchy'].includes(col) && 
+                      !col.toLowerCase().includes('impact')
+                    )"
                     :key="col"
                     class="whitespace-nowrap"
                     :class="{
@@ -425,6 +436,8 @@ import {
   Label, Input,
   Alert, AlertTitle, AlertDescription
 } from '@/components/ui';
+import SafetySummary from './SafetySummary.vue';
+
 
 // Define props passed from the backend via Inertia
 const props = defineProps({
@@ -770,6 +783,50 @@ function deleteSelectedEntries() {
     }
   });
 }
+
+// Add this to your reactive state variables
+const safetyData = ref({
+  greenZoneScore: 1050,
+  topDrivers: [
+    { name: 'Daniel Rice', score: 1 },
+    { name: 'Johnny Rice', score: 2 },
+    { name: 'Adam Levine the greatest', score: 3 },
+    { name: 'Alaina', score: 4 },
+    { name: 'Jaden', score: 5 }
+  ],
+  bottomDrivers: [
+    { name: 'Kain', score: 5 },
+    { name: 'Ronny', score: 4 },
+    { name: 'Damen', score: 3 },
+    { name: 'Leo', score: 2 },
+    { name: 'Shawn', score: 1 }
+  ],
+  alerts: {
+    distractedDriving: 23,
+    speeding: 4,
+    signViolation: 6,
+    trafficLightViolation: 7,
+    followingDistance: 3
+  },
+  infractions: {
+    driverStar: 1050,
+    potentialCollision: 1050,
+    hardBraking: 1050,
+    hardTurn: 1050,
+    hardAcceleration: 1050,
+    uTurn: 1050,
+    seatbeltCompliance: 1050,
+    cameraObstruction: 1050,
+    driverDrowsiness: 1050,
+    weaving: 1050,
+    collisionWarning: 1050,
+    backing: 1050,
+    roadsideParking: 1050,
+    highG: 1050
+  }
+});
+
+
 </script>
 
 <style scoped>
