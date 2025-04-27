@@ -40,7 +40,10 @@ class SummariesController extends Controller
     public function getSummaries(Request $request)
     {
         $dateFilter = $request->input('dateFilter', 'yesterday');
-        $data = $this->summariesService->compileSummaries($dateFilter);
+        $minInvoiceAmount = $request->input('minInvoiceAmount');
+        $outstandingDate = $request->input('outstandingDate');
+        
+        $data = $this->summariesService->compileSummaries($dateFilter, $minInvoiceAmount, $outstandingDate);
         return Inertia::render('Performance/Summary', $data);
     }
 }

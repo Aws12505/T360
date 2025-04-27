@@ -15,7 +15,7 @@ class UpdateRepairOrderRequest extends FormRequest
     public function rules()
     {
         return [
-            'ro_number'           => 'required|string',
+            'ro_number'           => 'nullable|string',
             'ro_open_date'        => 'required|date',
             'ro_close_date'       => 'nullable|date',
             'truck_id'            => 'required|exists:trucks,id',
