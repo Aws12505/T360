@@ -8,7 +8,11 @@
         <AlertTitle>Success</AlertTitle>
         <AlertDescription>{{ successMessage }}</AlertDescription>
       </Alert>
-
+  <!-- Error Message -->
+  <Alert v-if="errorMessage" variant="destructive">
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>{{ errorMessage }}</AlertDescription>
+      </Alert>
       <!-- Actions Section -->
       <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
         <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">Safety Management</h1>
@@ -439,6 +443,7 @@ const props = defineProps({
 });
 
 // Reactive state variables
+const errorMessage = ref('');
 const successMessage = ref('');
 const showModal = ref(false);
 const formTitle = ref('Create Entry');
@@ -648,6 +653,13 @@ function handleImport(e) {
 
 // Export CSV by submitting a hidden form.
 function exportCSV() {
+  if (props.entries.data.length===0) {
+    errorMessage.value = "No data available to export";
+    setTimeout(() => {
+      errorMessage.value = "";
+    }, 3000);
+    return;
+  }
   const routeName = props.SuperAdmin
     ? route('safety.export.admin')
     : route('safety.export', props.tenantSlug);

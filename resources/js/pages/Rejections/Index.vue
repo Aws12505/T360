@@ -8,7 +8,11 @@
         <AlertTitle>Success</AlertTitle>
         <AlertDescription>{{ successMessage }}</AlertDescription>
       </Alert>
-
+  <!-- Error Message -->
+  <Alert v-if="errorMessage" variant="destructive">
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>{{ errorMessage }}</AlertDescription>
+      </Alert>
       <!-- Actions Section -->
       <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
         <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">Acceptance</h1>
@@ -534,6 +538,7 @@ const breadcrumbs = [
 const formModal = ref(false);
 const codeModal = ref(false);
 const selectedRejection = ref(null);
+const errorMessage = ref('');
 const successMessage = ref('');
 const activeTab = ref(props.dateFilter || 'full');
 const perPage = ref(props.perPage);
@@ -959,6 +964,13 @@ function handleImport(event) {
 }
 
 function exportCSV() {
+  if (filteredRejections.value.length===0) {
+    errorMessage.value = "No data available to export";
+    setTimeout(() => {
+      errorMessage.value = "";
+    }, 3000);
+    return;
+  }
   // Submit the hidden form to trigger the download
   if (exportForm.value) {
     exportForm.value.submit();

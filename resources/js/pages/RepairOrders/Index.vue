@@ -7,7 +7,11 @@
         <AlertTitle>Success</AlertTitle>
         <AlertDescription>{{ successMessage }}</AlertDescription>
       </Alert>
-
+  <!-- Error Message -->
+  <Alert v-if="errorMessage" variant="destructive">
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>{{ errorMessage }}</AlertDescription>
+      </Alert>
       <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
   <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">Repair Orders</h1>
   <div class="flex flex-wrap gap-3">
@@ -167,15 +171,16 @@
                   class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm"
                   @change="applyFilters"
                 >
-                  <option value="">All Statuses</option>
-                  <option disabled value="">Select status</option>
-                  <option value="Completed">Completed</option>
-                  <option value="Canceled">Canceled</option>
-                  <option value="Closed">Closed</option>
-                  <option value="Pending verification">Pending verification</option>
-                  <option value="Scheduled">Scheduled</option>
-                  <option value="Not on relay">Not On Relay</option>
-                  <option value="Work in progress">Work In Progress</option>
+                <option value="">All Statuses</option>
+<option disabled value="">Select status</option>
+<option 
+  v-for="status in woStatuses" 
+  :key="status.id" 
+  :value="status.name"
+>
+  {{ status.name }} 
+  <span v-if="status.deleted_at">(Deleted)</span>
+</option>
                 </select>
               </div>
             </div>
@@ -854,6 +859,7 @@ const woStatusForm = ref({
   name: '',
 });
 // State variables
+const errorMessage = ref('');
 const successMessage = ref('')
 const showModal = ref(false)
 const showDeleteModal = ref(false)
@@ -1250,6 +1256,13 @@ const handleImport = (event) => {
 }
 
 const exportCSV = () => {
+  if (props.repairOrders.data.length===0) {
+    errorMessage.value = "No data available to export";
+    setTimeout(() => {
+      errorMessage.value = "";
+    }, 3000);
+    return;
+  }
   window.location.href = props.SuperAdmin 
     ? route('repair_orders.export.admin')
     : route('repair_orders.export', props.tenantSlug)

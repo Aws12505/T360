@@ -8,6 +8,12 @@
         <AlertTitle>Success</AlertTitle>
         <AlertDescription>{{ successMessage }}</AlertDescription>
       </Alert>
+      
+      <!-- Error Message -->
+      <Alert v-if="errorMessage" variant="destructive">
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>{{ errorMessage }}</AlertDescription>
+      </Alert>
 
       <!-- Actions Section -->
       <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
@@ -492,6 +498,7 @@ const props = defineProps({
 })
 
 // UI state
+const errorMessage = ref('');
 const successMessage = ref('');
 const showModal = ref(false);
 const formTitle = ref('Create Performance');
@@ -701,6 +708,13 @@ function handleImport(e) {
 }
 
 function exportCSV() {
+  if (filteredPerformances.value.length===0) {
+    errorMessage.value = "No data available to export";
+    setTimeout(() => {
+      errorMessage.value = "";
+    }, 3000);
+    return;
+  }
   const routeName = props.SuperAdmin
     ? route('performance.export.admin')
     : route('performance.export', props.tenantSlug)
@@ -923,5 +937,16 @@ const getFullColumnName = (column) => {
   
   return fullNames[column] || column.replace(/_/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 };
+
+function changePerPage() {
+  const routeName = props.tenantSlug
+    ? route('performance.index', { tenantSlug: props.tenantSlug })
+    : route('performance.index.admin');
+
+  router.get(routeName, {
+    dateFilter: activeTab.value,
+    perPage: perPage.value
+  }, { preserveState: true });
+}
 </script>
 
