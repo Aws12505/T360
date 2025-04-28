@@ -447,7 +447,7 @@ const props = defineProps({
   dateRange: Object,
   dateFilter: {
     type: String,
-    default: 'full'
+    default: 'yesterday'
   }
 });
 

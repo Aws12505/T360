@@ -135,8 +135,7 @@
         </CardContent>
       </Card>
 
-      <!-- Safety Summary Component -->
-      <SafetySummary :data="safetyData" />
+      <SafetySummary v-if="!SuperAdmin" :data="safetyData" />
 
       <!-- Data Table Section -->
         <!-- Toggle Freeze Column Button -->
@@ -451,8 +450,12 @@ const props = defineProps({
   dateRange: Object,
   dateFilter: {
     type: String,
-    default: 'full'
-  }
+    default: 'yesterday'
+  },
+  safetyData: {
+    type: Object,
+    default: () => ({})
+  },
 });
 
 // Reactive state variables
@@ -785,46 +788,46 @@ function deleteSelectedEntries() {
 }
 
 // Add this to your reactive state variables
-const safetyData = ref({
-  greenZoneScore: 1050,
-  topDrivers: [
-    { name: 'Daniel Rice', score: 1 },
-    { name: 'Johnny Rice', score: 2 },
-    { name: 'Adam Levine the greatest', score: 3 },
-    { name: 'Alaina', score: 4 },
-    { name: 'Jaden', score: 5 }
-  ],
-  bottomDrivers: [
-    { name: 'Kain', score: 5 },
-    { name: 'Ronny', score: 4 },
-    { name: 'Damen', score: 3 },
-    { name: 'Leo', score: 2 },
-    { name: 'Shawn', score: 1 }
-  ],
-  alerts: {
-    distractedDriving: 23,
-    speeding: 4,
-    signViolation: 6,
-    trafficLightViolation: 7,
-    followingDistance: 3
-  },
-  infractions: {
-    driverStar: 1050,
-    potentialCollision: 1050,
-    hardBraking: 1050,
-    hardTurn: 1050,
-    hardAcceleration: 1050,
-    uTurn: 1050,
-    seatbeltCompliance: 1050,
-    cameraObstruction: 1050,
-    driverDrowsiness: 1050,
-    weaving: 1050,
-    collisionWarning: 1050,
-    backing: 1050,
-    roadsideParking: 1050,
-    highG: 1050
-  }
-});
+// const safetyData = ref({
+//   greenZoneScore: 1050,
+//   topDrivers: [
+//     { name: 'Daniel Rice', score: 1 },
+//     { name: 'Johnny Rice', score: 2 },
+//     { name: 'Adam Levine the greatest', score: 3 },
+//     { name: 'Alaina', score: 4 },
+//     { name: 'Jaden', score: 5 }
+//   ],
+//   bottomDrivers: [
+//     { name: 'Kain', score: 5 },
+//     { name: 'Ronny', score: 4 },
+//     { name: 'Damen', score: 3 },
+//     { name: 'Leo', score: 2 },
+//     { name: 'Shawn', score: 1 }
+//   ],
+//   alerts: {
+//     distractedDriving: 23,
+//     speeding: 4,
+//     signViolation: 6,
+//     trafficLightViolation: 7,
+//     followingDistance: 3
+//   },
+//   infractions: {
+//     driverStar: 1050,
+//     potentialCollision: 1050,
+//     hardBraking: 1050,
+//     hardTurn: 1050,
+//     hardAcceleration: 1050,
+//     uTurn: 1050,
+//     seatbeltCompliance: 1050,
+//     cameraObstruction: 1050,
+//     driverDrowsiness: 1050,
+//     weaving: 1050,
+//     collisionWarning: 1050,
+//     backing: 1050,
+//     roadsideParking: 1050,
+//     highG: 1050
+//   }
+// });
 
 
 </script>

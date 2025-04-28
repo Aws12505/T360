@@ -834,7 +834,7 @@ const props = defineProps({
   vendors: { type: Array, default: () => [] },
   areasOfConcern: { type: Array, default: () => [] },
   dateRange: { type: Object, default: null },
-  dateFilter: { type: String, default: 'full' },
+  dateFilter: { type: String, default: 'yesterday' },
   woStatuses: { type: Array, default: () => [] }
 })
 

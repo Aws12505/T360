@@ -565,7 +565,7 @@ const props = defineProps({
   tenants: { type: Array, default: () => [] },
   isSuperAdmin: { type: Boolean, default: false },
   dateRange: { type: Object, default: null },
-  dateFilter: { type: String, default: 'full' },
+  dateFilter: { type: String, default: 'yesterday' },
 });
 
 const breadcrumbs = [

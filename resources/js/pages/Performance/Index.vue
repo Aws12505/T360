@@ -492,7 +492,7 @@ const props = defineProps({
   tenantSlug: { type: String, default: null },
   SuperAdmin: { type: Boolean, default: false },
   tenants: { type: Array, default: () => [] },
-  dateFilter: { type: String, default: 'full' },
+  dateFilter: { type: String, default: 'yesterday' },
   dateRange: { type: Object, default: () => ({ label: 'All Time' }) },
   perPage: { type: Number, default: 10 }
 })

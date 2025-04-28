@@ -204,4 +204,86 @@ class SafetyDataService
             default         => false,
         };
     }
+
+    /**
+     * Get infractions data from the database
+     * 
+     * @param string $startDate The start date for the query
+     * @param string $endDate The end date for the query
+     * @return object The infractions data
+     */
+    public function getInfractionsData($startDate, $endDate)
+    {
+        $query = DB::table('safety_data')
+            ->selectRaw("
+                SUM(driver_star) AS driver_star,
+                SUM(potential_collision) AS potential_collision,
+                SUM(hard_braking) AS hard_braking,
+                SUM(hard_turn) AS hard_turn,
+                SUM(hard_acceleration) AS hard_acceleration,
+                SUM(u_turn) AS u_turn,
+                SUM(seatbelt_compliance) AS seatbelt_compliance,
+                SUM(camera_obstruction) AS camera_obstruction,
+                SUM(driver_drowsiness) AS driver_drowsiness,
+                SUM(weaving) AS weaving,
+                SUM(collision_warning) AS collision_warning,
+                SUM(backing) AS backing,
+                SUM(roadside_parking) AS roadside_parking,
+                SUM(high_g) AS high_g
+            ")
+            ->whereBetween('date', [$startDate, $endDate]);
+
+        $this->applyTenantFilter($query);
+        return $query->first();
+    }
+
+    /**
+     * Get formatted safety data for the frontend in the same structure as the hardcoded values
+     * 
+     * @param string $startDate The start date for the query
+     * @param string $endDate The end date for the query
+     * @return array The formatted safety data
+     */
+    public function getFormattedSafetyData($startDate, $endDate): array
+    {
+        // Get top and bottom drivers
+        $topDrivers = $this->getTopDrivers($startDate, $endDate);
+        $bottomDrivers = $this->getBottomDrivers($startDate, $endDate);
+        
+        // Get aggregate safety data for alerts
+        $aggregateSafetyData = $this->getAggregateSafetyData($startDate, $endDate);
+        
+        // Get infractions data
+        $infractionsData = $this->getInfractionsData($startDate, $endDate);
+        
+        // Format the data according to the structure in Safety.vue
+        return [
+            'greenZoneScore' => $aggregateSafetyData->average_driver_score ?? 0,
+            'topDrivers' => $topDrivers,
+            'bottomDrivers' => $bottomDrivers,
+            'alerts' => [
+                'distractedDriving' => $aggregateSafetyData->driver_distraction ?? 0,
+                'speeding' => $aggregateSafetyData->speeding_violations ?? 0,
+                'signViolation' => $aggregateSafetyData->sign_violations ?? 0,
+                'trafficLightViolation' => $aggregateSafetyData->traffic_light_violation ?? 0,
+                'followingDistance' => $aggregateSafetyData->following_distance ?? 0
+            ],
+            'infractions' => [
+                'driverStar' => $infractionsData->driver_star ?? 0,
+                'potentialCollision' => $infractionsData->potential_collision ?? 0,
+                'hardBraking' => $infractionsData->hard_braking ?? 0,
+                'hardTurn' => $infractionsData->hard_turn ?? 0,
+                'hardAcceleration' => $infractionsData->hard_acceleration ?? 0,
+                'uTurn' => $infractionsData->u_turn ?? 0,
+                'seatbeltCompliance' => $infractionsData->seatbelt_compliance ?? 0,
+                'cameraObstruction' => $infractionsData->camera_obstruction ?? 0,
+                'driverDrowsiness' => $infractionsData->driver_drowsiness ?? 0,
+                'weaving' => $infractionsData->weaving ?? 0,
+                'collisionWarning' => $infractionsData->collision_warning ?? 0,
+                'backing' => $infractionsData->backing ?? 0,
+                'roadsideParking' => $infractionsData->roadside_parking ?? 0,
+                'highG' => $infractionsData->high_g ?? 0
+            ]
+        ];
+    }
 }

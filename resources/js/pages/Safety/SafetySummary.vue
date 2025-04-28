@@ -5,17 +5,22 @@
         <!-- Green Zone Score -->
         <div class="bg-muted/20 rounded-lg p-4">
           <h3 class="text-lg font-semibold text-foreground mb-2">Green Zone Score</h3>
-          <div class="text-4xl font-bold text-primary">{{ data.greenZoneScore || 1050 }}</div>
+          <div class="text-4xl font-bold text-primary">{{ data.greenZoneScore  }}</div>
         </div>
 
         <!-- Top 5 Drivers -->
         <div class="bg-muted/20 rounded-lg p-4">
           <h3 class="text-lg font-semibold text-foreground mb-2">Top 5 Drivers</h3>
           <div class="space-y-2">
-            <div v-for="(driver, index) in data.topDrivers" :key="index" 
-                 class="flex justify-between items-center">
-              <span class="text-foreground">{{ driver.name }}</span>
-              <span class="text-primary font-medium">{{ driver.score }}</span>
+            <div v-if="data.topDrivers && data.topDrivers.length > 0">
+              <div v-for="(driver, index) in data.topDrivers" :key="index" 
+                   class="flex justify-between items-center">
+                <span class="text-foreground">{{ driver.name }}</span>
+                <span class="text-primary font-medium">{{ driver.score }}</span>
+              </div>
+            </div>
+            <div v-else class="text-center text-muted-foreground italic">
+              No driver data available
             </div>
           </div>
         </div>
@@ -24,10 +29,15 @@
         <div class="bg-muted/20 rounded-lg p-4">
           <h3 class="text-lg font-semibold text-foreground mb-2">Bottom 5 Drivers</h3>
           <div class="space-y-2">
-            <div v-for="(driver, index) in data.bottomDrivers" :key="index" 
-                 class="flex justify-between items-center">
-              <span class="text-foreground">{{ driver.name }}</span>
-              <span class="text-destructive font-medium">{{ driver.score }}</span>
+            <div v-if="data.bottomDrivers && data.bottomDrivers.length > 0">
+              <div v-for="(driver, index) in data.bottomDrivers" :key="index" 
+                   class="flex justify-between items-center">
+                <span class="text-foreground">{{ driver.name }}</span>
+                <span class="text-destructive font-medium">{{ driver.score }}</span>
+              </div>
+            </div>
+            <div v-else class="text-center text-muted-foreground italic">
+              No driver data available
             </div>
           </div>
         </div>

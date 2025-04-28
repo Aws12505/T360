@@ -4,6 +4,7 @@ namespace App\Services\Safety;
 
 use App\Models\SafetyData;
 use App\Services\Filtering\FilteringService;
+use App\Services\Summaries\SafetyDataService as SummariesSafetyDataService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Request;
 use App\Models\Tenant;
@@ -17,10 +18,14 @@ use App\Models\Tenant;
 class SafetyDataService
 {
     protected $filteringService;
+    protected $summariesSafetyDataService;
 
-    public function __construct(FilteringService $filteringService)
-    {
+    public function __construct(
+        FilteringService $filteringService,
+        SummariesSafetyDataService $summariesSafetyDataService
+    ) {
         $this->filteringService = $filteringService;
+        $this->summariesSafetyDataService = $summariesSafetyDataService;
     }
 
     /**
@@ -54,6 +59,8 @@ class SafetyDataService
         $tenantSlug = $isSuperAdmin ? null : Auth::user()->tenant->slug;
         $tenants = $isSuperAdmin ? Tenant::all() : [];
         
+        // Get formatted safety data using the date range from filtering
+        $safetyData = $this->getSafetyDataWithFiltering($dateFilter, $dateRange);
         return [
             'entries'    => $entries,
             'tenantSlug' => $tenantSlug,
@@ -61,6 +68,69 @@ class SafetyDataService
             'tenants'    => $tenants,
             'dateRange'  => $dateRange,
             'dateFilter' => $dateFilter,
+            'safetyData' => $safetyData,
+        ];
+    }
+
+    /**
+     * Get formatted safety data using the current date filter
+     * 
+     * @param string $dateFilter The date filter to apply
+     * @param array $dateRange The date range information
+     * @return array The formatted safety data
+     */
+    public function getSafetyDataWithFiltering(string $dateFilter = 'full', array $dateRange = []): array
+    {
+        // If date range is not provided or empty, determine it based on the date filter
+    if (empty($dateRange) || !isset($dateRange['start']) || !isset($dateRange['end'])) {
+        // For 'full' filter, we need to handle it specially
+        if ($dateFilter === 'full') {
+            // Option 1: Use earliest and latest dates from the database
+            $earliest = SafetyData::min('date') ?? now()->subYears(5)->format('Y-m-d');
+            $latest = SafetyData::max('date') ?? now()->format('Y-m-d');
+            
+            $dateRange['start'] = $earliest;
+            $dateRange['end'] = $latest;
+            $dateRange['label'] = 'All Time';
+        } 
+    }
+        
+        // If we have a valid date range, get the formatted safety data
+        if (isset($dateRange['start']) && isset($dateRange['end'])) {
+            return $this->summariesSafetyDataService->getFormattedSafetyData(
+                $dateRange['start'],
+                $dateRange['end']
+            );
+        }
+        
+        // Default to empty data structure if no valid date range
+        return [
+            'greenZoneScore' => 0,
+            'topDrivers' => [],
+            'bottomDrivers' => [],
+            'alerts' => [
+                'distractedDriving' => 0,
+                'speeding' => 0,
+                'signViolation' => 0,
+                'trafficLightViolation' => 0,
+                'followingDistance' => 0
+            ],
+            'infractions' => [
+                'driverStar' => 0,
+                'potentialCollision' => 0,
+                'hardBraking' => 0,
+                'hardTurn' => 0,
+                'hardAcceleration' => 0,
+                'uTurn' => 0,
+                'seatbeltCompliance' => 0,
+                'cameraObstruction' => 0,
+                'driverDrowsiness' => 0,
+                'weaving' => 0,
+                'collisionWarning' => 0,
+                'backing' => 0,
+                'roadsideParking' => 0,
+                'highG' => 0
+            ]
         ];
     }
 

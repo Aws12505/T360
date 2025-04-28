@@ -514,7 +514,7 @@ const props = defineProps({
   rejection_reason_codes: Array,
   tenants: { type: Array, default: () => [] },
   isSuperAdmin: { type: Boolean, default: false },
-  dateFilter: { type: String, default: 'full' },
+  dateFilter: { type: String, default: 'yesterday' },
   dateRange: { type: Object, default: () => ({ label: 'All Time' }) },
   perPage: { type: Number, default: 10 },
 });

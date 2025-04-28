@@ -133,9 +133,6 @@
                 <div class="text-2xl font-bold">
                   {{ formatCurrency(subscription.price, subscription.currency_code) }}
                 </div>
-                <Badge variant="outline">
-                  {{ subscription.payment_gateway }}
-                </Badge>
               </div>
               
               <!-- Billing Information -->

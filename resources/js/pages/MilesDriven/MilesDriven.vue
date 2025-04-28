@@ -389,7 +389,7 @@ const props = defineProps({
   SuperAdmin: Boolean,
   tenants: Array,
   dateRange: Object,
-  dateFilter: { type: String, default: 'full' }
+  dateFilter: { type: String, default: 'yesterday' }
 })
 
 // state
