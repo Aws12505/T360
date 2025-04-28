@@ -5,7 +5,7 @@
         <!-- Green Zone Score -->
         <div class="bg-muted/20 rounded-lg p-4">
           <h3 class="text-lg font-semibold text-foreground mb-2">Green Zone Score</h3>
-          <div class="text-4xl font-bold text-primary">{{ data.greenZoneScore  }}</div>
+          <div class="text-4xl font-bold text-primary">{{ Math.round(data.greenZoneScore) }}</div>
         </div>
 
         <!-- Top 5 Drivers -->
@@ -16,7 +16,7 @@
               <div v-for="(driver, index) in data.topDrivers" :key="index" 
                    class="flex justify-between items-center">
                 <span class="text-foreground">{{ driver.name }}</span>
-                <span class="text-primary font-medium">{{ driver.score }}</span>
+                <span class="text-primary font-medium">{{ Math.round(driver.score) }}</span>
               </div>
             </div>
             <div v-else class="text-center text-muted-foreground italic">
@@ -33,7 +33,7 @@
               <div v-for="(driver, index) in data.bottomDrivers" :key="index" 
                    class="flex justify-between items-center">
                 <span class="text-foreground">{{ driver.name }}</span>
-                <span class="text-destructive font-medium">{{ driver.score }}</span>
+                <span class="text-destructive font-medium">{{ Math.round(driver.score) }}</span>
               </div>
             </div>
             <div v-else class="text-center text-muted-foreground italic">
@@ -50,7 +50,7 @@
           <div v-for="(value, type) in data.alerts" :key="type" 
                class="bg-muted/20 rounded-lg p-4 text-center">
             <div class="text-sm text-muted-foreground mb-2">{{ formatAlertType(type) }}</div>
-            <div class="text-2xl font-bold text-primary">{{ value }}</div>
+            <div class="text-2xl font-bold text-primary">{{ Math.floor(value) }}</div>
           </div>
         </div>
       </div>
@@ -64,7 +64,7 @@
           <div v-for="(value, type) in visibleInfractions" :key="type" 
                class="bg-muted/20 rounded-lg p-4 text-center">
             <div class="text-sm text-muted-foreground mb-2">{{ formatInfractionType(type) }}</div>
-            <div class="text-2xl font-bold text-primary">{{ value }}</div>
+            <div class="text-2xl font-bold text-primary">{{ Math.round(value) }}</div>
           </div>
         </div>
 
@@ -89,7 +89,7 @@
             <div v-for="(value, type) in hiddenInfractions" :key="type" 
                  class="bg-muted/20 rounded-lg p-4 text-center">
               <div class="text-sm text-muted-foreground mb-2">{{ formatInfractionType(type) }}</div>
-              <div class="text-2xl font-bold text-primary">{{ value }}</div>
+              <div class="text-2xl font-bold text-primary">{{ Math.round(value) }}</div>
             </div>
           </div>
         </div>
@@ -107,46 +107,7 @@ import Icon from '@/components/Icon.vue';
 const props = defineProps({
   data: {
     type: Object,
-    default: () => ({
-      greenZoneScore: 1050,
-      topDrivers: [
-        { name: 'Daniel Rice', score: 1 },
-        { name: 'Johnny Rice', score: 2 },
-        { name: 'Adam Levine the greatest', score: 3 },
-        { name: 'Alaina', score: 4 },
-        { name: 'Jaden', score: 5 }
-      ],
-      bottomDrivers: [
-        { name: 'Kain', score: 5 },
-        { name: 'Ronny', score: 4 },
-        { name: 'Damen', score: 3 },
-        { name: 'Leo', score: 2 },
-        { name: 'Shawn', score: 1 }
-      ],
-      alerts: {
-        distractedDriving: 23,
-        speeding: 4,
-        signViolation: 6,
-        trafficLightViolation: 7,
-        followingDistance: 3
-      },
-      infractions: {
-        driverStar: 1050,
-        potentialCollision: 1050,
-        hardBraking: 1050,
-        hardTurn: 1050,
-        hardAcceleration: 1050,
-        uTurn: 1050,
-        seatbeltCompliance: 1050,
-        cameraObstruction: 1050,
-        driverDrowsiness: 1050,
-        weaving: 1050,
-        collisionWarning: 1050,
-        backing: 1050,
-        roadsideParking: 1050,
-        highG: 1050
-      }
-    })
+    
   }
 });
 

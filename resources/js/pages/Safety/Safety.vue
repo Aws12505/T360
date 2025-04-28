@@ -105,14 +105,14 @@
               >
                 Quarterly
               </Button>
-              <Button 
+              <!-- <Button 
                 @click="selectDateFilter('full')" 
                 variant="outline"
                 size="sm"
                 :class="{'bg-primary/10 text-primary border-primary': activeTab === 'full'}"
               >
                 Full
-              </Button>
+              </Button> -->
             </div>
             
             <!-- Date range info and Freeze Column toggle in separate row -->
