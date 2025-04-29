@@ -15,6 +15,7 @@ class PermissionsSeeder extends Seeder
     {
         // Define the permissions for users and roles management.
         $permissions = [
+            'receive_updates',
             // Permissions for Users Management
             'user_create',
             'user_view',
