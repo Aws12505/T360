@@ -41,12 +41,5 @@ require __DIR__.'/auth.php';
 require __DIR__.'/superadmin.php';
 require __DIR__.'/tenant.php';
 
-// Twilio Routes
-Route::prefix('api/twilio')->group(function () {
-    Route::post('/send-sms', [TwilioController::class, 'sendSms'])->name('twilio.send-sms');
-});
 
-// Twilio Vue Page Route
-Route::get('/twilio', function () {
-    return Inertia::render('Twilio/Index');
-})->name('twilio');
+

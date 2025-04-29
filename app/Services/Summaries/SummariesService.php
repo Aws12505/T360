@@ -34,7 +34,7 @@ class SummariesService
 
     public function compileSummaries($dateFilter = null, $minInvoiceAmount = null, $outstandingDate = null): array
     {
-        $dateFilter = $dateFilter ?? $this->filteringService->getDateFilter('yesterday');
+        $dateFilter = $dateFilter ?? $this->filteringService->getDateFilter('t6w');
         $dateRange = [];
         $now = Carbon::now();
 

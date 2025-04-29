@@ -39,7 +39,7 @@ class SummariesController extends Controller
      */
     public function getSummaries(Request $request)
     {
-        $dateFilter = $request->input('dateFilter', 'yesterday');
+        $dateFilter = $request->input('dateFilter', 't6w');
         $minInvoiceAmount = $request->input('minInvoiceAmount');
         $outstandingDate = $request->input('outstandingDate');
         

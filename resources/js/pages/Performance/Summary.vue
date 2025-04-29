@@ -190,7 +190,7 @@ const props = defineProps({
 
 // Active tab state
 const activeTab = ref('on-time');
-const currentDateFilter = ref(props.dateFilter || 'yesterday');
+const currentDateFilter = ref(props.dateFilter || 't6w');
 
 // Outstanding invoices filter state
 const minInvoiceAmount = ref(null);
