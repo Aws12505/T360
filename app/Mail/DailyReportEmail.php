@@ -29,25 +29,26 @@ class DailyReportEmail extends Mailable
     public    array  $safetyRates;
     public    array  $safetyRatings;
     public    array  $safetyInfractions;
+    
+    // Add new property to track data availability
+    public    array  $dataAvailability;
 
     public function __construct(int $tenantId)
     {
         $this->tenantId = $tenantId;
 
-        // ─── 6-Week Window ────────────────────────────────────────────────────
-        $now   = Carbon::now();
-        $start = $now->copy()
-                     ->modify('last sunday')
-                     ->subWeeks(5)
-                     ->startOfDay();
-        $end   = $now->copy()
-                     ->modify('this saturday')
-                     ->endOfDay();
+        // ─── Yesterday's Data ────────────────────────────────────────────────────
+        $yesterday = Carbon::yesterday();
+        $start = $yesterday->copy()->startOfDay();
+        $end = $yesterday->copy()->endOfDay();
 
-        $this->reportDate = '6 Weeks: '
-            . $start->format('M d, Y')
-            . ' – '
-            . $end->format('M d, Y');
+        $this->reportDate = $yesterday->format('M d, Y');
+        
+        // Initialize data availability tracking
+        $this->dataAvailability = [
+            'performance' => false,
+            'safety' => false
+        ];
 
         $this->collectData($start, $end);
     }
@@ -68,6 +69,15 @@ class DailyReportEmail extends Mailable
                      THEN 1 ELSE 0 END AS meets_safety
             ")
             ->first();
+            
+        // Check if performance data exists
+        $hasPerformanceData = $main && (
+            ($main->avg_acceptance !== null && $main->avg_acceptance > 0) || 
+            ($main->avg_on_time !== null && $main->avg_on_time > 0) || 
+            ($main->meets_safety !== null && $main->meets_safety > 0)
+        );
+        
+        $this->dataAvailability['performance'] = $hasPerformanceData;
 
         // ─── PERFORMANCE ROLLING ────────────────────────────────────────────────
         $roll = DB::table('performances')
@@ -131,10 +141,14 @@ class DailyReportEmail extends Mailable
                 AVG(driver_score)            AS avg_driver_score
             ")
             ->first();
+            
+        // Check if safety data exists
+        $hasSafetyData = $agg && $agg->total_minutes > 0;
+        $this->dataAvailability['safety'] = $hasSafetyData;
 
         $hours = ($agg->total_minutes ?: 0) / 60;
 
-        // rates per 1 000 h
+        // rates per 1 000 h
         $rates = [];
         foreach ([
             'traffic_light_violation',
@@ -259,7 +273,7 @@ class DailyReportEmail extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: "Report ({$this->reportDate})");
+        return new Envelope(subject: "Daily Report ({$this->reportDate})");
     }
 
     public function content(): Content

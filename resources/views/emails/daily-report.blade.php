@@ -24,7 +24,23 @@
             </td>
           </tr>
 
+          @if(!$dataAvailability['performance'] && !$dataAvailability['safety'])
+          <!-- No Data Available Message -->
+          <tr>
+            <td style="padding:32px 24px;text-align:center;">
+              <div style="font-size:18px;font-weight:600;color:#2c3e50;margin-bottom:16px;">No Data Available</div>
+              <p style="font-size:16px;color:#4b5563;margin-bottom:16px;">
+                We apologize, but we don't have any performance or safety data available for {{ $reportDate }} yet.
+              </p>
+              <p style="font-size:16px;color:#4b5563;">
+                A complete report will be sent as soon as the data becomes available.
+              </p>
+            </td>
+          </tr>
+          @else
+          
           <!-- Operational Excellence Score -->
+          @if($dataAvailability['performance'])
           <tr>
             <td style="padding:24px;border-bottom:1px solid #eaeaea;">
               <h2 style="margin:0 0 16px;font-size:18px;font-weight:600;color:#2c3e50;">Operational Excellence Score</h2>
@@ -77,9 +93,23 @@
               </table>
             </td>
           </tr>
+          @else
+          <!-- No Performance Data Message -->
+          <tr>
+            <td style="padding:24px;border-bottom:1px solid #eaeaea;text-align:center;">
+              <h2 style="margin:0 0 16px;font-size:18px;font-weight:600;color:#2c3e50;">Performance Data</h2>
+              <p style="font-size:16px;color:#4b5563;">
+                We apologize, but we don't have any performance data available for {{ $reportDate }} yet.
+              </p>
+              <p style="font-size:14px;color:#6b7280;margin-top:8px;">
+                A complete report will be sent as soon as the data becomes available.
+              </p>
+            </td>
+          </tr>
+          @endif
 
           <!-- Safety Alerts & Rates (if any) -->
-          @if(($safetyAggregate['total_minutes'] ?? 0) > 0)
+          @if($dataAvailability['safety'])
           <tr>
             <td style="padding:24px;border-bottom:1px solid #eaeaea;">
               <h2 style="margin:0 0 16px;font-size:18px;font-weight:600;color:#2c3e50;">Safety Alerts &amp; Rates</h2>
@@ -144,6 +174,20 @@
               </table>
             </td>
           </tr>
+          @else
+          <!-- No Safety Data Message -->
+          <tr>
+            <td style="padding:24px;border-bottom:1px solid #eaeaea;text-align:center;">
+              <h2 style="margin:0 0 16px;font-size:18px;font-weight:600;color:#2c3e50;">Safety Data</h2>
+              <p style="font-size:16px;color:#4b5563;">
+                We apologize, but we don't have any safety data available for {{ $reportDate }} yet.
+              </p>
+              <p style="font-size:14px;color:#6b7280;margin-top:8px;">
+                A complete report will be sent as soon as the data becomes available.
+              </p>
+            </td>
+          </tr>
+          @endif
           @endif
 
           <!-- Footer -->
