@@ -328,7 +328,9 @@ class MaintenanceBreakdownService
             'areas_of_concern' => $areasOfConcern,
             'work_orders_by_truck' => $workOrdersByTruck,
             'outstanding_invoices' => $outstandingInvoices,
-            'canceled_qs_invoices' => $canceledQSInvoices
+            'canceled_qs_invoices' => $canceledQSInvoices,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
         ];
     }
 }

@@ -107,6 +107,10 @@ class SummariesService
         // Convert outstandingDate to Carbon instance if it's provided
         $outstandingDateCarbon = $outstandingDate ? Carbon::parse($outstandingDate) : null;
 
+        // Adjust dates for maintenance breakdown (weeks 16-24 instead of 17-25)
+        $maintenanceStartDate = $startDate->copy()->subWeek();
+        $maintenanceEndDate = $endDate->copy()->subWeek();
+
         return [
             'summaries' => $summaries,
             'tenantSlug' => $tenantSlug,
@@ -114,7 +118,7 @@ class SummariesService
             'tenants' => $tenants,
             'delayBreakdowns' => $this->delayBreakdownService->getDelayBreakdown($startDate, $endDate),
             'rejectionBreakdowns' => $this->rejectionBreakdownService->getRejectionBreakdown($startDate, $endDate),
-            'maintenanceBreakdowns' => $this->maintenanceBreakdownService->getMaintenanceBreakdown($startDate, $endDate, $minInvoiceAmount, $outstandingDateCarbon),
+            'maintenanceBreakdowns' => $this->maintenanceBreakdownService->getMaintenanceBreakdown($maintenanceStartDate, $maintenanceEndDate, $minInvoiceAmount, $outstandingDateCarbon),
             'dateFilter' => $dateFilter,
             'dateRange' => $dateRange
         ];
