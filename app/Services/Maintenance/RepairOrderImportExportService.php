@@ -123,7 +123,9 @@ class RepairOrderImportExportService
 
             // Convert textual booleans to actual booleans.
             $data['invoice_received'] = strtolower(trim($data['invoice_received'])) === 'yes';
-            $data['on_qs'] = strtolower(trim($data['on_qs'])) === 'yes';
+            // Handle on_qs as enum value
+            $onQsValue = strtolower(trim($data['on_qs']));
+            $data['on_qs'] = $onQsValue === 'yes' ? 'yes' : ($onQsValue === 'not expected' ? 'not expected' : 'no');
             $data['disputed'] = strtolower(trim($data['disputed'])) === 'yes';
             // dd('After processing booleans:', $data);
 
@@ -237,12 +239,12 @@ class RepairOrderImportExportService
                 'ro_close_date'    => 'nullable|date',
                 'truck_id'         => 'required|exists:trucks,id',
                 'vendor_id'        => 'required|exists:vendors,id',
-                'wo_number'        => 'nullable|string',
+                'wo_number'        => 'string',
                 'wo_status_id'     => 'required|exists:wo_statuses,id', // Changed from wo_status to wo_status_id
                 'invoice'          => 'nullable|string',
                 'invoice_amount'   => 'nullable|numeric',
                 'invoice_received' => 'required|boolean',
-                'on_qs'            => 'required|boolean',
+                'on_qs'            => 'required|in:yes,no,not expected',
                 'qs_invoice_date'  => 'nullable|date',
                 'disputed'         => 'required|boolean',
                 'dispute_outcome'  => 'nullable|string',
@@ -367,7 +369,7 @@ class RepairOrderImportExportService
                 $ro->invoice,
                 $ro->invoice_amount,
                 $ro->invoice_received ? 'Yes' : 'No',
-                $ro->on_qs ? 'Yes' : 'No',
+                ucfirst($ro->on_qs), // Capitalize the first letter of the enum value
                 !empty($ro->qs_invoice_date) ? Carbon::parse($ro->qs_invoice_date)->format('m/d/Y') : '',
                 $ro->disputed ? 'Yes' : 'No',
                 $ro->dispute_outcome,

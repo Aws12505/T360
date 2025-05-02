@@ -286,7 +286,7 @@
                   <TableCell class="whitespace-nowrap">{{ order.wo_status?.name || '—' }}</TableCell>                  <TableCell class="whitespace-nowrap">{{ order.invoice }}</TableCell>
                   <TableCell class="whitespace-nowrap">{{ formatCurrency(order.invoice_amount) }}</TableCell>
                   <TableCell class="whitespace-nowrap">{{ order.invoice_received ? 'Yes' : 'No' }}</TableCell>
-                  <TableCell class="whitespace-nowrap">{{ order.on_qs ? 'Yes' : 'No' }}</TableCell>
+                  <TableCell class="whitespace-nowrap">{{ order.on_qs ? order.on_qs.charAt(0).toUpperCase() + order.on_qs.slice(1) : 'No' }}</TableCell>
                   <TableCell class="whitespace-nowrap">{{ order.qs_invoice_date ? formatDate(order.qs_invoice_date) : 'N/A' }}</TableCell>
                   <TableCell class="whitespace-nowrap">{{ order.disputed ? 'Yes' : 'No' }}</TableCell>
                   <TableCell>
@@ -512,27 +512,31 @@
             
             <!-- Invoice Received -->
             <div>
-              <Label for="invoice_received">Invoice Received?</Label>
-              <div class="relative">
-                <select id="invoice_received" v-model="form.invoice_received" required class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none">
-                  <option :value="true">Yes</option>
-                  <option :value="false">No</option>
-                </select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                  <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                  </svg>
-                </div>
+              <Label for="invoice_received">Invoice Received</Label>
+              <div class="flex items-center space-x-2">
+                <input 
+                  id="invoice_received" 
+                  v-model="form.invoice_received" 
+                  type="checkbox" 
+                  class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                />
+                <label for="invoice_received" class="text-sm">Yes</label>
               </div>
             </div>
             
             <!-- On QS -->
             <div>
-              <Label for="on_qs">On QS?</Label>
+              <Label for="on_qs">On QS</Label>
               <div class="relative">
-                <select id="on_qs" v-model="form.on_qs" required class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none">
-                  <option :value="true">Yes</option>
-                  <option :value="false">No</option>
+                <select 
+                  id="on_qs" 
+                  v-model="form.on_qs" 
+                  required 
+                  class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
+                >
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                  <option value="not expected">Not Expected</option>
                 </select>
                 <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                   <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -934,7 +938,7 @@ const form = useForm({
   id: null,
   tenant_id: props.SuperAdmin ? '' : null,
   ro_number: '',
-  ro_open_date: '',
+  ro_open_date: new Date().toISOString().split('T')[0],
   ro_close_date: '',
   truck_id: '',
   vendor_id: '',
@@ -943,7 +947,7 @@ const form = useForm({
   invoice: '',
   invoice_amount: '',
   invoice_received: false,
-  on_qs: false,
+  on_qs: 'no',
   qs_invoice_date: '',
   disputed: false,
   dispute_outcome: '',
@@ -999,11 +1003,11 @@ const openEditModal = (order) => {
   form.vendor_id = order.vendor_id
   form.wo_number = order.wo_number
   form.wo_status_id = order.wo_status_id;
-  form.invoice = order.invoice
-  form.invoice_amount = order.invoice_amount
+  form.invoice = order.invoice || ''
+  form.invoice_amount = order.invoice_amount || ''
   // Handle boolean values that might come as 0/1 or true/false
   form.invoice_received = Boolean(order.invoice_received)
-  form.on_qs = Boolean(order.on_qs)
+  form.on_qs = order.on_qs || 'no'
   form.qs_invoice_date = order.qs_invoice_date || ''
   form.disputed = Boolean(order.disputed)
   form.dispute_outcome = order.dispute_outcome || ''

@@ -19,8 +19,7 @@ class MaintenanceBreakdownService
             ->whereBetween('ro_open_date', [$startDate, $endDate])
             ->leftJoin('wo_statuses', 'repair_orders.wo_status_id', '=', 'wo_statuses.id')
             ->where(function($query) {
-                $query->whereNull('repair_orders.wo_status_id')
-                      ->orWhere('wo_statuses.name', '!=', 'Canceled');
+                $query->where('wo_statuses.name', '!=', 'Canceled');
             });
             
         if (Auth::check() && Auth::user()->tenant_id !== null) {
@@ -36,12 +35,10 @@ class MaintenanceBreakdownService
     public function getTotalInvoiceAmount(Carbon $startDate, Carbon $endDate): float
     {
         $query = DB::table('repair_orders')
-            ->whereNotNull('wo_number')
             ->whereBetween('ro_open_date', [$startDate, $endDate])
             ->leftJoin('wo_statuses', 'repair_orders.wo_status_id', '=', 'wo_statuses.id')
             ->where(function($query) {
-                $query->whereNull('repair_orders.wo_status_id')
-                      ->orWhere('wo_statuses.name', '!=', 'Canceled');
+                $query->where('wo_statuses.name', '!=', 'Canceled');
             });
             
         if (Auth::check() && Auth::user()->tenant_id !== null) {
@@ -57,12 +54,11 @@ class MaintenanceBreakdownService
     public function getQSInvoiceAmount(Carbon $startDate, Carbon $endDate): float
     {
         $query = DB::table('repair_orders')
-            ->where('on_qs', true)
+            ->where('on_qs', 'yes')
             ->whereBetween('qs_invoice_date', [$startDate, $endDate])
             ->leftJoin('wo_statuses', 'repair_orders.wo_status_id', '=', 'wo_statuses.id')
             ->where(function($query) {
-                $query->whereNull('repair_orders.wo_status_id')
-                      ->orWhere('wo_statuses.name', '!=', 'Canceled');
+                $query->where('wo_statuses.name', '!=', 'Canceled');
             });
             
         if (Auth::check() && Auth::user()->tenant_id !== null) {
@@ -78,12 +74,11 @@ class MaintenanceBreakdownService
     public function getMissingInvoicesCount(): int
     {
         $query = DB::table('repair_orders')
-            ->where('on_qs', false)
+            ->where('on_qs', 'no')
             ->where('invoice_received', false)
             ->leftJoin('wo_statuses', 'repair_orders.wo_status_id', '=', 'wo_statuses.id')
             ->where(function($query) {
-                $query->whereNull('repair_orders.wo_status_id')
-                      ->orWhere('wo_statuses.name', '!=', 'Canceled');
+                $query->where('wo_statuses.name', '!=', 'Canceled');
             });
             
         if (Auth::check() && Auth::user()->tenant_id !== null) {
@@ -123,8 +118,7 @@ class MaintenanceBreakdownService
                       ->orWhereNull('repair_orders.ro_open_date');
             })
             ->where(function($query) {
-                $query->whereNull('repair_orders.wo_status_id')
-                      ->orWhere('wo_statuses.name', '!=', 'Canceled');
+                $query->where('wo_statuses.name', '!=', 'Canceled');
             });
             
         if (Auth::check() && Auth::user()->tenant_id !== null) {
@@ -148,10 +142,8 @@ class MaintenanceBreakdownService
             ->select('trucks.truckid', DB::raw('COUNT(repair_orders.id) as work_order_count'))
             ->join('trucks', 'repair_orders.truck_id', '=', 'trucks.id')
             ->leftJoin('wo_statuses', 'repair_orders.wo_status_id', '=', 'wo_statuses.id')
-            ->whereNotNull('repair_orders.wo_number')
             ->where(function($query) {
-                $query->whereNull('repair_orders.wo_status_id')
-                      ->orWhere('wo_statuses.name', '!=', 'Canceled');
+                $query->where('wo_statuses.name', '!=', 'Canceled');
             })
             ->whereBetween('repair_orders.ro_open_date', [$startDate, $endDate])
             ->groupBy('trucks.truckid')
@@ -207,7 +199,7 @@ class MaintenanceBreakdownService
                     DB::raw('YEAR(repair_orders.ro_open_date) as year'), 
                     DB::raw('WEEK(repair_orders.ro_open_date) as week_number'))
             ->join('vendors', 'repair_orders.vendor_id', '=', 'vendors.id')
-            ->where('repair_orders.on_qs', false);
+            ->where('repair_orders.on_qs', 'no');
 
         // Apply invoice amount filter if provided
         if ($minInvoiceAmount !== null) {
@@ -266,7 +258,7 @@ class MaintenanceBreakdownService
             ->join('vendors', 'repair_orders.vendor_id', '=', 'vendors.id')
             ->join('wo_statuses', 'repair_orders.wo_status_id', '=', 'wo_statuses.id')
             ->where('wo_statuses.name', '=', 'Canceled')
-            ->where('repair_orders.on_qs', true);
+            ->where('repair_orders.on_qs', 'yes');
             
         if (Auth::check() && Auth::user()->tenant_id !== null) {
             $query->where('repair_orders.tenant_id', Auth::user()->tenant_id);

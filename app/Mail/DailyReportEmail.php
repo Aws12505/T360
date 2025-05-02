@@ -94,11 +94,10 @@ class DailyReportEmail extends Mailable
         $qsInvoice = DB::table('repair_orders')
             ->leftJoin('wo_statuses', 'repair_orders.wo_status_id', '=', 'wo_statuses.id')
             ->where('repair_orders.tenant_id', $this->tenantId)
-            ->where('repair_orders.on_qs', true)
+            ->where('repair_orders.on_qs', 'yes')
             ->whereBetween('repair_orders.qs_invoice_date', [$start, $end])
             ->where(function($q) {
-                $q->whereNull('repair_orders.wo_status_id')
-                  ->orWhere('wo_statuses.name', '!=', 'Canceled');
+                $q->where('wo_statuses.name', '!=', 'Canceled');
             })
             ->sum('repair_orders.invoice_amount') ?: 0;
 

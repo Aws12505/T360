@@ -60,7 +60,7 @@
           <!-- Performance Summary -->
           <tr>
             <td style="padding:24px;border-bottom:1px solid #eaeaea;">
-              <h2 style="margin:0 0 16px;font-size:18px;font-weight:600;color:#2c3e50;">Performance Summary (6 Weeks)</h2>
+              <h2 style="margin:0 0 16px;font-size:18px;font-weight:600;color:#2c3e50;">Performance Summary </h2>
               <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="font-size:14px;">
                 <thead>
                   <tr>
