@@ -5,6 +5,7 @@ namespace App\Services\Summaries;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\PerformanceMetricRule;
+use Carbon\Carbon;
 
 class SafetyDataService
 {
@@ -238,6 +239,128 @@ class SafetyDataService
     }
 
     /**
+     * Get line chart data for safety trends
+     * 
+     * @param string $startDate The start date for the query
+     * @param string $endDate The end date for the query
+     * @return array The line chart data
+     */
+    public function getLineChartData($startDate, $endDate): array
+    {
+        // Use Carbon for consistent date handling with FilteringService
+        $start = Carbon::parse($startDate);
+        $end = Carbon::parse($endDate);
+        $daysDifference = $end->diffInDays($start);
+        
+        // Determine date filter type based on date range
+        $dateFilter = $this->determineDateFilterType($start, $end);
+        
+        // Determine grouping based on date filter type
+        if ($dateFilter === 'yesterday') {
+            // For yesterday, we'll show hourly data if available
+            $dateFormat = 'Y-m-d H';
+            $groupBy = DB::raw('DATE_FORMAT(date, "%Y-%m-%d %H")');
+            $labelFormat = 'H:00'; // Hour format
+        } elseif ($dateFilter === 'current-week') {
+            // Current week - group by day
+            $dateFormat = 'Y-m-d';
+            $groupBy = DB::raw('DATE(date)');
+            $labelFormat = 'D'; // Day name (Mon, Tue, etc.)
+        } elseif ($dateFilter === '6w') {
+            // 6 weeks - group by week with weeks starting on Sunday
+            $dateFormat = 'Y-W';
+            // Use YEARWEEK with mode 0 (weeks starting on Sunday)
+            $groupBy = DB::raw('YEARWEEK(date, 0)');
+            $labelFormat = '\WW'; // Week number (W1, W2, etc.)
+        } else {
+            // Quarterly or longer - group by month
+            $dateFormat = 'Y-m';
+            $groupBy = DB::raw('DATE_FORMAT(date, "%Y-%m")');
+            $labelFormat = 'M'; // Month name (Jan, Feb, etc.)
+        }
+        
+        $query = DB::table('safety_data')
+            ->select($groupBy, DB::raw('AVG(driver_score) as greenZoneScore'))
+            ->whereBetween('date', [$startDate, $endDate])
+            ->groupBy($groupBy)
+            ->orderBy($groupBy);
+        
+        $this->applyTenantFilter($query);
+        $results = $query->get();
+        
+        // Format dates based on the determined grouping
+        return $results->map(function($item) use ($dateFormat, $labelFormat, $dateFilter) {
+            // Get the first property (date or yearweek)
+            $dateValue = $item->{array_key_first((array)$item)};
+            
+            if ($dateFormat === 'Y-m-d') {
+                // For daily grouping
+                $date = Carbon::parse($dateValue);
+                $formattedDate = $date->format($labelFormat);
+            } elseif ($dateFormat === 'Y-m-d H') {
+                // For hourly grouping
+                $date = Carbon::parse($dateValue);
+                $formattedDate = $date->format($labelFormat);
+            } elseif ($dateFormat === 'Y-m') {
+                // For monthly grouping
+                $date = Carbon::parse($dateValue . '-01');
+                $formattedDate = $date->format($labelFormat);
+            } else {
+                // For weekly grouping
+                // Extract year and week from YEARWEEK format (YYYYWW)
+                $year = substr($dateValue, 0, 4);
+                $week = substr($dateValue, 4);
+                $formattedDate = 'W' . $week;
+            }
+            
+            return [
+                'date' => $formattedDate,
+                'greenZoneScore' => round($item->greenZoneScore, 1)
+            ];
+        })->toArray();
+    }
+    
+    /**
+     * Determine the date filter type based on the date range
+     * 
+     * @param Carbon $start The start date
+     * @param Carbon $end The end date
+     * @return string The date filter type (yesterday, current-week, 6w, quarterly, or full)
+     */
+    private function determineDateFilterType(Carbon $start, Carbon $end): string
+    {
+        $daysDifference = $end->diffInDays($start);
+        $now = Carbon::now();
+        $yesterday = Carbon::yesterday();
+        $currentWeekStart = $now->copy()->startOfWeek(Carbon::SUNDAY);
+        $currentWeekEnd = $now->copy()->endOfWeek(Carbon::SATURDAY);
+        $sixWeeksStart = $currentWeekStart->copy()->subWeeks(5);
+        
+        // Check if the date range matches yesterday
+        if ($start->isSameDay($yesterday) && $end->isSameDay($yesterday)) {
+            return 'yesterday';
+        }
+        
+        // Check if the date range matches current week
+        if ($start->isSameDay($currentWeekStart) && $end->isSameDay($currentWeekEnd)) {
+            return 'current-week';
+        }
+        
+        // Check if the date range matches 6 weeks
+        if ($start->isSameDay($sixWeeksStart) && $end->isSameDay($currentWeekEnd)) {
+            return '6w';
+        }
+        
+        // Check if the date range is approximately 3 months
+        if ($daysDifference >= 85 && $daysDifference <= 95) {
+            return 'quarterly';
+        }
+        
+        // Default to full if none of the above match
+        return 'full';
+    }
+
+    /**
      * Get formatted safety data for the frontend in the same structure as the hardcoded values
      * 
      * @param string $startDate The start date for the query
@@ -255,6 +378,9 @@ class SafetyDataService
         
         // Get infractions data
         $infractionsData = $this->getInfractionsData($startDate, $endDate);
+        
+        // Get line chart data
+        $lineChartData = $this->getLineChartData($startDate, $endDate);
         
         // Format the data according to the structure in Safety.vue
         return [
@@ -283,7 +409,8 @@ class SafetyDataService
                 'backing' => $infractionsData->backing ?? 0,
                 'roadsideParking' => $infractionsData->roadside_parking ?? 0,
                 'highG' => $infractionsData->high_g ?? 0
-            ]
+            ],
+            'lineChartData' => $lineChartData
         ];
     }
 }

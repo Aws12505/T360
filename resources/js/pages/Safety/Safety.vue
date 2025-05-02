@@ -135,7 +135,7 @@
         </CardContent>
       </Card>
 
-      <SafetySummary v-if="!SuperAdmin" :data="safetyData" />
+      <SafetySummary v-if="!SuperAdmin" :data="safetyDataWithLabel" />
 
       <!-- Data Table Section -->
         <!-- Toggle Freeze Column Button -->
@@ -766,6 +766,16 @@ function confirmDeleteSelected() {
   }
 }
 
+// Create a computed property that adds the dateRange label to the safetyData
+const safetyDataWithLabel = computed(() => {
+  if (!props.safetyData) return {};
+  
+  return {
+    ...props.safetyData,
+    dateRangeLabel: props.dateRange?.label || activeTab.value
+  };
+});
+
 function deleteSelectedEntries() {
   const form = useForm({
     ids: selectedEntries.value
@@ -939,5 +949,3 @@ function deleteSelectedEntries() {
   background-color: hsl(var(--background));
 }
 </style>
-
-

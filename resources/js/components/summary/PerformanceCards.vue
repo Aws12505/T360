@@ -112,7 +112,7 @@
           <span>Distracted Driving</span>
           <div class="flex items-center gap-2">
             <span class="w-12 text-right">{{ formatDecimal(safetyData.driver_distraction) }}</span>
-            <span class="w-16 text-right">{{ formatDecimal(safetyData.rates?.driver_distraction) }}</span>
+            <span class="w-16 text-right">{{ formatRate(safetyData.rates?.driver_distraction) }}</span>
           </div>
         </div>
 
@@ -121,7 +121,7 @@
           <span>Speeding</span>
           <div class="flex items-center gap-2">
             <span class="w-12 text-right">{{ formatDecimal(safetyData.speeding_violations) }}</span>
-            <span class="w-16 text-right">{{ formatDecimal(safetyData.rates?.speeding_violations) }}</span>
+            <span class="w-16 text-right">{{ formatRate(safetyData.rates?.speeding_violations) }}</span>
           </div>
         </div>
 
@@ -130,7 +130,7 @@
           <span>Sign Violation</span>
           <div class="flex items-center gap-2">
             <span class="w-12 text-right">{{ formatDecimal(safetyData.sign_violations) }}</span>
-            <span class="w-16 text-right">{{ formatDecimal(safetyData.rates?.sign_violations) }}</span>
+            <span class="w-16 text-right">{{ formatRate(safetyData.rates?.sign_violations) }}</span>
           </div>
         </div>
 
@@ -139,7 +139,7 @@
           <span>Traffic Light Violation</span>
           <div class="flex items-center gap-2">
             <span class="w-12 text-right">{{ formatDecimal(safetyData.traffic_light_violation) }}</span>
-            <span class="w-16 text-right">{{ formatDecimal(safetyData.rates?.traffic_light_violation) }}</span>
+            <span class="w-16 text-right">{{ formatRate(safetyData.rates?.traffic_light_violation) }}</span>
           </div>
         </div>
 
@@ -148,7 +148,7 @@
           <span>Following Distance</span>
           <div class="flex items-center gap-2">
             <span class="w-12 text-right">{{ formatDecimal(safetyData.following_distance) }}</span>
-            <span class="w-16 text-right">{{ formatDecimal(safetyData.rates?.following_distance) }}</span>
+            <span class="w-16 text-right">{{ formatRate(safetyData.rates?.following_distance) }}</span>
           </div>
         </div>
       </div>
@@ -222,6 +222,17 @@ const formatDecimal = (value) => {
 
   if (value === undefined || value === null || isNaN(value)) return '0';
   return Math.round(value).toString();
+};
+
+// Format rate values with 2 decimal places
+const formatRate = (value) => {
+  // Convert string values to numbers
+  if (typeof value === 'string') {
+    value = parseFloat(value);
+  }
+  
+  if (value === undefined || value === null || isNaN(value)) return '0.00';
+  return value.toFixed(2);
 };
 
 // Format currency for display

@@ -219,51 +219,7 @@ const toggleShowGraphs = () => {
   }
 };
 
-// Dummy data for line chart
-const lineChartData = [
-  {
-    date: "Jan 1",
-    greenZoneScore: 92,
-    distractions: 5,
-    speeding: 3
-  },
-  {
-    date: "Jan 8",
-    greenZoneScore: 88,
-    distractions: 7,
-    speeding: 4
-  },
-  {
-    date: "Jan 15",
-    greenZoneScore: 91,
-    distractions: 4,
-    speeding: 2
-  },
-  {
-    date: "Jan 22",
-    greenZoneScore: 93,
-    distractions: 3,
-    speeding: 2
-  },
-  {
-    date: "Jan 29",
-    greenZoneScore: 95,
-    distractions: 2,
-    speeding: 1
-  },
-  {
-    date: "Feb 5",
-    greenZoneScore: 94,
-    distractions: 3,
-    speeding: 2
-  },
-  {
-    date: "Feb 12",
-    greenZoneScore: 90,
-    distractions: 6,
-    speeding: 3
-  }
-];
+
 
 // Dummy data for doughnut chart
 const doughnutChartData = [45, 25, 15, 10, 5];
@@ -285,32 +241,30 @@ const initializeCharts = () => {
   if (lineChartCanvas.value) {
     const ctx = lineChartCanvas.value.getContext('2d');
     if (ctx) {
+      // Get the data values for the line chart
+      const dataValues = props.data.lineChartData?.map(item => item.greenZoneScore) || [];
+      
+      // Calculate min and max values for Y-axis
+      const minValue = dataValues.length > 0 ? Math.min(...dataValues) : 0;
+      const maxValue = dataValues.length > 0 ? Math.max(...dataValues) : 100;
+      
+      // Add some padding to the min/max values (10% of the range)
+      const range = maxValue - minValue;
+      const padding = range * 0.1;
+      const yMin = Math.max(0, minValue - padding); // Don't go below 0
+      const yMax = maxValue + padding;
+      
       lineChart = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: lineChartData.map(item => item.date),
+          labels: props.data.lineChartData?.map(item => item.date) || [],
           datasets: [
             {
               label: 'Green Zone Score',
-              data: lineChartData.map(item => item.greenZoneScore),
+              data: dataValues,
               borderColor: '#10b981',
               backgroundColor: 'rgba(16, 185, 129, 0.1)',
               tension: 0.3,
-              fill: true
-            },
-            {
-              label: 'Distractions',
-              data: lineChartData.map(item => item.distractions),
-              borderColor: '#f59e0b',
-              backgroundColor: 'transparent',
-              tension: 0.3
-            },
-            {
-              label: 'Speeding',
-              data: lineChartData.map(item => item.speeding),
-              borderColor: '#ef4444',
-              backgroundColor: 'transparent',
-              tension: 0.3
             }
           ]
         },
@@ -319,7 +273,33 @@ const initializeCharts = () => {
           maintainAspectRatio: false,
           scales: {
             y: {
-              beginAtZero: true
+              beginAtZero: minValue > 10 ? false : true,
+              min: yMin,
+              max: yMax,
+              ticks: {
+                stepSize: Math.ceil(range / 5) // Create approximately 5 steps
+              }
+            }
+          },
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const score = context.raw || 0;
+                  const constantValue = props.data.greenZoneScore || 0;
+                  
+                  // Use the dateRange label from the data instead of determining by data length
+                  const timeFilter = props.data.dateRangeLabel || 'selected period';
+                  
+                  // Convert to number and then format with 2 decimal places
+                  const formattedConstantValue = Number(constantValue).toFixed(2);
+                  
+                  return [
+                    `Green Zone Score: ${score}`,
+                    `Average Score Over ${timeFilter}: ${formattedConstantValue}`
+                  ];
+                }
+              }
             }
           }
         }
@@ -387,6 +367,23 @@ watch(showGraphs, (newValue) => {
     }, 100);
   }
 });
+
+// Add a deep watcher for the data prop to reinitialize charts when data changes
+// Add a debounced version of initializeCharts
+let chartUpdateTimeout = null;
+const debouncedInitializeCharts = () => {
+  if (chartUpdateTimeout) clearTimeout(chartUpdateTimeout);
+  chartUpdateTimeout = setTimeout(() => {
+    initializeCharts();
+  }, 100);
+};
+
+// Update the data watcher to use the debounced function
+watch(() => props.data, () => {
+  if (showGraphs.value) {
+    debouncedInitializeCharts();
+  }
+}, { deep: true });
 
 // Initialize charts when component is mounted if graphs are shown
 onMounted(() => {
