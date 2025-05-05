@@ -69,7 +69,7 @@
               </Button>
               <Button @click="selectDateFilter('current-week')" variant="outline" size="sm"
                 :class="{ 'bg-primary/10 text-primary border-primary': activeTab === 'current-week' }">
-                Current Week
+                WtD
               </Button>
               <Button @click="selectDateFilter('6w')" variant="outline" size="sm"
                 :class="{ 'bg-primary/10 text-primary border-primary': activeTab === '6w' }">
@@ -214,6 +214,13 @@
           </div>
         </CardContent>
       </Card>
+
+      <!-- Acceptance Dashboard -->
+      <AcceptanceDashboard 
+        :metrics-data="acceptanceMetrics" 
+        :drivers-data="bottomDrivers" 
+        :chart-data="acceptanceChartData" 
+      />
 
       <!-- Rejections Table -->
       <Card>
@@ -504,6 +511,7 @@ import {
   Label, Input,
   Alert, AlertTitle, AlertDescription
 } from '@/components/ui';
+import AcceptanceDashboard from '@/components/acceptance/AcceptanceDashboard.vue';
 
 const props = defineProps({
   rejections: {
@@ -870,6 +878,37 @@ watch(successMessage, (newValue) => {
       successMessage.value = '';
     }, 5000);
   }
+});
+
+// Acceptance dashboard data (dummy data for now, will be replaced with API data later)
+const acceptanceMetrics = ref({
+  items: [
+    { title: 'Total Late Stops', value: 1050 },
+    { title: '1-20 Minutes Late', value: 1050 },
+    { title: '121 - 600 Minutes Late', value: 1050 },
+    { title: '+601 Minutes Late', value: 1050 }
+  ]
+});
+
+const bottomDrivers = ref([
+  { name: 'Kain', value: 5 },
+  { name: 'Ronny', value: 4 },
+  { name: 'Damen', value: 3 },
+  { name: 'Leo', value: 2 },
+  { name: 'Shawn', value: 1 }
+]);
+
+const acceptanceChartData = ref({
+  labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+  datasets: [
+    {
+      label: 'Late Stops',
+      data: [65, 59, 80, 81, 56, 55],
+      borderColor: '#3b82f6',
+      backgroundColor: 'rgba(59, 130, 246, 0.1)',
+      tension: 0.3
+    }
+  ]
 });
 
 // Add these new methods to handle soft-deleted reason codes

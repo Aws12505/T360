@@ -16,6 +16,19 @@
           </Badge>
         </div>
       </div>
+        <!-- VMCR-P -->
+        <div class="p-4 border rounded-lg">
+          <h4 class="text-lg font-medium mb-2">VMCR-P</h4>
+          <div class="text-sm text-muted-foreground mb-1">Count</div>
+          <div class="flex items-center justify-between gap-3 mb-3">
+            <div class="text-3xl font-bold" :class="getScoreColorClass(performanceRatings.vmcr_p)">
+              {{ formatNumber(performanceData.vmcr_p) }}
+            </div>
+            <Badge :variant="getRatingVariant(performanceRatings.vmcr_p)" class="text-xs">
+              {{ formatRating(performanceRatings.vmcr_p) }}
+            </Badge>
+          </div>
+        </div>
       
       <!-- Open BOC -->
       <div class="p-4 border rounded-lg">
@@ -31,19 +44,7 @@
         </div>
       </div>
       
-      <!-- VMCR-P -->
-      <div class="p-4 border rounded-lg">
-        <h4 class="text-lg font-medium mb-2">VMCR-P</h4>
-        <div class="text-sm text-muted-foreground mb-1">Count</div>
-        <div class="flex items-center justify-between gap-3 mb-3">
-          <div class="text-3xl font-bold" :class="getScoreColorClass(performanceRatings.vmcr_p)">
-            {{ formatNumber(performanceData.vmcr_p) }}
-          </div>
-          <Badge :variant="getRatingVariant(performanceRatings.vmcr_p)" class="text-xs">
-            {{ formatRating(performanceRatings.vmcr_p) }}
-          </Badge>
-        </div>
-      </div>
+    
     </div>
   </div>
 </template>

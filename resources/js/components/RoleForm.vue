@@ -1,7 +1,6 @@
 <template>
-  <!-- Modal overlay -->
-  <div class="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50 p-4">
-    <!-- Modal container -->
+  <!-- Modal container only (no background overlay) -->
+  <div class="fixed inset-0 flex items-center justify-center z-50">
     <div class="bg-background p-6 rounded-lg shadow-xl w-full max-w-md overflow-y-auto max-h-[90vh] animate-in fade-in zoom-in-95 duration-200 border border-border">
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-2xl font-bold text-foreground">

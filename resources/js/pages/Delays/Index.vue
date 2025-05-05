@@ -80,7 +80,7 @@
                 variant="outline"
                 size="sm"
                 :class="{'bg-primary/10 text-primary border-primary': activeTab === 'current-week'}">
-                Current Week
+                WtD
               </Button>
               <Button
                 @click="selectDateFilter('6w')"
@@ -215,6 +215,13 @@
           </div>
         </CardContent>
       </Card>
+
+      <!-- On-Time Dashboard -->
+      <OnTimeDashboard 
+        :metrics-data="ontimeMetrics" 
+        :drivers-data="bottomDrivers" 
+        :chart-data="ontimeChartData" 
+      />
 
       <!-- Delays Table -->
       <Card>
@@ -537,6 +544,7 @@ import {
 } from '@/components/ui/dialog';
 import DelayForm from '@/components/DelayForm.vue';
 import Icon from '@/components/Icon.vue';
+import OnTimeDashboard from '@/components/ontime/OnTimeDashboard.vue';
 import {
   Card,
   CardHeader,
@@ -891,6 +899,37 @@ watch(errorMessage, (newValue) => {
       errorMessage.value = '';
     }, 5000);
   }
+});
+
+// On-Time dashboard data (dummy data for now, will be replaced with API data later)
+const ontimeMetrics = ref({
+  items: [
+    { title: 'Total Late Stops', value: 1050 },
+    { title: '1-20 Minutes Late', value: 1050 },
+    { title: '121 - 600 Minutes Late', value: 1050 },
+    { title: '+601 Minutes Late', value: 1050 }
+  ]
+});
+
+const bottomDrivers = ref([
+  { name: 'Kain', value: 5 },
+  { name: 'Ronny', value: 4 },
+  { name: 'Damen', value: 3 },
+  { name: 'Leo', value: 2 },
+  { name: 'Shawn', value: 1 }
+]);
+
+const ontimeChartData = ref({
+  labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+  datasets: [
+    {
+      label: 'Late Stops',
+      data: [65, 59, 80, 81, 56, 55],
+      borderColor: '#3b82f6',
+      backgroundColor: 'rgba(59, 130, 246, 0.1)',
+      tension: 0.3
+    }
+  ]
 });
 
 // Computed property for "Select All" checkbox state

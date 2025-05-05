@@ -1,15 +1,30 @@
 <template>
-  <Card class="bg-background dark:bg-background">
+  <Card class="bg-background dark:bg-background border border-muted/30">
     <CardContent class="p-4">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <!-- Green Zone Score -->
-        <div class="bg-muted/20 rounded-lg p-4">
+        <!-- Green Zone Score with Driver Star -->
+        <div class="bg-gradient-to-br from-muted/10 to-muted/30 rounded-lg p-4 shadow-md border border-muted/20 hover:shadow-lg transition-shadow">
           <h3 class="text-lg font-semibold text-foreground mb-2">Green Zone Score</h3>
           <div class="text-4xl font-bold text-primary">{{ Math.round(data.greenZoneScore) }}</div>
+          
+          <!-- Driver Star visualization -->
+          <div class="mt-3 pt-3 border-t border-muted/30">
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-muted-foreground">Driver Star</span>
+              <span class="text-2xl font-bold text-indigo-600">{{ data.infractions?.driverStar || 0 }}</span>
+            </div>
+            <!-- Simple progress bar visualization -->
+            <!-- <div class="mt-2 h-2 w-full bg-muted/30 rounded-full overflow-hidden">
+              <div 
+                class="h-full bg-indigo-600 rounded-full" 
+                :style="{ width: `${Math.min(100, (data.infractions?.driverStar || 0) / 100 * 100)}%` }"
+              ></div>
+            </div> -->
+          </div>
         </div>
 
         <!-- Top 5 Drivers -->
-        <div class="bg-muted/20 rounded-lg p-4">
+        <div class="bg-gradient-to-br from-muted/10 to-muted/30 rounded-lg p-4 shadow-md border border-muted/20 hover:shadow-lg transition-shadow">
           <h3 class="text-lg font-semibold text-foreground mb-2">Top 5 Drivers</h3>
           <div class="space-y-2">
             <div v-if="data.topDrivers && data.topDrivers.length > 0">
@@ -26,7 +41,7 @@
         </div>
 
         <!-- Bottom 5 Drivers -->
-        <div class="bg-muted/20 rounded-lg p-4">
+        <div class="bg-gradient-to-br from-muted/10 to-muted/30 rounded-lg p-4 shadow-md border border-muted/20 hover:shadow-lg transition-shadow">
           <h3 class="text-lg font-semibold text-foreground mb-2">Bottom 5 Drivers</h3>
           <div class="space-y-2">
             <div v-if="data.bottomDrivers && data.bottomDrivers.length > 0">
@@ -48,7 +63,7 @@
         <h3 class="text-lg font-semibold text-foreground mb-4">Total Severe Alerts</h3>
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div v-for="(value, type) in data.alerts" :key="type" 
-               class="bg-muted/20 rounded-lg p-4 text-center">
+               class="bg-gradient-to-br from-muted/10 to-muted/30 rounded-lg p-4 text-center shadow-md border border-muted/20 hover:shadow-lg transition-shadow">
             <div class="text-sm text-muted-foreground mb-2">{{ formatAlertType(type) }}</div>
             <div class="text-2xl font-bold text-primary">{{ Math.floor(value) }}</div>
           </div>
@@ -59,10 +74,10 @@
       <div class="mt-6">
         <h3 class="text-lg font-semibold text-foreground mb-4">Other Severe Safety Infractions</h3>
         
-        <!-- Grid for visible infractions -->
+        <!-- Grid for visible infractions (excluding Driver Star which is now in Green Zone Score) -->
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <div v-for="(value, type) in visibleInfractions" :key="type" 
-               class="bg-muted/20 rounded-lg p-4 text-center">
+          <div v-for="(value, type) in filteredVisibleInfractions" :key="type" 
+               class="bg-gradient-to-br from-muted/10 to-muted/30 rounded-lg p-4 text-center shadow-md border border-muted/20 hover:shadow-lg transition-shadow">
             <div class="text-sm text-muted-foreground mb-2">{{ formatInfractionType(type) }}</div>
             <div class="text-2xl font-bold text-primary">{{ Math.round(value) }}</div>
           </div>
@@ -73,7 +88,7 @@
           <Button 
             @click="toggleShowMore" 
             variant="outline"
-            class="w-full md:w-auto"
+            class="w-full md:w-auto shadow-sm hover:shadow transition-shadow"
           >
             <Icon 
               :name="showMore ? 'chevron-up' : 'chevron-down'" 
@@ -87,7 +102,7 @@
         <div v-if="showMore" class="mt-4">
           <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
             <div v-for="(value, type) in hiddenInfractions" :key="type" 
-                 class="bg-muted/20 rounded-lg p-4 text-center">
+                 class="bg-gradient-to-br from-muted/10 to-muted/30 rounded-lg p-4 text-center shadow-md border border-muted/20 hover:shadow-lg transition-shadow">
               <div class="text-sm text-muted-foreground mb-2">{{ formatInfractionType(type) }}</div>
               <div class="text-2xl font-bold text-primary">{{ Math.round(value) }}</div>
             </div>
@@ -100,7 +115,7 @@
         <Button 
           @click="toggleShowGraphs" 
           variant="outline"
-          class="w-full md:w-auto"
+          class="w-full md:w-auto shadow-sm hover:shadow transition-shadow"
         >
           <Icon 
             :name="showGraphs ? 'eye-off' : 'eye'" 
@@ -114,7 +129,7 @@
       <div v-if="showGraphs" class="mt-6">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <!-- Line Chart -->
-          <div class="bg-muted/20 rounded-lg p-4">
+          <div class="bg-gradient-to-br from-muted/10 to-muted/30 rounded-lg p-4 shadow-lg border border-muted/20">
             <h3 class="text-lg font-semibold text-foreground mb-4">Safety Trends</h3>
             <div class="w-full h-64">
               <canvas ref="lineChartCanvas" width="400" height="200"></canvas>
@@ -122,7 +137,7 @@
           </div>
           
           <!-- Doughnut Chart -->
-          <div class="bg-muted/20 rounded-lg p-4">
+          <div class="bg-gradient-to-br from-muted/10 to-muted/30 rounded-lg p-4 shadow-lg border border-muted/20">
             <h3 class="text-lg font-semibold text-foreground mb-4">Alert Distribution</h3>
             <div class="flex justify-center items-center h-72">
               <div class="w-full h-full">
@@ -180,6 +195,18 @@ const sortedInfractions = computed(() => {
   return entries.sort((a, b) => b[1] - a[1]); // Sort by value in descending order
 });
 
+// Filter out driverStar from visible infractions
+const filteredVisibleInfractions = computed(() => {
+  const visible = {};
+  sortedInfractions.value
+    .filter(([key]) => key !== 'driverStar')
+    .slice(0, 5)
+    .forEach(([key, value]) => {
+      visible[key] = value;
+    });
+  return visible;
+});
+
 const visibleInfractions = computed(() => {
   const visible = {};
   sortedInfractions.value.slice(0, 5).forEach(([key, value]) => {
@@ -190,9 +217,12 @@ const visibleInfractions = computed(() => {
 
 const hiddenInfractions = computed(() => {
   const hidden = {};
-  sortedInfractions.value.slice(5).forEach(([key, value]) => {
-    hidden[key] = value;
-  });
+  sortedInfractions.value
+    .filter(([key]) => key !== 'driverStar')
+    .slice(5)
+    .forEach(([key, value]) => {
+      hidden[key] = value;
+    });
   return hidden;
 });
 
@@ -318,11 +348,11 @@ const initializeCharts = () => {
           datasets: [{
             data: doughnutChartData,
             backgroundColor: [
-              '#10b981', // green
-              '#f59e0b', // amber
-              '#ef4444', // red
-              '#6366f1', // indigo
-              '#8b5cf6'  // violet
+              '#061455', 
+              '#1911B2', 
+              '#678AC6', 
+              '#EA0E45',
+              '#FF9898'  
             ],
             borderWidth: 1
           }]

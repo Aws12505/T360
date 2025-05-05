@@ -52,7 +52,7 @@ const props = defineProps({
 
 const tabs = [
   { id: 'yesterday', label: 'Yesterday' },
-  { id: 'current-week', label: 'Current Week' },
+  { id: 'current-week', label: 'WtD' },
   { id: 't6w', label: 'T6W Scores' },
   { id: 'quarterly', label: 'Quarterly Scores' }
 ];

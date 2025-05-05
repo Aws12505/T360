@@ -69,10 +69,10 @@
       />
       
       <!-- Tabs Header -->
-      <TabsHeader @tab-change="handleTabChange" />
+      <!-- <TabsHeader @tab-change="handleTabChange" /> -->
       
       <!-- Tab Content -->
-      <div>
+      <!-- <div>
         <OnTimeContent 
           v-if="activeTab === 'on-time'" 
           :delayBreakdownsByDriver="delayBreakdowns?.by_driver || []"
@@ -99,7 +99,7 @@
           :initialOutstandingDate="outstandingDate"
           @filter-applied="handleOutstandingInvoicesFilter"
         />
-      </div>
+      </div> -->
     </div>
     
     <!-- Dialog for Canceled QS Invoices -->

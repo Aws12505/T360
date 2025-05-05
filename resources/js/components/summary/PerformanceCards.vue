@@ -1,29 +1,5 @@
 <template>
   <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-6">
-    <!-- On-Time Score Card -->
-    <div class="bg-card rounded-lg border shadow-sm p-4">
-      <h3 class="text-base font-semibold mb-1">On-Time</h3>
-      <div class="text-xs text-muted-foreground mb-1">Total Score</div>
-      <div class="flex items-center justify-between gap-3 mb-4">
-        <div class="text-4xl font-bold" :class="getScoreColorClass(performanceRatings.average_on_time)">
-          {{ formatPercentage(performanceData.average_on_time) }}
-        </div>
-        <Badge :variant="getRatingVariant(performanceRatings.average_on_time)" class="text-xs">
-          {{ formatRating(performanceRatings.average_on_time) }}
-        </Badge>
-      </div>
-
-      <div class="text-sm mb-2 flex justify-between">
-        <span class="font-semibold">Delays by Reason</span>
-        <span class="font-semibold">Total</span>
-      </div>
-      <div class="space-y-2 text-sm max-h-40 overflow-y-auto">
-        <div v-for="(delay, index) in topDelays" :key="index" class="flex justify-between">
-          <span>{{ delay.code }}</span>
-          <span>{{ delay.total_delays }}</span>
-        </div>
-      </div>
-    </div>
 
     <!-- Acceptance Score Card -->
     <div class="bg-card rounded-lg border shadow-sm p-4">
@@ -49,6 +25,32 @@
         </div>
       </div>
     </div>
+    <!-- On-Time Score Card -->
+    <div class="bg-card rounded-lg border shadow-sm p-4">
+      <h3 class="text-base font-semibold mb-1">On-Time</h3>
+      <div class="text-xs text-muted-foreground mb-1">Total Score</div>
+      <div class="flex items-center justify-between gap-3 mb-4">
+        <div class="text-4xl font-bold" :class="getScoreColorClass(performanceRatings.average_on_time)">
+          {{ formatPercentage(performanceData.average_on_time) }}
+        </div>
+        <Badge :variant="getRatingVariant(performanceRatings.average_on_time)" class="text-xs">
+          {{ formatRating(performanceRatings.average_on_time) }}
+        </Badge>
+      </div>
+
+      <div class="text-sm mb-2 flex justify-between">
+        <span class="font-semibold">Delays by Reason</span>
+        <span class="font-semibold">Total</span>
+      </div>
+      <div class="space-y-2 text-sm max-h-40 overflow-y-auto">
+        <div v-for="(delay, index) in topDelays" :key="index" class="flex justify-between">
+          <span>{{ delay.code }}</span>
+          <span>{{ delay.total_delays }}</span>
+        </div>
+      </div>
+    </div>
+
+
 
     <!-- Maintenance Metrics Card -->
     <div class="bg-card rounded-lg border shadow-sm p-4">
@@ -230,7 +232,7 @@ const formatRate = (value) => {
   if (typeof value === 'string') {
     value = parseFloat(value);
   }
-  
+
   if (value === undefined || value === null || isNaN(value)) return '0.00';
   return value.toFixed(2);
 };
@@ -241,7 +243,7 @@ const formatCurrency = (value) => {
   if (typeof value === 'string') {
     value = parseFloat(value);
   }
-  
+
   if (value === undefined || value === null || isNaN(value)) return '0.00';
   return value.toFixed(2);
 };

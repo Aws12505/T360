@@ -1,180 +1,192 @@
 <template>
-  <!-- Modal overlay for user form -->
-  <div class="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50 p-4">
-    <div class="bg-background p-6 rounded-lg shadow-xl w-full max-w-md overflow-y-auto max-h-[90vh] animate-in fade-in zoom-in-95 duration-200 border border-border">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-2xl font-bold text-foreground">
-          {{ user ? 'Edit User' : 'Create User' }}
-        </h2>
-        <Button variant="ghost" size="icon" @click="() => emit('close')">
-          <X class="h-5 w-5" />
-        </Button>
+  <!-- Modal overlay for user form - fixed to cover entire viewport -->
+  <div class="fixed inset-0 z-50">
+    <!-- Full-screen backdrop with blur effect -->
+    <!-- <div class="absolute inset-0 bg-black/25 backdrop-blur-sm"></div> -->
+    
+    <!-- Modal content container - centered with flex -->
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+      <div class="bg-background p-6 rounded-lg shadow-xl w-full sm:max-w-lg md:max-w-2xl lg:max-w-3xl overflow-y-auto max-h-[90vh] animate-in fade-in zoom-in-95 duration-200 border border-border">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-2xl font-bold text-foreground">
+            {{ user ? 'Edit User' : 'Create User' }}
+          </h2>
+          <Button variant="ghost" size="icon" @click="() => emit('close')">
+            <X class="h-5 w-5" />
+          </Button>
+        </div>
+        
+        <form @submit.prevent="submit" class="space-y-4">
+          <!-- Two-column layout for form fields -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Name Field -->
+            <div class="space-y-2">
+              <Label for="name">Name</Label>
+              <Input
+                id="name"
+                v-model="form.name"
+                placeholder="Enter name"
+                class="w-full"
+              />
+              <InputError :message="form.errors.name" />
+            </div>
+            
+            <!-- Email Field -->
+            <div class="space-y-2">
+              <Label for="email">Email</Label>
+              <Input
+                id="email"
+                v-model="form.email"
+                type="email"
+                placeholder="Enter email"
+                class="w-full"
+              />
+              <InputError :message="form.errors.email" />
+            </div>
+            
+            <!-- Password Field (shown only when creating a new user) -->
+            <div v-if="!user" class="space-y-2 md:col-span-2">
+              <Label for="password">Password</Label>
+              <Input
+                id="password"
+                v-model="form.password"
+                type="password"
+                placeholder="Enter password"
+                class="w-full"
+              />
+              <InputError :message="form.errors.password" />
+            </div>
+            
+            <!-- Tenant Dropdown for SuperAdmin users -->
+            <div v-if="isSuperAdmin" class="space-y-2 md:col-span-2">
+              <Label for="tenant">Company Name</Label>
+              <Select v-model="form.tenant_id">
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a company" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem :value="null">None</SelectItem>
+                  <SelectItem
+                    v-for="tenant in tenants"
+                    :value="tenant.id"
+                    :key="tenant.id"
+                  >
+                    {{ tenant.name }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <InputError :message="form.errors.tenant_id" />
+            </div>
+          </div>
+          
+          <!-- Roles and Permissions Section -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+            <!-- Roles Assignment Section -->
+            <div class="space-y-2">
+              <Label>Roles</Label>
+              <div class="relative">
+                <div class="flex items-center space-x-2">
+                  <Input
+                    v-model="roleSearch"
+                    placeholder="Search roles..."
+                    class="w-full"
+                  />
+                  <Button 
+                    v-if="roleSearch" 
+                    type="button" 
+                    variant="ghost" 
+                    size="icon" 
+                    @click="roleSearch = ''" 
+                    class="absolute right-2"
+                  >
+                    <X class="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              <div class="h-60 border rounded-md p-2 overflow-y-auto">
+                <div
+                  v-for="role in filteredRoles"
+                  :key="role.id"
+                  class="flex items-center py-1 px-2 hover:bg-muted/50 rounded transition-colors"
+                >
+                  <Checkbox
+                    :id="`role-${role.id}`"
+                    :checked="form.roles.includes(role.id)"
+                    @update:checked="toggleRole(role.id)"
+                    class="mr-2"
+                  />
+                  <Label :for="`role-${role.id}`" class="cursor-pointer">{{ role.name }}</Label>
+                </div>
+              </div>
+              <InputError :message="form.errors.roles" />
+            </div>
+            
+            <!-- Permissions Assignment Section -->
+            <div class="space-y-2">
+              <Label>Permissions</Label>
+              <div class="relative">
+                <div class="flex items-center space-x-2">
+                  <Input
+                    v-model="permissionSearch"
+                    placeholder="Search permissions..."
+                    class="w-full"
+                  />
+                  <Button 
+                    v-if="permissionSearch" 
+                    type="button" 
+                    variant="ghost" 
+                    size="icon" 
+                    @click="permissionSearch = ''" 
+                    class="absolute right-2"
+                  >
+                    <X class="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              <div class="h-60 border rounded-md p-2 overflow-y-auto">
+                <div
+                  v-for="permission in filteredPermissions"
+                  :key="permission.id"
+                  class="flex items-center py-1 px-2 hover:bg-muted/50 rounded transition-colors"
+                >
+                  <Checkbox
+                    :id="`permission-${permission.name}`"
+                    :checked="form.user_permissions.includes(permission.name)"
+                    @update:checked="togglePermission(permission.name)"
+                    :disabled="inheritedPermissions.includes(permission.name)"
+                    class="mr-2"
+                  />
+                  <Label :for="`permission-${permission.name}`" class="cursor-pointer">
+                    {{ permission.name }}
+                    <span v-if="inheritedPermissions.includes(permission.name)" class="ml-2 text-xs px-2 py-0.5 rounded-full border border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+                      inherited
+                    </span>
+                  </Label>
+                </div>
+              </div>
+              <InputError :message="form.errors.user_permissions" />
+            </div>
+          </div>
+          
+          <!-- Action Buttons -->
+          <div class="flex justify-end space-x-3 pt-4">
+            <Button
+              type="button"
+              @click="() => emit('close')"
+              variant="outline"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              :disabled="form.processing"
+            >
+              <Loader2 v-if="form.processing" class="mr-2 h-4 w-4 animate-spin" />
+              {{ form.processing ? 'Saving...' : 'Save' }}
+            </Button>
+          </div>
+        </form>
       </div>
-      
-      <form @submit.prevent="submit" class="space-y-4">
-        <!-- Name Field -->
-        <div class="space-y-2">
-          <Label for="name">Name</Label>
-          <Input
-            id="name"
-            v-model="form.name"
-            placeholder="Enter name"
-            class="w-full"
-          />
-          <InputError :message="form.errors.name" />
-        </div>
-        
-        <!-- Email Field -->
-        <div class="space-y-2">
-          <Label for="email">Email</Label>
-          <Input
-            id="email"
-            v-model="form.email"
-            type="email"
-            placeholder="Enter email"
-            class="w-full"
-          />
-          <InputError :message="form.errors.email" />
-        </div>
-        
-        <!-- Password Field (shown only when creating a new user) -->
-        <div v-if="!user" class="space-y-2">
-          <Label for="password">Password</Label>
-          <Input
-            id="password"
-            v-model="form.password"
-            type="password"
-            placeholder="Enter password"
-            class="w-full"
-          />
-          <InputError :message="form.errors.password" />
-        </div>
-        
-        <!-- Tenant Dropdown for SuperAdmin users -->
-        <div v-if="isSuperAdmin" class="space-y-2">
-          <Label for="tenant">Company Name</Label>
-          <Select v-model="form.tenant_id">
-            <SelectTrigger>
-              <SelectValue placeholder="Select a company" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem :value="null">None</SelectItem>
-              <SelectItem
-                v-for="tenant in tenants"
-                :value="tenant.id"
-                :key="tenant.id"
-              >
-                {{ tenant.name }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-          <InputError :message="form.errors.tenant_id" />
-        </div>
-        
-        <!-- Roles Assignment Section -->
-        <div class="space-y-2">
-          <Label>Roles</Label>
-          <div class="relative">
-            <div class="flex items-center space-x-2">
-              <Input
-                v-model="roleSearch"
-                placeholder="Search roles..."
-                class="w-full"
-              />
-              <Button 
-                v-if="roleSearch" 
-                type="button" 
-                variant="ghost" 
-                size="icon" 
-                @click="roleSearch = ''" 
-                class="absolute right-2"
-              >
-                <X class="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-          <div class="h-40 border rounded-md p-2 overflow-y-auto">
-            <div
-              v-for="role in filteredRoles"
-              :key="role.id"
-              class="flex items-center py-1 px-2 hover:bg-muted/50 rounded transition-colors"
-            >
-              <Checkbox
-                :id="`role-${role.id}`"
-                :checked="form.roles.includes(role.id)"
-                @update:checked="toggleRole(role.id)"
-                class="mr-2"
-              />
-              <Label :for="`role-${role.id}`" class="cursor-pointer">{{ role.name }}</Label>
-            </div>
-          </div>
-          <InputError :message="form.errors.roles" />
-        </div>
-        
-        <!-- Permissions Assignment Section -->
-        <div class="space-y-2">
-          <Label>Permissions</Label>
-          <div class="relative">
-            <div class="flex items-center space-x-2">
-              <Input
-                v-model="permissionSearch"
-                placeholder="Search permissions..."
-                class="w-full"
-              />
-              <Button 
-                v-if="permissionSearch" 
-                type="button" 
-                variant="ghost" 
-                size="icon" 
-                @click="permissionSearch = ''" 
-                class="absolute right-2"
-              >
-                <X class="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-          <div class="h-40 border rounded-md p-2 overflow-y-auto">
-            <div
-              v-for="permission in filteredPermissions"
-              :key="permission.id"
-              class="flex items-center py-1 px-2 hover:bg-muted/50 rounded transition-colors"
-            >
-              <Checkbox
-                :id="`permission-${permission.name}`"
-                :checked="form.user_permissions.includes(permission.name)"
-                @update:checked="togglePermission(permission.name)"
-                :disabled="inheritedPermissions.includes(permission.name)"
-                class="mr-2"
-              />
-              <Label :for="`permission-${permission.name}`" class="cursor-pointer">
-                {{ permission.name }}
-                <span v-if="inheritedPermissions.includes(permission.name)" class="ml-2 text-xs px-2 py-0.5 rounded-full border border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
-                  inherited
-                </span>
-              </Label>
-            </div>
-          </div>
-          <InputError :message="form.errors.user_permissions" />
-        </div>
-        
-        <!-- Action Buttons -->
-        <div class="flex justify-end space-x-3 pt-4">
-          <Button
-            type="button"
-            @click="() => emit('close')"
-            variant="outline"
-          >
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            :disabled="form.processing"
-          >
-            <Loader2 v-if="form.processing" class="mr-2 h-4 w-4 animate-spin" />
-            {{ form.processing ? 'Saving...' : 'Save' }}
-          </Button>
-        </div>
-      </form>
     </div>
   </div>
 </template>
