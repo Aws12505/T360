@@ -2,7 +2,7 @@
   <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
     <Head title="Support Tickets" />
 
-    <div class="max-w-7xl mx-auto p-6 space-y-8">
+    <div class="w-[95%] mx-auto p-6 space-y-8">
       <!-- Success -->
       <Alert v-if="successMessage" variant="success" class="animate-in fade-in duration-300">
         <AlertTitle class="flex items-center gap-2">
