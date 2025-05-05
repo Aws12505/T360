@@ -114,6 +114,7 @@
               <span v-else>
                 {{ dateRange.label }}
               </span>
+              <span v-if="weekNumberText" class="ml-1">({{ weekNumberText }})</span>
             </div>
           </div>
         </CardContent>
@@ -574,8 +575,37 @@ const props = defineProps({
   isSuperAdmin: { type: Boolean, default: false },
   dateRange: { type: Object, default: null },
   dateFilter: { type: String, default: 'yesterday' },
+  weekNumber: {
+    type: Number,
+    default: null
+  },
+  startWeekNumber: {
+    type: Number,
+    default: null
+  },
+  endWeekNumber: {
+    type: Number,
+    default: null
+  },
+  year: {
+    type: Number,
+    default: null
+  }
+})
+const weekNumberText = computed(() => {
+  // For yesterday and current-week, show single week
+  if ((activeTab.value === 'yesterday' || activeTab.value === 'current-week') && props.weekNumber && props.year) {
+    return `Week ${props.weekNumber}, ${props.year}`;
+  }
+  
+  // For 6w and quarterly, show start-end week range if available
+  if ((activeTab.value === '6w' || activeTab.value === 'quarterly') && 
+      props.startWeekNumber && props.endWeekNumber && props.year) {
+    return `Weeks ${props.startWeekNumber}-${props.endWeekNumber}, ${props.year}`;
+  }
+  
+  return '';
 });
-
 const breadcrumbs = [
   {
     title: props.tenantSlug ? 'Dashboard' : 'Admin Dashboard',

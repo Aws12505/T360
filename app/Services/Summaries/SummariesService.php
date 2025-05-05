@@ -37,6 +37,7 @@ class SummariesService
         $dateFilter = $dateFilter ?? $this->filteringService->getDateFilter('yesterday');
         $dateRange = [];
         $now = Carbon::now();
+        $isSunday = $now->dayOfWeek === 0; // 0 = Sunday in Carbon
 
         switch ($dateFilter) {
             case 'yesterday':
@@ -47,19 +48,38 @@ class SummariesService
 
             case 'current-week':
                 $startDate = $now->copy()->startOfDay()->modify('last sunday');
+                if ($isSunday) {
+                    $startDate->subWeek();
+                }
                 $endDate = $startDate->copy()->addDays(6)->endOfDay(); // Saturday
                 $label = 'Current Week';
                 break;
 
             case 't6w':
-                $startDate = $now->copy()->modify('last sunday')->subWeeks(5)->startOfDay();
-                $endDate = $now->copy()->modify('this saturday')->endOfDay();
+                $startDate = $now->copy()->modify('last sunday');
+                if ($isSunday) {
+                    $startDate->subWeek();
+                }
+                $startDate->subWeeks(5)->startOfDay();
+                $endDate = $now->copy()->modify('this saturday');
+                if ($isSunday) {
+                    $endDate->subWeek();
+                }
+                $endDate->endOfDay();
                 $label = '6 Weeks';
                 break;
 
             case 'quarterly':
-                $startDate = $now->copy()->subMonths(3)->modify('last sunday')->startOfDay();
-                $endDate = $now->copy()->modify('this saturday')->endOfDay();
+                $startDate = $now->copy()->subMonths(3)->modify('last sunday');
+                if ($isSunday) {
+                    $startDate->subWeek();
+                }
+                $startDate->startOfDay();
+                $endDate = $now->copy()->modify('this saturday');
+                if ($isSunday) {
+                    $endDate->subWeek();
+                }
+                $endDate->endOfDay();
                 $label = 'Quarterly';
                 break;
 

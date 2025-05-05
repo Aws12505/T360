@@ -8,7 +8,7 @@ use App\Models\Tenant;
 use App\Services\Filtering\FilteringService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Request;
-
+use Carbon\Carbon;
 class DelayService
 {
     protected $filteringService;
@@ -62,7 +62,27 @@ class DelayService
         // Retrieve ALL delay codes including soft-deleted ones, for listing in the table and
         // the "Manage Delay Codes" section.
         $delayCodes = DelayCode::withTrashed()->get();
+// Calculate week numbers for display
+$weekNumber = null;
+$startWeekNumber = null;
+$endWeekNumber = null;
+$year = null;
+if (!empty($dateRange) && isset($dateRange['start'])) {
+    $startDate = Carbon::parse($dateRange['start']);
+    $year = $startDate->year;
 
+    // compute week numbers (Sunday=first day)
+    if (in_array($dateFilter, ['yesterday', 'current-week'])) {
+        $weekNumber = $this->weekNumberSundayStart($startDate);
+        $startWeekNumber = $endWeekNumber = null;
+    } else {
+        $weekNumber = null;
+        $startWeekNumber = $this->weekNumberSundayStart($startDate);
+        $endWeekNumber = isset($dateRange['end']) ? 
+            $this->weekNumberSundayStart(Carbon::parse($dateRange['end'])) : 
+            $startWeekNumber;
+    }
+}
         return [
             'delays'      => $delays,
             'tenantSlug'  => $tenantSlug,
@@ -71,9 +91,30 @@ class DelayService
             'delay_codes' => $delayCodes,
             'dateRange'   => $dateRange,
             'dateFilter'  => $dateFilter,
+            'weekNumber' => $weekNumber,
+            'startWeekNumber' => $startWeekNumber,
+            'endWeekNumber' => $endWeekNumber,
+            'year' => $year,
         ];
     }
+/**
+     * Get the week‐of‐year for a Carbon date, where weeks run Sunday → Saturday.
+     *
+     * @param  Carbon  $date
+     * @return int
+     */
+    private function weekNumberSundayStart(Carbon $date): int
+    {
+        // 1..366
+        $dayOfYear   = $date->dayOfYear;
 
+        // 0=Sunday, …, 6=Saturday for Jan 1
+        $firstDayDow = $date->copy()
+                            ->startOfYear()
+                            ->dayOfWeek;
+        // shift so weeks bound on Sunday, then ceil
+        return (int) ceil(($dayOfYear + $firstDayDow) / 7);
+    }
     /**
      * Create a new delay record.
      *

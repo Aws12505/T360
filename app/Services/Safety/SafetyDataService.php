@@ -8,6 +8,7 @@ use App\Services\Summaries\SafetyDataService as SummariesSafetyDataService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Request;
 use App\Models\Tenant;
+use Carbon\Carbon;
 /**
  * Class SafetyDataService
  *
@@ -58,7 +59,28 @@ class SafetyDataService
         $isSuperAdmin = is_null(Auth::user()->tenant_id);
         $tenantSlug = $isSuperAdmin ? null : Auth::user()->tenant->slug;
         $tenants = $isSuperAdmin ? Tenant::all() : [];
-        
+        // Calculate week numbers for display
+        $weekNumber = null;
+        $startWeekNumber = null;
+        $endWeekNumber = null;
+        $year = null;
+        if (!empty($dateRange) && isset($dateRange['start'])) {
+            $startDate = Carbon::parse($dateRange['start']);
+            $year = $startDate->year;
+            // Removed dd($startDate) debug statement
+            
+            // compute week numbers (Sunday=first day)
+            if (in_array($dateFilter, ['yesterday', 'current-week'])) {
+                $weekNumber = $this->weekNumberSundayStart($startDate);
+                $startWeekNumber = $endWeekNumber = null;
+            } else {
+                $weekNumber = null;
+                $startWeekNumber = $this->weekNumberSundayStart($startDate);
+                $endWeekNumber = isset($dateRange['end']) ? 
+                    $this->weekNumberSundayStart(Carbon::parse($dateRange['end'])) : 
+                    $startWeekNumber;
+            }
+        }
         // Get formatted safety data using the date range from filtering
         $safetyData = $this->getSafetyDataWithFiltering($dateFilter, $dateRange);
         return [
@@ -69,9 +91,31 @@ class SafetyDataService
             'dateRange'  => $dateRange,
             'dateFilter' => $dateFilter,
             'safetyData' => $safetyData,
+            'weekNumber' => $weekNumber,
+            'startWeekNumber' => $startWeekNumber,
+            'endWeekNumber' => $endWeekNumber,
+            'year' => $year,
         ];
     }
+/**
+     * Get the week‐of‐year for a Carbon date, where weeks run Sunday → Saturday.
+     *
+     * @param  Carbon  $date
+     * @return int
+     */
+    private function weekNumberSundayStart(Carbon $date): int
+    {
+        // 1..366
+        $dayOfYear   = $date->dayOfYear;
 
+        // 0=Sunday, …, 6=Saturday for Jan 1
+        $firstDayDow = $date->copy()
+                            ->startOfYear()
+                            ->dayOfWeek;
+
+        // shift so weeks bound on Sunday, then ceil
+        return (int) ceil(($dayOfYear + $firstDayDow) / 7);
+    }
     /**
      * Get formatted safety data using the current date filter
      * 

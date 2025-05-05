@@ -7,7 +7,7 @@ use App\Models\RejectionReasonCode;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Tenant;
 use App\Services\Filtering\FilteringService;
-
+use Carbon\Carbon;
 /**
  * Class RejectionService
  *
@@ -57,7 +57,28 @@ class RejectionService
         
         // Paginate results
         $rejections = $query->paginate($perPage);
-        
+        // Calculate week numbers for display
+        $weekNumber = null;
+        $startWeekNumber = null;
+        $endWeekNumber = null;
+        $year = null;
+        if (!empty($dateRange) && isset($dateRange['start'])) {
+            $startDate = Carbon::parse($dateRange['start']);
+            $year = $startDate->year;
+            // Removed dd($startDate) debug statement
+            
+            // compute week numbers (Sunday=first day)
+            if (in_array($dateFilter, ['yesterday', 'current-week'])) {
+                $weekNumber = $this->weekNumberSundayStart($startDate);
+                $startWeekNumber = $endWeekNumber = null;
+            } else {
+                $weekNumber = null;
+                $startWeekNumber = $this->weekNumberSundayStart($startDate);
+                $endWeekNumber = isset($dateRange['end']) ? 
+                    $this->weekNumberSundayStart(Carbon::parse($dateRange['end'])) : 
+                    $startWeekNumber;
+            }
+        }
         return [
             'rejections'           => $rejections,
             'tenantSlug'           => $isSuperAdmin ? null : $user->tenant->slug,
@@ -66,10 +87,31 @@ class RejectionService
             'rejection_reason_codes' => RejectionReasonCode::withTrashed()->get(),
             'dateFilter'           => $dateFilter,
             'dateRange'            => $dateRange,
-            'perPage'              => $perPage,
+            'perPage'              => $perPage,'weekNumber' => $weekNumber,
+            'startWeekNumber' => $startWeekNumber,
+            'endWeekNumber' => $endWeekNumber,
+            'year' => $year,
         ];
     }
+/**
+     * Get the week‐of‐year for a Carbon date, where weeks run Sunday → Saturday.
+     *
+     * @param  Carbon  $date
+     * @return int
+     */
+    private function weekNumberSundayStart(Carbon $date): int
+    {
+        // 1..366
+        $dayOfYear   = $date->dayOfYear;
 
+        // 0=Sunday, …, 6=Saturday for Jan 1
+        $firstDayDow = $date->copy()
+                            ->startOfYear()
+                            ->dayOfWeek;
+
+        // shift so weeks bound on Sunday, then ceil
+        return (int) ceil(($dayOfYear + $firstDayDow) / 7);
+    }
     /**
      * Create a new rejection.
      *

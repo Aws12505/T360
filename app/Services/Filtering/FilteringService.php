@@ -39,8 +39,17 @@ class FilteringService
     public function applyDateFilter(Builder $query, string $dateFilter = 'full', string $dateColumn = 'date', array &$dateRange = []): Builder
     {
         $now = Carbon::now();
+        $isSunday = $now->dayOfWeek === 0; // 0 = Sunday in Carbon
+        
         $currentWeekStart = $now->copy()->startOfWeek(Carbon::SUNDAY);
         $currentWeekEnd = $now->copy()->endOfWeek(Carbon::SATURDAY);
+        
+        // Adjust dates if today is Sunday
+        if ($isSunday) {
+            $currentWeekStart->subWeek();
+            $currentWeekEnd->subWeek();
+        }
+        
         $rollingStart = $currentWeekStart->copy()->subWeeks(5);
         $rollingEnd = $currentWeekEnd;
         
@@ -73,14 +82,25 @@ class FilteringService
                              ->whereDate($dateColumn, '<=', $rollingEnd->format('Y-m-d'));
                 
             case 'quarterly':
-                $quarterStart = $now->copy()->subMonths(3)->format('Y-m-d');
+                $quarterStart = $now->copy()->subMonths(3);
+                if ($isSunday) {
+                    $quarterStart->subWeek();
+                }
+                $quarterStart = $quarterStart->format('Y-m-d');
+                
+                $endDate = $now;
+                if ($isSunday) {
+                    $endDate = $endDate->copy()->subWeek();
+                }
+                $endDate = $endDate->format('Y-m-d');
+                
                 $dateRange = [
                     'start' => $quarterStart,
-                    'end' => $now->format('Y-m-d'),
+                    'end' => $endDate,
                     'label' => 'Quarterly'
                 ];
                 return $query->whereDate($dateColumn, '>=', $quarterStart)
-                             ->whereDate($dateColumn, '<=', $now->format('Y-m-d'));
+                             ->whereDate($dateColumn, '<=', $endDate);
                 
             case 'full':
             default:
