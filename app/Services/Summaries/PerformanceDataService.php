@@ -60,6 +60,22 @@ class PerformanceDataService
     }
 
     /**
+     * Get the latest updated_at timestamp from performances table
+     */
+    public function getLatestUpdateTimestamp()
+    {
+        $query = DB::table('performances')
+            ->select('updated_at')
+            ->orderBy('updated_at', 'desc')
+            ->limit(1);
+            
+        $this->applyTenantFilter($query);
+        $result = $query->first();
+        
+        return $result ? $result->updated_at : null;
+    }
+
+    /**
      * Apply tenant filter to query if user is authenticated
      */
     public function applyTenantFilter($query)
@@ -121,6 +137,7 @@ class PerformanceDataService
         
         $mainData = $this->getMainPerformanceData($startDate, $endDate);
         $rollingData = $this->getRollingPerformanceData();
+        $lastUpdated = $this->getLatestUpdateTimestamp();
         
         // Get QS invoice amount and total miles for MVtS calculation
         $qsInvoiceAmount = $this->maintenanceBreakdownService->getQSInvoiceAmount($startDate, $endDate);
@@ -132,6 +149,7 @@ class PerformanceDataService
             'label' => $label,
             'start_date' => $startDate->toDateString(),
             'end_date' => $endDate->toDateString(),
+            'last_updated' => $lastUpdated,
             'data' => [
                 'average_acceptance' => $mainData->average_acceptance ?? 0,
                 'average_on_time' => $mainData->average_on_time ?? 0,

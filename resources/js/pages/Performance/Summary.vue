@@ -8,7 +8,7 @@
         <h1 class="text-2xl font-bold"></h1>
         <Badge variant="outline" class="text-sm">
           <Icon name="calendar" class="mr-1 h-4 w-4" />
-          Last updated: {{ formatDate(new Date()) }}
+          Last updated: {{ formatLastUpdated }}
         </Badge>
       </div>
       
@@ -289,6 +289,16 @@ const breadcrumbs = [
     href: route('dashboard', { tenantSlug: props.tenantSlug }),
   },
 ];
+
+// Compute the formatted last updated date from the summaries data
+const formatLastUpdated = computed(() => {
+  // Check if we have a last_updated timestamp from the backend
+  if (props.summaries?.performance?.last_updated) {
+    return formatDate(new Date(props.summaries.performance.last_updated));
+  }
+  // Fallback to current date if no timestamp is available
+  return formatDate(new Date());
+});
 
 // Helper: Format date for display
 const formatDate = (date: Date) => {
