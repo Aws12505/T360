@@ -25,12 +25,9 @@ class DriverDataService
         $query = Driver::query()->with('tenant');
         
         // Apply date filtering if requested
-        $dateFilter = $this->filteringService->getDateFilter();
-        $dateRange = [];
+
         
-        if ($dateFilter !== 'full') {
-            $query = $this->filteringService->applyDateFilter($query, $dateFilter, 'hiring_date', $dateRange);
-        }
+
         
         // Get per page value
         $perPage = $this->filteringService->getPerPage(Request::input('perPage', 10));
@@ -49,8 +46,7 @@ class DriverDataService
             'tenantSlug' => $tenantSlug,
             'SuperAdmin' => $isSuperAdmin,
             'tenants'    => $tenants,
-            'dateRange'  => $dateRange,
-            'dateFilter' => $dateFilter,
+
         ];
     }
 

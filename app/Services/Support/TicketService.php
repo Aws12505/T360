@@ -3,6 +3,7 @@ namespace App\Services\Support;
 
 use App\Models\Ticket;
 use App\Models\Tenant;
+use App\Models\TicketSubject;
 use App\Models\Scopes\TenantScope;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Request;
@@ -54,6 +55,10 @@ class TicketService
             ->paginate(Request::input('per_page', 10))
             ->withQueryString();
 
+        // Retrieve ALL ticket subjects including soft-deleted ones, for listing in the table and
+        // the "Manage Ticket Subjects" section, similar to how delay codes are handled
+        $ticketSubjects = TicketSubject::withTrashed()->get();
+
         return [
             'tickets' => $tickets,
             'filters' => [
@@ -64,6 +69,7 @@ class TicketService
                 'sort_field'     => Request::input('sort_field'),
                 'sort_direction' => Request::input('sort_direction'),
             ],
+            'ticket_subjects' => $ticketSubjects,
         ];
     }
 
@@ -137,5 +143,28 @@ class TicketService
     public function deleteTicket(int $id): bool
     {
         return Ticket::findOrFail($id)->delete();
+    }
+    /**
+     * Delete multiple tickets.
+     *
+     * @param array $ids
+     * @return void
+     */
+    public function deleteMultipleTickets(array $ids)
+    {
+        if (empty($ids)) {
+            return;
+        }
+        
+        // For security, ensure the user can only delete tickets they have access to
+        $query = Ticket::whereIn('id', $ids);
+        
+        // If not a super admin, restrict to user's own tickets
+        $user = Auth::user();
+        if (!is_null($user->tenant_id)) {
+            $query->where('user_id', $user->id);
+        }
+        
+        $query->delete();
     }
 }

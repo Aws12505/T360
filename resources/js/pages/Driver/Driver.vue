@@ -55,66 +55,6 @@
         </div>
       </div>
 
-      <!-- Date Filter Tabs -->
-      <Card>
-        <CardContent class="p-4">
-          <div class="flex flex-col gap-2">
-            <div class="flex flex-wrap gap-2">
-              <Button 
-                @click="selectDateFilter('yesterday')" 
-                variant="outline"
-                size="sm"
-                :class="{'bg-primary/10 text-primary border-primary': activeTab === 'yesterday'}"
-              >
-                Yesterday
-              </Button>
-              <Button 
-                @click="selectDateFilter('current-week')" 
-                variant="outline"
-                size="sm"
-                :class="{'bg-primary/10 text-primary border-primary': activeTab === 'current-week'}"
-              >
-              WtD
-              </Button>
-              <Button 
-                @click="selectDateFilter('6w')" 
-                variant="outline"
-                size="sm"
-                :class="{'bg-primary/10 text-primary border-primary': activeTab === '6w'}"
-              >
-                6 Weeks
-              </Button>
-              <Button 
-                @click="selectDateFilter('quarterly')" 
-                variant="outline"
-                size="sm"
-                :class="{'bg-primary/10 text-primary border-primary': activeTab === 'quarterly'}"
-              >
-                Quarterly
-              </Button>
-              <Button 
-                @click="selectDateFilter('full')" 
-                variant="outline"
-                size="sm"
-                :class="{'bg-primary/10 text-primary border-primary': activeTab === 'full'}"
-              >
-                Full
-              </Button>
-            </div>
-            <div v-if="dateRange" class="text-sm text-muted-foreground">
-              <span v-if="activeTab === 'yesterday' && dateRange.start">
-                Showing data from {{ formatDate(dateRange.start) }}
-              </span>
-              <span v-else-if="dateRange.start && dateRange.end">
-                Showing data from {{ formatDate(dateRange.start) }} to {{ formatDate(dateRange.end) }}
-              </span>
-              <span v-else>
-                {{ dateRange.label }}
-              </span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       <!-- Filters Section -->
       <Card>
@@ -444,11 +384,7 @@ const props = defineProps({
   tenantSlug: String,
   SuperAdmin: Boolean,
   tenants: Array,
-  dateRange: Object,
-  dateFilter: {
-    type: String,
-    default: 'yesterday'
-  }
+
 });
 
 // Add activeTab ref

@@ -123,6 +123,7 @@
                 </span>
                 <span v-else-if="dateRange.start && dateRange.end">
                   Showing data from {{ formatDate(dateRange.start) }} to {{ formatDate(dateRange.end) }}
+                  
                 </span>
                 <span v-else>
                   {{ dateRange.label }}

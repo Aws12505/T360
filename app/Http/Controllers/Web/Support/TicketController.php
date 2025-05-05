@@ -3,14 +3,24 @@ namespace App\Http\Controllers\Web\Support;
 
 use App\Http\Controllers\Controller;
 use App\Services\Support\TicketService;
+use App\Services\Support\TicketSubjectsService;
 use App\Http\Requests\Support\StoreTicketRequest;
 use App\Http\Requests\Support\UpdateTicketStatusRequest;
+use App\Http\Requests\Support\StoreTicketSubjectRequest;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use Illuminate\Http\Request;
 
 class TicketController extends Controller
 {
-    public function __construct(protected TicketService $service) {}
+    protected $ticketSubjectsService;
+
+    public function __construct(
+        protected TicketService $service,
+        TicketSubjectsService $ticketSubjectsService
+    ) {
+        $this->ticketSubjectsService = $ticketSubjectsService;
+    }
 
     /**
      * Both admin & normal use this:
@@ -98,5 +108,61 @@ class TicketController extends Controller
         $this->service->deleteTicket($ticket);
         return redirect()->route('support.index.admin')
                          ->with('success', 'Ticket deleted.');
+    }
+
+    /**
+     * Store a new ticket subject.
+     */
+    public function storeSubject(StoreTicketSubjectRequest $request)
+    {
+        $this->ticketSubjectsService->createTicketSubject($request->validated());
+        return back();
+    }
+
+    /**
+     * Delete a ticket subject.
+     */
+    public function destroySubject($id)
+    {
+        $this->ticketSubjectsService->deleteTicketSubject($id);
+        return back();
+    }
+
+    /**
+     * Restore a soft-deleted ticket subject.
+     */
+    public function restoreSubject($id)
+    {
+        $this->ticketSubjectsService->restoreTicketSubject($id);
+        return back();
+    }
+
+    /**
+     * Permanently force delete a ticket subject.
+     */
+    public function forceDeleteSubject($id)
+    {
+        $this->ticketSubjectsService->forceDeleteTicketSubject($id);
+        return back();
+    }
+
+     /**
+     * Delete multiple tickets (normal user).
+     */
+    public function destroyBulk(Request $request, $tenantSlug = null)
+    {
+        $ids = $request->input('ids', []);
+        $this->service->deleteMultipleTickets($ids);
+        return back();
+    }
+
+    /**
+     * Delete multiple tickets (super-admin).
+     */
+    public function destroyBulkAdmin(Request $request)
+    {
+        $ids = $request->input('ids', []);
+        $this->service->deleteMultipleTickets($ids);
+        return back();
     }
 }

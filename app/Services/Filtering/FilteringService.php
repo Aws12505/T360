@@ -98,7 +98,7 @@ class FilteringService
      * @param string $default
      * @return string
      */
-    public function getDateFilter(string $default = '6w'): string
+    public function getDateFilter(string $default = 'yesterday'): string
     {
         return Request::input('dateFilter', $default);
     }

@@ -62,6 +62,7 @@ class SafetyDataService
     public function getBottomDrivers($startDate, $endDate, $limit = 5)
     {
         $query = $this->getDriverScoreQuery($startDate, $endDate)
+            ->where('minutes_analyzed', '>', 0)
             ->orderBy('average_score', 'asc')
             ->limit($limit);
 
