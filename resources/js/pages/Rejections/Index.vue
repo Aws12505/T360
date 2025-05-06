@@ -218,9 +218,10 @@
 
       <!-- Acceptance Dashboard -->
       <AcceptanceDashboard 
-        :metrics-data="acceptanceMetrics" 
-        :drivers-data="bottomDrivers" 
-        :chart-data="acceptanceChartData" 
+        v-if="!isSuperAdmin"
+        :metricsData="acceptanceMetrics" 
+        :driversData="bottomDrivers" 
+        :chartData="acceptanceChartData" 
       />
 
       <!-- Rejections Table -->
@@ -490,7 +491,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
-import { useForm, Head } from '@inertiajs/vue3';
+import { useForm, Head, usePage } from '@inertiajs/vue3';
 // Import UI components from their correct folders
 import Button from '@/components/ui/button/Button.vue';
 import {
@@ -540,6 +541,14 @@ const props = defineProps({
   },
   year: {
     type: Number,
+    default: null
+  },
+  rejection_breakdown: {
+    type: Object,
+    default: null
+  },
+  line_chart_data: {
+    type: Object,
     default: null
   }
 })
@@ -911,35 +920,55 @@ watch(successMessage, (newValue) => {
   }
 });
 
-// Acceptance dashboard data (dummy data for now, will be replaced with API data later)
-const acceptanceMetrics = ref({
-  items: [
-    { title: 'Total Late Stops', value: 1050 },
-    { title: '1-20 Minutes Late', value: 1050 },
-    { title: '121 - 600 Minutes Late', value: 1050 },
-    { title: '+601 Minutes Late', value: 1050 }
-  ]
+// Acceptance dashboard data from API
+const acceptanceMetrics = computed(() => {
+  if (!props.rejection_breakdown?.by_category) return null;
+  
+  const categoryData = props.rejection_breakdown.by_category;
+  
+  return {
+    category_more_than_6_load_count: categoryData.category_more_than_6_load_count || '0',
+    category_more_than_6_block_count: categoryData.category_more_than_6_block_count || '0',
+    category_within_6_load_count: categoryData.category_within_6_load_count || '0',
+    category_within_6_block_count: categoryData.category_within_6_block_count || '0',
+    category_after_start_load_count: categoryData.category_after_start_load_count || '0',
+    category_after_start_block_count: categoryData.category_after_start_block_count || '0',
+    total_load_rejections: categoryData.total_load_rejections || '0',
+    total_block_rejections: categoryData.total_block_rejections || '0',
+    total_load_penalty: categoryData.total_load_penalty || '0',
+    total_block_penalty: categoryData.total_block_penalty || '0',
+    by_category: true
+  };
 });
 
-const bottomDrivers = ref([
-  { name: 'Kain', value: 5 },
-  { name: 'Ronny', value: 4 },
-  { name: 'Damen', value: 3 },
-  { name: 'Leo', value: 2 },
-  { name: 'Shawn', value: 1 }
-]);
+const bottomDrivers = computed(() => {
+  return props.rejection_breakdown?.bottom_five_drivers || [];
+});
 
-const acceptanceChartData = ref({
-  labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-  datasets: [
-    {
-      label: 'Late Stops',
-      data: [65, 59, 80, 81, 56, 55],
+const acceptanceChartData = computed(() => {
+  if (!props.line_chart_data || props.line_chart_data.length === 0) {
+    return {
+      labels: [],
+      datasets: [{
+        label: 'Acceptance Performance',
+        data: [],
+        borderColor: '#3b82f6',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        tension: 0.3,
+      }]
+    };
+  }
+  
+  return {
+    labels: props.line_chart_data.map(item => item.date),
+    datasets: [{
+      label: 'Acceptance Performance',
+      data: props.line_chart_data.map(item => item.acceptancePerformance),
       borderColor: '#3b82f6',
       backgroundColor: 'rgba(59, 130, 246, 0.1)',
-      tension: 0.3
-    }
-  ]
+      tension: 0.3,
+    }]
+  };
 });
 
 // Add these new methods to handle soft-deleted reason codes

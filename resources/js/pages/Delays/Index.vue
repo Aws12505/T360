@@ -590,6 +590,22 @@ const props = defineProps({
   year: {
     type: Number,
     default: null
+  },
+  delay_breakdown: {
+    type: Object,
+    default: () => ({
+      by_category: {
+        total_delays: 0,
+        category_1_120_count: 0,
+        category_121_600_count: 0,
+        category_601_plus_count: 0
+      },
+      bottom_five_drivers: []
+    })
+  },
+  line_chart_data: {
+    type: Array,
+    default: () => []
   }
 })
 const weekNumberText = computed(() => {
@@ -931,35 +947,49 @@ watch(errorMessage, (newValue) => {
   }
 });
 
-// On-Time dashboard data (dummy data for now, will be replaced with API data later)
-const ontimeMetrics = ref({
+// On-Time dashboard data from API
+const ontimeMetrics = computed(() => ({
   items: [
-    { title: 'Total Late Stops', value: 1050 },
-    { title: '1-20 Minutes Late', value: 1050 },
-    { title: '121 - 600 Minutes Late', value: 1050 },
-    { title: '+601 Minutes Late', value: 1050 }
+    { title: 'Total Late Stops', value: props.delay_breakdown.by_category.total_delays },
+    { title: '1-120 Minutes Late', value: props.delay_breakdown.by_category.category_1_120_count },
+    { title: '121-600 Minutes Late', value: props.delay_breakdown.by_category.category_121_600_count },
+    { title: '+601 Minutes Late', value: props.delay_breakdown.by_category.category_601_plus_count }
   ]
+}));
+
+const bottomDrivers = computed(() => {
+  return (props.delay_breakdown.bottom_five_drivers || []).map(driver => ({
+    name: driver.driver_name,
+    value: driver.total_penalty
+  }));
 });
 
-const bottomDrivers = ref([
-  { name: 'Kain', value: 5 },
-  { name: 'Ronny', value: 4 },
-  { name: 'Damen', value: 3 },
-  { name: 'Leo', value: 2 },
-  { name: 'Shawn', value: 1 }
-]);
-
-const ontimeChartData = ref({
-  labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-  datasets: [
-    {
-      label: 'Late Stops',
-      data: [65, 59, 80, 81, 56, 55],
+const ontimeChartData = computed(() => {
+  if (!props.line_chart_data || props.line_chart_data.length === 0) {
+    return {
+      labels: [],
+      datasets: [{
+        label: 'On-Time Performance',
+        data: [],
+        borderColor: '#3b82f6',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        tension: 0.3,
+        fill: true
+      }]
+    };
+  }
+  
+  return {
+    labels: props.line_chart_data.map(item => item.date),
+    datasets: [{
+      label: 'On-Time Performance',
+      data: props.line_chart_data.map(item => item.onTimePerformance),
       borderColor: '#3b82f6',
       backgroundColor: 'rgba(59, 130, 246, 0.1)',
-      tension: 0.3
-    }
-  ]
+      tension: 0.3,
+      fill: true
+    }]
+  };
 });
 
 // Computed property for "Select All" checkbox state

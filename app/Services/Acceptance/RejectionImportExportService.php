@@ -112,7 +112,6 @@ class RejectionImportExportService
             // Look up the reason code by code
             $reasonCode = RejectionReasonCode::where('reason_code', $data['reason_code'])->first();
             if (!$reasonCode) {
-                
                 $rowsSkipped++;
                 continue;
             }

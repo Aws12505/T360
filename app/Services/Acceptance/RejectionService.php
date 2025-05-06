@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Tenant;
 use App\Services\Filtering\FilteringService;
 use Carbon\Carbon;
+use App\Services\Summaries\RejectionBreakdownService;
 /**
  * Class RejectionService
  *
@@ -18,15 +19,21 @@ use Carbon\Carbon;
 class RejectionService
 {
     protected FilteringService $filteringService;
+    protected RejectionBreakdownService $rejectionBreakdownService;
 
     /**
      * Constructor.
      *
      * @param FilteringService $filteringService Service for filtering and pagination.
+     * @param RejectionBreakdownService $rejectionBreakdownService Service for rejection breakdown data.
      */
-    public function __construct(FilteringService $filteringService)
+    public function __construct(
+        FilteringService $filteringService,
+        RejectionBreakdownService $rejectionBreakdownService
+    )
     {
         $this->filteringService = $filteringService;
+        $this->rejectionBreakdownService = $rejectionBreakdownService;
     }
 
     /**
@@ -79,6 +86,19 @@ class RejectionService
                     $startWeekNumber;
             }
         }
+        
+        // Get rejection breakdown data
+        $rejectionBreakdown = $this->rejectionBreakdownService->getRejectionBreakdownDetailsPage(
+            $dateRange['start'] ?? null, 
+            $dateRange['end'] ?? null
+        );
+        
+        // Get line chart data for acceptance performance trends
+        $lineChartData = $this->rejectionBreakdownService->getLineChartData(
+            $dateRange['start'] ?? null, 
+            $dateRange['end'] ?? null
+        );
+        
         return [
             'rejections'           => $rejections,
             'tenantSlug'           => $isSuperAdmin ? null : $user->tenant->slug,
@@ -87,10 +107,13 @@ class RejectionService
             'rejection_reason_codes' => RejectionReasonCode::withTrashed()->get(),
             'dateFilter'           => $dateFilter,
             'dateRange'            => $dateRange,
-            'perPage'              => $perPage,'weekNumber' => $weekNumber,
-            'startWeekNumber' => $startWeekNumber,
-            'endWeekNumber' => $endWeekNumber,
-            'year' => $year,
+            'perPage'              => $perPage,
+            'weekNumber'           => $weekNumber,
+            'startWeekNumber'      => $startWeekNumber,
+            'endWeekNumber'        => $endWeekNumber,
+            'year'                 => $year,
+            'rejection_breakdown'  => $rejectionBreakdown,
+            'line_chart_data'      => $lineChartData,
         ];
     }
 /**

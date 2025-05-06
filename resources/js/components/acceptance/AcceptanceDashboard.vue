@@ -40,39 +40,35 @@ const props = defineProps({
   }
 });
 
-// Dummy data for metrics
-const defaultMetrics = [
-  { title: 'Total Late Stops', value: 1050 },
-  { title: '1-20 Minutes Late', value: 1050 },
-  { title: '121 - 600 Minutes Late', value: 1050 },
-  { title: '+601 Minutes Late', value: 1050 }
-];
-
-// Dummy data for bottom drivers
-const defaultBottomDrivers = [
-  { name: 'Kain', value: 5 },
-  { name: 'Ronny', value: 4 },
-  { name: 'Damen', value: 3 },
-  { name: 'Leo', value: 2 },
-  { name: 'Shawn', value: 1 }
-];
-
-// Dummy data for line chart
-const defaultLineChartData = {
-  labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-  datasets: [
-    {
-      label: 'Late Stops',
-      data: [65, 59, 80, 81, 56, 55],
-      borderColor: '#3b82f6',
-      backgroundColor: 'rgba(59, 130, 246, 0.1)',
-      tension: 0.3
-    }
-  ]
-};
-
 // Computed properties to use either provided data or default data
-const metrics = computed(() => props.metricsData.items || defaultMetrics);
-const bottomDrivers = computed(() => props.driversData.length ? props.driversData : defaultBottomDrivers);
-const lineChartData = computed(() => Object.keys(props.chartData).length ? props.chartData : defaultLineChartData);
+const metrics = computed(() => {
+  if (props.metricsData && props.metricsData.by_category) {
+    // Transform the categories data into the format expected by TotalLateStops component
+    return [
+      { title: 'Rejected Loads More Than 6 Hours', value: props.metricsData.category_more_than_6_load_count || '0' },
+      { title: 'Rejected Blocks More Than 6 Hours', value: props.metricsData.category_more_than_6_block_count || '0' },
+      { title: 'Rejected Loads Within 6 Hours', value: props.metricsData.category_within_6_load_count || '0' },
+      { title: 'Rejected Blocks Within 6 Hours', value: props.metricsData.category_within_6_block_count || '0' },
+      { title: 'Rejected Loads After Start', value: props.metricsData.category_after_start_load_count || '0' },
+      { title: 'Rejected Blocks After Start', value: props.metricsData.category_after_start_block_count || '0' },
+      { title: 'Total Load Rejections', value: props.metricsData.total_load_rejections || '0' },
+      { title: 'Total Block Rejections', value: props.metricsData.total_block_rejections || '0' },
+      { title: 'Total Load Penalty', value: props.metricsData.total_load_penalty || '0' },
+      { title: 'Total Block Penalty', value: props.metricsData.total_block_penalty || '0' }
+    ];
+  }
+  return [];
+});
+const bottomDrivers = computed(() => {
+  if (props.driversData && props.driversData.length) {
+    return props.driversData;
+  }
+  return [];
+});
+const lineChartData = computed(() => {
+  if (props.chartData && Object.keys(props.chartData).length) {
+    return props.chartData;
+  }
+  return {};
+});
 </script>

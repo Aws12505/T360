@@ -9,13 +9,20 @@ use App\Services\Filtering\FilteringService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Request;
 use Carbon\Carbon;
+use App\Services\Summaries\DelayBreakdownService;
+
 class DelayService
 {
     protected $filteringService;
+    protected $delayBreakdownService;
 
-    public function __construct(FilteringService $filteringService)
+    public function __construct(
+        FilteringService $filteringService,
+        DelayBreakdownService $delayBreakdownService
+    )
     {
         $this->filteringService = $filteringService;
+        $this->delayBreakdownService = $delayBreakdownService;
     }
 
     /**
@@ -62,27 +69,41 @@ class DelayService
         // Retrieve ALL delay codes including soft-deleted ones, for listing in the table and
         // the "Manage Delay Codes" section.
         $delayCodes = DelayCode::withTrashed()->get();
-// Calculate week numbers for display
-$weekNumber = null;
-$startWeekNumber = null;
-$endWeekNumber = null;
-$year = null;
-if (!empty($dateRange) && isset($dateRange['start'])) {
-    $startDate = Carbon::parse($dateRange['start']);
-    $year = $startDate->year;
-
-    // compute week numbers (Sunday=first day)
-    if (in_array($dateFilter, ['yesterday', 'current-week'])) {
-        $weekNumber = $this->weekNumberSundayStart($startDate);
-        $startWeekNumber = $endWeekNumber = null;
-    } else {
+        
+        // Calculate week numbers for display
         $weekNumber = null;
-        $startWeekNumber = $this->weekNumberSundayStart($startDate);
-        $endWeekNumber = isset($dateRange['end']) ? 
-            $this->weekNumberSundayStart(Carbon::parse($dateRange['end'])) : 
-            $startWeekNumber;
-    }
-}
+        $startWeekNumber = null;
+        $endWeekNumber = null;
+        $year = null;
+        if (!empty($dateRange) && isset($dateRange['start'])) {
+            $startDate = Carbon::parse($dateRange['start']);
+            $year = $startDate->year;
+
+            // compute week numbers (Sunday=first day)
+            if (in_array($dateFilter, ['yesterday', 'current-week'])) {
+                $weekNumber = $this->weekNumberSundayStart($startDate);
+                $startWeekNumber = $endWeekNumber = null;
+            } else {
+                $weekNumber = null;
+                $startWeekNumber = $this->weekNumberSundayStart($startDate);
+                $endWeekNumber = isset($dateRange['end']) ? 
+                    $this->weekNumberSundayStart(Carbon::parse($dateRange['end'])) : 
+                    $startWeekNumber;
+            }
+        }
+        
+        // Get delay breakdown data
+        $delayBreakdown = $this->delayBreakdownService->getDelayBreakdownDetailsPage(
+            $dateRange['start'] ?? null, 
+            $dateRange['end'] ?? null
+        );
+        
+        // Get line chart data for on-time performance trends
+        $lineChartData = $this->delayBreakdownService->getLineChartData(
+            $dateRange['start'] ?? null, 
+            $dateRange['end'] ?? null
+        );
+        
         return [
             'delays'      => $delays,
             'tenantSlug'  => $tenantSlug,
@@ -95,6 +116,8 @@ if (!empty($dateRange) && isset($dateRange['start'])) {
             'startWeekNumber' => $startWeekNumber,
             'endWeekNumber' => $endWeekNumber,
             'year' => $year,
+            'delay_breakdown' => $delayBreakdown,
+            'line_chart_data' => $lineChartData,
         ];
     }
 /**

@@ -3,8 +3,8 @@
     <h3 class="text-base font-semibold mb-4">{{ title }}</h3>
     <div class="space-y-3">
       <div v-for="(driver, index) in drivers" :key="index" class="flex justify-between items-center">
-        <span class="text-sm">{{ driver.name }}</span>
-        <span class="text-sm font-medium" :style="{ color: getColor(index) }">{{ driver.value }}</span>
+        <span class="text-sm">{{ driver.driver_name }}</span>
+        <span class="text-sm font-medium" :style="{ color: getColor(index) }">{{ driver.total_penalty }}</span>
       </div>
     </div>
   </div>
