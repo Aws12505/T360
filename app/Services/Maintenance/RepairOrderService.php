@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Request;
 use App\Models\WoStatus;
 use Carbon\Carbon;
+use App\Services\Summaries\MaintenanceBreakdownService;
 //
 /**
  * Class RepairOrderService
@@ -21,10 +22,22 @@ use Carbon\Carbon;
 class RepairOrderService
 {
     protected $filteringService;
+    protected $maintenanceBreakdownService;
 
-    public function __construct(FilteringService $filteringService)
+    public function __construct(FilteringService $filteringService, MaintenanceBreakdownService $maintenanceBreakdownService)
     {
         $this->filteringService = $filteringService;
+        $this->maintenanceBreakdownService = $maintenanceBreakdownService;
+    }
+
+    /**
+     * Get canceled QS invoices that need attention
+     * 
+     * @return array
+     */
+    public function getCanceledQSInvoices(): array
+    {
+        return $this->maintenanceBreakdownService->getCanceledQSInvoices();
     }
 
     /**
@@ -83,6 +96,14 @@ if (!empty($dateRange) && isset($dateRange['start'])) {
             $startWeekNumber;
     }
 }
+        // Get canceled QS invoices that need attention
+        $canceledQSInvoices = $this->maintenanceBreakdownService->getCanceledQSInvoices();
+        
+        // Get outstanding invoices
+        $minInvoiceAmount = Request::input('minInvoiceAmount');
+        $outstandingDate = Request::input('outstandingDate');
+        $outstandingInvoices = $this->maintenanceBreakdownService->getOutstandingInvoices($minInvoiceAmount, $outstandingDate);
+        
         return [
             'repairOrders' => $repairOrders,
             'tenantSlug' => $tenantSlug,
@@ -98,6 +119,10 @@ if (!empty($dateRange) && isset($dateRange['start'])) {
             'startWeekNumber' => $startWeekNumber,
             'endWeekNumber' => $endWeekNumber,
             'year' => $year,
+            'canceledQSInvoices' => $canceledQSInvoices,
+            'initialMinInvoiceAmount' => $minInvoiceAmount,
+            'initialOutstandingDate' => $outstandingDate,
+            'outstandingInvoices' => $outstandingInvoices,
         ];
     }
 /**

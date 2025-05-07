@@ -22,7 +22,6 @@ class DatabaseSeeder extends Seeder
         User::factory()->create([
             'name' => 'Adler Morgan',
             'email' => 'adlermorgan12@gmail.com',
-            'role' => 'SuperAdmin',
         ]);
     }
 }

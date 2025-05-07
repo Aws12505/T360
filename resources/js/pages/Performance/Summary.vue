@@ -15,29 +15,7 @@
       <!-- Dashboard Header -->
       <DashboardHeader :operationalExcellenceScore="operationalExcellenceScore" />
       
-      <!-- Alert for Canceled QS Invoices -->
-      <div v-if="hasCanceledQSInvoices" class="mb-6">
-        <div class="bg-red-50 dark:bg-red-900/30 border-l-4 border-red-500 dark:border-red-400 p-4 rounded-md shadow-sm">
-          <div class="flex items-center">
-            <div class="flex-shrink-0">
-              <div class="h-10 w-10 rounded-full bg-red-100 dark:bg-red-800 flex items-center justify-center">
-                <Icon name="triangleAlert" class="h-6 w-6 text-red-600 dark:text-red-300" />
-              </div>
-            </div>
-            <div class="ml-3">
-              <h3 class="text-lg font-medium text-red-800 dark:text-red-300">Attention Required</h3>
-              <div class="mt-1 text-sm text-red-700 dark:text-red-200">
-                {{ maintenanceBreakdowns?.canceled_qs_invoices?.length || 0 }} invoices found with canceled WO status but still on QS. These need immediate attention.
-              </div>
-              <div class="mt-2">
-                <Button @click="showCanceledQSInvoicesDialog = true" variant="destructive" size="sm">
-                  View Details
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      
       
       <!-- Time Period Tabs -->
       <TimePeriodTabs 
@@ -102,53 +80,7 @@
       </div> -->
     </div>
     
-    <!-- Dialog for Canceled QS Invoices -->
-    <Dialog v-model:open="showCanceledQSInvoicesDialog">
-      <DialogContent class="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle class="flex items-center gap-2">
-            <Icon name="alert-triangle" class="h-5 w-5 text-red-600" />
-            Canceled Invoices on QS
-          </DialogTitle>
-          <DialogDescription>
-            These invoices have a canceled WO status but are still marked as on QS. Please review and take appropriate action.
-          </DialogDescription>
-        </DialogHeader>
-        
-        <div class="max-h-[60vh] overflow-y-auto">
-          <Table v-if="maintenanceBreakdowns?.canceled_qs_invoices?.length">
-            <TableHeader>
-              <TableRow>
-                <TableHead>RO Number</TableHead>
-                <TableHead>Vendor</TableHead>
-                <TableHead class="text-right">Amount</TableHead>
-                <TableHead>Week</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow v-for="invoice in maintenanceBreakdowns.canceled_qs_invoices" :key="invoice.ro_number" class="hover:bg-red-50 dark:hover:bg-red-900/30">
-                <TableCell class="font-medium">
-                  <div class="flex items-center gap-2">
-                    <Icon name="alert-triangle" class="h-4 w-4 text-red-600 dark:text-red-400" />
-                    {{ invoice.ro_number }}
-                  </div>
-                </TableCell>
-                <TableCell>{{ invoice.vendor_name }}</TableCell>
-                <TableCell class="text-right">${{ formatCurrency(invoice.invoice_amount) }}</TableCell>
-                <TableCell>W{{ invoice.week_number }}/{{ invoice.year }}</TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-          <div v-else class="text-center py-8 text-muted-foreground">
-            No canceled QS invoices found.
-          </div>
-        </div>
-        
-        <DialogFooter>
-          <Button @click="showCanceledQSInvoicesDialog = false" variant="outline">Close</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    
   </AppLayout>
 </template>
 
@@ -195,15 +127,9 @@ const currentDateFilter = ref(props.dateFilter || 't6w');
 // Outstanding invoices filter state
 const minInvoiceAmount = ref(null);
 const outstandingDate = ref(null);
-const showOutstandingInvoicesSection = ref(true);
 
-// Canceled QS invoices dialog state
-const showCanceledQSInvoicesDialog = ref(false);
 
-// Check if there are any canceled QS invoices that need attention
-const hasCanceledQSInvoices = computed(() => {
-  return props.maintenanceBreakdowns?.canceled_qs_invoices?.length > 0;
-});
+
 
 // Initialize the outstanding date to null (removing the 30 days ago default)
 onMounted(() => {
@@ -224,22 +150,22 @@ const formatCurrency = (value) => {
   return Number(value).toFixed(2);
 };
 
-// Apply outstanding invoices filter (updated to handle event from MaintenanceContent)
-const handleOutstandingInvoicesFilter = (filterData) => {
-  minInvoiceAmount.value = filterData.minInvoiceAmount;
-  outstandingDate.value = filterData.outstandingDate;
+// // Apply outstanding invoices filter (updated to handle event from MaintenanceContent)
+// const handleOutstandingInvoicesFilter = (filterData) => {
+//   minInvoiceAmount.value = filterData.minInvoiceAmount;
+//   outstandingDate.value = filterData.outstandingDate;
   
-  router.visit(route('dashboard', {
-    tenantSlug: props.tenantSlug,
-    dateFilter: currentDateFilter.value,
-    minInvoiceAmount: filterData.minInvoiceAmount || null,
-    outstandingDate: filterData.outstandingDate || null
-  }), {
-    preserveState: true,
-    preserveScroll: true,
-    only: ['maintenanceBreakdowns']
-  });
-};
+//   router.visit(route('dashboard', {
+//     tenantSlug: props.tenantSlug,
+//     dateFilter: currentDateFilter.value,
+//     minInvoiceAmount: filterData.minInvoiceAmount || null,
+//     outstandingDate: filterData.outstandingDate || null
+//   }), {
+//     preserveState: true,
+//     preserveScroll: true,
+//     only: ['maintenanceBreakdowns']
+//   });
+// };
 
 // Compute the current date range text based on the selected filter
 const currentDateRangeText = computed(() => {

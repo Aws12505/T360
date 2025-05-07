@@ -68,7 +68,29 @@
     </Button>
   </div>
 </div>
-
+<!-- Alert for Canceled QS Invoices -->
+<div v-if="hasCanceledQSInvoices" class="mb-6">
+        <div class="bg-red-50 dark:bg-red-900/30 border-l-4 border-red-500 dark:border-red-400 p-4 rounded-md shadow-sm">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="h-10 w-10 rounded-full bg-red-100 dark:bg-red-800 flex items-center justify-center">
+                <Icon name="triangleAlert" class="h-6 w-6 text-red-600 dark:text-red-300" />
+              </div>
+            </div>
+            <div class="ml-3">
+              <h3 class="text-lg font-medium text-red-800 dark:text-red-300">Attention Required</h3>
+              <div class="mt-1 text-sm text-red-700 dark:text-red-200">
+                {{ props.canceledQSInvoices?.length || 0 }} invoices found with canceled WO status but still on QS. These need immediate attention.
+              </div>
+              <div class="mt-2">
+                <Button @click="showCanceledQSInvoicesDialog = true" variant="destructive" size="sm">
+                  View Details
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
       <!-- Date Filter Tabs -->
       <Card>
         <CardContent class="p-4">
@@ -88,7 +110,7 @@
                 size="sm"
                 :class="{'bg-primary/10 text-primary border-primary': activeTab === 'current-week'}"
               >
-              WtD
+              WTD
               </Button>
               <Button 
                 @click="selectDateFilter('6w')" 
@@ -194,7 +216,71 @@
           </div>
         </CardContent>
       </Card>
-
+        <!-- Outstanding Invoices Filter -->
+  <div class="bg-card rounded-lg border shadow-sm p-4 mb-6" v-if="!SuperAdmin">
+    <h3 class="text-lg font-semibold mb-4">Outstanding Invoices Filter</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <Label for="min-invoice-amount">Minimum Invoice Amount ($)</Label>
+        <Input 
+          id="min-invoice-amount" 
+          v-model="minInvoiceAmount" 
+          type="number" 
+          min="0" 
+          step="100"
+          placeholder="Enter minimum amount" 
+          class="mt-1"
+        />
+      </div>
+      <div>
+        <Label for="outstanding-since">Outstanding Since</Label>
+        <Input 
+          id="outstanding-since" 
+          v-model="outstandingDate" 
+          type="date" 
+          class="mt-1"
+        />
+      </div>
+    </div>
+    <div class="mt-4 flex justify-end">
+      <Button @click="applyOutstandingInvoices">Apply Filter</Button>
+    </div>
+  </div>
+<!-- Outstanding Invoices Section -->
+<div v-if="outstandingInvoices && outstandingInvoices.length > 0" class="bg-card rounded-lg border shadow-sm mb-6">
+    <div class="p-4 border-b flex justify-between items-center">
+      <h3 class="text-lg font-semibold">Outstanding Invoices</h3>
+      <Badge variant="outline" class="text-sm">{{ outstandingInvoices.length }} invoices</Badge>
+    </div>
+    <div class="p-4">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>RO Number</TableHead>
+            <TableHead>Vendor</TableHead>
+            <TableHead>Week</TableHead>
+            <TableHead class="text-right">Amount</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow v-for="invoice in outstandingInvoices" :key="invoice.ro_number">
+            <TableCell>{{ invoice.ro_number }}</TableCell>
+            <TableCell>{{ invoice.vendor_name }}</TableCell>
+            <TableCell>W{{ invoice.week_number }}/{{ invoice.year }}</TableCell>
+            <TableCell class="text-right">{{ formatCurrency(invoice.invoice_amount) }}</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    </div>
+  </div>
+  <div v-else-if="showOutstandingInvoicesSection" class="bg-card rounded-lg border shadow-sm mb-6">
+    <div class="p-4 border-b">
+      <h3 class="text-lg font-semibold">Outstanding Invoices</h3>
+    </div>
+    <div class="p-4 text-center text-muted-foreground">
+      No outstanding invoices match the current criteria
+    </div>
+  </div>
       <!-- Repair Orders Table -->
       <Card>
         <CardContent class="p-0">
@@ -814,6 +900,53 @@
   </DialogContent>
 </Dialog>
     </div>
+    <!-- Dialog for Canceled QS Invoices -->
+    <Dialog v-model:open="showCanceledQSInvoicesDialog">
+      <DialogContent class="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle class="flex items-center gap-2">
+            <Icon name="alert-triangle" class="h-5 w-5 text-red-600" />
+            Canceled Invoices on QS
+          </DialogTitle>
+          <DialogDescription>
+            These invoices have a canceled WO status but are still marked as on QS. Please review and take appropriate action.
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div class="max-h-[60vh] overflow-y-auto">
+          <Table v-if="props.canceledQSInvoices?.length">
+            <TableHeader>
+              <TableRow>
+                <TableHead>RO Number</TableHead>
+                <TableHead>Vendor</TableHead>
+                <TableHead class="text-right">Amount</TableHead>
+                <TableHead>Week</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow v-for="invoice in props.canceledQSInvoices" :key="invoice.ro_number" class="hover:bg-red-50 dark:hover:bg-red-900/30">
+                <TableCell class="font-medium">
+                  <div class="flex items-center gap-2">
+                    <Icon name="alert-triangle" class="h-4 w-4 text-red-600 dark:text-red-400" />
+                    {{ invoice.ro_number }}
+                  </div>
+                </TableCell>
+                <TableCell>{{ invoice.vendor_name }}</TableCell>
+                <TableCell class="text-right">{{ formatCurrency(invoice.invoice_amount) }}</TableCell>
+                <TableCell>W{{ invoice.week_number }}/{{ invoice.year }}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+          <div v-else class="text-center py-8 text-muted-foreground">
+            No canceled QS invoices found.
+          </div>
+        </div>
+        
+        <DialogFooter>
+          <Button @click="showCanceledQSInvoicesDialog = false" variant="outline">Close</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </AppLayout>
 </template>
 
@@ -856,7 +989,20 @@ const props = defineProps({
   year: {
     type: Number,
     default: null
-  }
+  },
+  canceledQSInvoices: {
+    type: Array,
+    default: () => []
+  },
+  initialMinInvoiceAmount: {
+  type: [Number, String, null],
+  default: null
+},
+initialOutstandingDate: {
+  type: [String, null],
+  default: null
+},
+outstandingInvoices: { type: Array, default: () => [] },
 })
 const weekNumberText = computed(() => {
   // For yesterday and current-week, show single week
@@ -1394,6 +1540,32 @@ function forceDeleteWoStatus(id) {
     }
   });
 }
+const hasCanceledQSInvoices = computed(() => {
+  return props.canceledQSInvoices.length > 0;
+});
+const showCanceledQSInvoicesDialog = ref(false);
+const minInvoiceAmount = ref(props.initialMinInvoiceAmount || null);
+const outstandingDate = ref(props.initialOutstandingDate || null);
+const showOutstandingInvoicesSection = ref(true);
+
+// Add this function to handle the filter application
+const applyOutstandingInvoices = () => {
+  // Visit the current route with the filter parameters
+  router.visit(route('repair_orders.index', {
+    tenantSlug: props.tenantSlug,
+    dateFilter: activeTab.value,
+    minInvoiceAmount: minInvoiceAmount.value || null,
+    outstandingDate: outstandingDate.value || null
+  }), {
+    preserveState: true,
+    preserveScroll: true,
+    only: ['maintenanceData']
+  });
+};
+
+
+
+
 
 </script>
 

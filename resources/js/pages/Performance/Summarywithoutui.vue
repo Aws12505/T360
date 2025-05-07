@@ -364,7 +364,7 @@
   const formatRange = (key) => {
     const labels = {
       yesterday: 'Yesterday',
-      current_week: 'WtD',
+      current_week: 'WTD',
       rolling_6_weeks: 'Rolling 6 Weeks',
       quarterly: 'Quarterly',
     }

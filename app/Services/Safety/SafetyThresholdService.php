@@ -112,13 +112,13 @@ class SafetyThresholdService
         $status = 'neutral';
         
         if ($threshold->good_enabled && $threshold->good_threshold !== null) {
-            if ($value >= $threshold->good_threshold) {
+            if ($value <= $threshold->good_threshold) {
                 $status = 'good';
             }
         }
         
         if ($threshold->bad_enabled && $threshold->bad_threshold !== null) {
-            if ($value <= $threshold->bad_threshold) {
+            if ($value >= $threshold->bad_threshold) {
                 $status = 'bad';
             }
         }

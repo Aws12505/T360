@@ -126,7 +126,7 @@ const formatMetricName = (name) => {
               class="w-full"
             />
             <p class="text-sm text-muted-foreground">
-              Values greater than or equal to this threshold will be considered "good".
+              Values less than or equal to this threshold will be considered "good".
             </p>
           </div>
         </div>
@@ -152,7 +152,7 @@ const formatMetricName = (name) => {
               class="w-full"
             />
             <p class="text-sm text-muted-foreground">
-              Values less than or equal to this threshold will be considered "bad".
+              Values more than or equal to this threshold will be considered "bad".
             </p>
           </div>
         </div>

@@ -33,7 +33,7 @@
                 variant="outline"
                 size="sm"
                 :class="{ 'bg-primary/10 text-primary border-primary': activeTab === 'current-week' }"
-              >WtD</Button>
+              >WTD</Button>
               <Button
                 @click="selectDateFilter('6w')"
                 variant="outline"

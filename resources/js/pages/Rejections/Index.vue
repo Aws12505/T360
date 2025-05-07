@@ -69,7 +69,7 @@
               </Button>
               <Button @click="selectDateFilter('current-week')" variant="outline" size="sm"
                 :class="{ 'bg-primary/10 text-primary border-primary': activeTab === 'current-week' }">
-                WtD
+                WTD
               </Button>
               <Button @click="selectDateFilter('6w')" variant="outline" size="sm"
                 :class="{ 'bg-primary/10 text-primary border-primary': activeTab === '6w' }">
