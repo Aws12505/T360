@@ -197,6 +197,15 @@ class RejectionBreakdownService
             $labelFormat = 'M'; // Month name (Jan, Feb, etc.)
         }
         
+        // Get the average acceptance performance across the entire date range
+        $averageQuery = DB::table('performances')
+            ->selectRaw('AVG(acceptance) as averageAcceptance')
+            ->whereBetween('date', [$startDate, $endDate]);
+        
+        $this->applyTenantFilter($averageQuery);
+        $averageResult = $averageQuery->first();
+        $averageAcceptance = $averageResult ? round($averageResult->averageAcceptance, 1) : null;
+        
         $query = DB::table('performances')
             ->select($groupBy, DB::raw('AVG(acceptance) as acceptancePerformance'))
             ->whereBetween('date', [$startDate, $endDate])
@@ -207,7 +216,7 @@ class RejectionBreakdownService
         $results = $query->get();
         
         // Format dates based on the determined grouping
-        return $results->map(function($item) use ($dateFormat, $labelFormat, $dateFilter) {
+        $chartData = $results->map(function($item) use ($dateFormat, $labelFormat, $dateFilter) {
             // Get the first property (date or yearweek)
             $dateValue = $item->{array_key_first((array)$item)};
             
@@ -236,6 +245,10 @@ class RejectionBreakdownService
                 'acceptancePerformance' => round($item->acceptancePerformance, 1)
             ];
         })->toArray();
+        return [
+            'chartData' => $chartData,
+            'averageAcceptance' => $averageAcceptance
+        ];
     }
     
     /**

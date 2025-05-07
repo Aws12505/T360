@@ -98,7 +98,6 @@ class RejectionService
             $dateRange['start'] ?? null, 
             $dateRange['end'] ?? null
         );
-        
         return [
             'rejections'           => $rejections,
             'tenantSlug'           => $isSuperAdmin ? null : $user->tenant->slug,
@@ -113,7 +112,8 @@ class RejectionService
             'endWeekNumber'        => $endWeekNumber,
             'year'                 => $year,
             'rejection_breakdown'  => $rejectionBreakdown,
-            'line_chart_data'      => $lineChartData,
+            'line_chart_data'      => $lineChartData['chartData'] ?? [],
+            'average_acceptance'   => $lineChartData['averageAcceptance'] ?? null,
         ];
     }
 /**

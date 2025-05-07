@@ -221,7 +221,8 @@
         v-if="!isSuperAdmin"
         :metricsData="acceptanceMetrics" 
         :driversData="bottomDrivers" 
-        :chartData="acceptanceChartData" 
+        :chartData="acceptanceChartData"
+        :averageAcceptance="average_acceptance"
       />
 
       <!-- Rejections Table -->
@@ -550,7 +551,10 @@ const props = defineProps({
   line_chart_data: {
     type: Object,
     default: null
-  }
+  },
+  average_acceptance:{ 
+    type: Number,
+  },
 })
 const weekNumberText = computed(() => {
   // For yesterday and current-week, show single week

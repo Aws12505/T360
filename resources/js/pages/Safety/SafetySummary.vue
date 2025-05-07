@@ -304,8 +304,8 @@ const initializeCharts = () => {
           scales: {
             y: {
               beginAtZero: minValue > 10 ? false : true,
-              min: Math.floor(yMin-75),
-              max: Math.ceil(yMax+75),
+              min: Math.min(Math.floor(yMin-75), 0),
+              max: Math.max(Math.ceil(yMax+75), 1050),
               ticks: {
                 stepSize: Math.ceil(range / 5) // Create approximately 5 steps
               }

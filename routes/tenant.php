@@ -3,6 +3,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\Truck\TruckController;
 use App\Http\Controllers\Web\On_Time\DelaysController;
 use App\Http\Controllers\Web\Safety\SafetyDataController;
+use App\Http\Controllers\Web\Safety\SafetyThresholdController;
 use App\Http\Controllers\Web\UserManagement\UserController;
 use App\Http\Controllers\Web\Acceptance\RejectionsController;
 use App\Http\Controllers\Web\Performance\SummariesController;
@@ -166,5 +167,10 @@ Route::middleware(['auth', 'tenant'])
          ->name('support.responses.store');
     Route::delete('support-bulk', [TicketController::class, 'destroyBulk'])
          ->name('support.destroyBulk');
-
+    Route::get('/safety-thresholds', [SafetyThresholdController::class, 'edit'])
+         ->name('safety-thresholds.edit');
+    Route::post('/safety-thresholds', [SafetyThresholdController::class, 'update'])
+          ->name('safety-thresholds.update');
+    Route::delete('/safety-thresholds/{id}', [SafetyThresholdController::class, 'destroy'])
+          ->name('safety-thresholds.destroy');
 });

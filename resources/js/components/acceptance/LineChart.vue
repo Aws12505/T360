@@ -22,6 +22,10 @@ const props = defineProps({
       labels: [],
       datasets: []
     })
+  },
+  averageAcceptance: {
+    type: Number,
+    default: null
   }
 });
 
@@ -65,6 +69,25 @@ const initChart = () => {
       plugins: {
         legend: {
           position: 'top',
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const score = context.raw || 0;
+              const averageValue = props.averageAcceptance || 0;
+              
+              // Determine the time period label
+              const timeFilter = props.chartData.dateRangeLabel || 'selected period';
+              
+              // Format the average value with 2 decimal places
+              const formattedAverageValue = Number(averageValue).toFixed(2);
+              
+              return [
+                `Acceptance Score: ${score}`,
+                `Average Score Over ${timeFilter}: ${formattedAverageValue}`
+              ];
+            }
+          }
         }
       },
       scales: {

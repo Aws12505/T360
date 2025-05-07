@@ -56,4 +56,14 @@ class Tenant extends Model
     {
         return $this->hasOne(Subscription::class);
     }
+    
+    /**
+     * Get the safety thresholds associated with the tenant.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function safetyThresholds()
+    {
+        return $this->hasMany(SafetyThreshold::class);
+    }
 }

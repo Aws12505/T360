@@ -99,7 +99,15 @@ const mainNavItems = computed<NavItem[]>(() => [
       : route('miles_driven.index.admin'),
     icon: 'lineChart',
   },
-  
+  ...(props.tenantSlug
+    ? [
+        {
+          title: 'Safety Coaching Thresholds',
+          href: route('safety-thresholds.edit', { tenantSlug: props.tenantSlug }),
+          icon: 'shieldAlert',
+        },
+      ]
+    : []),
 ]);
 
 const footerNavItems: NavItem[] = [
