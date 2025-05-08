@@ -11,7 +11,7 @@
           <div class="mt-3 pt-3 border-t border-muted/30">
             <div class="flex items-center justify-between">
               <span class="text-sm text-muted-foreground">Driver Star</span>
-              <span class="text-2xl font-bold text-indigo-600">{{ data.infractions?.driverStar || 0 }}</span>
+              <span class="text-2xl font-bold text-indigo-600">{{ Math.round(data.infractions?.driverStar || 0) }}</span>
             </div>
             <!-- Simple progress bar visualization -->
             <!-- <div class="mt-2 h-2 w-full bg-muted/30 rounded-full overflow-hidden">
@@ -300,12 +300,12 @@ const initializeCharts = () => {
         },
         options: {
           responsive: true,
-          maintainAspectRatio: false,
+          maintainAspectRatio: true,
           scales: {
             y: {
-              beginAtZero: minValue > 10 ? false : true,
-              min: Math.min(Math.floor(yMin-75), 0),
-              max: Math.max(Math.ceil(yMax+75), 1050),
+              beginAtZero: false,
+              min: Math.max(Math.floor(yMin-75), 0),
+              max: Math.min(Math.ceil(yMax+75), 1050),
               ticks: {
                 stepSize: Math.ceil(range / 5) // Create approximately 5 steps
               }

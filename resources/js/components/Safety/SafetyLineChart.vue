@@ -20,6 +20,10 @@ const props = defineProps({
   colors: {
     type: Array,
     default: () => ['#10b981', '#f59e0b', '#ef4444']
+  },
+  minYValue: {
+    type: Number,
+    default: null
   }
 });
 
@@ -49,6 +53,24 @@ const createChart = () => {
       pointHoverRadius: 5
     };
   });
+  
+  // Get all data values for calculating min and max
+  const allDataValues = [];
+  datasets.forEach(dataset => {
+    if (dataset.data && dataset.data.length) {
+      allDataValues.push(...dataset.data.filter(val => val !== null && val !== undefined));
+    }
+  });
+  
+  // Calculate min and max values for Y-axis
+  const minValue = allDataValues.length > 0 ? Math.min(...allDataValues) : 0;
+  const maxValue = allDataValues.length > 0 ? Math.max(...allDataValues) : 100;
+  
+  // Add some padding to the min/max values (10% of the range)
+  const range = maxValue - minValue;
+  const padding = range * 0.1;
+  const yMin = Math.max(0, minValue - padding); // Don't go below 0
+  const yMax = maxValue + padding;
   
   // Create chart
   chart = new Chart(ctx, {
@@ -81,8 +103,13 @@ const createChart = () => {
         },
         y: {
           beginAtZero: false,
+          min: props.minYValue !== null ? props.minYValue : Math.min(Math.floor(yMin-75), 0),
+          max: Math.ceil(yMax+75),
           grid: {
             color: 'rgba(0, 0, 0, 0.05)'
+          },
+          ticks: {
+            stepSize: Math.ceil(range / 5) // Create approximately 5 steps
           }
         }
       }

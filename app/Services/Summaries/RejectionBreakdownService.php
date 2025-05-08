@@ -61,25 +61,10 @@ class RejectionBreakdownService
         $query = DB::table('rejections')
             ->selectRaw("
                 COUNT(*) as total_rejections,
-                SUM(CASE WHEN rejection_category = 'more_than_6' THEN 1 ELSE 0 END) as category_more_than_6_count,
-                SUM(CASE WHEN rejection_category = 'within_6' THEN 1 ELSE 0 END) as category_within_6_count,
-                SUM(CASE WHEN rejection_category = 'after_start' THEN 1 ELSE 0 END) as category_after_start_count,
-                
-                SUM(CASE WHEN rejection_category = 'more_than_6' AND rejection_type = 'block' THEN 1 ELSE 0 END) as category_more_than_6_block_count,
-                SUM(CASE WHEN rejection_category = 'more_than_6' AND rejection_type = 'load' THEN 1 ELSE 0 END) as category_more_than_6_load_count,
-                
-                SUM(CASE WHEN rejection_category = 'within_6' AND rejection_type = 'block' THEN 1 ELSE 0 END) as category_within_6_block_count,
-                SUM(CASE WHEN rejection_category = 'within_6' AND rejection_type = 'load' THEN 1 ELSE 0 END) as category_within_6_load_count,
-                
-                SUM(CASE WHEN rejection_category = 'after_start' AND rejection_type = 'block' THEN 1 ELSE 0 END) as category_after_start_block_count,
-                SUM(CASE WHEN rejection_category = 'after_start' AND rejection_type = 'load' THEN 1 ELSE 0 END) as category_after_start_load_count,
-                
-                SUM(CASE WHEN rejection_type = 'block' THEN 1 ELSE 0 END) as total_block_rejections,
-                SUM(CASE WHEN rejection_type = 'load' THEN 1 ELSE 0 END) as total_load_rejections,
-                
-                SUM(CASE WHEN rejection_type = 'block' THEN penalty ELSE 0 END) as total_block_penalty,
-                SUM(CASE WHEN rejection_type = 'load' THEN penalty ELSE 0 END) as total_load_penalty
-            ")
+                SUM(CASE WHEN rejection_category = 'more_than_6' THEN 1 ELSE 0 END) as more_than_6_count,
+                SUM(CASE WHEN rejection_category = 'within_6' THEN 1 ELSE 0 END) as within_6_count,
+                SUM(CASE WHEN rejection_category = 'after_start' THEN 1 ELSE 0 END) as after_start_count
+               ")
             ->whereBetween('date', [$startDate, $endDate]);
 
         $this->applyTenantFilter($query);

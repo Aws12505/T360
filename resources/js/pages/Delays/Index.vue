@@ -87,7 +87,7 @@
                 variant="outline"
                 size="sm"
                 :class="{'bg-primary/10 text-primary border-primary': activeTab === '6w'}">
-                6 Weeks
+                T6W
               </Button>
               <Button
                 @click="selectDateFilter('quarterly')"
@@ -139,6 +139,12 @@
                 <div v-if="filters.delayCode" class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
                   Code: {{ getDelayCodeLabel(filters.delayCode) }}
                 </div>
+                <div v-if="filters.delayCategory" class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
+                  Category: {{ formatDelayCategory(filters.delayCategory) }}
+                </div>
+                <div v-if="filters.delayType" class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
+                  Type: {{ filters.delayType === 'origin' ? 'Origin' : 'Destination' }}
+                </div>
                 <div v-if="filters.disputed" class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
                   Disputed: {{ filters.disputed === 'true' ? 'Yes' : 'No' }}
                 </div>
@@ -179,6 +185,31 @@
                   <option v-for="code in delay_codes" :key="code.id" :value="code.id">
                     {{ code.code }}
                   </option>
+                </select>
+              </div>
+              <div>
+                <Label for="delayCategory">Delay Category</Label>
+                <select
+                  id="delayCategory"
+                  v-model="filters.delayCategory"
+                  @change="applyFilters"
+                  class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                  <option value="">All Categories</option>
+                  <option value="1_120">1-120 mins</option>
+                  <option value="121_600">121-600 mins</option>
+                  <option value="601_plus">601+ mins</option>
+                </select>
+              </div>
+              <div>
+                <Label for="delayType">Delay Type</Label>
+                <select
+                  id="delayType"
+                  v-model="filters.delayType"
+                  @change="applyFilters"
+                  class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                  <option value="">All Types</option>
+                  <option value="origin">Origin</option>
+                  <option value="destination">Destination</option>
                 </select>
               </div>
               <div>
@@ -251,7 +282,12 @@
                     @click="sortBy(col)"
                   >
                     <div class="flex items-center">
-                      {{ col.replace(/_/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') }}
+                      <template v-if="col === 'delay_category'">
+                        Delay
+                      </template>
+                      <template v-else>
+                        {{ col.replace(/_/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') }}
+                      </template>
                       <div v-if="sortColumn === col" class="ml-2">
                         <svg v-if="sortDirection === 'asc'" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                           <path d="M8 15l4-4 4 4" />
@@ -300,6 +336,9 @@
                     <template v-else-if="col === 'delay_code'">
                       {{ delay.delay_code?.code || '—' }}
                       <span v-if="delay.delay_code?.deleted_at" class="ml-1 text-xs text-red-500">(Deleted Code)</span>
+                    </template>
+                    <template v-else-if="col === 'delay_category'">
+                      {{ formatDelayCategory(delay.delay_category) }}
                     </template>
                     <template v-else>
                       {{ delay[col] }}
@@ -659,12 +698,14 @@ const filters = ref({
   dateFrom: '',
   dateTo: '',
   delayCode: '',
+  delayCategory: '',
+  delayType: '',
   disputed: '',
   controllable: '',
 });
 
 // Table columns
-const tableColumns = ['date', 'delay_type', 'driver_name', 'penalty', 'delay_code', 'disputed', 'driver_controllable'];
+const tableColumns = ['date', 'delay_type', 'driver_name', 'delay_category', 'delay_code', 'disputed', 'driver_controllable'];
 
 // Computed property: Filtered and sorted delays
 const filteredDelays = computed(() => {
@@ -691,6 +732,14 @@ const filteredDelays = computed(() => {
   // Delay code filter
   if (filters.value.delayCode) {
     result = result.filter(item => item.delay_code?.id === parseInt(filters.value.delayCode));
+  }
+  //delay type filter
+  if (filters.value.delayType) {
+    result = result.filter(item => item.delay_type === filters.value.delayType);
+  }
+  // Delay category filter
+  if (filters.value.delayCategory) {
+    result = result.filter(item => item.delay_category === filters.value.delayCategory);
   }
 
   // Disputed filter
@@ -757,9 +806,12 @@ function resetFilters() {
     dateFrom: '',
     dateTo: '',
     delayCode: '',
+    delayCategory: '',
+    delayType: '',
     disputed: '',
     controllable: '',
   };
+  applyFilters();
 }
 
 // Pagination & Date Filter Functions
@@ -837,7 +889,9 @@ const hasActiveFilters = computed(() => {
          filters.value.dateFrom || 
          filters.value.dateTo || 
          filters.value.delayCode || 
+         filters.value.delayCategory || 
          filters.value.disputed || 
+         filters.value.delayType ||
          filters.value.controllable;
 });
 
@@ -861,6 +915,22 @@ const deleteCode = async (id) => {
     console.error('Error deleting delay code:', error);
   }
 };
+
+// Function to format delay category values
+function formatDelayCategory(category) {
+  if (!category) return '—';
+  
+  switch(category) {
+    case '1_120':
+      return '1-120 mins';
+    case '121_600':
+      return '121-600 mins';
+    case '601_plus':
+      return '601+ mins';
+    default:
+      return category;
+  }
+}
 
 const saveCode = () => {
   const form = useForm({ code: codeForm.value.code, description: codeForm.value.description });

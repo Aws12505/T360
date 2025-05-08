@@ -118,7 +118,7 @@
                 size="sm"
                 :class="{'bg-primary/10 text-primary border-primary': activeTab === '6w'}"
               >
-                6 Weeks
+                T6W
               </Button>
               <Button 
                 @click="selectDateFilter('quarterly')" 
@@ -152,72 +152,8 @@
           </div>
         </CardContent>
       </Card>
-
-      <!-- Filters Section -->
-      <Card>
-        <CardHeader>
-          <CardTitle>Filters</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div class="flex flex-col gap-4">
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
-              <div>
-                <Label for="search">Search</Label>
-                <Input 
-                  id="search"
-                  v-model="filters.search" 
-                  type="text" 
-                  placeholder="Search by RO#, Invoice, etc."
-                  @input="debounceSearch"
-                />
-              </div>
-              <div>
-                <Label for="vendor_filter">Vendor</Label>
-                <select 
-                  id="vendor_filter"
-                  v-model="filters.vendor_id" 
-                  class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  @change="applyFilters"
-                >
-                  <option value="">All Vendors</option>
-                  <option v-for="vendor in vendors" :key="vendor.id" :value="vendor.id">
-                    {{ vendor.vendor_name }}
-                    <span v-if="vendor.deleted_at">(Deleted)</span>
-                  </option>
-                </select>
-              </div>
-              <div>
-                <Label for="status_filter">Status</Label>
-                <select 
-                  id="status_filter"
-                  v-model="filters.status" 
-                  class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  @change="applyFilters"
-                >
-                <option value="">All Statuses</option>
-<option disabled value="">Select status</option>
-<option 
-  v-for="status in woStatuses" 
-  :key="status.id" 
-  :value="status.name"
->
-  {{ status.name }} 
-  <span v-if="status.deleted_at">(Deleted)</span>
-</option>
-                </select>
-              </div>
-            </div>
-            <div class="flex justify-end">
-              <Button @click="resetFilters" variant="outline" size="sm">
-                <Icon name="x" class="mr-2 h-4 w-4" />
-                Reset Filters
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-        <!-- Outstanding Invoices Filter -->
-  <div class="bg-card rounded-lg border shadow-sm p-4 mb-6" v-if="!SuperAdmin">
+<!-- Outstanding Invoices Filter -->
+<div class="bg-card rounded-lg border shadow-sm p-4 mb-6" v-if="!SuperAdmin">
     <h3 class="text-lg font-semibold mb-4">Outstanding Invoices Filter</h3>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
@@ -281,6 +217,82 @@
       No outstanding invoices match the current criteria
     </div>
   </div>
+      <!-- Filters Section -->
+      <Card>
+        <CardHeader>
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-2">
+      <CardTitle>Filters</CardTitle>
+        <div v-if="!showFilters && (filters.search || filters.vendor_id || filters.status)" class="ml-4 flex flex-wrap gap-2 text-xs text-muted-foreground">
+  <span v-if="filters.search" class="bg-muted px-2 py-1 rounded-full">Search: {{ filters.search }}</span>
+  <span v-if="filters.vendor_id" class="bg-muted px-2 py-1 rounded-full">Vendor: {{ vendors.find(v => v.id == filters.vendor_id)?.vendor_name || filters.vendor_id }}</span>
+  <span v-if="filters.status" class="bg-muted px-2 py-1 rounded-full">Status: {{ filters.status }}</span>
+</div>
+</div>
+      <Button variant="ghost" size="sm" @click="showFilters = !showFilters">
+        {{ showFilters ? 'Hide Filters' : 'Show Filters' }}
+        <Icon :name="showFilters ? 'chevron-up' : 'chevron-down'" class="ml-2 h-4 w-4" />
+      </Button>
+    </div>
+        </CardHeader>
+        <CardContent v-if="showFilters">
+          <div class="flex flex-col gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
+              <div>
+                <Label for="search">Search</Label>
+                <Input 
+                  id="search"
+                  v-model="filters.search" 
+                  type="text" 
+                  placeholder="Search by RO#, Invoice, etc."
+                  @input="debounceSearch"
+                />
+              </div>
+              <div>
+                <Label for="vendor_filter">Vendor</Label>
+                <select 
+                  id="vendor_filter"
+                  v-model="filters.vendor_id" 
+                  class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  @change="applyFilters"
+                >
+                  <option value="">All Vendors</option>
+                  <option v-for="vendor in vendors" :key="vendor.id" :value="vendor.id">
+                    {{ vendor.vendor_name }}
+                    <span v-if="vendor.deleted_at">(Deleted)</span>
+                  </option>
+                </select>
+              </div>
+              <div>
+                <Label for="status_filter">Status</Label>
+                <select 
+                  id="status_filter"
+                  v-model="filters.status" 
+                  class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  @change="applyFilters"
+                >
+                <option value="">All Statuses</option>
+<option disabled value="">Select status</option>
+<option 
+  v-for="status in woStatuses" 
+  :key="status.id" 
+  :value="status.name"
+>
+  {{ status.name }} 
+  <span v-if="status.deleted_at">(Deleted)</span>
+</option>
+                </select>
+              </div>
+            </div>
+            <div class="flex justify-end">
+              <Button @click="resetFilters" variant="outline" size="sm">
+                <Icon name="x" class="mr-2 h-4 w-4" />
+                Reset Filters
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
       <!-- Repair Orders Table -->
       <Card>
         <CardContent class="p-0">
@@ -1055,6 +1067,7 @@ const perPage = ref(10)
 // Add these new refs
 const selectedRepairOrders = ref([]);
 const showDeleteSelectedModal = ref(false);
+const showFilters = ref(true); // Controls visibility of the Filters section
 
 // Add this computed property for "Select All" checkbox state
 const isAllSelected = computed(() => {

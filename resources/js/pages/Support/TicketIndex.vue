@@ -291,22 +291,12 @@
                   @change="handleSubjectChange"
                   class="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
                 >
-                  <option value="custom">Custom Subject</option>
                   <option v-for="subject in activeSubjects" :key="subject.id" :value="subject.name">
                     {{ subject.name }}
                   </option>
                 </select>
                 
-                <div v-if="isCustomSubject" class="mt-2">
-                  <Label for="customSubject" class="text-sm text-muted-foreground">Enter Custom Subject</Label>
-                  <Input 
-                    id="customSubject" 
-                    v-model="form.subject" 
-                    required 
-                    placeholder="Enter your custom subject..." 
-                    class="mt-1"
-                  />
-                </div>
+                
               </div>
             </div>
             <div>
@@ -466,14 +456,9 @@ const sortColumn = ref('created_at');
 const sortDirection = ref('desc');
 
 // NEW: manage selected subject
-const selectedSubject = ref('custom');
-const isCustomSubject = computed(() => selectedSubject.value === 'custom');
+const selectedSubject = ref('');
 function handleSubjectChange() {
-  if (isCustomSubject.value) {
-    form.subject = '';
-  } else {
     form.subject = selectedSubject.value;
-  }
 }
 
 const breadcrumbs = [
@@ -620,7 +605,6 @@ function applyFilters() {
 // NEW: ensure we reset subject selection when opening
 function openCreateModal() {
   form.reset();
-  selectedSubject.value = 'custom';
   showCreateModal.value = true;
 }
 

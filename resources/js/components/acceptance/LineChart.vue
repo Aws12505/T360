@@ -68,7 +68,7 @@ const initChart = () => {
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          position: 'top',
+          position: false,
         },
         tooltip: {
           callbacks: {
@@ -93,8 +93,8 @@ const initChart = () => {
       scales: {
         y: {
           beginAtZero: minValue > 10 ? false : true,
-          min: Math.floor(yMin-2.5),
-          max: Math.ceil(yMax+2.5),
+          min: Math.max(Math.floor(yMin-2.5),0),
+          max: Math.min(Math.ceil(yMax+2.5),100),
           ticks: {
             stepSize: Math.ceil(range / 5) // Create approximately 5 steps
           }

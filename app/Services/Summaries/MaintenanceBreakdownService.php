@@ -191,7 +191,8 @@ class MaintenanceBreakdownService
     {
         // If both required parameters are null, return null
         if ($minInvoiceAmount === null && $outstandingDate === null) {
-            return null;
+            $minInvoiceAmount = 0;
+            $outstandingDate = 1990-01-01;
         }
 
         $query = DB::table('repair_orders')

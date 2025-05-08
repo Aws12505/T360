@@ -41,6 +41,10 @@ const props = defineProps({
   averageAcceptance: {
     type: Number,
     default: null
+  },
+  currentFilters: {
+    type: Object,
+    default: () => ({})
   }
 });
 
@@ -49,16 +53,10 @@ const metrics = computed(() => {
   if (props.metricsData && props.metricsData.by_category) {
     // Transform the categories data into the format expected by TotalLateStops component
     return [
-      { title: 'Rejected Loads More Than 6 Hours', value: props.metricsData.category_more_than_6_load_count || '0' },
-      { title: 'Rejected Blocks More Than 6 Hours', value: props.metricsData.category_more_than_6_block_count || '0' },
-      { title: 'Rejected Loads Within 6 Hours', value: props.metricsData.category_within_6_load_count || '0' },
-      { title: 'Rejected Blocks Within 6 Hours', value: props.metricsData.category_within_6_block_count || '0' },
-      { title: 'Rejected Loads After Start', value: props.metricsData.category_after_start_load_count || '0' },
-      { title: 'Rejected Blocks After Start', value: props.metricsData.category_after_start_block_count || '0' },
-      { title: 'Total Load Rejections', value: props.metricsData.total_load_rejections || '0' },
-      { title: 'Total Block Rejections', value: props.metricsData.total_block_rejections || '0' },
-      { title: 'Total Load Penalty', value: props.metricsData.total_load_penalty || '0' },
-      { title: 'Total Block Penalty', value: props.metricsData.total_block_penalty || '0' }
+      { title: 'Total Rejected Stops', value: props.metricsData.totalRejections },
+      { title: 'Rejected +6 Hours Before Start Time', value: props.metricsData.moreThan6Count},
+      { title: 'Rejected 0-6 Hours Before Start Time', value: props.metricsData.within6Count},
+      { title: 'Rejected After Start Time', value: props.metricsData.afterStartCount}
     ];
   }
   return [];

@@ -63,22 +63,7 @@ class DelayBreakdownService
                 COUNT(*) as total_delays,
                 SUM(CASE WHEN delay_category = '1_120' THEN 1 ELSE 0 END) as category_1_120_count,
                 SUM(CASE WHEN delay_category = '121_600' THEN 1 ELSE 0 END) as category_121_600_count,
-                SUM(CASE WHEN delay_category = '601_plus' THEN 1 ELSE 0 END) as category_601_plus_count,
-                
-                SUM(CASE WHEN delay_category = '1_120' AND delay_type = 'origin' THEN 1 ELSE 0 END) as category_1_120_origin_count,
-                SUM(CASE WHEN delay_category = '1_120' AND delay_type = 'destination' THEN 1 ELSE 0 END) as category_1_120_destination_count,
-                
-                SUM(CASE WHEN delay_category = '121_600' AND delay_type = 'origin' THEN 1 ELSE 0 END) as category_121_600_origin_count,
-                SUM(CASE WHEN delay_category = '121_600' AND delay_type = 'destination' THEN 1 ELSE 0 END) as category_121_600_destination_count,
-                
-                SUM(CASE WHEN delay_category = '601_plus' AND delay_type = 'origin' THEN 1 ELSE 0 END) as category_601_plus_origin_count,
-                SUM(CASE WHEN delay_category = '601_plus' AND delay_type = 'destination' THEN 1 ELSE 0 END) as category_601_plus_destination_count,
-                
-                SUM(CASE WHEN delay_type = 'origin' THEN 1 ELSE 0 END) as total_origin_delays,
-                SUM(CASE WHEN delay_type = 'destination' THEN 1 ELSE 0 END) as total_destination_delays,
-                
-                SUM(CASE WHEN delay_type = 'origin' THEN penalty ELSE 0 END) as total_origin_penalty,
-                SUM(CASE WHEN delay_type = 'destination' THEN penalty ELSE 0 END) as total_destination_penalty
+                SUM(CASE WHEN delay_category = '601_plus' THEN 1 ELSE 0 END) as category_601_plus_count
             ")
             ->whereBetween('date', [$startDate, $endDate]);
 

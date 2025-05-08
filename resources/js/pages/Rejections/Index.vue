@@ -73,7 +73,7 @@
               </Button>
               <Button @click="selectDateFilter('6w')" variant="outline" size="sm"
                 :class="{ 'bg-primary/10 text-primary border-primary': activeTab === '6w' }">
-                6 Weeks
+                T6W
               </Button>
               <Button @click="selectDateFilter('quarterly')" variant="outline" size="sm"
                 :class="{ 'bg-primary/10 text-primary border-primary': activeTab === 'quarterly' }">
@@ -122,8 +122,8 @@
                 <div v-if="filters.reasonCode" class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
                   Reason: {{ getReasonCodeLabel(filters.reasonCode) }}
                 </div>
-                <div v-if="filters.penalty" class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
-                  Penalty: {{ filters.penalty }}
+                <div v-if="filters.rejectionCategory" class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
+                  Category: {{ getRejectionCategoryLabel(filters.rejectionCategory) }}
                 </div>
                 <div v-if="filters.disputed" class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
                   Disputed: {{ filters.disputed === 'true' ? 'Yes' : 'No' }}
@@ -163,8 +163,8 @@
                 <select id="rejectionType" v-model="filters.rejectionType" @change="applyFilters"
                   class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                   <option value="">All Types</option>
-                  <option value="pickup">Pickup</option>
-                  <option value="delivery">Delivery</option>
+                  <option value="load">Load</option>
+                  <option value="block">Block</option>
                 </select>
               </div>
               <div>
@@ -178,9 +178,14 @@
                 </select>
               </div>
               <div>
-                <Label for="penalty">Penalty</Label>
-                <Input id="penalty" v-model="filters.penalty" type="text" placeholder="Filter by penalty..."
-                  @input="applyFilters" class="w-full" />
+                <Label for="rejectionCategory">Rejection From Start</Label>
+                <select id="rejectionCategory" v-model="filters.rejectionCategory" @change="applyFilters"
+                  class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                  <option value="">All Categories</option>
+                  <option value="more_than_6">More than 6 hrs</option>
+                  <option value="within_6">Within 6 hrs</option>
+                  <option value="after_start">After start</option>
+                </select>
               </div>
             </div>
 
@@ -219,10 +224,11 @@
       <!-- Acceptance Dashboard -->
       <AcceptanceDashboard 
         v-if="!isSuperAdmin"
-        :metricsData="acceptanceMetrics" 
+        :metricsData="acceptanceMetricsAfterFiltering" 
         :driversData="bottomDrivers" 
         :chartData="acceptanceChartData"
         :averageAcceptance="average_acceptance"
+        :currentFilters="filters"
       />
 
       <!-- Rejections Table -->
@@ -294,6 +300,9 @@
                     </template>
                     <template v-else-if="col === 'driver_controllable'">
                       {{ rejection[col] === null ? 'N/A' : (rejection[col] ? 'Yes' : 'No') }}
+                    </template>
+                    <template v-else-if="col === 'rejection_category'">
+                      {{ getRejectionCategoryLabel(rejection[col]) }}
                     </template>
                     <template v-else>
                       {{ rejection[col] }}
@@ -612,10 +621,10 @@ const codeToDelete = ref(null);
 // Table columns for sorting and display
 const tableColumns = [
   'date',
-  'rejection_type',
   'driver_name',
-  'penalty',
+  'rejection_type',
   'reason_code',
+  'rejection_category', // Changed from 'penalty'
   'disputed',
   'driver_controllable'
 ];
@@ -631,7 +640,7 @@ const filters = ref({
   dateTo: '',
   rejectionType: '',
   reasonCode: '',
-  penalty: '',
+  rejectionCategory: '', // Changed from penalty
   disputed: '',
   driverControllable: ''
 });
@@ -646,7 +655,8 @@ const filteredRejections = computed(() => {
     result = result.filter(item =>
       item.driver_name?.toLowerCase().includes(searchTerm) ||
       item.rejection_type?.toLowerCase().includes(searchTerm) ||
-      item.reason_code?.reason_code?.toLowerCase().includes(searchTerm)
+      item.reason_code?.reason_code?.toLowerCase().includes(searchTerm) ||
+      item.load_number?.toLowerCase().includes(searchTerm)
     );
   }
 
@@ -677,11 +687,10 @@ const filteredRejections = computed(() => {
     );
   }
 
-  // Apply penalty filter
-  if (filters.value.penalty) {
-    const penaltyTerm = filters.value.penalty.toLowerCase();
+  // Apply rejection category filter
+  if (filters.value.rejectionCategory) {
     result = result.filter(item =>
-      item.penalty && item.penalty.toString().toLowerCase().includes(penaltyTerm)
+      item.rejection_category === filters.value.rejectionCategory
     );
   }
 
@@ -756,13 +765,14 @@ function resetFilters() {
     dateTo: '',
     rejectionType: '',
     reasonCode: '',
-    penalty: '',
+    rejectionCategory: '',
     disputed: '',
     driverControllable: ''
   };
 
   // Reset date filter to full
   selectDateFilter('full');
+  applyFilters();
 }
 
 // Function to open the rejection form modal (for create or edit)
@@ -931,19 +941,15 @@ const acceptanceMetrics = computed(() => {
   const categoryData = props.rejection_breakdown.by_category;
   
   return {
-    category_more_than_6_load_count: categoryData.category_more_than_6_load_count || '0',
-    category_more_than_6_block_count: categoryData.category_more_than_6_block_count || '0',
-    category_within_6_load_count: categoryData.category_within_6_load_count || '0',
-    category_within_6_block_count: categoryData.category_within_6_block_count || '0',
-    category_after_start_load_count: categoryData.category_after_start_load_count || '0',
-    category_after_start_block_count: categoryData.category_after_start_block_count || '0',
-    total_load_rejections: categoryData.total_load_rejections || '0',
-    total_block_rejections: categoryData.total_block_rejections || '0',
-    total_load_penalty: categoryData.total_load_penalty || '0',
-    total_block_penalty: categoryData.total_block_penalty || '0',
+    totalRejections: categoryData.total_rejections,
+    moreThan6Count: categoryData.more_than_6_count,
+    within6Count: categoryData.within_6_count,
+    afterStartCount: categoryData.after_start_count,
     by_category: true
   };
 });
+
+
 
 const bottomDrivers = computed(() => {
   return props.rejection_breakdown?.bottom_five_drivers || [];
@@ -1116,7 +1122,7 @@ const hasActiveFilters = computed(() => {
          filters.value.dateTo || 
          filters.value.rejectionType || 
          filters.value.reasonCode || 
-         filters.value.penalty || 
+         filters.value.rejectionCategory || 
          filters.value.disputed || 
          filters.value.driverControllable;
 });
@@ -1127,4 +1133,46 @@ function getReasonCodeLabel(codeId) {
   const code = props.rejection_reason_codes.find(c => c.id == codeId);
   return code ? code.reason_code : '';
 }
+
+// Helper method to get the rejection category label
+function getRejectionCategoryLabel(category) {
+  if (!category) return '—';
+  
+  const labels = {
+    'more_than_6': 'More than 6 hrs',
+    'within_6': 'Within 6 hrs',
+    'after_start': 'After start'
+  };
+  
+  return labels[category] || category;
+}
+
+const acceptanceMetricsAfterFiltering = computed(() => {
+  const metrics = acceptanceMetrics.value;
+  const categoryFilter = filters.value.rejectionCategory;
+
+  if (!metrics) return null;
+
+  // If no filter, return full metrics
+  if (!categoryFilter) {
+    return metrics;
+  }
+
+  // Map each category to its respective count
+  const categoryCountMap = {
+    more_than_6: metrics.moreThan6Count,
+    within_6: metrics.within6Count,
+    after_start: metrics.afterStartCount
+  };
+
+  const filteredCount = categoryCountMap[categoryFilter] || 0;
+
+  return {
+    totalRejections: filteredCount,
+    moreThan6Count: categoryFilter === 'more_than_6' ? filteredCount : 0,
+    within6Count: categoryFilter === 'within_6' ? filteredCount : 0,
+    afterStartCount: categoryFilter === 'after_start' ? filteredCount : 0,
+    by_category: true
+  };
+});
 </script>

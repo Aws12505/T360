@@ -87,7 +87,7 @@
                 size="sm"
                 :class="{'bg-primary/10 text-primary border-primary': activeTab === '6w'}"
               >
-                6 Weeks
+                T6W
               </Button>
               <Button 
                 @click="selectDateFilter('quarterly')" 
