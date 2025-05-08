@@ -80,11 +80,10 @@ Route::middleware(['auth', 'superAdmin'])->group(function () {
     Route::get    ('/acceptance/export',[RejectionsController::class, 'exportAdmin'])->name('acceptance.export.admin');
 
     // Rejection reason codes
-    Route::post   ('/rejection-reason-codes',       [RejectionsController::class, 'storeReasonCodeAdmin'])->name('rejection_reason_codes.store.admin');
-    Route::put    ('/rejection-reason-codes/{code}',[RejectionsController::class, 'updateReasonCodeAdmin'])->name('rejection_reason_codes.update.admin');
-    Route::delete ('/rejection-reason-codes/{id}',  [RejectionsController::class, 'destroyReasonCodeAdmin'])->name('rejection_reason_codes.destroy.admin');
-    Route::post   ('/rejection-reason-codes/{id}/restore', [RejectionsController::class, 'restoreReasonCodeAdmin'])->name('rejection_reason_codes.restore.admin');
-    Route::delete ('/rejection-reason-codes/{id}/force',   [RejectionsController::class, 'forceDeleteReasonCodeAdmin'])->name('rejection_reason_codes.forceDelete.admin');
+    Route::post   ('/rejection-reason-codes',       [RejectionsController::class, 'storeCode'])->name('rejection_reason_codes.store.admin');
+    Route::delete ('/rejection-reason-codes/{id}',  [RejectionsController::class, 'destroyCode'])->name('rejection_reason_codes.destroy.admin');
+    Route::post   ('/rejection-reason-codes/{id}/restore', [RejectionsController::class, 'restoreCode'])->name('rejection_reason_codes.restore.admin');
+    Route::delete ('/rejection-reason-codes/{id}/force',   [RejectionsController::class, 'forceDeleteCode'])->name('rejection_reason_codes.forceDelete.admin');
 
     // On-time delays
     Route::get    ('/ontime',           [DelaysController::class, 'index'])->name('ontime.index.admin');
