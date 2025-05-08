@@ -117,7 +117,8 @@ class DelayService
             'endWeekNumber' => $endWeekNumber,
             'year' => $year,
             'delay_breakdown' => $delayBreakdown,
-            'line_chart_data' => $lineChartData,
+            'line_chart_data'      => $lineChartData['chartData'] ?? [],
+            'average_ontime'   => $lineChartData['averageOnTime'] ?? null,
         ];
     }
 /**

@@ -26,7 +26,6 @@ class RejectionBreakdownService
             ->whereBetween('date', [$startDate, $endDate]);
 
         $this->applyTenantFilter($query);
-        $this->applyDriverControllableFilter($query);
 
         return $query->groupBy('driver_name')->get();
     }
@@ -50,7 +49,6 @@ class RejectionBreakdownService
             ->whereBetween('rejections.date', [$startDate, $endDate]);
 
         $this->applyTenantFilter($query, 'rejections');
-        $this->applyDriverControllableFilter($query);
 
         return $query->groupBy('rejection_reason_codes.reason_code')->get();
     }
@@ -85,7 +83,6 @@ class RejectionBreakdownService
             ->whereBetween('date', [$startDate, $endDate]);
 
         $this->applyTenantFilter($query);
-        $this->applyDriverControllableFilter($query);
 
         return $query->first();
     }
@@ -104,7 +101,6 @@ class RejectionBreakdownService
 
         $this->applyTenantFilter($query);
       
-        $this->applyDriverControllableFilter($query);
 
         return $query->groupBy('driver_name')
             ->orderBy('total_penalty', 'desc')
@@ -123,17 +119,7 @@ class RejectionBreakdownService
         }
     }
 
-    /**
-     * Apply driver controllable filter to query
-     */
-    public function applyDriverControllableFilter($query)
-    {
-        $query->where(function ($q) {
-            $q->whereNull('driver_controllable')
-              ->orWhere('driver_controllable', true);
-        });
-    }
-
+   
     /**
      * Get complete rejection breakdown data for the specified date range
      */

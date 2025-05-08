@@ -13,7 +13,7 @@
     <!-- Bottom Section -->
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
       <BottomDrivers :title="'Bottom 5 Drivers'" :drivers="bottomDrivers" class="lg:col-span-1" />
-      <LineChart :title="'Acceptance Score'" :chart-data="lineChartData" :average-acceptance="averageAcceptance" class="lg:col-span-3" />
+      <LineChart :title="'Acceptance Score'" :chartData="lineChartData" :averageAcceptance="averageAcceptance" class="lg:col-span-3" />
     </div>
   </div>
 </template>

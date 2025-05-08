@@ -219,9 +219,11 @@
 
       <!-- On-Time Dashboard -->
       <OnTimeDashboard 
-        :metrics-data="ontimeMetrics" 
-        :drivers-data="bottomDrivers" 
-        :chart-data="ontimeChartData" 
+        v-if="!isSuperAdmin"
+        :metricsData="ontimeMetrics" 
+        :driversData="bottomDrivers" 
+        :chartData="ontimeChartData"
+        :averageOntime="average_ontime"
       />
 
       <!-- Delays Table -->
@@ -593,20 +595,15 @@ const props = defineProps({
   },
   delay_breakdown: {
     type: Object,
-    default: () => ({
-      by_category: {
-        total_delays: 0,
-        category_1_120_count: 0,
-        category_121_600_count: 0,
-        category_601_plus_count: 0
-      },
-      bottom_five_drivers: []
-    })
+    default: null
   },
   line_chart_data: {
-    type: Array,
-    default: () => []
-  }
+    type: Object,
+    default: null
+  },
+  average_ontime:{ 
+    type: Number,
+  },
 })
 const weekNumberText = computed(() => {
   // For yesterday and current-week, show single week
@@ -948,20 +945,32 @@ watch(errorMessage, (newValue) => {
 });
 
 // On-Time dashboard data from API
-const ontimeMetrics = computed(() => ({
-  items: [
-    { title: 'Total Late Stops', value: props.delay_breakdown.by_category.total_delays },
-    { title: '1-120 Minutes Late', value: props.delay_breakdown.by_category.category_1_120_count },
-    { title: '121-600 Minutes Late', value: props.delay_breakdown.by_category.category_121_600_count },
-    { title: '+601 Minutes Late', value: props.delay_breakdown.by_category.category_601_plus_count }
-  ]
-}));
+const ontimeMetrics = computed(() => {
+  if (!props.delay_breakdown?.by_category) return null;
+  
+  const categoryData = props.delay_breakdown.by_category;
+  
+  return {
+    category_1_120_count: categoryData.category_1_120_count || '0',
+    category_121_600_count: categoryData.category_121_600_count || '0',
+    category_601_plus_count: categoryData.category_601_plus_count || '0',
+    category_1_120_origin_count: categoryData.category_1_120_origin_count || '0',
+    category_1_120_destination_count: categoryData.category_1_120_destination_count || '0',
+    category_121_600_origin_count: categoryData.category_121_600_origin_count || '0',
+    category_121_600_destination_count: categoryData.category_121_600_destination_count || '0',
+    category_601_plus_origin_count: categoryData.category_601_plus_origin_count || '0',
+    category_601_plus_destination_count: categoryData.category_601_plus_destination_count || '0',
+    total_origin_delays: categoryData.total_origin_delays || '0',
+    total_destination_delays: categoryData.total_destination_delays || '0',
+    total_origin_penalty: categoryData.total_origin_penalty || '0',
+    total_destination_penalty: categoryData.total_destination_penalty || '0',
+    total_delays: categoryData.total_delays || '0',
+    by_category: true
+  };
+});
 
 const bottomDrivers = computed(() => {
-  return (props.delay_breakdown.bottom_five_drivers || []).map(driver => ({
-    name: driver.driver_name,
-    value: driver.total_penalty
-  }));
+  return props.delay_breakdown?.bottom_five_drivers || [];
 });
 
 const ontimeChartData = computed(() => {
@@ -974,7 +983,7 @@ const ontimeChartData = computed(() => {
         borderColor: '#3b82f6',
         backgroundColor: 'rgba(59, 130, 246, 0.1)',
         tension: 0.3,
-        fill: true
+        fill: false
       }]
     };
   }
@@ -987,7 +996,7 @@ const ontimeChartData = computed(() => {
       borderColor: '#3b82f6',
       backgroundColor: 'rgba(59, 130, 246, 0.1)',
       tension: 0.3,
-      fill: true
+      fill: false
     }]
   };
 });

@@ -2,14 +2,9 @@
   <div class="bg-background rounded-lg border shadow-sm p-4">
     <h3 class="text-base font-semibold mb-4">{{ title }}</h3>
     <div class="space-y-3">
-      <div v-if="drivers && drivers.length > 0">
-        <div v-for="(driver, index) in drivers" :key="index" class="flex justify-between items-center">
-          <span class="text-sm">{{ driver.name }}</span>
-          <span class="text-sm font-medium" :style="{ color: getColor(index) }">{{ driver.value }}</span>
-        </div>
-      </div>
-      <div v-else class="text-center py-4 text-muted-foreground">
-        No Data
+      <div v-for="(driver, index) in drivers" :key="index" class="flex justify-between items-center">
+        <span class="text-sm">{{ driver.driver_name }}</span>
+        <span class="text-sm font-medium" :style="{ color: getColor(index) }">{{ driver.total_penalty }}</span>
       </div>
     </div>
   </div>

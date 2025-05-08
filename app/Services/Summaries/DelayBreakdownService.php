@@ -26,7 +26,6 @@ class DelayBreakdownService
             ->whereBetween('date', [$startDate, $endDate]);
 
         $this->applyTenantFilter($query);
-        $this->applyDriverControllableFilter($query);
 
         return $query->groupBy('driver_name')->get();
     }
@@ -50,7 +49,6 @@ class DelayBreakdownService
             ->whereBetween('delays.date', [$startDate, $endDate]);
 
         $this->applyTenantFilter($query, 'delays');
-        $this->applyDriverControllableFilter($query);
 
         return $query->groupBy('delay_codes.code')->get();
     }
@@ -65,12 +63,26 @@ class DelayBreakdownService
                 COUNT(*) as total_delays,
                 SUM(CASE WHEN delay_category = '1_120' THEN 1 ELSE 0 END) as category_1_120_count,
                 SUM(CASE WHEN delay_category = '121_600' THEN 1 ELSE 0 END) as category_121_600_count,
-                SUM(CASE WHEN delay_category = '601_plus' THEN 1 ELSE 0 END) as category_601_plus_count
+                SUM(CASE WHEN delay_category = '601_plus' THEN 1 ELSE 0 END) as category_601_plus_count,
+                
+                SUM(CASE WHEN delay_category = '1_120' AND delay_type = 'origin' THEN 1 ELSE 0 END) as category_1_120_origin_count,
+                SUM(CASE WHEN delay_category = '1_120' AND delay_type = 'destination' THEN 1 ELSE 0 END) as category_1_120_destination_count,
+                
+                SUM(CASE WHEN delay_category = '121_600' AND delay_type = 'origin' THEN 1 ELSE 0 END) as category_121_600_origin_count,
+                SUM(CASE WHEN delay_category = '121_600' AND delay_type = 'destination' THEN 1 ELSE 0 END) as category_121_600_destination_count,
+                
+                SUM(CASE WHEN delay_category = '601_plus' AND delay_type = 'origin' THEN 1 ELSE 0 END) as category_601_plus_origin_count,
+                SUM(CASE WHEN delay_category = '601_plus' AND delay_type = 'destination' THEN 1 ELSE 0 END) as category_601_plus_destination_count,
+                
+                SUM(CASE WHEN delay_type = 'origin' THEN 1 ELSE 0 END) as total_origin_delays,
+                SUM(CASE WHEN delay_type = 'destination' THEN 1 ELSE 0 END) as total_destination_delays,
+                
+                SUM(CASE WHEN delay_type = 'origin' THEN penalty ELSE 0 END) as total_origin_penalty,
+                SUM(CASE WHEN delay_type = 'destination' THEN penalty ELSE 0 END) as total_destination_penalty
             ")
             ->whereBetween('date', [$startDate, $endDate]);
 
         $this->applyTenantFilter($query);
-        $this->applyDriverControllableFilter($query);
 
         return $query->first();
     }
@@ -88,7 +100,6 @@ class DelayBreakdownService
             ->whereBetween('date', [$startDate, $endDate]);
 
         $this->applyTenantFilter($query);
-        $this->applyDriverControllableFilter($query);
 
         return $query->groupBy('driver_name')
             ->orderBy('total_penalty', 'desc')
@@ -107,16 +118,7 @@ class DelayBreakdownService
         }
     }
 
-    /**
-     * Apply driver controllable filter to query
-     */
-    public function applyDriverControllableFilter($query)
-    {
-        $query->where(function ($q) {
-            $q->whereNull('driver_controllable')
-              ->orWhere('driver_controllable', true);
-        });
-    }
+  
 
     /**
      * Get complete delay breakdown data for the specified date range
@@ -177,6 +179,15 @@ class DelayBreakdownService
             $labelFormat = 'M'; // Month name (Jan, Feb, etc.)
         }
         
+        // Get the average on-time performance across the entire date range
+        $averageQuery = DB::table('performances')
+            ->selectRaw('AVG(on_time) as averageOnTime')
+            ->whereBetween('date', [$startDate, $endDate]);
+        
+        $this->applyTenantFilter($averageQuery);
+        $averageResult = $averageQuery->first();
+        $averageOnTime = $averageResult ? round($averageResult->averageOnTime, 1) : null;
+        
         $query = DB::table('performances')
             ->select($groupBy, DB::raw('AVG(on_time) as onTimePerformance'))
             ->whereBetween('date', [$startDate, $endDate])
@@ -187,7 +198,7 @@ class DelayBreakdownService
         $results = $query->get();
         
         // Format dates based on the determined grouping
-        return $results->map(function($item) use ($dateFormat, $labelFormat, $dateFilter) {
+        $chartData = $results->map(function($item) use ($dateFormat, $labelFormat, $dateFilter) {
             // Get the first property (date or yearweek)
             $dateValue = $item->{array_key_first((array)$item)};
             
@@ -216,6 +227,11 @@ class DelayBreakdownService
                 'onTimePerformance' => round($item->onTimePerformance, 1)
             ];
         })->toArray();
+        
+        return [
+            'chartData' => $chartData,
+            'averageOnTime' => $averageOnTime
+        ];
     }
     
     /**
