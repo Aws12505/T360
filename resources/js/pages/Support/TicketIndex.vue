@@ -7,7 +7,7 @@
       <Alert v-if="successMessage" variant="success" class="animate-in fade-in duration-300">
         <AlertTitle class="flex items-center gap-2">
           <Icon name="check-circle" class="h-5 w-5 text-green-500" />
-          Ticket Submitted Successfully! 
+          Ticket Submitted Successfully!
         </AlertTitle>
         <AlertDescription class="whitespace-pre-line">{{ successMessage }}</AlertDescription>
       </Alert>
@@ -22,9 +22,9 @@
           <Button v-if="!SuperAdmin" @click="openCreateModal" variant="default" class="shadow-sm hover:shadow transition-all">
             <Icon name="plus" class="mr-2 h-4 w-4"/> Submit a Ticket
           </Button>
-          <Button 
-            v-if="selectedTickets.length > 0" 
-            @click="showDeleteSelectedModal = true" 
+          <Button
+            v-if="selectedTickets.length > 0"
+            @click="showDeleteSelectedModal = true"
             variant="destructive"
             class="shadow-sm hover:shadow transition-all"
           >
@@ -40,30 +40,32 @@
 
       <!-- Filters -->
       <Card class="shadow-sm hover:shadow transition-all duration-300">
-        <CardHeader class="pb-2">
-        </CardHeader>
+        <CardHeader class="pb-2"></CardHeader>
         <CardContent class="p-4 pt-2">
           <div class="flex flex-col gap-4">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
                 <Label for="search" class="text-sm font-medium mb-1 block">Search</Label>
                 <div class="relative">
-                  <Icon name="search" class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Icon
+                    name="search"
+                    class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
+                  />
                   <Input
                     id="search"
                     v-model="filters.search"
                     placeholder="Search type or ticket id"
-                    @keydown.enter="applyFilters"
+                    @keydown.enter.prevent="applyFilters"
                     class="pl-9"
                   />
                 </div>
               </div>
               <div>
                 <Label for="status" class="text-sm font-medium mb-1 block">Status</Label>
-                <select 
+                <select
                   id="status"
-                  v-model="filters.status" 
-                  @change="applyFilters" 
+                  v-model="filters.status"
+                  @change="applyFilters"
                   class="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
                 >
                   <option value="">All Statuses</option>
@@ -84,7 +86,7 @@
                 </label>
               </div>
             </div>
-            
+
             <div class="flex justify-end">
               <Button @click="resetFilters" variant="ghost" size="sm" class="gap-1">
                 <Icon name="rotate-ccw" class="h-4 w-4" />
@@ -104,9 +106,9 @@
                 <TableRow class="sticky top-0 bg-background border-b z-10 hover:bg-background">
                   <TableHead class="w-[50px]">
                     <div class="flex items-center justify-center">
-                      <input 
-                        type="checkbox" 
-                        @change="toggleSelectAll" 
+                      <input
+                        type="checkbox"
+                        @change="toggleSelectAll"
                         :checked="isAllSelected"
                         class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                       />
@@ -115,51 +117,69 @@
                   <TableHead class="w-[70px] cursor-pointer" @click="sortBy('id')">
                     <div class="flex items-center gap-1">
                       ID
-                      <Icon v-if="sortColumn === 'id'" :name="sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'" class="h-3 w-3" />
+                      <Icon
+                        v-if="sortColumn === 'id'"
+                        :name="sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'"
+                        class="h-3 w-3"
+                      />
                     </div>
                   </TableHead>
                   <TableHead v-if="SuperAdmin">User</TableHead>
                   <TableHead class="cursor-pointer" @click="sortBy('subject')">
                     <div class="flex items-center gap-1">
                       Type
-                      <Icon v-if="sortColumn === 'subject'" :name="sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'" class="h-3 w-3" />
+                      <Icon
+                        v-if="sortColumn === 'subject'"
+                        :name="sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'"
+                        class="h-3 w-3"
+                      />
                     </div>
                   </TableHead>
                   <TableHead class="cursor-pointer" @click="sortBy('status')">
                     <div class="flex items-center gap-1">
                       Status
-                      <Icon v-if="sortColumn === 'status'" :name="sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'" class="h-3 w-3" />
+                      <Icon
+                        v-if="sortColumn === 'status'"
+                        :name="sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'"
+                        class="h-3 w-3"
+                      />
                     </div>
                   </TableHead>
                   <TableHead class="cursor-pointer" @click="sortBy('created_at')">
                     <div class="flex items-center gap-1">
                       Created
-                      <Icon v-if="sortColumn === 'created_at'" :name="sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'" class="h-3 w-3" />
+                      <Icon
+                        v-if="sortColumn === 'created_at'"
+                        :name="sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'"
+                        class="h-3 w-3"
+                      />
                     </div>
                   </TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow v-if="tickets.data.length === 0">
+                <TableRow v-if="filteredTickets.length === 0">
                   <TableCell :colspan="SuperAdmin ? 7 : 6" class="py-8 text-center">
                     <div class="flex flex-col items-center justify-center text-muted-foreground">
                       <Icon name="inbox" class="h-12 w-12 mb-2 opacity-20" />
                       <p>No tickets found</p>
-                      <Button v-if="!SuperAdmin" @click="openCreateModal" variant="link" class="mt-2">Create your first ticket</Button>
+                      <Button v-if="!SuperAdmin" @click="openCreateModal" variant="link" class="mt-2">
+                        Create your first ticket
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>
                 <TableRow
-                  v-for="t in tickets.data"
+                  v-for="t in filteredTickets"
                   :key="t.id"
                   class="hover:bg-muted/50 transition-colors"
-                  :class="{'bg-primary/5': isSelected(t.id)}"
+                  :class="{ 'bg-primary/5': isSelected(t.id) }"
                 >
                   <TableCell class="text-center">
-                    <input 
-                      type="checkbox" 
-                      :value="t.id" 
+                    <input
+                      type="checkbox"
+                      :value="t.id"
                       v-model="selectedTickets"
                       class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                     />
@@ -173,10 +193,7 @@
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge 
-                      :variant="getStatusVariant(t.status)" 
-                      class="capitalize"
-                    >
+                    <Badge :variant="getStatusVariant(t.status)" class="capitalize">
                       {{ t.status.replace('_',' ') }}
                     </Badge>
                   </TableCell>
@@ -201,7 +218,7 @@
             </Table>
           </div>
 
-          <!-- Pagination -->
+          <!-- Pagination (unchanged) -->
           <div class="bg-muted/20 px-4 py-3 border-t" v-if="tickets.links">
             <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
               <div class="text-sm text-muted-foreground">
@@ -210,9 +227,9 @@
               <div class="flex items-center gap-4">
                 <div class="flex items-center gap-2">
                   <Label for="perPage" class="text-sm">Per page:</Label>
-                  <select 
-                    id="perPage" 
-                    v-model="perPage" 
+                  <select
+                    id="perPage"
+                    v-model="perPage"
                     @change="changePerPage"
                     class="h-8 rounded-md border border-input bg-background px-2 py-1 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   >
@@ -231,7 +248,7 @@
                     size="sm"
                     variant="ghost"
                     class="mx-1"
-                    :class="{'bg-primary/10 text-primary border-primary': link.active}"
+                    :class="{ 'bg-primary/10 text-primary border-primary': link.active }"
                   >
                     <span v-html="link.label"></span>
                   </Button>
@@ -291,8 +308,6 @@
                     {{ subject.name }}
                   </option>
                 </select>
-                
-                
               </div>
             </div>
             <div>
@@ -315,7 +330,7 @@
           </form>
         </DialogContent>
       </Dialog>
-      
+
       <!-- Ticket Subjects Modal -->
       <Dialog v-model:open="showSubjectModal">
         <DialogContent class="sm:max-w-lg">
@@ -328,14 +343,14 @@
               Create and manage predefined types for support tickets.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div class="space-y-4 p-4">
             <!-- Add New Subject Form -->
             <form @submit.prevent="submitSubjectForm" class="flex gap-2 mb-6">
               <div class="flex-1">
-                <Input 
-                  v-model="subjectForm.name" 
-                  placeholder="Enter Type name..." 
+                <Input
+                  v-model="subjectForm.name"
+                  placeholder="Enter Type name..."
                   required
                   class="w-full"
                 />
@@ -345,7 +360,7 @@
                 Add
               </Button>
             </form>
-            
+
             <!-- Subjects List -->
             <div class="border rounded-md">
               <div class="bg-muted/30 px-4 py-2 border-b">
@@ -355,12 +370,16 @@
                 <div v-if="activeSubjects.length === 0" class="p-4 text-center text-muted-foreground">
                   No types found. Create your first one above.
                 </div>
-                <div v-for="subject in activeSubjects" :key="subject.id" class="flex items-center justify-between p-3 hover:bg-muted/30">
+                <div
+                  v-for="subject in activeSubjects"
+                  :key="subject.id"
+                  class="flex items-center justify-between p-3 hover:bg-muted/30"
+                >
                   <span>{{ subject.name }}</span>
                   <div class="flex gap-2">
-                    <Button 
-                      @click="deleteSubject(subject.id)" 
-                      variant="ghost" 
+                    <Button
+                      @click="deleteSubject(subject.id)"
+                      variant="ghost"
                       size="sm"
                       class="h-8 w-8 p-0"
                     >
@@ -370,31 +389,35 @@
                 </div>
               </div>
             </div>
-            
+
             <!-- Deleted Subjects -->
             <div v-if="deletedSubjects.length > 0" class="border rounded-md mt-4">
               <div class="bg-muted/30 px-4 py-2 border-b">
                 <h3 class="font-medium">Deleted Types</h3>
               </div>
               <div class="divide-y max-h-[200px] overflow-y-auto">
-                <div v-for="subject in deletedSubjects" :key="subject.id" class="flex items-center justify-between p-3 hover:bg-muted/30">
+                <div
+                  v-for="subject in deletedSubjects"
+                  :key="subject.id"
+                  class="flex items-center justify-between p-3 hover:bg-muted/30"
+                >
                   <span class="text-muted-foreground flex items-center">
                     {{ subject.name }}
                     <span class="ml-2 text-xs text-red-500">(Deleted)</span>
                   </span>
                   <div class="flex gap-2">
-                    <Button 
-                      @click="restoreSubject(subject.id)" 
-                      variant="ghost" 
+                    <Button
+                      @click="restoreSubject(subject.id)"
+                      variant="ghost"
                       size="sm"
                       class="h-8 w-8 p-0"
                       title="Restore Type"
                     >
                       <Icon name="undo" class="h-4 w-4 text-primary" />
                     </Button>
-                    <Button 
-                      @click="forceDeleteSubject(subject.id)" 
-                      variant="ghost" 
+                    <Button
+                      @click="forceDeleteSubject(subject.id)"
+                      variant="ghost"
                       size="sm"
                       class="h-8 w-8 p-0"
                       title="Permanently Delete"
@@ -406,7 +429,7 @@
               </div>
             </div>
           </div>
-          
+
           <DialogFooter>
             <Button @click="showSubjectModal = false" variant="outline">
               Close
@@ -414,6 +437,7 @@
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
       <!-- Delete ticket Confirmation Dialog -->
       <Dialog v-model:open="ticketDeleteConfirmation">
         <DialogContent>
@@ -443,61 +467,58 @@ import { useForm, router, Head } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import Icon from '@/components/Icon.vue';
 import {
-  Button, Card, CardContent, CardHeader, CardTitle, Table, TableHeader, TableBody,
+  Button, Card, CardContent, CardHeader, Table, TableHeader, TableBody,
   TableRow, TableHead, TableCell, Dialog, DialogContent,
   DialogHeader, DialogTitle, DialogDescription, DialogFooter, Label, Input,
   Alert, AlertTitle, AlertDescription, Badge
 } from '@/components/ui';
 
 const props = defineProps({
-  tickets:   Object,
-  tenantSlug: { type: String, default: null },
-  SuperAdmin: Boolean,
-  filters:   Object,
-  ticket_subjects: { type: Array, default: () => [] },
-  deleted_subjects: { type: Array, default: () => [] }
+  tickets:           Object,
+  tenantSlug:        { type: String, default: null },
+  SuperAdmin:        Boolean,
+  filters:           Object,
+  ticket_subjects:   { type: Array, default: () => [] },
+  deleted_subjects:  { type: Array, default: () => [] }
 });
-
-const successMessage = ref('');
-const showCreateModal = ref(false);
-const showSubjectModal = ref(false);
-const form = useForm({ subject: '', message: '' });
-const subjectForm = useForm({ name: '' });
-const filters = ref({ ...props.filters });
-const selectedTickets = ref([]);
-const showDeleteSelectedModal = ref(false);
-const perPage = ref(props.tickets?.per_page || 10);
-const sortColumn = ref('created_at');
-const sortDirection = ref('desc');
+props.filters['status']="";
+const successMessage           = ref('');
+const showCreateModal          = ref(false);
+const showSubjectModal         = ref(false);
+const form                     = useForm({ subject: '', message: '' });
+const subjectForm              = useForm({ name: '' });
+const filters                  = ref({ ...props.filters });
+const selectedTickets          = ref([]);
+const showDeleteSelectedModal  = ref(false);
+const perPage                  = ref(props.tickets?.per_page || 10);
+const sortColumn               = ref('created_at');
+const sortDirection            = ref('desc');
 const ticketDeleteConfirmation = ref(false);
-const ticketToDelete = ref(null)
-// NEW: manage selected subject
-const selectedSubject = ref('');
-function handleSubjectChange() {
-    form.subject = selectedSubject.value;
-}
+const ticketToDelete           = ref(null);
+const selectedSubject          = ref('');
 
+// Breadcrumbs
 const breadcrumbs = [
   {
     title: props.tenantSlug ? 'Dashboard' : 'Admin Dashboard',
-    href:  props.tenantSlug
+    href: props.tenantSlug
       ? route('dashboard', { tenantSlug: props.tenantSlug })
       : route('admin.dashboard')
   },
   {
     title: 'Customer Support',
-    href:  props.tenantSlug
+    href: props.tenantSlug
       ? route('support.index', { tenantSlug: props.tenantSlug })
       : route('support.index.admin')
   }
 ];
 
-// Check if all tickets are selected
-const isAllSelected = computed(() => {
-  return props.tickets.data.length > 0 && selectedTickets.value.length === props.tickets.data.length;
-});
+// Select-all logic
+const isAllSelected = computed(() =>
+  props.tickets.data.length > 0 &&
+  selectedTickets.value.length === props.tickets.data.length
+);
 
-// Toggle select all tickets
 function toggleSelectAll() {
   if (isAllSelected.value) {
     selectedTickets.value = [];
@@ -506,22 +527,18 @@ function toggleSelectAll() {
   }
 }
 
-// Check if a ticket is selected
 function isSelected(id) {
   return selectedTickets.value.includes(id);
 }
 
-// Check if a ticket is unseen
+// Unseen
 function isTicketUnseen(ticket) {
   return props.SuperAdmin ? !ticket.seen_by_admin : !ticket.seen_by_user;
 }
-const confirmDeleteTicket = (id) => {
-  ticketToDelete.value = id;
-  ticketDeleteConfirmation.value = true;
-};
-// Get badge variant based on status
+
+// Badge variant
 function getStatusVariant(status) {
-  switch(status) {
+  switch (status) {
     case 'open': return 'open';
     case 'in_progress': return 'in_progress';
     case 'closed': return 'closed';
@@ -529,7 +546,7 @@ function getStatusVariant(status) {
   }
 }
 
-// Sort tickets by column
+// Sorting
 function sortBy(column) {
   if (sortColumn.value === column) {
     sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc';
@@ -537,91 +554,89 @@ function sortBy(column) {
     sortColumn.value = column;
     sortDirection.value = 'asc';
   }
-  
+
   const name = props.tenantSlug
     ? route('support.index', { tenantSlug: props.tenantSlug })
     : route('support.index.admin');
-    
+
   router.get(name, {
     ...filters.value,
-    sort: sortColumn.value,
+    sort:      sortColumn.value,
     direction: sortDirection.value,
-    per_page: perPage.value
+    per_page:  perPage.value
   }, { preserveState: true });
 }
 
-
-
-// Add this function to handle bulk deletion
+// Bulk delete
 function deleteSelectedTickets() {
-  if (selectedTickets.value.length === 0) {
-    return;
-  }
-  
-  const form = useForm({
-    ids: selectedTickets.value
-  });
-  
-  const routeName = props.SuperAdmin ? 'support.destroyBulk.admin' : 'support.destroyBulk';
+  if (selectedTickets.value.length === 0) return;
+
+  const bulk = useForm({ ids: selectedTickets.value });
+  const routeName   = props.SuperAdmin ? 'support.destroyBulk.admin' : 'support.destroyBulk';
   const routeParams = props.SuperAdmin ? {} : { tenantSlug: props.tenantSlug };
-  
-  form.delete(route(routeName, routeParams), {
+
+  bulk.delete(route(routeName, routeParams), {
     preserveScroll: true,
-    onSuccess: () => {
+    onSuccess() {
       successMessage.value = `${selectedTickets.value.length} tickets deleted successfully.`;
       selectedTickets.value = [];
       showDeleteSelectedModal.value = false;
-    },
-    onError: (errors) => {
-      console.error(errors);
     }
   });
 }
 
-// Change items per page
+// Change page size
 function changePerPage() {
   const name = props.tenantSlug
     ? route('support.index', { tenantSlug: props.tenantSlug })
     : route('support.index.admin');
-    
+
   router.get(name, {
     ...filters.value,
-    sort: sortColumn.value,
+    sort:      sortColumn.value,
     direction: sortDirection.value,
-    per_page: perPage.value
+    per_page:  perPage.value
   }, { preserveState: true });
 }
 
-// Reset filters
-function resetFilters() {
-  filters.value = {
-    search: '',
-    status: '',
-    unseen: false
-  };
-  applyFilters();
-}
-
+// Navigate pages
 function visitPage(url) {
   if (!url) return;
   router.get(new URL(url).href, {}, { preserveState: true });
 }
 
+// ── Frontend-only filtering ───────────────────────────────────────────────────
+const filteredTickets = computed(() => {
+  let list = [...props.tickets.data];
+
+  if (filters.value.search) {
+    const q = filters.value.search.toLowerCase();
+    list = list.filter(t =>
+      t.subject.toLowerCase().includes(q) ||
+      String(t.id).includes(q)
+    );
+  }
+
+  if (filters.value.status) {
+    list = list.filter(t => t.status === filters.value.status);
+  }
+
+  if (filters.value.unseen) {
+    list = list.filter(isTicketUnseen);
+  }
+
+  return list;
+});
+
 function applyFilters() {
-  const name = props.tenantSlug
-    ? route('support.index', { tenantSlug: props.tenantSlug })
-    : route('support.index.admin');
-  router.get(name, {
-    search: filters.value.search,
-    status: filters.value.status,
-    unseen: filters.value.unseen ? 'true' : undefined,
-    sort: sortColumn.value,
-    direction: sortDirection.value,
-    per_page: perPage.value
-  }, { preserveState: true });
+  // no-op: filters are reactive
 }
 
-// NEW: ensure we reset subject selection when opening
+function resetFilters() {
+  filters.value = { search: '', status: '', unseen: false };
+}
+
+// ── Ticket CRUD & Modals ──────────────────────────────────────────────────────
 function openCreateModal() {
   form.reset();
   showCreateModal.value = true;
@@ -631,13 +646,21 @@ function submitForm() {
   const name = props.tenantSlug
     ? route('support.store', { tenantSlug: props.tenantSlug })
     : route('support.store.admin');
+
   form.post(name, {
-    onSuccess: () => {
-      successMessage.value = 'Thank you for submitting a support ticket. Our team of customer obsession specialists will review your submission right away and respond in a timely manner.\n\nNeed to add more? You can view the ticket below and add a new response to be attached to your ticket.';
+    onSuccess() {
+      successMessage.value = `Thank you for submitting a support ticket. Our team of customer obsession specialists will review your submission right away and respond in a timely manner.
+
+Need to add more? You can view the ticket below and add a new response to be attached to your ticket.`;
       showCreateModal.value = false;
       form.reset();
     }
   });
+}
+
+function confirmDeleteTicket(id) {
+  ticketToDelete.value = id;
+  ticketDeleteConfirmation.value = true;
 }
 
 function viewTicket(id) {
@@ -648,23 +671,22 @@ function viewTicket(id) {
 }
 
 function deleteTicket(id) {
-  router.delete(
-    props.tenantSlug
-      ? route('support.destroy',   { tenantSlug: props.tenantSlug, ticket: id })
-      : route('support.destroy.admin', id),
-    {
-      onSuccess: () => {
-        successMessage.value = 'Ticket deleted.';
-        ticketDeleteConfirmation.value = false;
-        router.reload();
-      }
+  const name = props.tenantSlug
+    ? route('support.destroy', { tenantSlug: props.tenantSlug, ticket: id })
+    : route('support.destroy.admin', id);
+
+  router.delete(name, {
+    onSuccess() {
+      successMessage.value = 'Ticket deleted.';
+      ticketDeleteConfirmation.value = false;
+      router.reload();
     }
-  );
+  });
 }
 
 function formatDate(dt) {
   const d = new Date(dt);
-  return `${d.getMonth()+1}-${d.getDate()}-${d.getFullYear()}`;
+  return `${d.getMonth() + 1}-${d.getDate()}-${d.getFullYear()}`;
 }
 
 function formatTime(dt) {
@@ -672,11 +694,11 @@ function formatTime(dt) {
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-watch(successMessage, v => {
-  if (v) setTimeout(() => (successMessage.value = ''), 8000);
-});
+// ── Subject Management ───────────────────────────────────────────────────────
+function handleSubjectChange() {
+  form.subject = selectedSubject.value;
+}
 
-// Subject Management Functions
 function openSubjectModal() {
   showSubjectModal.value = true;
 }
@@ -684,7 +706,7 @@ function openSubjectModal() {
 function submitSubjectForm() {
   subjectForm.post(route('ticket_subjects.store.admin'), {
     preserveScroll: true,
-    onSuccess: () => {
+    onSuccess() {
       subjectForm.reset();
       successMessage.value = 'Subject created successfully';
     }
@@ -692,43 +714,44 @@ function submitSubjectForm() {
 }
 
 function deleteSubject(id) {
-  if (confirm('Are you sure you want to delete this subject?')) {
-    router.delete(route('ticket_subjects.destroy.admin', id), {
-      preserveScroll: true,
-      onSuccess: () => {
-        successMessage.value = 'Subject deleted successfully';
-      }
-    });
-  }
+  if (!confirm('Are you sure you want to delete this subject?')) return;
+  router.delete(route('ticket_subjects.destroy.admin', id), {
+    preserveScroll: true,
+    onSuccess() {
+      successMessage.value = 'Subject deleted successfully';
+    }
+  });
 }
 
 function restoreSubject(id) {
   router.post(route('ticket_subjects.restore.admin', id), {}, {
     preserveScroll: true,
-    onSuccess: () => {
+    onSuccess() {
       successMessage.value = 'Subject restored successfully';
     }
   });
 }
 
 function forceDeleteSubject(id) {
-  if (confirm('Are you sure you want to permanently delete this subject? This action cannot be undone.')) {
-    router.delete(route('ticket_subjects.forceDelete.admin', id), {
-      preserveScroll: true,
-      onSuccess: () => {
-        successMessage.value = 'Subject permanently deleted';
-      }
-    });
-  }
+  if (!confirm('Are you sure you want to permanently delete this subject? This action cannot be undone.')) return;
+  router.delete(route('ticket_subjects.forceDelete.admin', id), {
+    preserveScroll: true,
+    onSuccess() {
+      successMessage.value = 'Subject permanently deleted';
+    }
+  });
 }
 
-// Computed properties to separate active and deleted subjects
-const activeSubjects = computed(() => {
-  return props.ticket_subjects.filter(subject => !subject.deleted_at);
-});
+const activeSubjects = computed(() =>
+  props.ticket_subjects.filter(s => !s.deleted_at)
+);
 
-const deletedSubjects = computed(() => {
-  return props.ticket_subjects.filter(subject => subject.deleted_at);
-});
+const deletedSubjects = computed(() =>
+  props.ticket_subjects.filter(s => s.deleted_at)
+);
 
+// Auto-clear success message
+watch(successMessage, v => {
+  if (v) setTimeout(() => (successMessage.value = ''), 8000);
+});
 </script>

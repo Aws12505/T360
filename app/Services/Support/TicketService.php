@@ -24,28 +24,7 @@ class TicketService
         }
         // Super-admin sees all
 
-        // Status filter
-        if ($status = Request::input('status')) {
-            $query->where('status', $status);
-        }
-
-        // Unseen filter
-        if (Request::input('unseen') === 'true') {
-            $query->where(
-                $user->tenant_id === null
-                    ? 'seen_by_admin'
-                    : 'seen_by_user',
-                false
-            );
-        }
-
-        // Search by subject/id
-        if ($q = Request::input('search')) {
-            $query->where(fn($qf) =>
-                $qf->where('subject', 'like', "%{$q}%")
-                   ->orWhere('id', 'like', "%{$q}%")
-            );
-        }
+        
 
         $tickets = $query
             ->orderBy(
@@ -62,12 +41,7 @@ class TicketService
         return [
             'tickets' => $tickets,
             'filters' => [
-                'search'         => Request::input('search'),
-                'status'         => Request::input('status'),
-                'unseen'         => Request::input('unseen'),
                 'per_page'       => $tickets->perPage(),
-                'sort_field'     => Request::input('sort_field'),
-                'sort_direction' => Request::input('sort_direction'),
             ],
             'ticket_subjects' => $ticketSubjects,
         ];
