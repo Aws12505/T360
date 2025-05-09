@@ -49,20 +49,10 @@ const metrics = computed(() => {
   if (props.metricsData && props.metricsData.by_category) {
     // Transform the categories data into the format expected by TotalLateStops component
     return [
-      { title: 'Delays 1-120 Minutes', value: props.metricsData.category_1_120_count || '0' },
-      { title: 'Delays 121-600 Minutes', value: props.metricsData.category_121_600_count || '0' },
-      { title: 'Delays 601+ Minutes', value: props.metricsData.category_601_plus_count || '0' },
-      { title: 'Origin Delays 1-120 Min', value: props.metricsData.category_1_120_origin_count || '0' },
-      { title: 'Destination Delays 1-120 Min', value: props.metricsData.category_1_120_destination_count || '0' },
-      { title: 'Origin Delays 121-600 Min', value: props.metricsData.category_121_600_origin_count || '0' },
-      { title: 'Destination Delays 121-600 Min', value: props.metricsData.category_121_600_destination_count || '0' },
-      { title: 'Origin Delays 601+ Min', value: props.metricsData.category_601_plus_origin_count || '0' },
-      { title: 'Destination Delays 601+ Min', value: props.metricsData.category_601_plus_destination_count || '0' },
-      { title: 'Total Origin Delays', value: props.metricsData.total_origin_delays || '0' },
-      { title: 'Total Destination Delays', value: props.metricsData.total_destination_delays || '0' },
-      { title: 'Total Origin Penalty', value: props.metricsData.total_origin_penalty || '0' },
-      { title: 'Total Destination Penalty', value: props.metricsData.total_destination_penalty || '0' },
-      { title: 'Total Delays', value: props.metricsData.total_delays || '0' }
+      { title: 'Total Delayed Stops', value: props.metricsData.totalDelays },
+      { title: 'Delayed for +601 Minutes', value: props.metricsData.moreThan601Count},
+      { title: 'Delayed for 121-600 Minutes', value: props.metricsData.between121_600Count},
+      { title: 'Delayed for 1-120 Minutes', value: props.metricsData.between1_120Count}
     ];
   }
   return [];

@@ -50,7 +50,10 @@ const variantClasses = {
   'fantastic': 'border-2 border-emerald-600 bg-transparent text-emerald-600',
   'good': 'border-2 border-blue-600 bg-transparent text-blue-600',
   'fair': 'border-2 border-amber-600 bg-transparent text-amber-600',
-  'poor': 'border-2 border-red-600 bg-transparent text-red-600'
+  'poor': 'border-2 border-red-600 bg-transparent text-red-600',
+  open: 'bg-[#28a745] text-white border-transparent hover:bg-[#218838]',
+  in_progress: 'bg-[#ffc107] text-black border-transparent hover:bg-[#e0a800]',
+  closed: 'bg-[#007bff] text-white border-transparent hover:bg-[#0069d9]'
 };
 
 const sizeClasses = {

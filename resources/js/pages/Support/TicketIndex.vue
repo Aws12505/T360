@@ -1,26 +1,26 @@
 <template>
   <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
-    <Head title="Support Tickets" />
+    <Head title="Customer Support" />
 
     <div class="w-[95%] mx-auto p-6 space-y-8">
       <!-- Success -->
       <Alert v-if="successMessage" variant="success" class="animate-in fade-in duration-300">
         <AlertTitle class="flex items-center gap-2">
           <Icon name="check-circle" class="h-5 w-5 text-green-500" />
-          Success
+          Ticket Submitted Successfully! 
         </AlertTitle>
-        <AlertDescription>{{ successMessage }}</AlertDescription>
+        <AlertDescription class="whitespace-pre-line">{{ successMessage }}</AlertDescription>
       </Alert>
 
       <!-- Header + Actions -->
       <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
         <div class="flex items-center gap-3">
           <Icon name="help-circle" class="h-7 w-7 text-primary" />
-          <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">Support Tickets</h1>
+          <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">Customer Support</h1>
         </div>
         <div class="flex gap-3">
           <Button v-if="!SuperAdmin" @click="openCreateModal" variant="default" class="shadow-sm hover:shadow transition-all">
-            <Icon name="plus" class="mr-2 h-4 w-4"/> New Ticket
+            <Icon name="plus" class="mr-2 h-4 w-4"/> Submit a Ticket
           </Button>
           <Button 
             v-if="selectedTickets.length > 0" 
@@ -33,7 +33,7 @@
           </Button>
           <Button v-if="SuperAdmin" @click="openSubjectModal()" variant="outline">
             <Icon name="settings" class="mr-2 h-4 w-4" />
-            Manage Subjects
+            Manage Types
           </Button>
         </div>
       </div>
@@ -41,10 +41,6 @@
       <!-- Filters -->
       <Card class="shadow-sm hover:shadow transition-all duration-300">
         <CardHeader class="pb-2">
-          <CardTitle class="text-lg flex items-center gap-2">
-            <Icon name="filter" class="h-5 w-5 text-muted-foreground" />
-            Filters
-          </CardTitle>
         </CardHeader>
         <CardContent class="p-4 pt-2">
           <div class="flex flex-col gap-4">
@@ -56,7 +52,7 @@
                   <Input
                     id="search"
                     v-model="filters.search"
-                    placeholder="Search subject or message…"
+                    placeholder="Search type or ticket id"
                     @keydown.enter="applyFilters"
                     class="pl-9"
                   />
@@ -125,7 +121,7 @@
                   <TableHead v-if="SuperAdmin">User</TableHead>
                   <TableHead class="cursor-pointer" @click="sortBy('subject')">
                     <div class="flex items-center gap-1">
-                      Subject
+                      Type
                       <Icon v-if="sortColumn === 'subject'" :name="sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'" class="h-3 w-3" />
                     </div>
                   </TableHead>
@@ -150,7 +146,7 @@
                     <div class="flex flex-col items-center justify-center text-muted-foreground">
                       <Icon name="inbox" class="h-12 w-12 mb-2 opacity-20" />
                       <p>No tickets found</p>
-                      <Button @click="openCreateModal" variant="link" class="mt-2">Create your first ticket</Button>
+                      <Button v-if="!SuperAdmin" @click="openCreateModal" variant="link" class="mt-2">Create your first ticket</Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -195,7 +191,7 @@
                       <Button @click="viewTicket(t.id)" size="sm" class="shadow-sm hover:shadow transition-all">
                         <Icon name="eye" class="mr-1 h-4 w-4"/>View
                       </Button>
-                      <Button @click="deleteTicket(t.id)" variant="destructive" size="sm" class="shadow-sm hover:shadow transition-all">
+                      <Button @click="confirmDeleteTicket(t.id)" variant="destructive" size="sm" class="shadow-sm hover:shadow transition-all">
                         <Icon name="trash" class="mr-1 h-4 w-4"/>Delete
                       </Button>
                     </div>
@@ -278,12 +274,12 @@
               New Ticket
             </DialogTitle>
             <DialogDescription>
-              Fill in the details to create a new support ticket.
+              Create your support ticket by providing the details below so a customer obsession specialist can assist you quickly and efficiently.
             </DialogDescription>
           </DialogHeader>
           <form @submit.prevent="submitForm" class="space-y-4 p-4">
             <div>
-              <Label for="subjectSelect">Subject</Label>
+              <Label for="subjectSelect">Type</Label>
               <div class="space-y-2">
                 <select
                   id="subjectSelect"
@@ -326,10 +322,10 @@
           <DialogHeader>
             <DialogTitle class="flex items-center gap-2">
               <Icon name="list" class="h-5 w-5 text-primary" />
-              Manage Ticket Subjects
+              Manage Ticket Types
             </DialogTitle>
             <DialogDescription>
-              Create and manage predefined subjects for support tickets.
+              Create and manage predefined types for support tickets.
             </DialogDescription>
           </DialogHeader>
           
@@ -339,7 +335,7 @@
               <div class="flex-1">
                 <Input 
                   v-model="subjectForm.name" 
-                  placeholder="Enter subject name..." 
+                  placeholder="Enter Type name..." 
                   required
                   class="w-full"
                 />
@@ -353,11 +349,11 @@
             <!-- Subjects List -->
             <div class="border rounded-md">
               <div class="bg-muted/30 px-4 py-2 border-b">
-                <h3 class="font-medium">Available Subjects</h3>
+                <h3 class="font-medium">Available Types</h3>
               </div>
               <div class="divide-y max-h-[300px] overflow-y-auto">
                 <div v-if="activeSubjects.length === 0" class="p-4 text-center text-muted-foreground">
-                  No subjects found. Create your first one above.
+                  No types found. Create your first one above.
                 </div>
                 <div v-for="subject in activeSubjects" :key="subject.id" class="flex items-center justify-between p-3 hover:bg-muted/30">
                   <span>{{ subject.name }}</span>
@@ -378,7 +374,7 @@
             <!-- Deleted Subjects -->
             <div v-if="deletedSubjects.length > 0" class="border rounded-md mt-4">
               <div class="bg-muted/30 px-4 py-2 border-b">
-                <h3 class="font-medium">Deleted Subjects</h3>
+                <h3 class="font-medium">Deleted Types</h3>
               </div>
               <div class="divide-y max-h-[200px] overflow-y-auto">
                 <div v-for="subject in deletedSubjects" :key="subject.id" class="flex items-center justify-between p-3 hover:bg-muted/30">
@@ -392,7 +388,7 @@
                       variant="ghost" 
                       size="sm"
                       class="h-8 w-8 p-0"
-                      title="Restore Subject"
+                      title="Restore Type"
                     >
                       <Icon name="undo" class="h-4 w-4 text-primary" />
                     </Button>
@@ -414,6 +410,25 @@
           <DialogFooter>
             <Button @click="showSubjectModal = false" variant="outline">
               Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <!-- Delete ticket Confirmation Dialog -->
+      <Dialog v-model:open="ticketDeleteConfirmation">
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this ticket? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter class="mt-4">
+            <Button type="button" @click="ticketDeleteConfirmation = false" variant="outline">
+              Cancel
+            </Button>
+            <Button type="button" @click="deleteTicket(ticketToDelete)" variant="destructive">
+              Delete
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -454,7 +469,8 @@ const showDeleteSelectedModal = ref(false);
 const perPage = ref(props.tickets?.per_page || 10);
 const sortColumn = ref('created_at');
 const sortDirection = ref('desc');
-
+const ticketDeleteConfirmation = ref(false);
+const ticketToDelete = ref(null)
 // NEW: manage selected subject
 const selectedSubject = ref('');
 function handleSubjectChange() {
@@ -469,7 +485,7 @@ const breadcrumbs = [
       : route('admin.dashboard')
   },
   {
-    title: 'Support Tickets',
+    title: 'Customer Support',
     href:  props.tenantSlug
       ? route('support.index', { tenantSlug: props.tenantSlug })
       : route('support.index.admin')
@@ -499,13 +515,16 @@ function isSelected(id) {
 function isTicketUnseen(ticket) {
   return props.SuperAdmin ? !ticket.seen_by_admin : !ticket.seen_by_user;
 }
-
+const confirmDeleteTicket = (id) => {
+  ticketToDelete.value = id;
+  ticketDeleteConfirmation.value = true;
+};
 // Get badge variant based on status
 function getStatusVariant(status) {
   switch(status) {
-    case 'open': return 'default';
-    case 'in_progress': return 'warning';
-    case 'closed': return 'secondary';
+    case 'open': return 'open';
+    case 'in_progress': return 'in_progress';
+    case 'closed': return 'closed';
     default: return 'outline';
   }
 }
@@ -614,7 +633,7 @@ function submitForm() {
     : route('support.store.admin');
   form.post(name, {
     onSuccess: () => {
-      successMessage.value = 'Ticket created.';
+      successMessage.value = 'Thank you for submitting a support ticket. Our team of customer obsession specialists will review your submission right away and respond in a timely manner.\n\nNeed to add more? You can view the ticket below and add a new response to be attached to your ticket.';
       showCreateModal.value = false;
       form.reset();
     }
@@ -636,6 +655,7 @@ function deleteTicket(id) {
     {
       onSuccess: () => {
         successMessage.value = 'Ticket deleted.';
+        ticketDeleteConfirmation.value = false;
         router.reload();
       }
     }
@@ -653,7 +673,7 @@ function formatTime(dt) {
 }
 
 watch(successMessage, v => {
-  if (v) setTimeout(() => (successMessage.value = ''), 5000);
+  if (v) setTimeout(() => (successMessage.value = ''), 8000);
 });
 
 // Subject Management Functions

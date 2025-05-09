@@ -818,7 +818,7 @@ function openEditModal(item) {
   form.open_boc = item.open_boc
   form.meets_safety_bonus_criteria = item.meets_safety_bonus_criteria
   form.vcr_preventable = item.vcr_preventable
-  
+  form.vmcr_p = item.vmcr_p
   showModal.value = true
 }
 

@@ -103,7 +103,7 @@ const mainNavItems = computed<NavItem[]>(() => [
     ? [
         {
           title: 'Safety Coaching Thresholds',
-          href: route('safety-thresholds.edit', { tenantSlug: props.tenantSlug }),
+          href: route('sms-coaching.edit', { tenantSlug: props.tenantSlug }),
           icon: 'shieldAlert',
         },
       ]

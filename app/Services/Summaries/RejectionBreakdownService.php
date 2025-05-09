@@ -63,12 +63,23 @@ class RejectionBreakdownService
                 COUNT(*) as total_rejections,
                 SUM(CASE WHEN rejection_category = 'more_than_6' THEN 1 ELSE 0 END) as more_than_6_count,
                 SUM(CASE WHEN rejection_category = 'within_6' THEN 1 ELSE 0 END) as within_6_count,
-                SUM(CASE WHEN rejection_category = 'after_start' THEN 1 ELSE 0 END) as after_start_count
+                SUM(CASE WHEN rejection_category = 'after_start' THEN 1 ELSE 0 END) as after_start_count,
+                
+                SUM(CASE WHEN rejection_category = 'more_than_6' AND rejection_type = 'block' THEN 1 ELSE 0 END) as more_than_6_block_count,
+                SUM(CASE WHEN rejection_category = 'more_than_6' AND rejection_type = 'load' THEN 1 ELSE 0 END) as more_than_6_load_count,
+                
+                SUM(CASE WHEN rejection_category = 'within_6' AND rejection_type = 'block' THEN 1 ELSE 0 END) as within_6_block_count,
+                SUM(CASE WHEN rejection_category = 'within_6' AND rejection_type = 'load' THEN 1 ELSE 0 END) as within_6_load_count,
+                
+                SUM(CASE WHEN rejection_category = 'after_start' AND rejection_type = 'block' THEN 1 ELSE 0 END) as after_start_block_count,
+                SUM(CASE WHEN rejection_category = 'after_start' AND rejection_type = 'load' THEN 1 ELSE 0 END) as after_start_load_count,
+                
+                SUM(CASE WHEN rejection_type = 'block' THEN 1 ELSE 0 END) as total_block_rejections,
+                SUM(CASE WHEN rejection_type = 'load' THEN 1 ELSE 0 END) as total_load_rejections
                ")
             ->whereBetween('date', [$startDate, $endDate]);
 
-        $this->applyTenantFilter($query);
-
+            $this->applyTenantFilter($query);
         return $query->first();
     }
 
@@ -147,8 +158,8 @@ class RejectionBreakdownService
         // Determine grouping based on date filter type
         if ($dateFilter === 'yesterday') {
             // For yesterday, we'll show hourly data if available
-            $dateFormat = 'Y-m-d H';
-            $groupBy = DB::raw('DATE_FORMAT(date, "%Y-%m-%d %H")');
+            $dateFormat = 'Y-m-d';
+            $groupBy = DB::raw('DATE_FORMAT(date, "%Y-%m-%d")');
             $labelFormat = 'H:00'; // Hour format
         } elseif ($dateFilter === 'current-week') {
             // Current week - group by day
@@ -195,7 +206,7 @@ class RejectionBreakdownService
                 // For daily grouping
                 $date = Carbon::parse($dateValue);
                 $formattedDate = $date->format($labelFormat);
-            } elseif ($dateFormat === 'Y-m-d H') {
+            } elseif ($dateFormat === 'Y-m-d') {
                 // For hourly grouping
                 $date = Carbon::parse($dateValue);
                 $formattedDate = $date->format($labelFormat);

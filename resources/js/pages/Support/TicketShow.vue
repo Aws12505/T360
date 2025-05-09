@@ -2,7 +2,7 @@
   <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
     <Head :title="`Ticket #${ticket.id}`" />
 
-    <div class="max-w-3xl mx-auto p-6 space-y-6">
+    <div class="w-[95%] max-w-7xl mx-auto p-6 space-y-6">
       <!-- Success Message -->
       <Alert v-if="successMessage" variant="success" class="animate-in fade-in duration-300">
         <AlertTitle class="flex items-center gap-2">
@@ -77,8 +77,7 @@
         <div v-if="!ticket.responses.length" class="bg-muted/20 p-6 rounded-md text-center text-muted-foreground border border-dashed border-border">
           <div class="flex flex-col items-center">
             <Icon name="inbox" class="h-12 w-12 mb-3 opacity-20" />
-            <p>No responses yet.</p>
-            <p class="text-sm mt-2" v-if="ticket.status !== 'closed'">Be the first to respond below.</p>
+            <p>Thanks for your patience! Our team is reviewing your ticket and will get back to you soon.</p>
           </div>
         </div>
         
@@ -101,7 +100,7 @@
                     </div>
                     <div>
                       <span class="font-semibold">{{ r.user.name }}</span>
-                      <Badge v-if="r.is_admin" variant="outline" class="text-xs ml-1">Staff</Badge>
+                      <Badge v-if="r.is_admin" variant="outline" class="text-xs ml-1">Support Specialist</Badge>
                       <Badge v-if="!r.seen_at" variant="destructive" class="text-xs ml-1 animate-pulse">New</Badge>
                     </div>
                   </div>
@@ -215,7 +214,7 @@ const breadcrumbs = [
       : route('admin.dashboard')
   },
   {
-    title: 'Support Tickets',
+    title: 'Customer Support',
     href:  props.tenantSlug
       ? route('support.index', { tenantSlug: props.tenantSlug })
       : route('support.index.admin')
@@ -229,9 +228,9 @@ const responseForm = useForm({ ticket_id: props.ticket.id, message: '' })
 // Get badge variant based on status
 function getStatusVariant(status) {
   switch(status) {
-    case 'open': return 'default';
-    case 'in_progress': return 'warning';
-    case 'closed': return 'secondary';
+    case 'open': return 'open';
+    case 'in_progress': return 'in_progress';
+    case 'closed': return 'closed';
     default: return 'outline';
   }
 }

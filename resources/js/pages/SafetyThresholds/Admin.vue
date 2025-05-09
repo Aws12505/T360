@@ -34,7 +34,7 @@ const breadcrumbs = [
   },
   {
     title: 'Safety Thresholds',
-    href: route('safety-thresholds.edit', { tenantSlug }),
+    href: route('sms-coaching.edit', { tenantSlug }),
   },
 ]
 

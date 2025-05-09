@@ -905,7 +905,7 @@ const getDelayCodeLabel = (codeId) => {
 // Add the missing deleteCode function
 const deleteCode = async (id) => {
   try {
-    await router.delete(route('delay-codes.destroy', id), {
+    await router.delete(route('delay_codes.destroy.admin', id), {
       onSuccess: () => {
         codeDeleteConfirm.value = false;
         successMessage.value = 'Delay code deleted successfully';
@@ -1020,23 +1020,24 @@ const ontimeMetrics = computed(() => {
   
   const categoryData = props.delay_breakdown.by_category;
   
-  return {
-    category_1_120_count: categoryData.category_1_120_count || '0',
-    category_121_600_count: categoryData.category_121_600_count || '0',
-    category_601_plus_count: categoryData.category_601_plus_count || '0',
-    category_1_120_origin_count: categoryData.category_1_120_origin_count || '0',
-    category_1_120_destination_count: categoryData.category_1_120_destination_count || '0',
-    category_121_600_origin_count: categoryData.category_121_600_origin_count || '0',
-    category_121_600_destination_count: categoryData.category_121_600_destination_count || '0',
-    category_601_plus_origin_count: categoryData.category_601_plus_origin_count || '0',
-    category_601_plus_destination_count: categoryData.category_601_plus_destination_count || '0',
-    total_origin_delays: categoryData.total_origin_delays || '0',
-    total_destination_delays: categoryData.total_destination_delays || '0',
-    total_origin_penalty: categoryData.total_origin_penalty || '0',
-    total_destination_penalty: categoryData.total_destination_penalty || '0',
-    total_delays: categoryData.total_delays || '0',
+  const type = filters.value.delayType;
+  if(type){
+    return{
+    between1_120Count: categoryData[`category_1_120_${type}_count`] || '0',
+    between121_600Count: categoryData[`category_121_600_${type}_count`] || '0',
+    moreThan601Count: categoryData[`category_601_plus_${type}_count`] || '0',
+    totalDelays: categoryData[`total_${type}_delays`] || '0',
     by_category: true
-  };
+    };
+  }
+else{
+  return {
+    between1_120Count: categoryData.category_1_120_count || '0',
+    between121_600Count: categoryData.category_121_600_count || '0',
+    moreThan601Count: categoryData.category_601_plus_count || '0',
+    totalDelays: categoryData.total_delays || '0',
+    by_category: true
+  };}
 });
 
 const bottomDrivers = computed(() => {

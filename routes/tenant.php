@@ -167,10 +167,10 @@ Route::middleware(['auth', 'tenant'])
          ->name('support.responses.store');
     Route::delete('support-bulk', [TicketController::class, 'destroyBulk'])
          ->name('support.destroyBulk');
-    Route::get('/safety-thresholds', [SafetyThresholdController::class, 'edit'])
-         ->name('safety-thresholds.edit');
-    Route::post('/safety-thresholds', [SafetyThresholdController::class, 'update'])
-          ->name('safety-thresholds.update');
-    Route::delete('/safety-thresholds/{id}', [SafetyThresholdController::class, 'destroy'])
-          ->name('safety-thresholds.destroy');
+    Route::get('/sms-coaching', [SafetyThresholdController::class, 'edit'])
+         ->name('sms-coaching.edit');
+    Route::post('/sms-coaching', [SafetyThresholdController::class, 'update'])
+          ->name('sms-coaching.update');
+    Route::delete('/sms-coaching/{id}', [SafetyThresholdController::class, 'destroy'])
+          ->name('sms-coaching.destroy');
 });

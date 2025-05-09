@@ -259,8 +259,8 @@ class SafetyDataService
         // Determine grouping based on date filter type
         if ($dateFilter === 'yesterday') {
             // For yesterday, we'll show hourly data if available
-            $dateFormat = 'Y-m-d H';
-            $groupBy = DB::raw('DATE_FORMAT(date, "%Y-%m-%d %H")');
+            $dateFormat = 'Y-m-d';
+            $groupBy = DB::raw('DATE_FORMAT(date, "%Y-%m-%d")');
             $labelFormat = 'H:00'; // Hour format
         } elseif ($dateFilter === 'current-week') {
             // Current week - group by day
@@ -298,7 +298,7 @@ class SafetyDataService
                 // For daily grouping
                 $date = Carbon::parse($dateValue);
                 $formattedDate = $date->format($labelFormat);
-            } elseif ($dateFormat === 'Y-m-d H') {
+            } elseif ($dateFormat === 'Y-m-d') {
                 // For hourly grouping
                 $date = Carbon::parse($dateValue);
                 $formattedDate = $date->format($labelFormat);

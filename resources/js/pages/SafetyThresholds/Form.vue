@@ -58,7 +58,7 @@ const formTitle = computed(() => {
 
 // Function to submit the form data to the backend.
 const submit = () => {
-  const routeName = 'safety-thresholds.update'
+  const routeName = 'sms-coaching.update'
     
   form.post(route(routeName, {tenantSlug}), {
     onSuccess: () => emit('saved'),

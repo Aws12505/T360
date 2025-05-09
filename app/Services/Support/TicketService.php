@@ -39,11 +39,11 @@ class TicketService
             );
         }
 
-        // Search by subject/message
+        // Search by subject/id
         if ($q = Request::input('search')) {
             $query->where(fn($qf) =>
                 $qf->where('subject', 'like', "%{$q}%")
-                   ->orWhere('message', 'like', "%{$q}%")
+                   ->orWhere('id', 'like', "%{$q}%")
             );
         }
 

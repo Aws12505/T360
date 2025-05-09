@@ -224,7 +224,7 @@
       <!-- Acceptance Dashboard -->
       <AcceptanceDashboard 
         v-if="!isSuperAdmin"
-        :metricsData="acceptanceMetricsAfterFiltering" 
+        :metricsData="acceptanceMetrics" 
         :driversData="bottomDrivers" 
         :chartData="acceptanceChartData"
         :averageAcceptance="average_acceptance"
@@ -248,7 +248,8 @@
                   <TableHead v-if="isSuperAdmin">Company Name</TableHead>
                   <TableHead v-for="col in tableColumns" :key="col" class="cursor-pointer" @click="sortBy(col)">
                     <div class="flex items-center">
-                      {{col.replace(/_/g, ' ').replace(/^./, str => str.toUpperCase())}}
+                      <div v-if="col=='rejection_category'">Rejection From Start</div>
+                      <div v-else>{{col.replace(/_/g, ' ').replace(/^./, str => str.toUpperCase())}}</div>
                       <div v-if="sortColumn === col" class="ml-2">
                         <svg v-if="sortDirection === 'asc'" class="h-4 w-4" viewBox="0 0 24 24" fill="none"
                           stroke="currentColor" stroke-width="2">
@@ -936,17 +937,29 @@ watch(successMessage, (newValue) => {
 
 // Acceptance dashboard data from API
 const acceptanceMetrics = computed(() => {
-  if (!props.rejection_breakdown?.by_category) return null;
+  if (!props.rejection_breakdown?.by_category || !props.rejection_breakdown?.by_category.total_rejections) return null;
   
   const categoryData = props.rejection_breakdown.by_category;
-  
+
+  const type = filters.value.rejectionType;
+
+  if (type) {
+    return {
+      totalRejections: categoryData[`total_${type}_rejections`] || 0,
+      moreThan6Count: categoryData[`more_than_6_${type}_count`] || 0,
+      within6Count: categoryData[`within_6_${type}_count`] || 0,
+      afterStartCount: categoryData[`after_start_${type}_count`] || 0,
+      by_category: true
+    };
+  }
+  else{
   return {
     totalRejections: categoryData.total_rejections,
     moreThan6Count: categoryData.more_than_6_count,
     within6Count: categoryData.within_6_count,
     afterStartCount: categoryData.after_start_count,
     by_category: true
-  };
+  };}
 });
 
 
@@ -1147,32 +1160,5 @@ function getRejectionCategoryLabel(category) {
   return labels[category] || category;
 }
 
-const acceptanceMetricsAfterFiltering = computed(() => {
-  const metrics = acceptanceMetrics.value;
-  const categoryFilter = filters.value.rejectionCategory;
 
-  if (!metrics) return null;
-
-  // If no filter, return full metrics
-  if (!categoryFilter) {
-    return metrics;
-  }
-
-  // Map each category to its respective count
-  const categoryCountMap = {
-    more_than_6: metrics.moreThan6Count,
-    within_6: metrics.within6Count,
-    after_start: metrics.afterStartCount
-  };
-
-  const filteredCount = categoryCountMap[categoryFilter] || 0;
-
-  return {
-    totalRejections: filteredCount,
-    moreThan6Count: categoryFilter === 'more_than_6' ? filteredCount : 0,
-    within6Count: categoryFilter === 'within_6' ? filteredCount : 0,
-    afterStartCount: categoryFilter === 'after_start' ? filteredCount : 0,
-    by_category: true
-  };
-});
 </script>

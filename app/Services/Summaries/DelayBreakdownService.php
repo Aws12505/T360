@@ -63,7 +63,19 @@ class DelayBreakdownService
                 COUNT(*) as total_delays,
                 SUM(CASE WHEN delay_category = '1_120' THEN 1 ELSE 0 END) as category_1_120_count,
                 SUM(CASE WHEN delay_category = '121_600' THEN 1 ELSE 0 END) as category_121_600_count,
-                SUM(CASE WHEN delay_category = '601_plus' THEN 1 ELSE 0 END) as category_601_plus_count
+                SUM(CASE WHEN delay_category = '601_plus' THEN 1 ELSE 0 END) as category_601_plus_count,
+                
+                SUM(CASE WHEN delay_category = '1_120' AND delay_type = 'origin' THEN 1 ELSE 0 END) as category_1_120_origin_count,
+                SUM(CASE WHEN delay_category = '1_120' AND delay_type = 'destination' THEN 1 ELSE 0 END) as category_1_120_destination_count,
+                
+                SUM(CASE WHEN delay_category = '121_600' AND delay_type = 'origin' THEN 1 ELSE 0 END) as category_121_600_origin_count,
+                SUM(CASE WHEN delay_category = '121_600' AND delay_type = 'destination' THEN 1 ELSE 0 END) as category_121_600_destination_count,
+                
+                SUM(CASE WHEN delay_category = '601_plus' AND delay_type = 'origin' THEN 1 ELSE 0 END) as category_601_plus_origin_count,
+                SUM(CASE WHEN delay_category = '601_plus' AND delay_type = 'destination' THEN 1 ELSE 0 END) as category_601_plus_destination_count,
+                
+                SUM(CASE WHEN delay_type = 'origin' THEN 1 ELSE 0 END) as total_origin_delays,
+                SUM(CASE WHEN delay_type = 'destination' THEN 1 ELSE 0 END) as total_destination_delays
             ")
             ->whereBetween('date', [$startDate, $endDate]);
 
@@ -143,8 +155,8 @@ class DelayBreakdownService
         // Determine grouping based on date filter type
         if ($dateFilter === 'yesterday') {
             // For yesterday, we'll show hourly data if available
-            $dateFormat = 'Y-m-d H';
-            $groupBy = DB::raw('DATE_FORMAT(date, "%Y-%m-%d %H")');
+            $dateFormat = 'Y-m-d';
+            $groupBy = DB::raw('DATE_FORMAT(date, "%Y-%m-%d")');
             $labelFormat = 'H:00'; // Hour format
         } elseif ($dateFilter === 'current-week') {
             // Current week - group by day
@@ -191,7 +203,7 @@ class DelayBreakdownService
                 // For daily grouping
                 $date = Carbon::parse($dateValue);
                 $formattedDate = $date->format($labelFormat);
-            } elseif ($dateFormat === 'Y-m-d H') {
+            } elseif ($dateFormat === 'Y-m-d') {
                 // For hourly grouping
                 $date = Carbon::parse($dateValue);
                 $formattedDate = $date->format($labelFormat);

@@ -186,9 +186,15 @@
 <div v-if="outstandingInvoices && outstandingInvoices.length > 0" class="bg-card rounded-lg border shadow-sm mb-6">
     <div class="p-4 border-b flex justify-between items-center">
       <h3 class="text-lg font-semibold">Outstanding Invoices</h3>
+      <div>
       <Badge variant="outline" class="text-sm">{{ outstandingInvoices.length }} invoices</Badge>
+      <Button variant="ghost" size="sm" @click="showOutstandingInvoicesSection = !showOutstandingInvoicesSection">
+        {{ showOutstandingInvoicesSection ? 'Hide Invoices' : 'Show Invoices' }}
+        <Icon :name="showOutstandingInvoicesSection ? 'chevron-up' : 'chevron-down'" class="ml-2 h-4 w-4" />
+      </Button>
     </div>
-    <div class="p-4">
+    </div>
+    <div class="p-4" v-if="showOutstandingInvoicesSection">
       <Table>
         <TableHeader>
           <TableRow>
@@ -1067,7 +1073,7 @@ const perPage = ref(10)
 // Add these new refs
 const selectedRepairOrders = ref([]);
 const showDeleteSelectedModal = ref(false);
-const showFilters = ref(true); // Controls visibility of the Filters section
+const showFilters = ref(false); // Controls visibility of the Filters section
 
 // Add this computed property for "Select All" checkbox state
 const isAllSelected = computed(() => {
