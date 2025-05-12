@@ -255,6 +255,7 @@
         :driversData="bottomDrivers" 
         :chartData="ontimeChartData"
         :averageOntime="average_ontime"
+        :delayType="filters.delayType"
       />
 
       <!-- Delays Table -->

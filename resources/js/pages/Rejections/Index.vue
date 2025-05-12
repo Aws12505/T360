@@ -163,8 +163,8 @@
                 <select id="rejectionType" v-model="filters.rejectionType" @change="applyFilters"
                   class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                   <option value="">All Types</option>
-                  <option value="load">Load</option>
                   <option value="block">Block</option>
+                  <option value="load">Load</option>
                 </select>
               </div>
               <div>
@@ -182,9 +182,9 @@
                 <select id="rejectionCategory" v-model="filters.rejectionCategory" @change="applyFilters"
                   class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                   <option value="">All Categories</option>
-                  <option value="more_than_6">More than 6 hrs</option>
-                  <option value="within_6">Within 6 hrs</option>
-                  <option value="after_start">After start</option>
+                  <option value="more_than_6">More than 6 hours</option>
+                  <option value="within_6">Within 6 hours</option>
+                  <option value="after_start">After start time</option>
                 </select>
               </div>
             </div>
@@ -993,6 +993,62 @@ const acceptanceChartData = computed(() => {
     }]
   };
 });
+
+// const acceptanceChartData = computed(() => {
+//   if (!props.line_chart_data || props.line_chart_data.length === 0) {
+//     return {
+//       labels: [],
+//       datasets: [{
+//         label: 'Acceptance Performance',
+//         data: [],
+//         borderColor: '#3b82f6',
+//         backgroundColor: 'rgba(59, 130, 246, 0.1)',
+//         tension: 0.3,
+//       }],
+//       options: {
+//         scales: {
+//           y: {
+//             min: 0,
+//             max: 120, // Setting max to 120 instead of 100 gives more space above 100
+//             ticks: {
+//               stepSize: 20,
+//               callback: function(value) {
+//                 // Only show labels for 0, 20, 40, 60, 80, 100
+//                 return value <= 100 ? value : '';
+//               }
+//             }
+//           }
+//         }
+//       }
+//     };
+//   }
+  
+//   return {
+//     labels: props.line_chart_data.map(item => item.date),
+//     datasets: [{
+//       label: 'Acceptance Performance',
+//       data: props.line_chart_data.map(item => item.acceptancePerformance),
+//       borderColor: '#3b82f6',
+//       backgroundColor: 'rgba(59, 130, 246, 0.1)',
+//       tension: 0.3,
+//     }],
+//     options: {
+//       scales: {
+//         y: {
+//           min: 0,
+//           max: 120, // Setting max to 120 instead of 100 gives more space above 100
+//           ticks: {
+//             stepSize: 20,
+//             callback: function(value) {
+//               // Only show labels for 0, 20, 40, 60, 80, 100
+//               return value <= 100 ? value : '';
+//             }
+//           }
+//         }
+//       }
+//     }
+//   };
+// });
 
 // Add these new methods to handle soft-deleted reason codes
 function restoreCode(id) {

@@ -12,7 +12,13 @@
 
     <!-- Bottom Section -->
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-      <BottomDrivers :title="'Bottom 5 Drivers'" :drivers="bottomDrivers" class="lg:col-span-1" />
+      <BottomDrivers 
+        :title="'Bottom 5 Drivers'" 
+        :drivers="bottomDrivers" 
+        :delayType="delayType"
+        :totalDelays="props.metricsData.totalDelays"
+        class="lg:col-span-1" 
+      />
       <LineChart :title="'On-Time Score'" :chartData="lineChartData" :averageOntime="averageOntime" class="lg:col-span-3" />
     </div>
   </div>
@@ -41,6 +47,10 @@ const props = defineProps({
   averageOntime: {
     type: Number,
     default: null
+  },
+  delayType: {
+    type: String,
+    default: 'all'
   }
 });
 

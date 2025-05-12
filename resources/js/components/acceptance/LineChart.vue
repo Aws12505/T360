@@ -51,8 +51,8 @@ const initChart = () => {
   });
   
   // Calculate min and max values for Y-axis
-  const minValue = dataValues.length > 0 ? Math.min(...dataValues) : 0;
-  const maxValue = dataValues.length > 0 ? Math.max(...dataValues) : 100;
+  const minValue =  0;
+  const maxValue =  120;
   
   // Add some padding to the min/max values (10% of the range)
   const range = maxValue - minValue;
@@ -66,6 +66,14 @@ const initChart = () => {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      layout: {
+        padding: {
+          left: 15,
+          right: 15,
+          top: 10,
+          bottom: 10
+        }
+      },
       plugins: {
         legend: {
           position: false,
@@ -93,10 +101,34 @@ const initChart = () => {
       scales: {
         y: {
           beginAtZero: minValue > 10 ? false : true,
-          min: Math.max(Math.floor(yMin-2.5),0),
-          max: Math.min(Math.ceil(yMax+2.5),100),
+          min: 0,
+          max: 120,
           ticks: {
-            stepSize: Math.ceil(range / 5) // Create approximately 5 steps
+            stepSize: 20, // Create approximately 5 steps
+            padding: 10, // Add padding between the axis and the labels
+            font: {
+              size: 11 // Slightly increase font size for better visibility
+            },
+            callback: function(value) {
+              // Hide the last label (120)
+              return value < 120 ? value : '';
+            }
+          },
+          grid: {
+            drawBorder: true,
+            color: 'rgba(200, 200, 200, 0.2)'
+          }
+        },
+        x: {
+          ticks: {
+            padding: 10, // Add padding between the axis and the labels
+            font: {
+              size: 11 // Slightly increase font size for better visibility
+            }
+          },
+          grid: {
+            drawBorder: true,
+            color: 'rgba(200, 200, 200, 0.2)'
           }
         }
       }

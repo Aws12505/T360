@@ -12,7 +12,13 @@
 
     <!-- Bottom Section -->
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-      <BottomDrivers :title="'Bottom 5 Drivers'" :drivers="bottomDrivers" class="lg:col-span-1" />
+      <BottomDrivers 
+        :title="'Bottom 5 Drivers'" 
+        :drivers="bottomDrivers" 
+        :total-rejections="totalRejections" 
+        :rejection-type="rejectionType"
+        class="lg:col-span-1" 
+      />
       <LineChart  :title="'Acceptance Score'" :chartData="lineChartData" :averageAcceptance="averageAcceptance" class="lg:col-span-3" />
     </div>
   </div>
@@ -56,7 +62,7 @@ const metrics = computed(() => {
       { title: 'Total Rejected Stops', value: props.metricsData.totalRejections },
       { title: 'Rejected +6 Hours Before Start Time', value: props.metricsData.moreThan6Count},
       { title: 'Rejected 0-6 Hours Before Start Time', value: props.metricsData.within6Count},
-      { title: 'Rejected After Start Time', value: props.metricsData.afterStartCount}
+      { title: 'Rejected After Start Time', value: props.metricsData.afterStartCount},
     ];
   }
   return [];
@@ -72,5 +78,15 @@ const lineChartData = computed(() => {
     return props.chartData;
   }
   return {};
+});
+
+// Add a computed property for totalRejections
+const totalRejections = computed(() => {
+  return props.metricsData?.totalRejections || 0;
+});
+
+// Add a computed property for rejectionType
+const rejectionType = computed(() => {
+  return props.currentFilters?.rejectionType || null;
 });
 </script>
