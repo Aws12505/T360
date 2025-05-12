@@ -63,6 +63,7 @@ class SafetyDataService
     {
         $query = $this->getDriverScoreQuery($startDate, $endDate)
             ->where('minutes_analyzed', '>', 0)
+            ->whereNotNull('average_score')
             ->orderBy('average_score', 'asc')
             ->limit($limit);
 
