@@ -63,7 +63,6 @@ class SafetyDataService
     {
         $query = $this->getDriverScoreQuery($startDate, $endDate)
             ->where('minutes_analyzed', '>', 0)
-            ->whereNotNull('average_score')
             ->orderBy('average_score', 'asc')
             ->limit($limit);
 
@@ -79,6 +78,7 @@ class SafetyDataService
             ->select('driver_name', DB::raw('AVG(driver_score) as average_score'))
             ->whereBetween('date', [$startDate, $endDate])
             ->whereNotNull('driver_name')
+            ->whereNotNull('driver_score')
             ->where('driver_name', '!=', '');
 
         $this->applyTenantFilter($query);
