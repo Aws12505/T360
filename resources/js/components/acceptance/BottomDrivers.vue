@@ -6,7 +6,7 @@
     <div v-if="totalRejections === '0'" class="text-center text-lg py-4 text-violet-400 font-medium">
       {{ noRejectionsMessage }}
     </div>
-    
+     
     <!-- Display drivers list when there are rejections -->
     <template v-else>
       <!-- Column headers -->
