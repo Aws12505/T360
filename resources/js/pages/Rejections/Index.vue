@@ -79,10 +79,6 @@
                 :class="{ 'bg-primary/10 text-primary border-primary': activeTab === 'quarterly' }">
                 Quarterly
               </Button>
-              <Button @click="selectDateFilter('full')" variant="outline" size="sm"
-                :class="{ 'bg-primary/10 text-primary border-primary': activeTab === 'full' }">
-                Full
-              </Button>
             </div>
             <div v-if="dateRange" class="text-sm text-muted-foreground">
               <span v-if="activeTab === 'yesterday' && dateRange.start">
@@ -100,8 +96,16 @@
         </CardContent>
       </Card>
 
-      <!-- Filters Section -->
-      <Card>
+      <!-- No Data Message -->
+      <div v-if="!hasData" class="flex flex-col items-center justify-center py-16 bg-muted/20 rounded-lg border">
+        <Icon name="database-x" class="h-16 w-16 text-muted-foreground mb-4" />
+        <h2 class="text-2xl font-bold text-center text-muted-foreground">There is No Data to give Information about.</h2>
+      </div>
+
+      <!-- Content that should be hidden when no data -->
+      <div v-if="hasData">
+        <!-- Filters Section -->
+      <Card class="mb-6">
         <CardHeader class="pb-2">
           <div class="flex justify-between items-center">
             <div class="flex items-center gap-2">
@@ -110,12 +114,7 @@
                 <div v-if="filters.search" class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
                   Search: {{ filters.search }}
                 </div>
-                <div v-if="filters.dateFrom" class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
-                  From: {{ formatDate(filters.dateFrom) }}
-                </div>
-                <div v-if="filters.dateTo" class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
-                  To: {{ formatDate(filters.dateTo) }}
-                </div>
+                
                 <div v-if="filters.rejectionType" class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
                   Type: <span class="capitalize">{{ filters.rejectionType }}</span>
                 </div>
@@ -141,20 +140,13 @@
         </CardHeader>
         <CardContent v-if="showFilters" class="pt-2">
           <div class="flex flex-col gap-4">
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
+            <div class="grid grid-cols-1 sm:grid-cols-1 gap-4 w-full">
               <div>
                 <Label for="search">Search</Label>
                 <Input id="search" v-model="filters.search" type="text" placeholder="Search by driver name..."
                   @input="applyFilters" class="w-full" />
               </div>
-              <div>
-                <Label for="dateFrom">Date From</Label>
-                <Input id="dateFrom" v-model="filters.dateFrom" type="date" @change="applyFilters" class="w-full" />
-              </div>
-              <div>
-                <Label for="dateTo">Date To</Label>
-                <Input id="dateTo" v-model="filters.dateTo" type="date" @change="applyFilters" class="w-full" />
-              </div>
+              
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
@@ -221,16 +213,15 @@
         </CardContent>
       </Card>
 
-      <!-- Acceptance Dashboard -->
-      <AcceptanceDashboard 
-        v-if="!isSuperAdmin"
-        :metricsData="acceptanceMetrics" 
-        :driversData="bottomDrivers" 
-        :chartData="acceptanceChartData"
-        :averageAcceptance="average_acceptance"
-        :currentFilters="filters"
-      />
-
+        <!-- Acceptance Dashboard -->
+        <AcceptanceDashboard 
+          v-if="!isSuperAdmin"
+          :metricsData="acceptanceMetrics" 
+          :driversData="bottomDrivers" 
+          :chartData="acceptanceChartData"
+          :averageAcceptance="average_acceptance"
+          :currentFilters="filters"
+        />
       <!-- Rejections Table -->
       <Card>
         <CardContent class="p-0">
@@ -249,7 +240,7 @@
                   <TableHead v-for="col in tableColumns" :key="col" class="cursor-pointer" @click="sortBy(col)">
                     <div class="flex items-center">
                       <div v-if="col=='rejection_category'">Rejection From Start</div>
-                      <div v-else>{{col.replace(/_/g, ' ').replace(/^./, str => str.toUpperCase())}}</div>
+                      <div v-else>{{col.replace(/_/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}}</div>
                       <div v-if="sortColumn === col" class="ml-2">
                         <svg v-if="sortDirection === 'asc'" class="h-4 w-4" viewBox="0 0 24 24" fill="none"
                           stroke="currentColor" stroke-width="2">
@@ -495,7 +486,7 @@
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
+      </div>
     </div>
   </AppLayout>
 </template>
@@ -994,62 +985,6 @@ const acceptanceChartData = computed(() => {
   };
 });
 
-// const acceptanceChartData = computed(() => {
-//   if (!props.line_chart_data || props.line_chart_data.length === 0) {
-//     return {
-//       labels: [],
-//       datasets: [{
-//         label: 'Acceptance Performance',
-//         data: [],
-//         borderColor: '#3b82f6',
-//         backgroundColor: 'rgba(59, 130, 246, 0.1)',
-//         tension: 0.3,
-//       }],
-//       options: {
-//         scales: {
-//           y: {
-//             min: 0,
-//             max: 120, // Setting max to 120 instead of 100 gives more space above 100
-//             ticks: {
-//               stepSize: 20,
-//               callback: function(value) {
-//                 // Only show labels for 0, 20, 40, 60, 80, 100
-//                 return value <= 100 ? value : '';
-//               }
-//             }
-//           }
-//         }
-//       }
-//     };
-//   }
-  
-//   return {
-//     labels: props.line_chart_data.map(item => item.date),
-//     datasets: [{
-//       label: 'Acceptance Performance',
-//       data: props.line_chart_data.map(item => item.acceptancePerformance),
-//       borderColor: '#3b82f6',
-//       backgroundColor: 'rgba(59, 130, 246, 0.1)',
-//       tension: 0.3,
-//     }],
-//     options: {
-//       scales: {
-//         y: {
-//           min: 0,
-//           max: 120, // Setting max to 120 instead of 100 gives more space above 100
-//           ticks: {
-//             stepSize: 20,
-//             callback: function(value) {
-//               // Only show labels for 0, 20, 40, 60, 80, 100
-//               return value <= 100 ? value : '';
-//             }
-//           }
-//         }
-//       }
-//     }
-//   };
-// });
-
 // Add these new methods to handle soft-deleted reason codes
 function restoreCode(id) {
   router.post(route('rejection_reason_codes.restore.admin', { id }), {}, {
@@ -1159,6 +1094,17 @@ const exportUrl = computed(() => {
   return props.tenantSlug
     ? route('acceptance.export', { tenantSlug: props.tenantSlug })
     : route('acceptance.export.admin');
+});
+
+// Computed property to check if there's data available
+const hasData = computed(() => {
+  // Check if there's data based on the selected date filter
+  if (activeTab.value === 'yesterday' || activeTab.value === 'current-week' || 
+      activeTab.value === '6w' || activeTab.value === 'quarterly') {
+    // Check if there's data in the rejections array
+    return props.rejections && props.rejections.data && props.rejections.data.length > 0;
+  }
+  return true; // Default to true if no tab is selected
 });
 
 

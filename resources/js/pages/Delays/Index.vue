@@ -96,13 +96,6 @@
                 :class="{'bg-primary/10 text-primary border-primary': activeTab === 'quarterly'}">
                 Quarterly
               </Button>
-              <Button
-                @click="selectDateFilter('full')"
-                variant="outline"
-                size="sm"
-                :class="{'bg-primary/10 text-primary border-primary': activeTab === 'full'}">
-                Full
-              </Button>
             </div>
             <div v-if="dateRange" class="text-sm text-muted-foreground">
               <span v-if="activeTab === 'yesterday' && dateRange.start">
@@ -120,7 +113,15 @@
         </CardContent>
       </Card>
 
-      <!-- Filters Section -->
+      <!-- No Data Message -->
+      <div v-if="!hasData" class="flex flex-col items-center justify-center py-16 bg-muted/20 rounded-lg border">
+        <Icon name="database-x" class="h-16 w-16 text-muted-foreground mb-4" />
+        <h2 class="text-2xl font-bold text-center text-muted-foreground">There is No Data to give Information about.</h2>
+      </div>
+
+      <!-- Content Section - Only show if data exists -->
+      <template v-if="hasData">
+         <!-- Filters Section -->
       <Card>
         <CardHeader class="pb-2">
           <div class="flex justify-between items-center">
@@ -130,12 +131,7 @@
                 <div v-if="filters.search" class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
                   Search: {{ filters.search }}
                 </div>
-                <div v-if="filters.dateFrom" class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
-                  From: {{ formatDate(filters.dateFrom) }}
-                </div>
-                <div v-if="filters.dateTo" class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
-                  To: {{ formatDate(filters.dateTo) }}
-                </div>
+                
                 <div v-if="filters.delayCode" class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
                   Code: {{ getDelayCodeLabel(filters.delayCode) }}
                 </div>
@@ -166,14 +162,7 @@
                 <Label for="search">Search</Label>
                 <Input id="search" v-model="filters.search" type="text" placeholder="Search by driver or type..." @input="applyFilters" />
               </div>
-              <div>
-                <Label for="dateFrom">Date From</Label>
-                <Input id="dateFrom" v-model="filters.dateFrom" type="date" @change="applyFilters" />
-              </div>
-              <div>
-                <Label for="dateTo">Date To</Label>
-                <Input id="dateTo" v-model="filters.dateTo" type="date" @change="applyFilters" />
-              </div>
+              
               <div>
                 <Label for="delayCode">Delay Code</Label>
                 <select
@@ -248,15 +237,15 @@
         </CardContent>
       </Card>
 
-      <!-- On-Time Dashboard -->
-      <OnTimeDashboard 
-        v-if="!isSuperAdmin"
-        :metricsData="ontimeMetrics" 
-        :driversData="bottomDrivers" 
-        :chartData="ontimeChartData"
-        :averageOntime="average_ontime"
-        :delayType="filters.delayType"
-      />
+        <!-- On-Time Dashboard -->
+        <OnTimeDashboard 
+          v-if="!isSuperAdmin"
+          :metricsData="ontimeMetrics" 
+          :driversData="bottomDrivers" 
+          :chartData="ontimeChartData"
+          :averageOntime="average_ontime"
+          :delayType="filters.delayType"
+        />
 
       <!-- Delays Table -->
       <Card>
@@ -568,6 +557,7 @@
     </DialogFooter>
   </DialogContent>
 </Dialog>
+</template>
     </div>
   </AppLayout>
 </template>
@@ -1076,6 +1066,11 @@ const ontimeChartData = computed(() => {
 // Computed property for "Select All" checkbox state
 const isAllSelected = computed(() => {
   return filteredDelays.value.length > 0 && selectedDelays.value.length === filteredDelays.value.length;
+});
+
+// Computed property to check if there's data
+const hasData = computed(() => {
+  return props.delays.data && props.delays.data.length > 0;
 });
 
 // Bulk selection functions

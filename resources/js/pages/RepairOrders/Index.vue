@@ -128,14 +128,7 @@
               >
                 Quarterly
               </Button>
-              <Button 
-                @click="selectDateFilter('full')" 
-                variant="outline"
-                size="sm"
-                :class="{'bg-primary/10 text-primary border-primary': activeTab === 'full'}"
-              >
-                Full
-              </Button>
+              
             </div>
             <div v-if="dateRange" class="text-sm text-muted-foreground">
               <span v-if="activeTab === 'yesterday' && dateRange.start">
