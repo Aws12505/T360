@@ -15,7 +15,7 @@ const tenant = user?.tenant;
 
 <template>
     <header
-        class="flex h-26 shrink-0 items-center gap-2 border-b border-sidebar-border/70 px-6 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-26 md:px-4"
+        class="flex w-full h-26 shrink-0 items-center gap-2 border-b border-sidebar-border/70 px-6 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-26 md:px-4"
     >
         <div class="flex w-full flex-col justify-between h-full py-3 relative">
             <div class="flex items-center justify-between w-full relative">

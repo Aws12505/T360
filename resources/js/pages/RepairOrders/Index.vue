@@ -2,7 +2,7 @@
     <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
         <Head title="Repair Orders" />
         <!-- responsive here -->
-        <div class="mx-auto max-w-7xl space-y-8 p-6">
+        <div class="w-full max-w-screen-xl mx-auto p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6">
             <!-- Success Message -->
             <Alert v-if="successMessage" variant="success">
                 <AlertTitle>Success</AlertTitle>
@@ -15,50 +15,50 @@
             </Alert>
 
             <!-- responsive here -->
-            <div class="mb-6 flex flex-col items-center justify-between gap-4 sm:flex-row">
+            <div class="flex flex-col sm:flex-row justify-between items-center px-2 mb-2 md:mb-4 lg:mb-6">
                 <!-- responsive here -->
-                <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">Repair Orders</h1>
+                <h1 class="text-lg md:text-xl lg:text-2xl font-bold">Repair Orders</h1>
                 <div class="flex flex-wrap gap-3">
                     <!-- responsive here -->
-                    <Button @click="openCreateModal" variant="default">
+                    <Button  class="px-2 py-0 md:px-4 md:py-2" @click="openCreateModal" variant="default">
                         <!-- responsive here -->
-                        <Icon name="plus" class="mr-2 h-4 w-4" />
+                        <Icon name="plus" class="mr-1 h-4 w-4 md:mr-2" />
                         Create New Repair Order
                     </Button>
                     <!-- Add Delete Selected button -->
                     <!-- responsive here -->
                     <Button v-if="selectedRepairOrders.length > 0" @click="confirmDeleteSelected()" variant="destructive">
                         <!-- responsive here -->
-                        <Icon name="trash" class="mr-2 h-4 w-4" />
+                        <Icon name="trash" class="mr-1 h-4 w-4 md:mr-2" />
                         Delete Selected ({{ selectedRepairOrders.length }})
                     </Button>
                     <!-- Manage Areas of Concern button - only for SuperAdmin -->
                     <!-- responsive here -->
-                    <Button v-if="SuperAdmin" @click="openAreasOfConcernModal" variant="outline">
+                    <Button class="px-2 py-0 md:px-4 md:py-2" v-if="SuperAdmin" @click="openAreasOfConcernModal" variant="outline">
                         <!-- responsive here -->
-                        <Icon name="settings" class="mr-2 h-4 w-4" />
+                        <Icon name="settings" class="mr-1 h-4 w-4 md:mr-2" />
                         Manage Areas of Concern
                     </Button>
 
                     <!-- Manage Vendors button - only for SuperAdmin -->
                     <!-- responsive here -->
-                    <Button v-if="SuperAdmin" @click="openVendorsModal" variant="outline">
+                    <Button class="px-2 py-0 md:px-4 md:py-2" v-if="SuperAdmin" @click="openVendorsModal" variant="outline">
                         <!-- responsive here -->
-                        <Icon name="settings" class="mr-2 h-4 w-4" />
+                        <Icon name="settings" class="mr-1 h-4 w-4 md:mr-2" />
                         Manage Vendors
                     </Button>
                     <!-- Manage WO Statuses button - only for SuperAdmin -->
                     <!-- responsive here -->
-                    <Button v-if="SuperAdmin" @click="openWoStatusesModal" variant="outline">
+                    <Button class="px-2 py-0 md:px-4 md:py-2" v-if="SuperAdmin" @click="openWoStatusesModal" variant="outline">
                         <!-- responsive here -->
-                        <Icon name="settings" class="mr-2 h-4 w-4" />
+                        <Icon name="settings" class="mr-1 h-4 w-4 md:mr-2" />
                         Manage WO Statuses
                     </Button>
-                    <div class="relative">
+                    <div  class="relative">
                         <!-- responsive here -->
-                        <Button @click="showUploadOptions = !showUploadOptions" variant="secondary">
+                        <Button class="px-2 py-0 md:px-4 md:py-2" @click="showUploadOptions = !showUploadOptions" variant="secondary">
                             <!-- responsive here -->
-                            <Icon name="upload" class="mr-2 h-4 w-4" />
+                            <Icon name="upload" class="mr-1 h-4 w-4 md:mr-2" />
                             Upload CSV
                             <Icon name="chevron-down" class="ml-2 h-4 w-4" />
                         </Button>
@@ -75,9 +75,9 @@
                         </div>
                     </div>
                     <!-- responsive here -->
-                    <Button @click.prevent="exportCSV" variant="outline">
+                    <Button class="px-2 py-0 md:px-4 md:py-2" @click.prevent="exportCSV" variant="outline">
                         <!-- responsive here -->
-                        <Icon name="download" class="mr-2 h-4 w-4" />
+                        <Icon name="download" class="mr-1 h-4 w-4 md:mr-2" />
                         Download CSV
                     </Button>
                 </div>
@@ -107,11 +107,11 @@
             <!-- Date Filter Tabs -->
             <Card>
                 <!-- responsive here -->
-                <CardContent class="p-4">
+                <CardContent class="p-2 md:p-4 lg:p-6">
                     <!-- responsive here -->
-                    <div class="flex flex-col gap-2">
+                    <div class="flex flex-col items-center md:items-start gap-2">
                         <!-- responsive here -->
-                        <div class="flex flex-wrap gap-2">
+                        <div class="flex flex-wrap gap-1 md:gap-2">
                             <Button
                                 @click="selectDateFilter('yesterday')"
                                 variant="outline"
@@ -159,7 +159,7 @@
                 </CardContent>
             </Card>
             <!-- Outstanding Invoices Filter -->
-            <div class="mb-6 rounded-lg border bg-card p-4 shadow-sm" v-if="!SuperAdmin">
+            <div class="mb-6 rounded-lg border bg-card p-4 shadow-sm mx-auto max-w-[95vw] md:max-w-[64vw] lg:max-w-full overflow-x-auto" v-if="!SuperAdmin">
                 <h3 class="mb-4 text-lg font-semibold">Outstanding Invoices Filter</h3>
                 <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <div>
@@ -184,7 +184,7 @@
                 </div>
             </div>
             <!-- Outstanding Invoices Section -->
-            <div v-if="outstandingInvoices && outstandingInvoices.length > 0" class="mb-6 rounded-lg border bg-card shadow-sm">
+            <div v-if="outstandingInvoices && outstandingInvoices.length > 0" class="mb-6 rounded-lg border bg-card shadow-sm mx-auto max-w-[95vw] md:max-w-[64vw] lg:max-w-full overflow-x-auto">
                 <div class="flex items-center justify-between border-b p-4">
                     <h3 class="text-lg font-semibold">Outstanding Invoices</h3>
                     <div>
@@ -225,11 +225,11 @@
             <!-- Filters Section -->
             <Card>
                 <!-- responsive here -->
-                <CardHeader>
+                <CardHeader class=" p-2 md:p-4 lg:p-6">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
                             <!-- responsive here -->
-                            <CardTitle>Filters</CardTitle>
+                            <CardTitle class=" text-lg md:text-xl lg:text-2xl">Filters</CardTitle>
                             <div
                                 v-if="!showFilters && (filters.search || filters.vendor_id || filters.status)"
                                 class="ml-4 flex flex-wrap gap-2 text-xs text-muted-foreground"
@@ -248,15 +248,16 @@
                     </div>
                 </CardHeader>
                 <!-- responsive here -->
-                <CardContent v-if="showFilters">
+                <CardContent class=" p-2 md:p-4 lg:p-6 " v-if="showFilters">
                     <!-- responsive here -->
-                    <div class="flex flex-col gap-4">
+                    <div class="flex flex-col gap-1 md:gap-4">
                         <!-- responsive here -->
-                        <div class="grid w-full grid-cols-1 gap-4 sm:grid-cols-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-1 md:gap-4 w-full">
                             <div>
                                 <Label for="search">Search</Label>
                                 <!-- responsive here -->
                                 <Input
+                                class = "py-1 px-1  md:px-2 md:py-1 h-9 lg:px-3 lg:py-2 lg:h-10"
                                     id="search"
                                     v-model="filters.search"
                                     type="text"
@@ -307,7 +308,7 @@
             </Card>
             <!-- Repair Orders Table -->
             <!-- responsive here -->
-            <Card>
+            <Card class="mx-auto max-w-[95vw] md:max-w-[64vw] lg:max-w-full overflow-x-auto">
                 <CardContent class="p-0">
                     <div class="overflow-x-auto border-t border-border bg-background dark:bg-background">
                         <Table class="relative h-[600px] overflow-auto">
@@ -426,10 +427,10 @@
                     <!-- Pagination -->
                     <div class="border-t bg-muted/20 px-4 py-3" v-if="repairOrders.links">
                         <!-- responsive here -->
-                        <div class="flex items-center justify-between">
+                        <div class="flex flex-col sm:flex-row justify-between items-center gap-2">
                             <div class="text-sm text-muted-foreground">Showing {{ repairOrders.data.length }} entries</div>
                             <!-- responsive here -->
-                            <div class="flex items-center gap-4">
+                            <div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 w-full sm:w-auto">
                                 <div class="flex items-center gap-2">
                                     <Label for="perPage" class="text-sm">Per page:</Label>
                                     <select
@@ -445,7 +446,7 @@
                                     </select>
                                 </div>
                                 <!-- responsive here -->
-                                <div class="flex">
+                                <div class=" flex flex-wrap">
                                     <Button
                                         v-for="link in repairOrders.links"
                                         :key="link.label"
@@ -467,29 +468,37 @@
 
             <!-- Modal for Create/Edit Repair Order -->
             <Dialog v-model:open="showModal">
-                <DialogContent class="sm:max-w-4xl">
-                    <DialogHeader>
-                        <DialogTitle>{{ formTitle }}</DialogTitle>
-                        <DialogDescription> Fill in the details to {{ formAction.toLowerCase() }} a repair order. </DialogDescription>
+                <DialogContent class="max-w-[95vw] sm:max-w-[90vw] md:max-w-4xl">
+                    <DialogHeader class="px-4 sm:px-6">
+                        <DialogTitle class="text-lg sm:text-xl">{{ formTitle }}</DialogTitle>
+                        <DialogDescription class="text-xs sm:text-sm">
+                            Fill in the details to {{ formAction.toLowerCase() }} a repair order.
+                        </DialogDescription>
                     </DialogHeader>
-                    <form @submit.prevent="submitForm" class="grid max-h-[70vh] grid-cols-1 gap-4 overflow-y-auto sm:grid-cols-2">
+
+                    <form @submit.prevent="submitForm" class="grid max-h-[75vh] grid-cols-1 gap-2 overflow-y-auto p-4 sm:grid-cols-2 sm:gap-3 sm:p-6">
                         <!-- For SuperAdmin: Tenant Dropdown -->
                         <div v-if="SuperAdmin" class="col-span-2">
-                            <Label for="tenant">Company Name</Label>
-                            <div class="relative">
+                            <Label for="tenant" class="text-xs sm:text-sm">Company Name</Label>
+                            <div class="relative mt-1">
                                 <select
                                     id="tenant"
                                     v-model="form.tenant_id"
                                     required
-                                    class="flex h-10 w-full appearance-none items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    class="flex h-9 w-full appearance-none items-center rounded-md border border-input bg-background px-3 py-1 text-xs ring-offset-background focus:outline-none focus:ring-1 focus:ring-ring focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 sm:h-10 sm:text-sm"
                                 >
                                     <option disabled value="">Select a tenant</option>
                                     <option v-for="tenant in tenants" :key="tenant.id" :value="tenant.id">
                                         {{ tenant.name }}
                                     </option>
                                 </select>
-                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                                    <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-700">
+                                    <svg
+                                        class="h-3 w-3 opacity-50 sm:h-4 sm:w-4"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 20 20"
+                                        fill="currentColor"
+                                    >
                                         <path
                                             fill-rule="evenodd"
                                             d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
@@ -501,40 +510,51 @@
                         </div>
 
                         <!-- RO# -->
-                        <div>
-                            <Label for="ro_number">RO#</Label>
-                            <Input id="ro_number" v-model="form.ro_number" type="text" required />
+                        <div class="col-span-2 sm:col-span-1">
+                            <Label for="ro_number" class="text-xs sm:text-sm">RO#</Label>
+                            <Input id="ro_number" v-model="form.ro_number" type="text" required class="h-9 px-3 py-1 text-xs sm:h-10 sm:text-sm" />
                         </div>
 
                         <!-- RO Open Date -->
-                        <div>
-                            <Label for="ro_open_date">RO Open Date</Label>
-                            <Input id="ro_open_date" v-model="form.ro_open_date" type="date" required />
+                        <div class="col-span-2 sm:col-span-1">
+                            <Label for="ro_open_date" class="text-xs sm:text-sm">RO Open Date</Label>
+                            <Input
+                                id="ro_open_date"
+                                v-model="form.ro_open_date"
+                                type="date"
+                                required
+                                class="h-9 px-3 py-1 text-xs sm:h-10 sm:text-sm"
+                            />
                         </div>
 
                         <!-- RO Close Date -->
-                        <div>
-                            <Label for="ro_close_date">RO Close Date</Label>
-                            <Input id="ro_close_date" v-model="form.ro_close_date" type="date" />
+                        <div class="col-span-2 sm:col-span-1">
+                            <Label for="ro_close_date" class="text-xs sm:text-sm">RO Close Date</Label>
+                            <Input id="ro_close_date" v-model="form.ro_close_date" type="date" class="h-9 px-3 py-1 text-xs sm:h-10 sm:text-sm" />
                         </div>
 
                         <!-- Truck -->
-                        <div>
-                            <Label for="truck_id">Truck</Label>
-                            <div class="relative">
+                        <div class="col-span-2 sm:col-span-1">
+                            <Label for="truck_id" class="text-xs sm:text-sm">Truck</Label>
+                            <div class="relative mt-1">
                                 <select
                                     id="truck_id"
                                     v-model="form.truck_id"
                                     required
-                                    class="flex h-10 w-full appearance-none items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    class="flex h-9 w-full appearance-none items-center rounded-md border border-input bg-background px-3 py-1 text-xs ring-offset-background focus:outline-none focus:ring-1 focus:ring-ring focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 sm:h-10 sm:text-sm"
                                 >
                                     <option disabled value="">Select a truck</option>
                                     <option v-for="truck in trucks" :key="truck.id" :value="truck.id">
                                         {{ truck.truckid }}
                                     </option>
                                 </select>
-                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                                    <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-700">
+                                    <svg
+                                        class="h-3 w-3 opacity-50 sm:h-4 sm:w-4"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 20 20"
+                                        fill="currentColor"
+                                    >
                                         <path
                                             fill-rule="evenodd"
                                             d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
@@ -545,26 +565,28 @@
                             </div>
                         </div>
 
-                        <!-- Areas Of Concern (improved multi-select) -->
+                        <!-- Areas Of Concern -->
                         <div class="col-span-2">
-                            <Label for="area_of_concerns">Areas Of Concern</Label>
-                            <div class="rounded-md border border-input bg-background p-2">
-                                <div class="mb-2 flex flex-wrap gap-2">
+                            <Label for="area_of_concerns" class="text-xs sm:text-sm">Areas Of Concern</Label>
+                            <div class="mt-1 rounded-md border border-input bg-background p-2">
+                                <div class="mb-2 flex flex-wrap gap-1">
                                     <div
                                         v-for="selectedId in form.area_of_concerns"
                                         :key="selectedId"
-                                        class="flex items-center rounded-md bg-primary/10 px-2 py-1 text-sm text-primary"
+                                        class="flex items-center rounded-md bg-primary/10 px-1.5 py-0.5 text-xs text-primary sm:px-2 sm:py-1 sm:text-sm"
                                     >
                                         {{ areasOfConcern.find((a) => a.id === selectedId)?.concern }}
-                                        <span v-if="areasOfConcern.find((a) => a.id === selectedId)?.deleted_at" class="ml-1 text-xs text-red-500"
+                                        <span
+                                            v-if="areasOfConcern.find((a) => a.id === selectedId)?.deleted_at"
+                                            class="ml-1 text-[0.65rem] text-red-500 sm:text-xs"
                                             >(Deleted)</span
                                         >
                                         <button
                                             type="button"
                                             @click="removeAreaOfConcern(selectedId)"
-                                            class="ml-1 text-primary hover:text-primary/80"
+                                            class="ml-0.5 text-primary hover:text-primary/80 sm:ml-1"
                                         >
-                                            <Icon name="x" class="h-3 w-3" />
+                                            <Icon name="x" class="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                                         </button>
                                     </div>
                                 </div>
@@ -572,15 +594,20 @@
                                     <select
                                         id="area_of_concerns_select"
                                         @change="addAreaOfConcern($event)"
-                                        class="flex h-10 w-full appearance-none items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                        class="flex h-9 w-full appearance-none items-center rounded-md border border-input bg-background px-3 py-1 text-xs ring-offset-background focus:outline-none focus:ring-1 focus:ring-ring focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 sm:h-10 sm:text-sm"
                                     >
                                         <option value="">Select an area of concern to add</option>
                                         <option v-for="area in availableAreasOfConcern" :key="area.id" :value="area.id" :disabled="area.deleted_at">
                                             {{ area.concern }} {{ area.deleted_at ? '(Deleted)' : '' }}
                                         </option>
                                     </select>
-                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                                        <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-700">
+                                        <svg
+                                            class="h-3 w-3 opacity-50 sm:h-4 sm:w-4"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 20 20"
+                                            fill="currentColor"
+                                        >
                                             <path
                                                 fill-rule="evenodd"
                                                 d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
@@ -594,31 +621,36 @@
 
                         <!-- Repairs Made -->
                         <div class="col-span-2">
-                            <Label for="repairs_made">Repairs Made</Label>
+                            <Label for="repairs_made" class="text-xs sm:text-sm">Repairs Made</Label>
                             <textarea
                                 id="repairs_made"
                                 v-model="form.repairs_made"
-                                class="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                class="mt-1 flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-1.5 text-xs ring-offset-background focus:outline-none focus:ring-1 focus:ring-ring focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 sm:min-h-[80px] sm:text-sm"
                             ></textarea>
                         </div>
 
                         <!-- Vendor -->
-                        <div>
-                            <Label for="vendor_id">Vendor</Label>
-                            <div class="relative">
+                        <div class="col-span-2 sm:col-span-1">
+                            <Label for="vendor_id" class="text-xs sm:text-sm">Vendor</Label>
+                            <div class="relative mt-1">
                                 <select
                                     id="vendor_id"
                                     v-model="form.vendor_id"
                                     required
-                                    class="flex h-10 w-full appearance-none items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    class="flex h-9 w-full appearance-none items-center rounded-md border border-input bg-background px-3 py-1 text-xs ring-offset-background focus:outline-none focus:ring-1 focus:ring-ring focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 sm:h-10 sm:text-sm"
                                 >
                                     <option disabled value="">Select a vendor</option>
                                     <option v-for="vendor in vendors" :key="vendor.id" :value="vendor.id" :disabled="vendor.deleted_at">
                                         {{ vendor.vendor_name }} {{ vendor.deleted_at ? '(Deleted)' : '' }}
                                     </option>
                                 </select>
-                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                                    <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-700">
+                                    <svg
+                                        class="h-3 w-3 opacity-50 sm:h-4 sm:w-4"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 20 20"
+                                        fill="currentColor"
+                                    >
                                         <path
                                             fill-rule="evenodd"
                                             d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
@@ -630,28 +662,33 @@
                         </div>
 
                         <!-- WO# -->
-                        <div>
-                            <Label for="wo_number">WO#</Label>
-                            <Input id="wo_number" v-model="form.wo_number" type="text" />
+                        <div class="col-span-2 sm:col-span-1">
+                            <Label for="wo_number" class="text-xs sm:text-sm">WO#</Label>
+                            <Input id="wo_number" v-model="form.wo_number" type="text" class="h-9 px-3 py-1 text-xs sm:h-10 sm:text-sm" />
                         </div>
 
                         <!-- WO Status -->
-                        <div>
-                            <Label for="wo_status_id">WO Status</Label>
-                            <div class="relative">
+                        <div class="col-span-2 sm:col-span-1">
+                            <Label for="wo_status_id" class="text-xs sm:text-sm">WO Status</Label>
+                            <div class="relative mt-1">
                                 <select
                                     id="wo_status_id"
                                     v-model="form.wo_status_id"
                                     required
-                                    class="flex h-10 w-full appearance-none items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    class="flex h-9 w-full appearance-none items-center rounded-md border border-input bg-background px-3 py-1 text-xs ring-offset-background focus:outline-none focus:ring-1 focus:ring-ring focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 sm:h-10 sm:text-sm"
                                 >
                                     <option disabled value="">Select status</option>
                                     <option v-for="status in woStatuses" :key="status.id" :value="status.id" :disabled="status.deleted_at">
                                         {{ status.name }} {{ status.deleted_at ? '(Deleted)' : '' }}
                                     </option>
                                 </select>
-                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                                    <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-700">
+                                    <svg
+                                        class="h-3 w-3 opacity-50 sm:h-4 sm:w-4"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 20 20"
+                                        fill="currentColor"
+                                    >
                                         <path
                                             fill-rule="evenodd"
                                             d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
@@ -663,47 +700,58 @@
                         </div>
 
                         <!-- Invoice -->
-                        <div>
-                            <Label for="invoice">Invoice</Label>
-                            <Input id="invoice" v-model="form.invoice" type="text" />
+                        <div class="col-span-2 sm:col-span-1">
+                            <Label for="invoice" class="text-xs sm:text-sm">Invoice</Label>
+                            <Input id="invoice" v-model="form.invoice" type="text" class="h-9 px-3 py-1 text-xs sm:h-10 sm:text-sm" />
                         </div>
 
                         <!-- Invoice Amount -->
-                        <div>
-                            <Label for="invoice_amount">Invoice Amount</Label>
-                            <Input id="invoice_amount" v-model="form.invoice_amount" type="number" step="0.01" />
+                        <div class="col-span-2 sm:col-span-1">
+                            <Label for="invoice_amount" class="text-xs sm:text-sm">Invoice Amount</Label>
+                            <Input
+                                id="invoice_amount"
+                                v-model="form.invoice_amount"
+                                type="number"
+                                step="0.01"
+                                class="h-9 px-3 py-1 text-xs sm:h-10 sm:text-sm"
+                            />
                         </div>
 
                         <!-- Invoice Received -->
-                        <div>
-                            <Label for="invoice_received">Invoice Received</Label>
-                            <div class="flex items-center space-x-2">
+                        <div class="col-span-2 sm:col-span-1">
+                            <Label for="invoice_received" class="text-xs sm:text-sm">Invoice Received</Label>
+                            <div class="mt-1 flex items-center space-x-2">
                                 <input
                                     id="invoice_received"
                                     v-model="form.invoice_received"
                                     type="checkbox"
-                                    class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                    class="h-3.5 w-3.5 rounded border-gray-300 text-primary focus:ring-1 focus:ring-primary sm:h-4 sm:w-4"
                                 />
-                                <label for="invoice_received" class="text-sm">Yes</label>
+                                <label for="invoice_received" class="text-xs sm:text-sm">Yes</label>
                             </div>
                         </div>
 
                         <!-- On QS -->
-                        <div>
-                            <Label for="on_qs">On QS</Label>
-                            <div class="relative">
+                        <div class="col-span-2 sm:col-span-1">
+                            <Label for="on_qs" class="text-xs sm:text-sm">On QS</Label>
+                            <div class="relative mt-1">
                                 <select
                                     id="on_qs"
                                     v-model="form.on_qs"
                                     required
-                                    class="flex h-10 w-full appearance-none items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    class="flex h-9 w-full appearance-none items-center rounded-md border border-input bg-background px-3 py-1 text-xs ring-offset-background focus:outline-none focus:ring-1 focus:ring-ring focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 sm:h-10 sm:text-sm"
                                 >
                                     <option value="yes">Yes</option>
                                     <option value="no">No</option>
                                     <option value="not expected">Not Expected</option>
                                 </select>
-                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                                    <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-700">
+                                    <svg
+                                        class="h-3 w-3 opacity-50 sm:h-4 sm:w-4"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 20 20"
+                                        fill="currentColor"
+                                    >
                                         <path
                                             fill-rule="evenodd"
                                             d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
@@ -715,26 +763,31 @@
                         </div>
 
                         <!-- QS Invoice Date -->
-                        <div>
-                            <Label for="qs_invoice_date">QS Invoice Date</Label>
-                            <Input id="qs_invoice_date" v-model="form.qs_invoice_date" type="date" />
+                        <div class="col-span-2 sm:col-span-1">
+                            <Label for="qs_invoice_date" class="text-xs sm:text-sm">QS Invoice Date</Label>
+                            <Input id="qs_invoice_date" v-model="form.qs_invoice_date" type="date" class="h-9 px-3 py-1 text-xs sm:h-10 sm:text-sm" />
                         </div>
 
                         <!-- Disputed - Only show when editing -->
                         <div v-if="formAction === 'Update'">
-                            <Label for="disputed">Disputed?</Label>
-                            <div class="relative">
+                            <Label for="disputed" class="text-xs sm:text-sm">Disputed?</Label>
+                            <div class="relative mt-1">
                                 <select
                                     id="disputed"
                                     v-model="form.disputed"
                                     required
-                                    class="flex h-10 w-full appearance-none items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    class="flex h-9 w-full appearance-none items-center rounded-md border border-input bg-background px-3 py-1 text-xs ring-offset-background focus:outline-none focus:ring-1 focus:ring-ring focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 sm:h-10 sm:text-sm"
                                 >
                                     <option :value="true">Yes</option>
                                     <option :value="false">No</option>
                                 </select>
-                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                                    <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-700">
+                                    <svg
+                                        class="h-3 w-3 opacity-50 sm:h-4 sm:w-4"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 20 20"
+                                        fill="currentColor"
+                                    >
                                         <path
                                             fill-rule="evenodd"
                                             d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
@@ -747,17 +800,19 @@
 
                         <!-- Dispute Outcome - Only show when editing -->
                         <div class="col-span-2" v-if="formAction === 'Update'">
-                            <Label for="dispute_outcome">Dispute Outcome</Label>
+                            <Label for="dispute_outcome" class="text-xs sm:text-sm">Dispute Outcome</Label>
                             <textarea
                                 id="dispute_outcome"
                                 v-model="form.dispute_outcome"
-                                class="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                class="mt-1 flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-1.5 text-xs ring-offset-background focus:outline-none focus:ring-1 focus:ring-ring focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 sm:min-h-[80px] sm:text-sm"
                             ></textarea>
                         </div>
 
-                        <DialogFooter class="col-span-2 mt-4">
-                            <Button type="button" @click="closeModal" variant="outline">Cancel</Button>
-                            <Button type="submit" variant="default">{{ formAction }}</Button>
+                        <DialogFooter class="col-span-2 mt-3 flex flex-col gap-2 sm:flex-row sm:gap-3">
+                            <Button type="button" @click="closeModal" variant="outline" class="h-9 px-4 py-1 text-xs sm:h-10 sm:text-sm"
+                                >Cancel</Button
+                            >
+                            <Button type="submit" variant="default" class="h-9 px-4 py-1 text-xs sm:h-10 sm:text-sm">{{ formAction }}</Button>
                         </DialogFooter>
                     </form>
                 </DialogContent>
@@ -765,32 +820,34 @@
 
             <!-- Delete Confirmation Dialog -->
             <Dialog v-model:open="showDeleteModal">
-                <DialogContent>
+                <DialogContent class="max-w-[95vw] sm:max-w-[425px]">
                     <DialogHeader>
                         <DialogTitle>Confirm Deletion</DialogTitle>
-                        <DialogDescription> Are you sure you want to delete this repair order? This action cannot be undone. </DialogDescription>
+                        <DialogDescription class="text-sm sm:text-base">
+                            Are you sure you want to delete this repair order? This action cannot be undone.
+                        </DialogDescription>
                     </DialogHeader>
-                    <DialogFooter>
-                        <Button type="button" @click="showDeleteModal = false" variant="outline">Cancel</Button>
-                        <Button type="button" @click="confirmDelete" variant="destructive">Delete</Button>
+                    <DialogFooter class="flex-col gap-2 sm:flex-row">
+                        <Button type="button" @click="showDeleteModal = false" variant="outline" class="w-full sm:w-auto">Cancel</Button>
+                        <Button type="button" @click="confirmDelete" variant="destructive" class="w-full sm:w-auto">Delete</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
             <!-- Modal for Areas of Concern Management -->
             <Dialog v-model:open="showAreasOfConcernModal">
-                <DialogContent class="sm:max-w-[600px]">
+                <DialogContent class="max-w-[95vw] sm:max-w-[90vw] md:max-w-[600px]">
                     <DialogHeader>
                         <DialogTitle>Manage Areas of Concern</DialogTitle>
-                        <DialogDescription> Add or remove areas of concern for repair orders. </DialogDescription>
+                        <DialogDescription class="text-sm sm:text-base"> Add or remove areas of concern for repair orders. </DialogDescription>
                     </DialogHeader>
 
-                    <div class="space-y-6">
+                    <div class="space-y-4 sm:space-y-6">
                         <!-- Add new area of concern form -->
-                        <form @submit.prevent="submitAreaOfConcernForm" class="space-y-4">
-                            <div class="space-y-2">
+                        <form @submit.prevent="submitAreaOfConcernForm" class="space-y-3 sm:space-y-4">
+                            <div class="space-y-1 sm:space-y-2">
                                 <Label for="concern">Area of Concern</Label>
-                                <Input id="concern" v-model="areaOfConcernForm.concern" required />
+                                <Input id="concern" v-model="areaOfConcernForm.concern" required class="text-sm sm:text-base" />
                             </div>
 
                             <Button type="submit" class="w-full">Add Area of Concern</Button>
@@ -798,25 +855,25 @@
 
                         <!-- List of existing areas of concern with fixed height and scrolling -->
                         <div class="rounded-md border">
-                            <div class="max-h-[300px] overflow-y-auto">
+                            <div class="max-h-[40vh] overflow-y-auto sm:max-h-[300px]">
                                 <Table>
                                     <TableHeader class="sticky top-0 z-10 bg-background">
                                         <TableRow>
-                                            <TableHead>Area of Concern</TableHead>
-                                            <TableHead class="w-20">Actions</TableHead>
+                                            <TableHead class="text-xs sm:text-sm">Area of Concern</TableHead>
+                                            <TableHead class="w-20 text-xs sm:text-sm">Actions</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         <TableRow v-if="areasOfConcern.length === 0">
-                                            <TableCell colspan="2" class="py-4 text-center">No areas of concern found.</TableCell>
+                                            <TableCell colspan="2" class="py-4 text-center text-sm">No areas of concern found.</TableCell>
                                         </TableRow>
                                         <TableRow v-for="area in areasOfConcern" :key="area.id">
-                                            <TableCell>
+                                            <TableCell class="text-xs sm:text-sm">
                                                 {{ area.concern }}
                                                 <span v-if="area.deleted_at" class="ml-1 text-xs text-red-500">(Deleted)</span>
                                             </TableCell>
                                             <TableCell>
-                                                <div class="flex space-x-2">
+                                                <div class="flex space-x-1 sm:space-x-2">
                                                     <Button v-if="area.deleted_at" @click="restoreAreaOfConcern(area.id)" variant="outline" size="sm">
                                                         <Icon name="undo" class="h-4 w-4" />
                                                     </Button>
@@ -846,25 +903,25 @@
                     </div>
 
                     <DialogFooter>
-                        <Button @click="showAreasOfConcernModal = false" variant="outline">Close</Button>
+                        <Button @click="showAreasOfConcernModal = false" variant="outline" class="w-full sm:w-auto">Close</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
             <!-- Vendors Management Modal -->
             <Dialog v-model:open="showVendorsModal">
-                <DialogContent class="sm:max-w-[600px]">
+                <DialogContent class="max-w-[95vw] sm:max-w-[90vw] md:max-w-[600px]">
                     <DialogHeader>
                         <DialogTitle>Manage Vendors</DialogTitle>
-                        <DialogDescription> Add or remove vendors for repair orders. </DialogDescription>
+                        <DialogDescription class="text-sm sm:text-base"> Add or remove vendors for repair orders. </DialogDescription>
                     </DialogHeader>
 
-                    <div class="space-y-6">
+                    <div class="space-y-4 sm:space-y-6">
                         <!-- Add new vendor form -->
-                        <form @submit.prevent="submitVendorForm" class="space-y-4">
-                            <div class="space-y-2">
+                        <form @submit.prevent="submitVendorForm" class="space-y-3 sm:space-y-4">
+                            <div class="space-y-1 sm:space-y-2">
                                 <Label for="vendor_name">Vendor Name</Label>
-                                <Input id="vendor_name" v-model="vendorForm.vendor_name" required />
+                                <Input id="vendor_name" v-model="vendorForm.vendor_name" required class="text-sm sm:text-base" />
                             </div>
 
                             <Button type="submit" class="w-full">Add Vendor</Button>
@@ -872,25 +929,25 @@
 
                         <!-- List of existing vendors -->
                         <div class="overflow-hidden rounded-md border">
-                            <div class="max-h-[300px] overflow-y-auto">
+                            <div class="max-h-[40vh] overflow-y-auto sm:max-h-[300px]">
                                 <Table>
                                     <TableHeader class="sticky top-0 z-10 bg-background">
                                         <TableRow class="sticky top-0 z-10 border-b bg-background">
-                                            <TableHead>Vendor Name</TableHead>
-                                            <TableHead>Actions</TableHead>
+                                            <TableHead class="text-xs sm:text-sm">Vendor Name</TableHead>
+                                            <TableHead class="text-xs sm:text-sm">Actions</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         <TableRow v-if="vendors.length === 0">
-                                            <TableCell colspan="2" class="py-4 text-center">No vendors found.</TableCell>
+                                            <TableCell colspan="2" class="py-4 text-center text-sm">No vendors found.</TableCell>
                                         </TableRow>
                                         <TableRow v-for="vendor in vendors" :key="vendor.id">
-                                            <TableCell>
+                                            <TableCell class="text-xs sm:text-sm">
                                                 {{ vendor.vendor_name }}
                                                 <span v-if="vendor.deleted_at" class="ml-1 text-xs text-red-500">(Deleted)</span>
                                             </TableCell>
                                             <TableCell>
-                                                <div class="flex space-x-2">
+                                                <div class="flex space-x-1 sm:space-x-2">
                                                     <Button v-if="vendor.deleted_at" @click="restoreVendor(vendor.id)" variant="outline" size="sm">
                                                         <Icon name="undo" class="h-4 w-4" />
                                                     </Button>
@@ -920,38 +977,42 @@
                     </div>
 
                     <DialogFooter>
-                        <Button @click="showVendorsModal = false" variant="outline">Close</Button>
+                        <Button @click="showVendorsModal = false" variant="outline" class="w-full sm:w-auto">Close</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
             <Dialog v-model:open="showDeleteSelectedModal">
-                <DialogContent>
+                <DialogContent class="max-w-[95vw] sm:max-w-[425px]">
                     <DialogHeader>
                         <DialogTitle>Confirm Bulk Deletion</DialogTitle>
-                        <DialogDescription>
+                        <DialogDescription class="text-sm sm:text-base">
                             Are you sure you want to delete {{ selectedRepairOrders.length }} repair orders? This action cannot be undone.
                         </DialogDescription>
                     </DialogHeader>
-                    <DialogFooter class="mt-4">
-                        <Button type="button" @click="showDeleteSelectedModal = false" variant="outline"> Cancel </Button>
-                        <Button type="button" @click="deleteSelectedRepairOrders()" variant="destructive"> Delete Selected </Button>
+                    <DialogFooter class="mt-4 flex-col gap-2 sm:flex-row">
+                        <Button type="button" @click="showDeleteSelectedModal = false" variant="outline" class="w-full sm:w-auto"> Cancel </Button>
+                        <Button type="button" @click="deleteSelectedRepairOrders()" variant="destructive" class="w-full sm:w-auto">
+                            Delete Selected
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
             <!-- Add the WO Statuses Management Modal -->
             <Dialog v-model:open="showWoStatusesModal">
-                <DialogContent class="sm:max-w-[600px]">
+                <DialogContent class="max-w-[95vw] sm:max-w-[90vw] md:max-w-[600px]">
                     <DialogHeader>
                         <DialogTitle>Manage Work Order Statuses</DialogTitle>
-                        <DialogDescription> Add or remove work order statuses for repair orders. </DialogDescription>
+                        <DialogDescription class="text-sm sm:text-base"> Add or remove work order statuses for repair orders. </DialogDescription>
                     </DialogHeader>
 
-                    <div class="space-y-6">
+                    <div class="space-y-4 sm:space-y-6">
                         <!-- Add new WO status form -->
-                        <form @submit.prevent="submitWoStatusForm" class="space-y-4">
-                            <div class="space-y-2">
+                        <form @submit.prevent="submitWoStatusForm" class="space-y-3 sm:space-y-4">
+                            <div class="space-y-1 sm:space-y-2">
                                 <Label for="status_name">Status Name</Label>
-                                <Input id="status_name" v-model="woStatusForm.name" required />
+                                <Input id="status_name" v-model="woStatusForm.name" required class="text-sm sm:text-base" />
                             </div>
 
                             <Button type="submit" class="w-full">Add Work Order Status</Button>
@@ -959,25 +1020,25 @@
 
                         <!-- List of existing WO statuses -->
                         <div class="overflow-hidden rounded-md border">
-                            <div class="max-h-[300px] overflow-y-auto">
+                            <div class="max-h-[40vh] overflow-y-auto sm:max-h-[300px]">
                                 <Table>
                                     <TableHeader class="sticky top-0 z-10 bg-background">
                                         <TableRow class="sticky top-0 z-10 border-b bg-background">
-                                            <TableHead>Status Name</TableHead>
-                                            <TableHead>Actions</TableHead>
+                                            <TableHead class="text-xs sm:text-sm">Status Name</TableHead>
+                                            <TableHead class="text-xs sm:text-sm">Actions</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         <TableRow v-if="woStatuses.length === 0">
-                                            <TableCell colspan="2" class="py-4 text-center">No work order statuses found.</TableCell>
+                                            <TableCell colspan="2" class="py-4 text-center text-sm">No work order statuses found.</TableCell>
                                         </TableRow>
                                         <TableRow v-for="status in woStatuses" :key="status.id">
-                                            <TableCell>
+                                            <TableCell class="text-xs sm:text-sm">
                                                 {{ status.name }}
                                                 <span v-if="status.deleted_at" class="ml-1 text-xs text-red-500">(Deleted)</span>
                                             </TableCell>
                                             <TableCell>
-                                                <div class="flex space-x-2">
+                                                <div class="flex space-x-1 sm:space-x-2">
                                                     <Button v-if="status.deleted_at" @click="restoreWoStatus(status.id)" variant="outline" size="sm">
                                                         <Icon name="undo" class="h-4 w-4" />
                                                     </Button>
@@ -1007,16 +1068,16 @@
                     </div>
 
                     <DialogFooter>
-                        <Button @click="showWoStatusesModal = false" variant="outline">Close</Button>
+                        <Button @click="showWoStatusesModal = false" variant="outline" class="w-full sm:w-auto">Close</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
         </div>
         <!-- Dialog for Canceled QS Invoices -->
         <Dialog v-model:open="showCanceledQSInvoicesDialog">
-            <DialogContent class="sm:max-w-lg">
+            <DialogContent class="max-h-[90vh] max-w-[95vw] overflow-y-auto md:max-w-[80vw] lg:max-w-4xl">
                 <DialogHeader>
-                    <DialogTitle class="flex items-center gap-2">
+                    <DialogTitle class="flex items-center gap-2 text-lg md:text-xl">
                         <Icon name="alert-triangle" class="h-5 w-5 text-red-600" />
                         Canceled Invoices on QS
                     </DialogTitle>
@@ -1025,14 +1086,14 @@
                     </DialogDescription>
                 </DialogHeader>
 
-                <div class="max-h-[60vh] overflow-y-auto">
+                <div class="max-h-[60vh] overflow-x-auto overflow-y-auto">
                     <Table v-if="props.canceledQSInvoices?.length">
                         <TableHeader>
                             <TableRow>
-                                <TableHead>RO Number</TableHead>
-                                <TableHead>Vendor</TableHead>
-                                <TableHead class="text-right">Amount</TableHead>
-                                <TableHead>Week</TableHead>
+                                <TableHead class="whitespace-nowrap">RO Number</TableHead>
+                                <TableHead class="whitespace-nowrap">Vendor</TableHead>
+                                <TableHead class="whitespace-nowrap text-right">Amount</TableHead>
+                                <TableHead class="whitespace-nowrap">Week</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -1056,8 +1117,8 @@
                     <div v-else class="py-8 text-center text-muted-foreground">No canceled QS invoices found.</div>
                 </div>
 
-                <DialogFooter>
-                    <Button @click="showCanceledQSInvoicesDialog = false" variant="outline">Close</Button>
+                <DialogFooter class="mt-4 flex flex-col gap-2 sm:flex-row">
+                    <Button @click="showCanceledQSInvoicesDialog = false" variant="outline" class="w-full sm:w-auto">Close</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

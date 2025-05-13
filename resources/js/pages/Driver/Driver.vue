@@ -2,7 +2,7 @@
     <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
         <Head title="Drivers" />
         <!-- responsive here -->
-        <div class="mx-auto max-w-7xl space-y-8 p-6">
+        <div class=" w-full max-w-screen-xl mx-auto p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6">
             <!-- Success Message -->
             <Alert v-if="successMessage" variant="success">
                 <AlertTitle>Success</AlertTitle>
@@ -15,31 +15,31 @@
             </Alert>
             <!-- Actions Section -->
             <!-- responsive here -->
-            <div class="mb-6 flex flex-col items-center justify-between gap-4 sm:flex-row">
+            <div class="flex flex-col sm:flex-row justify-between items-center px-2 mb-2 md:mb-4 lg:mb-6">
                 <!-- responsive here -->
-                <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">Driver Management</h1>
+                <h1 class="text-lg md:text-xl lg:text-2xl font-bold">Driver Management</h1>
                 <div class="flex flex-wrap gap-3">
                     <!-- responsive here -->
-                    <Button @click="openCreateModal" variant="default">
+                    <Button class="px-2 py-0 md:px-4 md:py-2" @click="openCreateModal" variant="default">
                         <!-- responsive here -->
-                        <Icon name="plus" class="mr-2 h-4 w-4" />
+                        <Icon name="plus" class="mr-1 h-4 w-4 md:mr-2" />
                         Create New Driver
                     </Button>
                     <!-- Add Delete Selected button -->
                     <!-- responsive here -->
-                    <Button v-if="selectedDrivers.length > 0" @click="confirmDeleteSelected()" variant="destructive">
+                    <Button class="px-2 py-0 md:px-4 md:py-2" v-if="selectedDrivers.length > 0" @click="confirmDeleteSelected()" variant="destructive">
                         <!-- responsive here -->
-                        <Icon name="trash" class="mr-2 h-4 w-4" />
+                        <Icon name="trash" class="mr-1 h-4 w-4 md:mr-2" />
                         Delete Selected ({{ selectedDrivers.length }})
                     </Button>
                     <div class="relative">
                         <!-- responsive here -->
-                        <Button @click="showUploadOptions = !showUploadOptions" variant="secondary">
+                        <Button class="px-2 py-0 md:px-4 md:py-2" @click="showUploadOptions = !showUploadOptions" variant="secondary">
                             <!-- responsive here -->
-                            <Icon name="upload" class="mr-2 h-4 w-4" />
+                            <Icon name="upload" class="mr-1 h-4 w-4 md:mr-2" />
                             Upload CSV
                             <!-- responsive here -->
-                            <Icon name="chevron-down" class="ml-2 h-4 w-4" />
+                            <Icon name="chevron-down" class="mr-1 h-4 w-4 md:mr-2" />
                         </Button>
                         <div v-if="showUploadOptions" class="absolute right-0 z-10 mt-1 w-48 rounded-md border bg-background shadow-lg">
                             <div class="py-1">
@@ -54,9 +54,9 @@
                         </div>
                     </div>
                     <!-- responsive here -->
-                    <Button @click.prevent="exportCSV" variant="outline">
+                    <Button class="px-2 py-0 md:px-4 md:py-2" @click.prevent="exportCSV" variant="outline">
                         <!-- responsive here -->
-                        <Icon name="download" class="mr-2 h-4 w-4" />
+                        <Icon name="download" class="mr-1 h-4 w-4 md:mr-2" />
                         Download CSV
                     </Button>
                 </div>
@@ -65,20 +65,21 @@
             <!-- Filters Section -->
             <Card>
                 <!-- responsive here -->
-                <CardHeader>
+                <CardHeader class=" p-2 md:p-4 lg:p-6">
                     <!-- responsive here -->
-                    <CardTitle>Filters</CardTitle>
+                    <CardTitle class=" text-lg md:text-xl lg:text-2xl">Filters</CardTitle>
                 </CardHeader>
                 <!-- responsive here -->
-                <CardContent>
+                <CardContent class=" p-2 md:p-4 lg:p-6 ">
                     <!-- responsive here -->
-                    <div class="flex flex-col items-end justify-between gap-4 sm:flex-row">
+                    <div class="flex flex-col gap-1 md:gap-4">
                         <!-- responsive here -->
-                        <div class="grid w-full grid-cols-1 gap-4 sm:grid-cols-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-1 md:gap-4 w-full">
                             <div>
                                 <Label for="search">Search</Label>
                                 <!-- responsive here -->
                                 <Input
+                                class = "py-1 px-1  md:px-2 md:py-1 h-9 lg:px-3 lg:py-2 lg:h-10"
                                     id="search"
                                     v-model="filters.search"
                                     type="text"
@@ -89,12 +90,12 @@
                             <div>
                                 <Label for="dateFrom">Hiring Date From</Label>
                                 <!-- responsive here -->
-                                <Input id="dateFrom" v-model="filters.dateFrom" type="date" @change="applyFilters" />
+                                <Input class = "py-1 px-1  md:px-2 md:py-1 h-9 lg:px-3 lg:py-2 lg:h-10" id="dateFrom" v-model="filters.dateFrom" type="date" @change="applyFilters" />
                             </div>
                             <div>
                                 <Label for="dateTo">Hiring Date To</Label>
                                 <!-- responsive here -->
-                                <Input id="dateTo" v-model="filters.dateTo" type="date" @change="applyFilters" />
+                                <Input class = "py-1 px-1  md:px-2 md:py-1 h-9 lg:px-3 lg:py-2 lg:h-10" id="dateTo" v-model="filters.dateTo" type="date" @change="applyFilters" />
                             </div>
                         </div>
                         <Button @click="resetFilters" variant="ghost" size="sm">
@@ -107,7 +108,7 @@
 
             <!-- Data Table -->
             <!-- responsive here -->
-            <Card>
+            <Card class="mx-auto max-w-[95vw] md:max-w-[64vw] lg:max-w-full overflow-x-auto">
                 <CardContent class="p-0">
                     <div class="overflow-x-auto">
                         <Table class="relative h-[600px] overflow-auto">
@@ -207,11 +208,11 @@
                     <!-- pagination -->
                     <div class="border-t bg-muted/20 px-4 py-3" v-if="entries.links">
                         <!-- responsive here -->
-                        <div class="flex items-center justify-between">
+                        <div class="flex flex-col sm:flex-row justify-between items-center gap-2">
                             <div class="flex items-center gap-4 text-sm text-muted-foreground">
                                 <span>Showing {{ entries.from }} to {{ entries.to }} of {{ entries.total }} entries</span>
                                 <!-- responsive here -->
-                                <div class="flex items-center gap-2">
+                                <div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 w-full sm:w-auto">
                                     <span class="text-sm">Show:</span>
                                     <select
                                         id="perPage"
@@ -227,7 +228,7 @@
                                 </div>
                             </div>
                             <!-- responsive here -->
-                            <div class="flex">
+                            <div class="flex flex-wrap">
                                 <Button
                                     v-for="link in entries.links"
                                     :key="link.label"
@@ -248,20 +249,20 @@
 
             <!-- Modal -->
             <Dialog v-model:open="showModal">
-                <DialogContent class="sm:max-w-4xl">
-                    <DialogHeader>
-                        <DialogTitle>{{ formTitle }}</DialogTitle>
-                        <DialogDescription> Fill in the details to {{ formAction.toLowerCase() }} a driver. </DialogDescription>
+                <DialogContent class="sm:max-w-4xl max-w-[95vw] mx-auto p-2 md:p-4 lg:p-6">
+                    <DialogHeader class="space-y-1 md:space-y-2">
+                        <DialogTitle class="text-lg md:text-xl lg:text-2xl">{{ formTitle }}</DialogTitle>
+                        <DialogDescription class="text-sm md:text-base"> Fill in the details to {{ formAction.toLowerCase() }} a driver. </DialogDescription>
                     </DialogHeader>
 
-                    <form @submit.prevent="submitForm" class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <form @submit.prevent="submitForm" class="grid grid-cols-1 gap-2 md:gap-4 sm:grid-cols-2 mt-2 md:mt-4">
                         <div v-if="SuperAdmin" class="col-span-2">
-                            <Label for="tenant">Company</Label>
+                            <Label for="tenant" class="text-sm md:text-base">Company</Label>
                             <div class="relative">
                                 <select
                                     id="tenant"
                                     v-model="form.tenant_id"
-                                    class="flex h-10 w-full appearance-none items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    class="flex h-8 md:h-10 w-full appearance-none items-center rounded-md border border-input bg-background px-2 md:px-3 py-1 md:py-2 text-xs md:text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                 >
                                     <option value="">Select Company</option>
                                     <option v-for="tenant in tenants" :key="tenant.id" :value="tenant.id">
@@ -269,7 +270,7 @@
                                     </option>
                                 </select>
                                 <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                                    <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <svg class="h-3 w-3 md:h-4 md:w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                         <path
                                             fill-rule="evenodd"
                                             d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
@@ -281,33 +282,33 @@
                         </div>
 
                         <div>
-                            <Label for="first_name">First Name</Label>
-                            <Input id="first_name" v-model="form.first_name" type="text" required />
+                            <Label for="first_name" class="text-sm md:text-base">First Name</Label>
+                            <Input id="first_name" v-model="form.first_name" type="text" required class="h-8 md:h-10 text-xs md:text-sm px-2 md:px-3 py-1 md:py-2" />
                         </div>
 
                         <div>
-                            <Label for="last_name">Last Name</Label>
-                            <Input id="last_name" v-model="form.last_name" type="text" required />
+                            <Label for="last_name" class="text-sm md:text-base">Last Name</Label>
+                            <Input id="last_name" v-model="form.last_name" type="text" required class="h-8 md:h-10 text-xs md:text-sm px-2 md:px-3 py-1 md:py-2" />
                         </div>
 
                         <div class="sm:col-span-2">
-                            <Label for="email">Email Address</Label>
-                            <Input id="email" v-model="form.email" type="email" required />
+                            <Label for="email" class="text-sm md:text-base">Email Address</Label>
+                            <Input id="email" v-model="form.email" type="email" required class="h-8 md:h-10 text-xs md:text-sm px-2 md:px-3 py-1 md:py-2" />
                         </div>
 
                         <div class="sm:col-span-2">
-                            <Label for="mobile_phone">Mobile Phone Number</Label>
-                            <Input id="mobile_phone" v-model="form.mobile_phone" type="text" required />
+                            <Label for="mobile_phone" class="text-sm md:text-base">Mobile Phone Number</Label>
+                            <Input id="mobile_phone" v-model="form.mobile_phone" type="text" required class="h-8 md:h-10 text-xs md:text-sm px-2 md:px-3 py-1 md:py-2" />
                         </div>
 
                         <div class="sm:col-span-2">
-                            <Label for="hiring_date">Hiring Date</Label>
-                            <Input id="hiring_date" v-model="form.hiring_date" type="date" required />
+                            <Label for="hiring_date" class="text-sm md:text-base">Hiring Date</Label>
+                            <Input id="hiring_date" v-model="form.hiring_date" type="date" required class="h-8 md:h-10 text-xs md:text-sm px-2 md:px-3 py-1 md:py-2" />
                         </div>
 
-                        <DialogFooter class="col-span-2 mt-4">
-                            <Button type="button" @click="closeModal" variant="outline"> Cancel </Button>
-                            <Button type="submit" variant="default">
+                        <DialogFooter class="col-span-2 mt-2 md:mt-4 flex flex-col sm:flex-row gap-2 sm:gap-4 justify-end">
+                            <Button type="button" @click="closeModal" variant="outline" class="h-8 md:h-10 text-xs md:text-sm px-2 md:px-4 py-1 md:py-2"> Cancel </Button>
+                            <Button type="submit" variant="default" class="h-8 md:h-10 text-xs md:text-sm px-2 md:px-4 py-1 md:py-2">
                                 {{ formAction }}
                             </Button>
                         </DialogFooter>
@@ -317,29 +318,30 @@
 
             <!-- Delete Confirmation Dialog -->
             <Dialog v-model:open="showDeleteModal">
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Confirm Deletion</DialogTitle>
-                        <DialogDescription> Are you sure you want to delete this driver? This action cannot be undone. </DialogDescription>
+                <DialogContent class="max-w-[95vw] sm:max-w-md mx-auto p-2 md:p-4 lg:p-6">
+                    <DialogHeader class="space-y-1 md:space-y-2">
+                        <DialogTitle class="text-lg md:text-xl lg:text-2xl">Confirm Deletion</DialogTitle>
+                        <DialogDescription class="text-sm md:text-base"> Are you sure you want to delete this driver? This action cannot be undone. </DialogDescription>
                     </DialogHeader>
-                    <DialogFooter class="mt-4">
-                        <Button type="button" @click="showDeleteModal = false" variant="outline"> Cancel </Button>
-                        <Button type="button" @click="confirmDelete" variant="destructive"> Delete </Button>
+                    <DialogFooter class="mt-2 md:mt-4 flex flex-col sm:flex-row gap-2 sm:gap-4 justify-end">
+                        <Button type="button" @click="showDeleteModal = false" variant="outline" class="h-8 md:h-10 text-xs md:text-sm px-2 md:px-4 py-1 md:py-2"> Cancel </Button>
+                        <Button type="button" @click="confirmDelete" variant="destructive" class="h-8 md:h-10 text-xs md:text-sm px-2 md:px-4 py-1 md:py-2"> Delete </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+            
             <!-- Add Delete Selected Confirmation Dialog -->
             <Dialog v-model:open="showDeleteSelectedModal">
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Confirm Bulk Deletion</DialogTitle>
-                        <DialogDescription>
+                <DialogContent class="max-w-[95vw] sm:max-w-md mx-auto p-2 md:p-4 lg:p-6">
+                    <DialogHeader class="space-y-1 md:space-y-2">
+                        <DialogTitle class="text-lg md:text-xl lg:text-2xl">Confirm Bulk Deletion</DialogTitle>
+                        <DialogDescription class="text-sm md:text-base">
                             Are you sure you want to delete {{ selectedDrivers.length }} driver records? This action cannot be undone.
                         </DialogDescription>
                     </DialogHeader>
-                    <DialogFooter class="mt-4">
-                        <Button type="button" @click="showDeleteSelectedModal = false" variant="outline"> Cancel </Button>
-                        <Button type="button" @click="deleteSelectedDrivers()" variant="destructive"> Delete Selected </Button>
+                    <DialogFooter class="mt-2 md:mt-4 flex flex-col sm:flex-row gap-2 sm:gap-4 justify-end">
+                        <Button type="button" @click="showDeleteSelectedModal = false" variant="outline" class="h-8 md:h-10 text-xs md:text-sm px-2 md:px-4 py-1 md:py-2"> Cancel </Button>
+                        <Button type="button" @click="deleteSelectedDrivers()" variant="destructive" class="h-8 md:h-10 text-xs md:text-sm px-2 md:px-4 py-1 md:py-2"> Delete Selected </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

@@ -2,7 +2,7 @@
     <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
         <Head title="Trucks" />
         <!-- responsive here -->
-        <div class="mx-auto max-w-7xl space-y-8 p-6">
+        <div class="w-full max-w-screen-xl mx-auto p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6">
             <!-- Success Message -->
             <Alert v-if="successMessage" variant="success">
                 <AlertTitle>Success</AlertTitle>
@@ -15,30 +15,30 @@
             </Alert>
             <!-- Actions Section -->
             <!-- responsive here -->
-            <div class="mb-6 flex flex-col items-center justify-between gap-4 sm:flex-row">
+            <div class="flex flex-col sm:flex-row justify-between items-center px-2 mb-2 md:mb-4 lg:mb-6">
                 <!-- responsive here -->
-                <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">Truck Management</h1>
+                <h1 class="text-lg md:text-xl lg:text-2xl font-bold">Truck Management</h1>
                 <div class="flex flex-wrap gap-3">
                     <!-- responsive here -->
-                    <Button @click="openCreateModal" variant="default">
+                    <Button class="px-2 py-0 md:px-4 md:py-2" @click="openCreateModal" variant="default">
                         <!-- responsive here -->
-                        <Icon name="plus" class="mr-2 h-4 w-4" />
+                        <Icon name="plus" class="mr-1 h-4 w-4 md:mr-2" />
                         Create New Truck
                     </Button>
 
                     <!-- Add Delete Selected button -->
                     <!-- responsive here -->
-                    <Button v-if="selectedTrucks.length > 0" @click="confirmDeleteSelected()" variant="destructive">
+                    <Button class="px-2 py-0 md:px-4 md:py-2" v-if="selectedTrucks.length > 0" @click="confirmDeleteSelected()" variant="destructive">
                         <!-- responsive here -->
-                        <Icon name="trash" class="mr-2 h-4 w-4" />
+                        <Icon name="trash" class="mr-1 h-4 w-4 md:mr-2" />
                         Delete Selected ({{ selectedTrucks.length }})
                     </Button>
 
                     <div class="relative">
                         <!-- responsive here -->
-                        <Button @click="showUploadOptions = !showUploadOptions" variant="secondary">
+                        <Button class="px-2 py-0 md:px-4 md:py-2" @click="showUploadOptions = !showUploadOptions" variant="secondary">
                             <!-- responsive here -->
-                            <Icon name="upload" class="mr-2 h-4 w-4" />
+                            <Icon name="upload" class="mr-1 h-4 w-4 md:mr-2" />
                             Upload CSV
                             <Icon name="chevron-down" class="ml-2 h-4 w-4" />
                         </Button>
@@ -55,9 +55,9 @@
                         </div>
                     </div>
                     <!-- responsive here -->
-                    <Button @click.prevent="exportCSV" variant="outline">
+                    <Button class="px-2 py-0 md:px-4 md:py-2" @click.prevent="exportCSV" variant="outline">
                         <!-- responsive here -->
-                        <Icon name="download" class="mr-2 h-4 w-4" />
+                        <Icon name="download" class="mr-1 h-4 w-4 md:mr-2" />
                         Download CSV
                     </Button>
                 </div>
@@ -66,20 +66,21 @@
             <!-- Filters Section -->
             <Card>
                 <!-- responsive here -->
-                <CardHeader>
+                <CardHeader class=" p-2 md:p-4 lg:p-6">
                     <!-- responsive here -->
-                    <CardTitle>Filters</CardTitle>
+                    <CardTitle class=" text-lg md:text-xl lg:text-2xl">Filters</CardTitle>
                 </CardHeader>
                 <!-- responsive here -->
-                <CardContent>
+                <CardContent class=" p-2 md:p-4 lg:p-6 ">
                     <!-- responsive here -->
-                    <div class="flex flex-col items-end justify-between gap-4 sm:flex-row">
+                    <div class="flex flex-col gap-1 md:gap-4">
                         <!-- responsive here -->
-                        <div class="grid w-full grid-cols-1 gap-4 sm:grid-cols-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-1 md:gap-4 w-full">
                             <div>
                                 <Label for="search">Search</Label>
                                 <!-- responsive here -->
                                 <Input
+                                class = "py-1 px-1  md:px-2 md:py-1 h-9 lg:px-3 lg:py-2 lg:h-10"
                                     id="search"
                                     v-model="filters.search"
                                     type="text"
@@ -127,7 +128,7 @@
 
             <!-- Data Table -->
             <!-- responsive here -->
-            <Card>
+            <Card class="mx-auto max-w-[95vw] md:max-w-[64vw] lg:max-w-full overflow-x-auto">
                 <CardContent class="p-0">
                     <div class="overflow-x-auto">
                         <Table class="relative h-[500px] overflow-auto">
@@ -244,11 +245,11 @@
                     <!-- paginate -->
                     <div class="border-t bg-muted/20 px-4 py-3" v-if="entries.links">
                         <!-- responsive here -->
-                        <div class="flex items-center justify-between">
+                        <div class="flex flex-col sm:flex-row justify-between items-center gap-2">
                             <div class="flex items-center gap-4 text-sm text-muted-foreground">
                                 <span>Showing {{ filteredEntries.length }} of {{ entries.data.length }} entries</span>
                                 <!-- responsive here -->
-                                <div class="flex items-center gap-2">
+                                <div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 w-full sm:w-auto">
                                     <span class="text-sm">Show:</span>
                                     <select
                                         v-model="perPage"
@@ -259,7 +260,7 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="flex">
+                            <div class="flex flex-wrap">
                                 <Button
                                     v-for="link in entries.links"
                                     :key="link.label"
@@ -280,13 +281,13 @@
 
             <!-- Modal -->
             <Dialog v-model:open="showModal">
-                <DialogContent class="sm:max-w-4xl">
-                    <DialogHeader>
-                        <DialogTitle>{{ formTitle }}</DialogTitle>
-                        <DialogDescription> Fill in the details to {{ formAction.toLowerCase() }} a truck. </DialogDescription>
+                <DialogContent class="max-w-[95vw] sm:max-w-[90vw] md:max-w-4xl">
+                    <DialogHeader class="px-4 sm:px-6">
+                        <DialogTitle class="text-lg sm:text-xl">{{ formTitle }}</DialogTitle>
+                        <DialogDescription class="text-xs sm:text-sm"> Fill in the details to {{ formAction.toLowerCase() }} a truck. </DialogDescription>
                     </DialogHeader>
 
-                    <form @submit.prevent="submitForm" class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <form @submit.prevent="submitForm" class="grid max-h-[75vh] grid-cols-1 gap-2 overflow-y-auto p-4 sm:grid-cols-2 sm:gap-3 sm:p-6">
                         <div v-if="SuperAdmin" class="col-span-2">
                             <Label for="tenant">Company Name</Label>
                             <div class="relative">
@@ -312,12 +313,12 @@
                             </div>
                         </div>
 
-                        <div>
+                        <div class="col-span-2 sm:col-span-1">
                             <Label for="truckid">Truck ID</Label>
                             <Input id="truckid" v-model.number="form.truckid" type="number" required />
                         </div>
 
-                        <div>
+                        <div class="col-span-2 sm:col-span-1">
                             <Label for="type">Type</Label>
                             <div class="relative">
                                 <select
@@ -341,7 +342,7 @@
                             </div>
                         </div>
 
-                        <div>
+                        <div class="col-span-2 sm:col-span-1">
                             <Label for="make">Make</Label>
                             <div class="relative">
                                 <select
@@ -368,7 +369,7 @@
                             </div>
                         </div>
 
-                        <div>
+                        <div class="col-span-2 sm:col-span-1">
                             <Label for="fuel">Fuel</Label>
                             <div class="relative">
                                 <select
@@ -392,18 +393,18 @@
                             </div>
                         </div>
 
-                        <div>
+                        <div class="col-span-2 sm:col-span-1">
                             <Label for="license">License</Label>
                             <Input id="license" v-model.number="form.license" type="number" min="0" required />
                         </div>
 
-                        <div>
+                        <div class="col-span-2 sm:col-span-1">
                             <Label for="vin">VIN</Label>
                             <Input id="vin" v-model="form.vin" type="text" required />
                         </div>
 
                         <!-- Add the new inspection fields here -->
-                        <div>
+                        <div class="col-span-2 sm:col-span-1">
                             <Label for="inspection_status">Annual Inspection Status</Label>
                             <div class="relative">
                                 <select
@@ -427,13 +428,13 @@
                             </div>
                         </div>
 
-                        <div>
+                        <div class="col-span-2 sm:col-span-1">
                             <Label for="inspection_expiry_date">Annual Inspection Expiry Date</Label>
                             <Input id="inspection_expiry_date" v-model="form.inspection_expiry_date" type="date" required />
                         </div>
 
                         <!-- Replace is_active and is_returned checkboxes with status dropdown -->
-                        <div>
+                        <div class="col-span-2 sm:col-span-1">
                             <Label for="status">Status</Label>
                             <div class="relative">
                                 <select

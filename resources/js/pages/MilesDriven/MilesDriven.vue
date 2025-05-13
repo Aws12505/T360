@@ -2,7 +2,7 @@
     <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
         <Head title="Miles Driven" />
         <!-- responsive here -->
-        <div class="mx-auto max-w-7xl space-y-8 p-6">
+        <div class="w-full max-w-screen-xl mx-auto p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6">
             <!-- Success Message -->
             <Alert v-if="successMessage" variant="success">
                 <AlertTitle>Success</AlertTitle>
@@ -11,24 +11,24 @@
 
             <!-- Actions Section -->
             <!-- responsive here -->
-            <div class="mb-6 flex items-center justify-between">
+            <div class="flex justify-between items-center px-2 mb-2 md:mb-4 lg:mb-6">
                 <!-- responsive here -->
-                <h1 class="text-2xl font-bold">Miles Driven</h1>
+                <h1 class="text-lg md:text-xl lg:text-2xl font-bold">Miles Driven</h1>
                 <!-- responsive here -->
-                <Button @click="openModal()" variant="default">
+                <Button class="px-2 py-0 md:px-4 md:py-2" @click="openModal()" variant="default">
                     <!-- responsive here -->
-                    <Icon name="plus" class="mr-2 h-4 w-4" /> Add Miles Driven
+                    <Icon name="plus" class="mr-1 h-4 w-4 md:mr-2" /> Add Miles Driven
                 </Button>
             </div>
 
             <!-- Date Filter Tabs -->
             <Card>
                 <!-- responsive here -->
-                <CardContent class="p-4">
+                <CardContent class="p-2 md:p-4 lg:p-6">
                     <!-- responsive here -->
-                    <div class="flex flex-col gap-2">
+                    <div class="flex flex-col items-center md:items-start gap-2">
                         <!-- responsive here -->
-                        <div class="flex flex-wrap gap-2">
+                        <div class="flex flex-wrap gap-1 md:gap-2">
                             <Button
                                 @click="selectDateFilter('yesterday')"
                                 variant="outline"
@@ -72,30 +72,30 @@
             <!-- Filters -->
             <Card>
                 <!-- responsive here -->
-                <CardHeader>
+                <CardHeader class=" p-2 md:p-4 lg:p-6">
                     <!-- responsive here -->
-                    <CardTitle>Filters</CardTitle></CardHeader
+                    <CardTitle class=" text-lg md:text-xl lg:text-2xl">Filters</CardTitle></CardHeader
                 >
                 <!-- responsive here -->
-                <CardContent>
+                <CardContent  class=" p-2 md:p-4 lg:p-6 ">
                     <!-- responsive here -->
-                    <div class="flex flex-col gap-4">
+                    <div class="flex flex-col gap-1 md:gap-4">
                         <!-- responsive here -->
-                        <div class="grid w-full grid-cols-1 gap-4 sm:grid-cols-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-1 md:gap-4 w-full">
                             <div>
                                 <Label for="search">Search</Label>
                                 <!-- responsive here -->
-                                <Input id="search" v-model="filters.search" type="text" placeholder="Search..." @input="applyFilters" />
+                                <Input class = "py-1 px-1  md:px-2 md:py-1 h-9 lg:px-3 lg:py-2 lg:h-10" id="search" v-model="filters.search" type="text" placeholder="Search..." @input="applyFilters" />
                             </div>
                             <div>
                                 <Label for="dateFrom">Date From</Label>
                                 <!-- responsive here -->
-                                <Input id="dateFrom" v-model="filters.dateFrom" type="date" @change="applyFilters" />
+                                <Input class = "py-1 px-1  md:px-2 md:py-1 h-9 lg:px-3 lg:py-2 lg:h-10" id="dateFrom" v-model="filters.dateFrom" type="date" @change="applyFilters" />
                             </div>
                             <div>
                                 <Label for="dateTo">Date To</Label>
                                 <!-- responsive here -->
-                                <Input id="dateTo" v-model="filters.dateTo" type="date" @change="applyFilters" />
+                                <Input class = "py-1 px-1  md:px-2 md:py-1 h-9 lg:px-3 lg:py-2 lg:h-10" id="dateTo" v-model="filters.dateTo" type="date" @change="applyFilters" />
                             </div>
                         </div>
                         <div class="flex justify-end">
@@ -109,7 +109,7 @@
 
             <!-- Table -->
             <!-- responsive here -->
-            <Card>
+            <Card class="mx-auto max-w-[95vw] md:max-w-[64vw] lg:max-w-full overflow-x-auto">
                 <CardContent class="p-0">
                     <div class="overflow-x-auto">
                         <Table class="relative h-[500px] overflow-auto">
@@ -178,10 +178,10 @@
                     <!-- Pagination -->
                     <div class="border-t bg-muted/20 px-4 py-3" v-if="entries.links">
                         <!-- responsive here -->
-                        <div class="flex items-center justify-between">
-                            <div class="text-sm text-muted-foreground">Showing {{ filteredEntries.length }} of {{ entries.data.length }} entries</div>
+                        <div class="items-center flex flex-col sm:flex-row justify-between gap-2">
+                            <div class=" text-sm text-muted-foreground">Showing {{ filteredEntries.length }} of {{ entries.data.length }} entries</div>
                             <!-- responsive here -->
-                            <div class="flex items-center gap-4">
+                            <div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 w-full sm:w-auto">
                                 <div class="flex items-center gap-2">
                                     <Label for="perPage" class="text-sm">Per page:</Label>
                                     <select
@@ -197,7 +197,7 @@
                                     </select>
                                 </div>
                                 <!-- responsive here -->
-                                <div class="flex">
+                                <div class="flex flex-wrap">
                                     <Button
                                         v-for="link in entries.links"
                                         :key="link.label"
@@ -311,14 +311,14 @@
 
         <!-- Delete Confirmation Dialog -->
         <Dialog v-model:open="isDeleteModalOpen">
-            <DialogContent>
+            <DialogContent class="w-[95vw] sm:max-w-md">
                 <DialogHeader>
-                    <DialogTitle>Confirm Deletion</DialogTitle>
-                    <DialogDescription> Are you sure you want to delete this miles driven record? This action cannot be undone. </DialogDescription>
+                    <DialogTitle class="text-lg md:text-xl">Confirm Deletion</DialogTitle>
+                    <DialogDescription class="text-sm md:text-base"> Are you sure you want to delete this miles driven record? This action cannot be undone. </DialogDescription>
                 </DialogHeader>
-                <DialogFooter>
-                    <Button variant="outline" @click="isDeleteModalOpen = false">Cancel</Button>
-                    <Button variant="destructive" @click="deleteRecord" :disabled="deleteForm.processing"> Delete </Button>
+                <DialogFooter class="mt-2 md:mt-4 flex flex-col sm:flex-row gap-2 sm:gap-0">
+                    <Button variant="outline" @click="isDeleteModalOpen = false" class="w-full sm:w-auto">Cancel</Button>
+                    <Button variant="destructive" @click="deleteRecord" :disabled="deleteForm.processing" class="w-full sm:w-auto"> Delete </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
