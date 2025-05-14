@@ -1,6 +1,6 @@
 <template>
-  <div class="bg-background rounded-lg border shadow-sm p-4">
-    <h3 class="text-base font-semibold mb-4">{{ title }}</h3>
+  <div class="bg-background rounded-lg border shadow-sm p-2 md:p-4">
+    <h3 class="text-base text-center font-semibold mb-4">{{ title }}</h3>
     
     <!-- Display message when no rejections -->
     <div v-if="totalRejections === '0'" class="text-center text-lg py-4 text-violet-400 font-medium">

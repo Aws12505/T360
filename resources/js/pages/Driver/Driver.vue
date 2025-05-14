@@ -210,7 +210,7 @@
                         <!-- responsive here -->
                         <div class="flex flex-col sm:flex-row justify-between items-center gap-2">
                             <div class="flex items-center gap-4 text-sm text-muted-foreground">
-                                <span>Showing {{ entries.from }} to {{ entries.to }} of {{ entries.total }} entries</span>
+                                <span>Showing {{ filteredEntries.length }} of {{ entries.data.length }} entries</span>
                                 <!-- responsive here -->
                                 <div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 w-full sm:w-auto">
                                     <span class="text-sm">Show:</span>

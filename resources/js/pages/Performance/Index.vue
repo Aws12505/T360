@@ -2,7 +2,7 @@
     <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
         <Head title="Performance" />
         <!-- responsive here -->
-        <div class="mx-auto max-w-7xl space-y-8 p-6">
+        <div class="w-full max-w-screen-xl mx-auto p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6">
             <!-- Success Message -->
             <Alert v-if="successMessage" variant="success">
                 <AlertTitle>Success</AlertTitle>
@@ -17,30 +17,30 @@
 
             <!-- Actions Section -->
             <!-- responsive here -->
-            <div class="mb-6 flex flex-col items-center justify-between gap-4 sm:flex-row">
+            <div class="flex flex-col sm:flex-row justify-between items-center px-2 mb-2 md:mb-4 lg:mb-6">
                 <!-- responsive here -->
-                <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">Performance Management</h1>
+                <h1 class="text-lg md:text-xl lg:text-2xl font-bold text-gray-800 dark:text-gray-200">Performance Management</h1>
                 <div class="flex flex-wrap gap-3">
                     <!-- responsive here -->
-                    <Button @click="openCreateModal" variant="default">
+                    <Button class="px-2 py-0 md:px-4 md:py-2" @click="openCreateModal" variant="default">
                         <!-- responsive here -->
-                        <Icon name="plus" class="mr-2 h-4 w-4" />
+                        <Icon name="plus" class="mr-1 h-4 w-4 md:mr-2" />
                         Create New Performance
                     </Button>
 
                     <!-- Add Delete Selected button -->
                     <!-- responsive here -->
-                    <Button v-if="selectedPerformances.length > 0" @click="confirmDeleteSelected()" variant="destructive">
+                    <Button class="px-2 py-0 md:px-4 md:py-2" v-if="selectedPerformances.length > 0" @click="confirmDeleteSelected()" variant="destructive">
                         <!-- responsive here -->
-                        <Icon name="trash" class="mr-2 h-4 w-4" />
+                        <Icon name="trash" class="mr-1 h-4 w-4 md:mr-2" />
                         Delete Selected ({{ selectedPerformances.length }})
                     </Button>
 
                     <div class="relative">
                         <!-- responsive here -->
-                        <Button @click="showUploadOptions = !showUploadOptions" variant="secondary">
+                        <Button class="px-2 py-0 md:px-4 md:py-2" @click="showUploadOptions = !showUploadOptions" variant="secondary">
                             <!-- responsive here -->
-                            <Icon name="upload" class="mr-2 h-4 w-4" />
+                            <Icon name="upload" class="mr-1 h-4 w-4 md:mr-2" />
                             Upload CSV
                             <Icon name="chevron-down" class="ml-2 h-4 w-4" />
                         </Button>
@@ -57,9 +57,9 @@
                         </div>
                     </div>
                     <!-- responsive here -->
-                    <Button @click.prevent="exportCSV" variant="outline">
+                    <Button class="px-2 py-0 md:px-4 md:py-2" @click.prevent="exportCSV" variant="outline">
                         <!-- responsive here -->
-                        <Icon name="download" class="mr-2 h-4 w-4" />
+                        <Icon name="download" class="mr-1 h-4 w-4 md:mr-2" />
                         Download CSV
                     </Button>
                 </div>
@@ -68,11 +68,11 @@
             <!-- Date Filter Tabs -->
             <Card>
                 <!-- responsive here -->
-                <CardContent class="p-4">
+                <CardContent class=" p-2 md:p-4 lg:p-6">
                     <!-- responsive here -->
-                    <div class="flex flex-col gap-2">
+                    <div class="flex flex-col items-center md:items-start gap-2">
                         <!-- responsive here -->
-                        <div class="flex flex-wrap gap-2">
+                        <div class="flex flex-wrap gap-1 md:gap-2">
                             <Button
                                 @click="selectDateFilter('yesterday')"
                                 variant="outline"
@@ -125,7 +125,7 @@
 
             <!-- Performance Table -->
             <!-- responsive here -->
-            <Card>
+            <Card class="mx-auto max-w-[95vw] md:max-w-[64vw] lg:max-w-full overflow-x-auto">
                 <CardContent class="p-0">
                     <div class="overflow-x-auto">
                         <Table class="relative h-[600px] overflow-auto">
@@ -246,11 +246,11 @@
                     <!-- paginate -->
                     <div class="border-t bg-muted/20 px-4 py-3" v-if="performances.links">
                         <!-- responsive here -->
-                        <div class="flex items-center justify-between">
+                        <div class="flex flex-col sm:flex-row justify-between items-center gap-2">
                             <div class="flex items-center gap-4 text-sm text-muted-foreground">
                                 <span>Showing {{ filteredPerformances.length }} of {{ performances.data.length }} entries</span>
                                 <!-- responsive here -->
-                                <div class="flex items-center gap-2">
+                                <div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 w-full sm:w-auto">
                                     <span class="text-sm">Show:</span>
                                     <select
                                         v-model="perPage"
@@ -262,7 +262,7 @@
                                 </div>
                             </div>
                             <!-- responsive here -->
-                            <div class="flex">
+                            <div class="flex flex-wrap">
                                 <Button
                                     v-for="link in performances.links"
                                     :key="link.label"
@@ -280,144 +280,166 @@
                     </div>
                 </CardContent>
             </Card>
+<!-- Modal for Create/Edit Performance -->
+<Dialog v-model:open="showModal">
+    <DialogContent class="max-w-[95vw] sm:max-w-[90vw] md:max-w-4xl">
+        <DialogHeader class="px-4 sm:px-6">
+            <DialogTitle class="text-lg sm:text-xl">{{ formTitle }}</DialogTitle>
+            <DialogDescription class="text-xs sm:text-sm">
+                Fill in the details to {{ formAction.toLowerCase() }} a performance record.
+            </DialogDescription>
+        </DialogHeader>
 
-            <!-- Modal for Create/Edit Performance -->
-            <Dialog v-model:open="showModal">
-                <DialogContent class="w-[90vw] sm:max-w-lg md:max-w-2xl lg:max-w-3xl">
-                    <DialogHeader>
-                        <DialogTitle>{{ formTitle }}</DialogTitle>
-                        <DialogDescription> Fill in the details to {{ formAction.toLowerCase() }} a performance record. </DialogDescription>
-                    </DialogHeader>
-                    <form @submit.prevent="submitForm" class="space-y-4">
-                        <!-- Tenant Dropdown for SuperAdmin -->
-                        <div v-if="SuperAdmin">
-                            <Label for="tenant">Company Name</Label>
-                            <div class="relative">
-                                <select
-                                    id="tenant"
-                                    v-model="form.tenant_id"
-                                    required
-                                    class="flex h-10 w-full appearance-none items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                >
-                                    <option disabled value="">Select a Company</option>
-                                    <option v-for="tenant in tenants" :key="tenant.id" :value="tenant.id">
-                                        {{ tenant.name }}
-                                    </option>
-                                </select>
-                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                                    <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                        <path
-                                            fill-rule="evenodd"
-                                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                            clip-rule="evenodd"
-                                        />
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Form Fields in Grid Layout for larger screens -->
-                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <!-- Date Field -->
-                            <div>
-                                <Label for="date">Date</Label>
-                                <Input id="date" v-model="form.date" type="date" required />
-                            </div>
-                            <!-- Acceptance Field -->
-                            <div>
-                                <Label for="acceptance">Acceptance</Label>
-                                <Input id="acceptance" v-model="form.acceptance" type="number" step="0.01" required />
-                            </div>
-                            <!-- On Time to Origin Field -->
-                            <div>
-                                <Label for="on_time_to_origin">On Time to Origin</Label>
-                                <Input id="on_time_to_origin" v-model="form.on_time_to_origin" type="number" step="0.01" required />
-                            </div>
-                            <!-- On Time to Destination Field -->
-                            <div>
-                                <Label for="on_time_to_destination">On Time to Destination</Label>
-                                <Input id="on_time_to_destination" v-model="form.on_time_to_destination" type="number" step="0.01" required />
-                            </div>
-                            <!-- Maintenance Variance to Spend Field -->
-                            <div>
-                                <Label for="maintenance_variance_to_spend">Maintenance Variance to Spend</Label>
-                                <Input
-                                    id="maintenance_variance_to_spend"
-                                    v-model="form.maintenance_variance_to_spend"
-                                    type="number"
-                                    step="0.01"
-                                    required
-                                />
-                            </div>
-                            <!-- Open BOC Field -->
-                            <div>
-                                <Label for="open_boc">Open BOC</Label>
-                                <Input id="open_boc" v-model="form.open_boc" type="number" step="1" required />
-                            </div>
-                            <!-- VCR Preventable Field -->
-                            <div>
-                                <Label for="vcr_preventable">VCR Preventable</Label>
-                                <Input id="vcr_preventable" v-model="form.vcr_preventable" type="number" step="1" required />
-                            </div>
-                            <!-- VMCR P Field -->
-                            <div>
-                                <Label for="vmcr_p">VMCR P</Label>
-                                <Input id="vmcr_p" v-model="form.vmcr_p" type="number" step="1" required />
-                            </div>
-                        </div>
-
-                        <!-- Safety Bonus Checkbox (full width) -->
-                        <div class="flex items-center gap-2">
-                            <input
-                                id="meets_safety_bonus_criteria"
-                                v-model="form.meets_safety_bonus_criteria"
-                                type="checkbox"
-                                class="h-4 w-4 rounded border-gray-300 focus:ring-blue-500"
+        <form @submit.prevent="submitForm" class="grid max-h-[75vh] grid-cols-1 gap-2 overflow-y-auto p-4 sm:grid-cols-2 sm:gap-3 sm:p-6">
+            <!-- Tenant Dropdown for SuperAdmin -->
+            <div v-if="SuperAdmin" class="col-span-2">
+                <Label for="tenant" class="text-xs sm:text-sm">Company Name</Label>
+                <div class="relative mt-1">
+                    <select
+                        id="tenant"
+                        v-model="form.tenant_id"
+                        required
+                        class="flex h-9 w-full appearance-none items-center rounded-md border border-input bg-background px-3 py-1 text-xs ring-offset-background focus:outline-none focus:ring-1 focus:ring-ring focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 sm:h-10 sm:text-sm"
+                    >
+                        <option disabled value="">Select a Company</option>
+                        <option v-for="tenant in tenants" :key="tenant.id" :value="tenant.id">
+                            {{ tenant.name }}
+                        </option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-700">
+                        <svg
+                            class="h-3 w-3 opacity-50 sm:h-4 sm:w-4"
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                        >
+                            <path
+                                fill-rule="evenodd"
+                                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                clip-rule="evenodd"
                             />
-                            <Label for="meets_safety_bonus_criteria"> Meets Safety Bonus Criteria </Label>
-                        </div>
+                        </svg>
+                    </div>
+                </div>
+            </div>
 
-                        <!-- Action Buttons -->
-                        <DialogFooter class="flex-col space-y-2 sm:flex-row sm:justify-end sm:space-x-2 sm:space-y-0">
-                            <Button type="button" @click="closeModal" variant="outline" class="w-full sm:w-auto"> Cancel </Button>
-                            <Button type="submit" variant="default" class="w-full sm:w-auto">
-                                {{ formAction }}
-                            </Button>
-                        </DialogFooter>
-                    </form>
-                </DialogContent>
-            </Dialog>
+            <!-- Date Field -->
+            <div class="col-span-2 sm:col-span-1">
+                <Label for="date" class="text-xs sm:text-sm">Date</Label>
+                <Input id="date" v-model="form.date" type="date" required class="h-9 px-3 py-1 text-xs sm:h-10 sm:text-sm" />
+            </div>
 
-            <!-- Delete Confirmation Dialog -->
-            <Dialog v-model:open="showDeleteModal">
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Confirm Deletion</DialogTitle>
-                        <DialogDescription>
-                            Are you sure you want to delete this performance record? This action cannot be undone.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter class="mt-4">
-                        <Button type="button" @click="showDeleteModal = false" variant="outline"> Cancel </Button>
-                        <Button type="button" @click="confirmDelete" variant="destructive"> Delete </Button>
-                    </DialogFooter>
-                </DialogContent> </Dialog
-            ><!-- Add Delete Selected Confirmation Dialog -->
-            <Dialog v-model:open="showDeleteSelectedModal">
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Confirm Bulk Deletion</DialogTitle>
-                        <DialogDescription>
-                            Are you sure you want to delete {{ selectedPerformances.length }} performance records? This action cannot be undone.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter class="mt-4">
-                        <Button type="button" @click="showDeleteSelectedModal = false" variant="outline"> Cancel </Button>
-                        <Button type="button" @click="deleteSelectedPerformances()" variant="destructive"> Delete Selected </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            <!-- Acceptance Field -->
+            <div class="col-span-2 sm:col-span-1">
+                <Label for="acceptance" class="text-xs sm:text-sm">Acceptance</Label>
+                <Input id="acceptance" v-model="form.acceptance" type="number" step="0.01" required class="h-9 px-3 py-1 text-xs sm:h-10 sm:text-sm" />
+            </div>
 
+            <!-- On Time to Origin Field -->
+            <div class="col-span-2 sm:col-span-1">
+                <Label for="on_time_to_origin" class="text-xs sm:text-sm">On Time to Origin</Label>
+                <Input id="on_time_to_origin" v-model="form.on_time_to_origin" type="number" step="0.01" required class="h-9 px-3 py-1 text-xs sm:h-10 sm:text-sm" />
+            </div>
+
+            <!-- On Time to Destination Field -->
+            <div class="col-span-2 sm:col-span-1">
+                <Label for="on_time_to_destination" class="text-xs sm:text-sm">On Time to Destination</Label>
+                <Input id="on_time_to_destination" v-model="form.on_time_to_destination" type="number" step="0.01" required class="h-9 px-3 py-1 text-xs sm:h-10 sm:text-sm" />
+            </div>
+
+            <!-- Maintenance Variance to Spend Field -->
+            <div class="col-span-2 sm:col-span-1">
+                <Label for="maintenance_variance_to_spend" class="text-xs sm:text-sm">Maintenance Variance to Spend</Label>
+                <Input
+                    id="maintenance_variance_to_spend"
+                    v-model="form.maintenance_variance_to_spend"
+                    type="number"
+                    step="0.01"
+                    required
+                    class="h-9 px-3 py-1 text-xs sm:h-10 sm:text-sm"
+                />
+            </div>
+
+            <!-- Open BOC Field -->
+            <div class="col-span-2 sm:col-span-1">
+                <Label for="open_boc" class="text-xs sm:text-sm">Open BOC</Label>
+                <Input id="open_boc" v-model="form.open_boc" type="number" step="1" required class="h-9 px-3 py-1 text-xs sm:h-10 sm:text-sm" />
+            </div>
+
+            <!-- VCR Preventable Field -->
+            <div class="col-span-2 sm:col-span-1">
+                <Label for="vcr_preventable" class="text-xs sm:text-sm">VCR Preventable</Label>
+                <Input id="vcr_preventable" v-model="form.vcr_preventable" type="number" step="1" required class="h-9 px-3 py-1 text-xs sm:h-10 sm:text-sm" />
+            </div>
+
+            <!-- VMCR P Field -->
+            <div class="col-span-2 sm:col-span-1">
+                <Label for="vmcr_p" class="text-xs sm:text-sm">VMCR P</Label>
+                <Input id="vmcr_p" v-model="form.vmcr_p" type="number" step="1" required class="h-9 px-3 py-1 text-xs sm:h-10 sm:text-sm" />
+            </div>
+
+            <!-- Safety Bonus Checkbox (full width) -->
+            <div class="col-span-2 flex items-center gap-2">
+                <input
+                    id="meets_safety_bonus_criteria"
+                    v-model="form.meets_safety_bonus_criteria"
+                    type="checkbox"
+                    class="h-3.5 w-3.5 rounded border-gray-300 text-primary focus:ring-1 focus:ring-primary sm:h-4 sm:w-4"
+                />
+                <Label for="meets_safety_bonus_criteria" class="text-xs sm:text-sm">Meets Safety Bonus Criteria</Label>
+            </div>
+
+            <DialogFooter class="col-span-2 mt-3 flex flex-col gap-2 sm:flex-row sm:gap-3">
+                <Button type="button" @click="closeModal" variant="outline" class="h-9 px-4 py-1 text-xs sm:h-10 sm:text-sm">
+                    Cancel
+                </Button>
+                <Button type="submit" variant="default" class="h-9 px-4 py-1 text-xs sm:h-10 sm:text-sm">
+                    {{ formAction }}
+                </Button>
+            </DialogFooter>
+        </form>
+    </DialogContent>
+</Dialog>
+
+<!-- Delete Confirmation Dialog -->
+<Dialog v-model:open="showDeleteModal">
+    <DialogContent class="max-w-[95vw] sm:max-w-md">
+        <DialogHeader class="px-4 sm:px-6">
+            <DialogTitle class="text-lg sm:text-xl">Confirm Deletion</DialogTitle>
+            <DialogDescription class="text-xs sm:text-sm">
+                Are you sure you want to delete this performance record? This action cannot be undone.
+            </DialogDescription>
+        </DialogHeader>
+        <DialogFooter class="px-4 sm:px-6">
+            <Button type="button" @click="showDeleteModal = false" variant="outline" class="h-9 px-4 py-1 text-xs sm:h-10 sm:text-sm">
+                Cancel
+            </Button>
+            <Button type="button" @click="confirmDelete" variant="destructive" class="h-9 px-4 py-1 text-xs sm:h-10 sm:text-sm">
+                Delete
+            </Button>
+        </DialogFooter>
+    </DialogContent>
+</Dialog>
+
+<!-- Delete Selected Confirmation Dialog -->
+<Dialog v-model:open="showDeleteSelectedModal">
+    <DialogContent class="max-w-[95vw] sm:max-w-md">
+        <DialogHeader class="px-4 sm:px-6">
+            <DialogTitle class="text-lg sm:text-xl">Confirm Bulk Deletion</DialogTitle>
+            <DialogDescription class="text-xs sm:text-sm">
+                Are you sure you want to delete {{ selectedPerformances.length }} performance records? This action cannot be undone.
+            </DialogDescription>
+        </DialogHeader>
+        <DialogFooter class="px-4 sm:px-6">
+            <Button type="button" @click="showDeleteSelectedModal = false" variant="outline" class="h-9 px-4 py-1 text-xs sm:h-10 sm:text-sm">
+                Cancel
+            </Button>
+            <Button type="button" @click="deleteSelectedPerformances()" variant="destructive" class="h-9 px-4 py-1 text-xs sm:h-10 sm:text-sm">
+                Delete Selected
+            </Button>
+        </DialogFooter>
+    </DialogContent>
+</Dialog>
             <!-- Hidden Export Form -->
             <form ref="exportForm" method="GET" class="hidden" />
         </div>

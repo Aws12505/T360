@@ -2,7 +2,7 @@
     <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
         <Head title="On-Time" />
         <!-- responsive here -->
-        <div class="mx-auto w-full space-y-8 p-6">
+        <div class="mx-auto w-full max-w-screen-xl space-y-2 p-2 md:space-y-4 md:p-4 lg:space-y-6 lg:p-6">
             <!-- Success Message -->
             <Alert v-if="successMessage" variant="success">
                 <AlertTitle>Success</AlertTitle>
@@ -17,27 +17,27 @@
 
             <!-- Actions Section -->
             <!-- responsive here -->
-            <div class="mb-6 flex flex-col items-center justify-between gap-4 sm:flex-row">
+            <div class="mb-2 flex flex-col items-center justify-between px-2 sm:flex-row md:mb-4 lg:mb-6">
                 <!-- responsive here -->
-                <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">On-Time Management</h1>
+                <h1 class="text-lg font-bold md:text-xl lg:text-2xl">On-Time Management</h1>
                 <div class="flex flex-wrap gap-3">
                     <!-- responsive here -->
-                    <Button @click="openForm()" variant="default">
+                    <Button class="px-2 py-0 md:px-4 md:py-2" @click="openForm()" variant="default">
                         <!-- responsive here -->
-                        <Icon name="plus" class="mr-2 h-4 w-4" />
+                        <Icon name="plus" class="mr-1 h-4 w-4 md:mr-2" />
                         Add Delay
                     </Button>
                     <!-- responsive here -->
-                    <Button v-if="selectedDelays.length > 0" @click="confirmDeleteSelected()" variant="destructive">
+                    <Button class="px-2 py-0 md:px-4 md:py-2" v-if="selectedDelays.length > 0" @click="confirmDeleteSelected()" variant="destructive">
                         <!-- responsive here -->
-                        <Icon name="trash" class="mr-2 h-4 w-4" />
+                        <Icon name="trash" class="mr-1 h-4 w-4 md:mr-2" />
                         Delete Selected ({{ selectedDelays.length }})
                     </Button>
                     <div class="relative">
                         <!-- responsive here -->
-                        <Button @click="showUploadOptions = !showUploadOptions" variant="secondary">
+                        <Button class="px-2 py-0 md:px-4 md:py-2" @click="showUploadOptions = !showUploadOptions" variant="secondary">
                             <!-- responsive here -->
-                            <Icon name="upload" class="mr-2 h-4 w-4" />
+                            <Icon name="upload" class="mr-1 h-4 w-4 md:mr-2" />
                             Upload CSV
                             <Icon name="chevron-down" class="ml-2 h-4 w-4" />
                         </Button>
@@ -54,15 +54,15 @@
                         </div>
                     </div>
                     <!-- responsive here -->
-                    <Button @click.prevent="exportCSV" variant="outline">
+                    <Button class="px-2 py-0 md:px-4 md:py-2" @click.prevent="exportCSV" variant="outline">
                         <!-- responsive here -->
-                        <Icon name="download" class="mr-2 h-4 w-4" />
+                        <Icon name="download" class="mr-1 h-4 w-4 md:mr-2" />
                         Download CSV
                     </Button>
                     <!-- responsive here -->
-                    <Button v-if="isSuperAdmin" @click="openCodeModal()" variant="outline">
+                    <Button class="px-2 py-0 md:px-4 md:py-2" v-if="isSuperAdmin" @click="openCodeModal()" variant="outline">
                         <!-- responsive here -->
-                        <Icon name="settings" class="mr-2 h-4 w-4" />
+                        <Icon name="settings" class="mr-1 h-4 w-4 md:mr-2" />
                         Manage Delay Codes
                     </Button>
                 </div>
@@ -74,11 +74,11 @@
             <!-- Date Filter Tabs -->
             <Card>
                 <!-- responsive here -->
-                <CardContent class="p-4">
+                <CardContent class="p-2 md:p-4 lg:p-6">
                     <!-- responsive here -->
-                    <div class="flex flex-col gap-2">
+                    <div class="flex flex-col items-center gap-2 md:items-start">
                         <!-- responsive here -->
-                        <div class="flex flex-wrap gap-2">
+                        <div class="flex flex-wrap gap-1 md:gap-2">
                             <Button
                                 @click="selectDateFilter('yesterday')"
                                 variant="outline"
@@ -137,11 +137,11 @@
                 <!-- Filters Section -->
                 <Card>
                     <!-- responsive here -->
-                    <CardHeader class="pb-2">
+                    <CardHeader class="p-2 md:p-4 lg:p-6">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
                                 <!-- responsive here -->
-                                <CardTitle>Filters</CardTitle>
+                                <CardTitle class="text-lg md:text-xl lg:text-2xl">Filters</CardTitle>
                                 <div v-if="!showFilters && hasActiveFilters" class="ml-4 flex flex-wrap gap-2">
                                     <div
                                         v-if="filters.search"
@@ -190,15 +190,16 @@
                         </div>
                     </CardHeader>
                     <!-- responsive here -->
-                    <CardContent v-if="showFilters" class="pt-2">
+                    <CardContent v-if="showFilters" class="p-2 md:p-4 lg:p-6">
                         <!-- responsive here -->
-                        <div class="flex flex-col justify-between gap-4">
+                        <div class="flex flex-col justify-between gap-1 md:gap-4">
                             <!-- responsive here -->
-                            <div class="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+                            <div class="grid w-full grid-cols-1 gap-1 sm:grid-cols-3 md:gap-4">
                                 <div>
                                     <Label for="search">Search</Label>
                                     <!-- responsive here -->
                                     <Input
+                                        class="h-9 px-1 py-1 md:px-2 md:py-1 lg:h-10 lg:px-3 lg:py-2"
                                         id="search"
                                         v-model="filters.search"
                                         type="text"
@@ -299,7 +300,7 @@
 
                 <!-- Delays Table -->
                 <!-- responsive here -->
-                <Card>
+                <Card class="mx-auto max-w-[95vw] overflow-x-auto md:max-w-[64vw] lg:max-w-full">
                     <CardContent class="p-0">
                         <div class="overflow-x-auto">
                             <Table class="relative h-[500px] overflow-auto">
@@ -420,12 +421,12 @@
                         <!-- paginate -->
                         <div class="border-t bg-muted/20 px-4 py-3" v-if="delays.links">
                             <!-- responsive here -->
-                            <div class="flex items-center justify-between">
+                            <div class="flex flex-col items-center justify-between gap-2 sm:flex-row">
                                 <div class="text-sm text-muted-foreground">
                                     Showing {{ filteredDelays.length }} of {{ delays.data.length }} entries
                                 </div>
                                 <!-- responsive here -->
-                                <div class="flex items-center gap-4">
+                                <div class="flex w-full flex-col items-center gap-2 sm:w-auto sm:flex-row sm:gap-4">
                                     <div class="flex items-center gap-2">
                                         <Label for="perPage" class="text-sm">Per page:</Label>
                                         <select
@@ -440,7 +441,7 @@
                                             <option value="100">100</option>
                                         </select>
                                     </div>
-                                    <div class="flex">
+                                    <div class="flex flex-wrap">
                                         <Button
                                             v-for="link in delays.links"
                                             :key="link.label"
@@ -459,155 +460,210 @@
                         </div>
                     </CardContent>
                 </Card>
+            </template>
+            <!-- Delay Form Modal (Pass only active delay codes) -->
+            <Dialog v-model:open="formModal">
+                <DialogContent class="max-w-[95vw] sm:max-w-[90vw] md:max-w-4xl">
+                    <DialogHeader class="px-4 sm:px-6">
+                        <DialogTitle class="text-lg sm:text-xl">{{ selectedDelay ? 'Edit' : 'Add' }} Delay</DialogTitle>
+                        <DialogDescription class="text-xs sm:text-sm">
+                            Fill in the details to {{ selectedDelay ? 'update' : 'create' }} a delay record.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DelayForm
+                        :delay="selectedDelay"
+                        :delay-codes="activeDelayCodes"
+                        :tenants="tenants"
+                        :is-super-admin="isSuperAdmin"
+                        :tenant-slug="tenantSlug"
+                        @close="formModal = false"
+                        class="max-h-[75vh] overflow-y-auto p-4 sm:p-6"
+                    />
+                </DialogContent>
+            </Dialog>
 
-                <!-- Delay Form Modal (Pass only active delay codes) -->
-                <Dialog v-model:open="formModal">
-                    <DialogContent class="sm:max-w-2xl">
-                        <DialogHeader>
-                            <DialogTitle>{{ selectedDelay ? 'Edit' : 'Add' }} Delay</DialogTitle>
-                            <DialogDescription> Fill in the details to {{ selectedDelay ? 'update' : 'create' }} a delay record. </DialogDescription>
-                        </DialogHeader>
-                        <DelayForm
-                            :delay="selectedDelay"
-                            :delay-codes="activeDelayCodes"
-                            :tenants="tenants"
-                            :is-super-admin="isSuperAdmin"
-                            :tenant-slug="tenantSlug"
-                            @close="formModal = false"
-                        />
-                    </DialogContent>
-                </Dialog>
+            <!-- Code Manager Modal for Delay Codes -->
+            <Dialog v-model:open="codeModal">
+                <DialogContent class="max-w-[95vw] sm:max-w-[90vw] md:max-w-2xl">
+                    <DialogHeader class="px-4 sm:px-6">
+                        <DialogTitle class="text-lg sm:text-xl">Manage Delay Codes</DialogTitle>
+                        <DialogDescription class="text-xs sm:text-sm"> Create and manage delay codes for your organization. </DialogDescription>
+                    </DialogHeader>
 
-                <!-- Code Manager Modal for Delay Codes -->
-                <Dialog v-model:open="codeModal">
-                    <DialogContent class="sm:max-w-lg">
-                        <DialogHeader>
-                            <DialogTitle>Manage Delay Codes</DialogTitle>
-                            <DialogDescription> Create and manage delay codes for your organization. </DialogDescription>
-                        </DialogHeader>
-                        <div class="mt-4 space-y-4">
-                            <div class="flex items-center justify-between">
-                                <h3 class="text-sm font-medium">Current Delay Codes</h3>
-                                <Button @click="openNewCodeForm" size="sm" variant="outline">
-                                    <Icon name="plus" class="mr-2 h-4 w-4" />
-                                    Add New Code
-                                </Button>
+                    <div class="max-h-[75vh] space-y-4 overflow-y-auto p-4 sm:p-6">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-sm font-medium sm:text-base">Current Delay Codes</h3>
+                            <Button @click="openNewCodeForm" size="sm" variant="outline" class="h-8 px-3 text-xs sm:h-9 sm:px-4 sm:text-sm">
+                                <Icon name="plus" class="mr-1 h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                                Add New Code
+                            </Button>
+                        </div>
+
+                        <div class="max-h-[400px] overflow-y-auto rounded-md border">
+                            <div
+                                v-if="!delay_codes || delay_codes.length === 0"
+                                class="rounded-md border py-8 text-center text-xs text-muted-foreground sm:text-sm"
+                            >
+                                No delay codes found
                             </div>
-                            <div class="max-h-[400px] overflow-y-auto">
-                                <div v-if="!delay_codes || delay_codes.length === 0" class="rounded-md border py-8 text-center text-muted-foreground">
-                                    No delay codes found
-                                </div>
-                                <div v-else class="space-y-2">
-                                    <div
-                                        v-for="code in delay_codes"
-                                        :key="code.id"
-                                        class="group flex items-center justify-between rounded-md border p-3 hover:bg-muted/50"
-                                    >
-                                        <div class="flex-1 cursor-pointer" @click="editCode(code)">
-                                            <div class="font-medium">
-                                                {{ code.code }}
-                                                <span v-if="code.deleted_at" class="ml-2 text-xs text-red-500">(Deleted)</span>
-                                            </div>
-                                            <div v-if="code.description" class="mt-1 text-sm text-muted-foreground">
-                                                {{ code.description }}
-                                            </div>
+                            <div v-else class="divide-y">
+                                <div v-for="code in delay_codes" :key="code.id" class="group flex items-center justify-between p-3 hover:bg-muted/50">
+                                    <div class="flex-1 cursor-pointer" @click="editCode(code)">
+                                        <div class="text-xs font-medium sm:text-sm">
+                                            {{ code.code }}
+                                            <span v-if="code.deleted_at" class="ml-2 text-[0.65rem] text-red-500 sm:text-xs">(Deleted)</span>
                                         </div>
-                                        <div class="opacity-0 transition-opacity group-hover:opacity-100">
-                                            <template v-if="isSuperAdmin">
-                                                <template v-if="code.deleted_at">
-                                                    <Button @click="restoreCode(code.id)" size="sm" variant="outline">
-                                                        <Icon name="refresh" class="mr-2 h-4 w-4" />
-                                                        Restore
-                                                    </Button>
-                                                    <Button @click="forceDeleteCode(code.id)" size="sm" variant="destructive">
-                                                        <Icon name="trash" class="mr-2 h-4 w-4" />
-                                                        Permanently Delete
-                                                    </Button>
-                                                </template>
-                                                <template v-else>
-                                                    <Button @click="confirmDeleteCode(code.id)" size="sm" variant="destructive">
-                                                        <Icon name="trash" class="mr-2 h-4 w-4" />
-                                                        Delete
-                                                    </Button>
-                                                </template>
-                                            </template>
-                                            <template v-else>
-                                                <Button @click="confirmDeleteCode(code.id)" size="sm" variant="destructive">
-                                                    <Icon name="trash" class="mr-2 h-4 w-4" />
+                                        <div v-if="code.description" class="mt-1 text-xs text-muted-foreground sm:text-sm">
+                                            {{ code.description }}
+                                        </div>
+                                    </div>
+                                    <div class="flex space-x-1 opacity-0 transition-opacity group-hover:opacity-100">
+                                        <template v-if="isSuperAdmin">
+                                            <template v-if="code.deleted_at">
+                                                <Button
+                                                    @click="restoreCode(code.id)"
+                                                    size="sm"
+                                                    variant="outline"
+                                                    class="h-8 px-2 text-xs sm:h-9 sm:px-3 sm:text-sm"
+                                                >
+                                                    <Icon name="refresh" class="mr-1 h-3 w-3 sm:h-3 sm:w-3" />
+                                                    Restore
+                                                </Button>
+                                                <Button
+                                                    @click="forceDeleteCode(code.id)"
+                                                    size="sm"
+                                                    variant="destructive"
+                                                    class="h-8 px-2 text-xs sm:h-9 sm:px-3 sm:text-sm"
+                                                >
+                                                    <Icon name="trash" class="mr-1 h-3 w-3 sm:h-3 sm:w-3" />
                                                     Delete
                                                 </Button>
                                             </template>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div v-if="showCodeForm" class="space-y-4 rounded-md border p-4">
-                                <h3 class="text-sm font-medium">{{ editingCode ? 'Edit' : 'Add' }} Delay Code</h3>
-                                <div class="space-y-3">
-                                    <div>
-                                        <Label for="code">Code</Label>
-                                        <Input id="code" v-model="codeForm.code" placeholder="Enter code" />
-                                    </div>
-                                    <div>
-                                        <Label for="description">Description</Label>
-                                        <Input id="description" v-model="codeForm.description" placeholder="Enter description" />
-                                    </div>
-                                    <div class="flex justify-end space-x-2">
-                                        <Button @click="cancelCodeEdit" variant="ghost" size="sm">Cancel</Button>
-                                        <Button @click="saveCode" variant="default" size="sm">Save</Button>
+                                            <template v-else>
+                                                <Button
+                                                    @click="confirmDeleteCode(code.id)"
+                                                    size="sm"
+                                                    variant="destructive"
+                                                    class="h-8 px-2 text-xs sm:h-9 sm:px-3 sm:text-sm"
+                                                >
+                                                    <Icon name="trash" class="mr-1 h-3 w-3 sm:h-3 sm:w-3" />
+                                                    Delete
+                                                </Button>
+                                            </template>
+                                        </template>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <DialogFooter class="mt-6">
-                            <Button @click="codeModal = false" variant="outline">Close</Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
 
-                <!-- Delete Code Confirmation Dialog -->
-                <Dialog v-model:open="codeDeleteConfirm">
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Confirm Deletion</DialogTitle>
-                            <DialogDescription> Are you sure you want to delete this delay code? This action cannot be undone. </DialogDescription>
-                        </DialogHeader>
-                        <DialogFooter class="mt-4">
-                            <Button type="button" @click="codeDeleteConfirm = false" variant="outline"> Cancel </Button>
-                            <Button type="button" @click="deleteCode(codeToDelete)" variant="destructive"> Delete </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
+                        <div v-if="showCodeForm" class="space-y-4 rounded-md border p-4">
+                            <h3 class="text-sm font-medium sm:text-base">{{ editingCode ? 'Edit' : 'Add' }} Delay Code</h3>
+                            <div class="space-y-3">
+                                <div>
+                                    <Label for="code" class="text-xs sm:text-sm">Code</Label>
+                                    <Input id="code" v-model="codeForm.code" placeholder="Enter code" class="h-9 text-xs sm:h-10 sm:text-sm" />
+                                </div>
+                                <div>
+                                    <Label for="description" class="text-xs sm:text-sm">Description</Label>
+                                    <Input
+                                        id="description"
+                                        v-model="codeForm.description"
+                                        placeholder="Enter description"
+                                        class="h-9 text-xs sm:h-10 sm:text-sm"
+                                    />
+                                </div>
+                                <div class="flex justify-end space-x-2">
+                                    <Button @click="cancelCodeEdit" variant="ghost" size="sm" class="h-8 px-3 text-xs sm:h-9 sm:px-4 sm:text-sm"
+                                        >Cancel</Button
+                                    >
+                                    <Button @click="saveCode" variant="default" size="sm" class="h-8 px-3 text-xs sm:h-9 sm:px-4 sm:text-sm"
+                                        >Save</Button
+                                    >
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-                <!-- Delete Delay Confirmation Dialog -->
-                <Dialog v-model:open="showDeleteModal">
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Confirm Deletion</DialogTitle>
-                            <DialogDescription> Are you sure you want to delete this delay record? This action cannot be undone. </DialogDescription>
-                        </DialogHeader>
-                        <DialogFooter class="mt-4">
-                            <Button type="button" @click="showDeleteModal = false" variant="outline"> Cancel </Button>
-                            <Button type="button" @click="deleteDelay(delayToDelete)" variant="destructive"> Delete </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
-                <!-- Delete Selected Delays Confirmation Dialog -->
-                <Dialog v-model:open="showDeleteSelectedModal">
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Confirm Bulk Deletion</DialogTitle>
-                            <DialogDescription>
-                                Are you sure you want to delete {{ selectedDelays.length }} delay records? This action cannot be undone.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <DialogFooter class="mt-4">
-                            <Button type="button" @click="showDeleteSelectedModal = false" variant="outline"> Cancel </Button>
-                            <Button type="button" @click="deleteSelectedDelays()" variant="destructive"> Delete Selected </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
-            </template>
+                    <DialogFooter class="px-4 sm:px-6">
+                        <Button @click="codeModal = false" variant="outline" class="h-9 px-4 py-1 text-xs sm:h-10 sm:text-sm">Close</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <!-- Delete Code Confirmation Dialog -->
+            <Dialog v-model:open="codeDeleteConfirm">
+                <DialogContent class="max-w-[95vw] sm:max-w-md">
+                    <DialogHeader class="px-4 sm:px-6">
+                        <DialogTitle class="text-lg sm:text-xl">Confirm Deletion</DialogTitle>
+                        <DialogDescription class="text-xs sm:text-sm">
+                            Are you sure you want to delete this delay code? This action cannot be undone.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter class="px-4 sm:px-6">
+                        <Button type="button" @click="codeDeleteConfirm = false" variant="outline" class="h-9 px-4 py-1 text-xs sm:h-10 sm:text-sm">
+                            Cancel
+                        </Button>
+                        <Button
+                            type="button"
+                            @click="deleteCode(codeToDelete)"
+                            variant="destructive"
+                            class="h-9 px-4 py-1 text-xs sm:h-10 sm:text-sm"
+                        >
+                            Delete
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <!-- Delete Delay Confirmation Dialog -->
+            <Dialog v-model:open="showDeleteModal">
+                <DialogContent class="max-w-[95vw] sm:max-w-md">
+                    <DialogHeader class="px-4 sm:px-6">
+                        <DialogTitle class="text-lg sm:text-xl">Confirm Deletion</DialogTitle>
+                        <DialogDescription class="text-xs sm:text-sm">
+                            Are you sure you want to delete this delay record? This action cannot be undone.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter class="px-4 sm:px-6">
+                        <Button type="button" @click="showDeleteModal = false" variant="outline" class="h-9 px-4 py-1 text-xs sm:h-10 sm:text-sm">
+                            Cancel
+                        </Button>
+                        <Button
+                            type="button"
+                            @click="deleteDelay(delayToDelete)"
+                            variant="destructive"
+                            class="h-9 px-4 py-1 text-xs sm:h-10 sm:text-sm"
+                        >
+                            Delete
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <!-- Delete Selected Delays Confirmation Dialog -->
+            <Dialog v-model:open="showDeleteSelectedModal">
+                <DialogContent class="max-w-[95vw] sm:max-w-md">
+                    <DialogHeader class="px-4 sm:px-6">
+                        <DialogTitle class="text-lg sm:text-xl">Confirm Bulk Deletion</DialogTitle>
+                        <DialogDescription class="text-xs sm:text-sm">
+                            Are you sure you want to delete {{ selectedDelays.length }} delay records? This action cannot be undone.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter class="px-4 sm:px-6">
+                        <Button
+                            type="button"
+                            @click="showDeleteSelectedModal = false"
+                            variant="outline"
+                            class="h-9 px-4 py-1 text-xs sm:h-10 sm:text-sm"
+                        >
+                            Cancel
+                        </Button>
+                        <Button type="button" @click="deleteSelectedDelays()" variant="destructive" class="h-9 px-4 py-1 text-xs sm:h-10 sm:text-sm">
+                            Delete Selected
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     </AppLayout>
 </template>
@@ -866,7 +922,8 @@ function visitPage(url) {
         // Add perPage parameter to the URL
         const urlObj = new URL(url);
         urlObj.searchParams.set('perPage', perPage.value);
-        router.get(urlObj.href, {}, { preserveScroll: true, preserveState: true, only: ['delays'] });
+        urlObj.searchParams.set('dateFilter', activeTab.value);
+        router.get(urlObj.href, {}, { only: ['delays'] });
     }
 }
 function formatDate(dateStr) {
@@ -1084,14 +1141,10 @@ const ontimeMetrics = computed(() => {
 });
 
 const bottomDrivers = computed(() => {
-    if(filters.value.delayType=="origin")
-    return props.delay_breakdown?.bottom_five_drivers.origin || [];
+    if (filters.value.delayType == 'origin') return props.delay_breakdown?.bottom_five_drivers.origin || [];
 
-    if(filters.value.delayType=="destination")
-    return props.delay_breakdown?.bottom_five_drivers.destination || [];
-
-    else
-    return props.delay_breakdown?.bottom_five_drivers.total || [];
+    if (filters.value.delayType == 'destination') return props.delay_breakdown?.bottom_five_drivers.destination || [];
+    else return props.delay_breakdown?.bottom_five_drivers.total || [];
 });
 
 const ontimeChartData = computed(() => {

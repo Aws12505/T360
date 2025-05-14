@@ -1,12 +1,12 @@
 <template>
-    <div class="space-y-6">
+    <div class="space-y-2 md:space-y-4 lg:space-y-6">
         <!-- Metrics Cards -->
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="grid grid-cols-1 gap-2 md:gap-4 lg:gap-6 sm:grid-cols-2 lg:grid-cols-4">
             <TotalLateStops v-for="(metric, index) in metrics" :key="index" :title="metric.title" :value="metric.value" />
         </div>
 
         <!-- Bottom Section -->
-        <div class="grid grid-cols-1 gap-6 lg:grid-cols-4">
+        <div class="grid grid-cols-1 gap-2 md:gap-4 lg:gap-6 lg:grid-cols-4">
             <BottomDrivers
                 :title="'Bottom 5 Drivers'"
                 :drivers="bottomDrivers"

@@ -448,7 +448,14 @@ function resetFilters() {
 
 // pagination
 function visitPage(url) {
-    if (url) router.visit(url);
+    if (url) {
+        // Add perPage and dateFilter parameters to the URL
+        const urlObj = new URL(url);
+        urlObj.searchParams.set('perPage', perPage.value);
+        urlObj.searchParams.set('dateFilter', activeTab.value);
+
+        router.get(urlObj.href, {}, { only: ['entries'] });
+    }
 }
 
 // compute Sunday→Saturday from year+week

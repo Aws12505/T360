@@ -1523,7 +1523,11 @@ const removeAreaOfConcern = (id) => {
 // Pagination and sorting
 const visitPage = (url) => {
     if (url) {
-        router.visit(url, { preserveState: true });
+        const urlObj = new URL(url);
+        urlObj.searchParams.set('perPage', perPage.value);
+        urlObj.searchParams.set('dateFilter', activeTab.value);
+
+        router.get(urlObj.href, {}, { only: ['repairOrders'] });
     }
 };
 
