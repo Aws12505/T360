@@ -252,14 +252,21 @@ const toggleShowGraphs = () => {
 
 
 // Dummy data for doughnut chart
-const doughnutChartData = [Math.round(props.data.alerts.distractedDriving), Math.round(props.data.alerts.speeding), Math.round(props.data.alerts.signViolation), Math.round(props.data.alerts.trafficLightViolation), Math.round(props.data.alerts.followingDistance)];
-const doughnutChartLabels = [
+const doughnutChartData = computed(() => [
+  Math.round(props.data.alerts?.distractedDriving || 0), 
+  Math.round(props.data.alerts?.speeding || 0), 
+  Math.round(props.data.alerts?.signViolation || 0), 
+  Math.round(props.data.alerts?.trafficLightViolation || 0), 
+  Math.round(props.data.alerts?.followingDistance || 0)
+]);
+
+const doughnutChartLabels = computed(() => [
   "Distracted Driving", 
   "Speeding", 
   "Sign Violations", 
   "Traffic Light Violations", 
   "Following Distance"
-];
+]);
 
 // Chart initialization function
 const initializeCharts = () => {
@@ -344,9 +351,9 @@ const initializeCharts = () => {
       doughnutChart = new Chart(ctx, {
         type: 'doughnut',
         data: {
-          labels: doughnutChartLabels,
+          labels: doughnutChartLabels.value,
           datasets: [{
-            data: doughnutChartData,
+            data: doughnutChartData.value,
             backgroundColor: [
               '#061455', 
               '#1911B2', 
