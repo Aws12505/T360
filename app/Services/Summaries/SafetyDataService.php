@@ -252,11 +252,9 @@ class SafetyDataService
         // Use Carbon for consistent date handling with FilteringService
         $start = Carbon::parse($startDate);
         $end = Carbon::parse($endDate);
-        $daysDifference = $end->diffInDays($start);
         
         // Determine date filter type based on date range
         $dateFilter = $this->determineDateFilterType($start, $end);
-        
         // Determine grouping based on date filter type
         if ($dateFilter === 'yesterday') {
             // For yesterday, we'll show hourly data if available
@@ -272,7 +270,7 @@ class SafetyDataService
             // 6 weeks - group by week with weeks starting on Sunday
             $dateFormat = 'Y-W';
             // Use YEARWEEK with mode 0 (weeks starting on Sunday)
-            $groupBy = DB::raw('YEARWEEK(date, 0)');
+            $groupBy = DB::raw('YEARWEEK(date, 6)');
             $labelFormat = '\WW'; // Week number (W1, W2, etc.)
         } else {
             // Quarterly or longer - group by month
@@ -280,7 +278,6 @@ class SafetyDataService
             $groupBy = DB::raw('DATE_FORMAT(date, "%Y-%m")');
             $labelFormat = 'M'; // Month name (Jan, Feb, etc.)
         }
-        
         $query = DB::table('safety_data')
             ->select($groupBy, DB::raw('AVG(driver_score) as greenZoneScore'))
             ->whereBetween('date', [$startDate, $endDate])
@@ -289,7 +286,6 @@ class SafetyDataService
         
         $this->applyTenantFilter($query);
         $results = $query->get();
-        
         // Format dates based on the determined grouping
         return $results->map(function($item) use ($dateFormat, $labelFormat, $dateFilter) {
             // Get the first property (date or yearweek)

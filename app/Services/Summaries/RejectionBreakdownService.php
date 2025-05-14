@@ -208,7 +208,7 @@ class RejectionBreakdownService
             // 6 weeks - group by week with weeks starting on Sunday
             $dateFormat = 'Y-W';
             // Use YEARWEEK with mode 0 (weeks starting on Sunday)
-            $groupBy = DB::raw('YEARWEEK(date, 0)');
+            $groupBy = DB::raw('YEARWEEK(date, 6)');
             $labelFormat = '\WW'; // Week number (W1, W2, etc.)
         } else {
             // Quarterly or longer - group by month
