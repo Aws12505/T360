@@ -89,19 +89,58 @@ class DelayBreakdownService
      */
     public function getBottomFiveDriversByPenalty($startDate, $endDate)
     {
-        $query = DB::table('delays')
+        // Get bottom five drivers by total penalty
+        $bottomFiveTotal = DB::table('delays')
             ->selectRaw("
                 driver_name,
                 SUM(penalty) as total_penalty
             ")
             ->whereBetween('date', [$startDate, $endDate]);
-
-        $this->applyTenantFilter($query);
-
-        return $query->groupBy('driver_name')
+            
+        $this->applyTenantFilter($bottomFiveTotal);
+        
+        $bottomFiveTotal = $bottomFiveTotal->groupBy('driver_name')
             ->orderBy('total_penalty', 'desc')
             ->limit(5)
             ->get();
+            
+        // Get bottom five drivers by origin penalty
+        $bottomFiveOrigin = DB::table('delays')
+            ->selectRaw("
+                driver_name,
+                SUM(CASE WHEN delay_type = 'origin' THEN penalty ELSE 0 END) as origin_penalty
+            ")
+            ->whereBetween('date', [$startDate, $endDate])
+            ->where('delay_type', 'origin');
+            
+        $this->applyTenantFilter($bottomFiveOrigin);
+        
+        $bottomFiveOrigin = $bottomFiveOrigin->groupBy('driver_name')
+            ->orderBy('origin_penalty', 'desc')
+            ->limit(5)
+            ->get();
+            
+        // Get bottom five drivers by destination penalty
+        $bottomFiveDestination = DB::table('delays')
+            ->selectRaw("
+                driver_name,
+                SUM(CASE WHEN delay_type = 'destination' THEN penalty ELSE 0 END) as destination_penalty
+            ")
+            ->whereBetween('date', [$startDate, $endDate])
+            ->where('delay_type', 'destination');
+            
+        $this->applyTenantFilter($bottomFiveDestination);
+        
+        $bottomFiveDestination = $bottomFiveDestination->groupBy('driver_name')
+            ->orderBy('destination_penalty', 'desc')
+            ->limit(5)
+            ->get();
+            
+        return [
+            'total' => $bottomFiveTotal,
+            'origin' => $bottomFiveOrigin,
+            'destination' => $bottomFiveDestination
+        ];
     }
 
     /**

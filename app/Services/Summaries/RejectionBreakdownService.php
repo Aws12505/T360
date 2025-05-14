@@ -88,20 +88,58 @@ class RejectionBreakdownService
      */
     public function getBottomFiveDriversByPenalty($startDate, $endDate)
     {
-        $query = DB::table('rejections')
+        // Get bottom five drivers by total penalty
+        $bottomFiveTotal = DB::table('rejections')
             ->selectRaw("
                 driver_name,
                 SUM(penalty) as total_penalty
             ")
             ->whereBetween('date', [$startDate, $endDate]);
-
-        $this->applyTenantFilter($query);
-      
-
-        return $query->groupBy('driver_name')
+            
+        $this->applyTenantFilter($bottomFiveTotal);
+        
+        $bottomFiveTotal = $bottomFiveTotal->groupBy('driver_name')
             ->orderBy('total_penalty', 'desc')
             ->limit(5)
             ->get();
+            
+        // Get bottom five drivers by block penalty
+        $bottomFiveBlock = DB::table('rejections')
+            ->selectRaw("
+                driver_name,
+                SUM(CASE WHEN rejection_type = 'block' THEN penalty ELSE 0 END) as block_penalty
+            ")
+            ->whereBetween('date', [$startDate, $endDate])
+            ->where('rejection_type', 'block');
+            
+        $this->applyTenantFilter($bottomFiveBlock);
+        
+        $bottomFiveBlock = $bottomFiveBlock->groupBy('driver_name')
+            ->orderBy('block_penalty', 'desc')
+            ->limit(5)
+            ->get();
+            
+        // Get bottom five drivers by load penalty
+        $bottomFiveLoad = DB::table('rejections')
+            ->selectRaw("
+                driver_name,
+                SUM(CASE WHEN rejection_type = 'load' THEN penalty ELSE 0 END) as load_penalty
+            ")
+            ->whereBetween('date', [$startDate, $endDate])
+            ->where('rejection_type', 'load');
+            
+        $this->applyTenantFilter($bottomFiveLoad);
+        
+        $bottomFiveLoad = $bottomFiveLoad->groupBy('driver_name')
+            ->orderBy('load_penalty', 'desc')
+            ->limit(5)
+            ->get();
+            
+        return [
+            'total' => $bottomFiveTotal,
+            'block' => $bottomFiveBlock,
+            'load' => $bottomFiveLoad
+        ];
     }
 
     /**
