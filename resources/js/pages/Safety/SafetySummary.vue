@@ -252,7 +252,7 @@ const toggleShowGraphs = () => {
 
 
 // Dummy data for doughnut chart
-const doughnutChartData = [45, 25, 15, 10, 5];
+const doughnutChartData = [Math.round(props.data.alerts.distractedDriving), Math.round(props.data.alerts.speeding), Math.round(props.data.alerts.signViolation), Math.round(props.data.alerts.trafficLightViolation), Math.round(props.data.alerts.followingDistance)];
 const doughnutChartLabels = [
   "Distracted Driving", 
   "Speeding", 
