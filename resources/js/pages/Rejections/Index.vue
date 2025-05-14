@@ -873,8 +873,6 @@ function resetFilters() {
         driverControllable: '',
     };
 
-    // Reset date filter to full
-    selectDateFilter('full');
     applyFilters();
 }
 

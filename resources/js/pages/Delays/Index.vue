@@ -293,6 +293,7 @@
                     :driversData="bottomDrivers"
                     :chartData="ontimeChartData"
                     :averageOntime="average_ontime"
+                    :currentDateFilter="props.dateRange.label"
                     :delayType="filters.delayType"
                 />
 

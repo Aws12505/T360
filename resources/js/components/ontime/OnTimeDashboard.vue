@@ -14,7 +14,7 @@
                 :totalDelays="props.metricsData.totalDelays"
                 class="lg:col-span-1"
             />
-            <LineChart :title="'On-Time Score'" :chartData="lineChartData" :averageOntime="averageOntime" class="lg:col-span-3" />
+            <LineChart v-if="props.currentDateFilter!='Yesterday'" :title="'On-Time Score'" :chartData="lineChartData" :averageOntime="averageOntime" class="lg:col-span-3" />
         </div>
     </div>
 </template>
@@ -43,6 +43,10 @@ const props = defineProps({
         type: Number,
         default: null,
     },
+    currentDateFilter: {
+    type: String,
+    default: null
+  },
     delayType: {
         type: String,
         default: 'all',
