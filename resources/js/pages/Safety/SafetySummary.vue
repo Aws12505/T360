@@ -111,7 +111,7 @@
       </div>
       
       <!-- Show/Hide Graphs Button -->
-      <div class="mt-6 text-center">
+      <div v-if="activeTab !== 'yesterday'" class="mt-6 text-center">
         <Button 
           @click="toggleShowGraphs" 
           variant="outline"
@@ -128,8 +128,8 @@
       <!-- Safety Charts Section -->
       <div v-if="showGraphs" class="mt-6">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <!-- Line Chart -->
-          <div class="bg-gradient-to-br from-muted/10 to-muted/30 rounded-lg p-4 shadow-lg border border-muted/20">
+          <!-- Line Chart - Only show if not on yesterday tab -->
+          <div v-if="activeTab !== 'yesterday'" class="bg-gradient-to-br from-muted/10 to-muted/30 rounded-lg p-4 shadow-lg border border-muted/20">
             <h3 class="text-lg font-semibold text-foreground mb-4">Safety Trends</h3>
             <div class="w-full h-64">
               <canvas ref="lineChartCanvas" width="400" height="200"></canvas>
@@ -137,7 +137,7 @@
           </div>
           
           <!-- Doughnut Chart -->
-          <div class="bg-gradient-to-br from-muted/10 to-muted/30 rounded-lg p-4 shadow-lg border border-muted/20">
+          <div v-if="activeTab !== 'yesterday'" :class="{'md:col-span-2': activeTab === 'yesterday'}" class="bg-gradient-to-br from-muted/10 to-muted/30 rounded-lg p-4 shadow-lg border border-muted/20">
             <h3 class="text-lg font-semibold text-foreground mb-4">Alert Distribution</h3>
             <div class="flex justify-center items-center h-72">
               <div class="w-full h-full">
@@ -162,8 +162,13 @@ const props = defineProps({
   data: {
     type: Object,
     default: () => ({})
+  },
+  activeTab: {
+    type: String,
+    default: ''
   }
 });
+
 
 // Chart references
 const lineChartCanvas = ref(null);
@@ -274,8 +279,8 @@ const initializeCharts = () => {
   if (lineChart) lineChart.destroy();
   if (doughnutChart) doughnutChart.destroy();
   
-  // Initialize line chart
-  if (lineChartCanvas.value) {
+  // Initialize line chart - only if not on yesterday tab
+  if (lineChartCanvas.value && props.activeTab !== 'yesterday') {
     const ctx = lineChartCanvas.value.getContext('2d');
     if (ctx) {
       // Get the data values for the line chart
