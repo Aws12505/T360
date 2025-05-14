@@ -107,7 +107,7 @@ class RejectionBreakdownService
         $bottomFiveBlock = DB::table('rejections')
             ->selectRaw("
                 driver_name,
-                SUM(CASE WHEN rejection_type = 'block' THEN penalty ELSE 0 END) as block_penalty
+                SUM(CASE WHEN rejection_type = 'block' THEN penalty ELSE 0 END) as total_penalty
             ")
             ->whereBetween('date', [$startDate, $endDate])
             ->where('rejection_type', 'block');
@@ -115,7 +115,7 @@ class RejectionBreakdownService
         $this->applyTenantFilter($bottomFiveBlock);
         
         $bottomFiveBlock = $bottomFiveBlock->groupBy('driver_name')
-            ->orderBy('block_penalty', 'desc')
+            ->orderBy('total_penalty', 'desc')
             ->limit(5)
             ->get();
             
@@ -123,7 +123,7 @@ class RejectionBreakdownService
         $bottomFiveLoad = DB::table('rejections')
             ->selectRaw("
                 driver_name,
-                SUM(CASE WHEN rejection_type = 'load' THEN penalty ELSE 0 END) as load_penalty
+                SUM(CASE WHEN rejection_type = 'load' THEN penalty ELSE 0 END) as total_penalty
             ")
             ->whereBetween('date', [$startDate, $endDate])
             ->where('rejection_type', 'load');
@@ -131,7 +131,7 @@ class RejectionBreakdownService
         $this->applyTenantFilter($bottomFiveLoad);
         
         $bottomFiveLoad = $bottomFiveLoad->groupBy('driver_name')
-            ->orderBy('load_penalty', 'desc')
+            ->orderBy('total_penalty', 'desc')
             ->limit(5)
             ->get();
             

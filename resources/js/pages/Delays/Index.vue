@@ -1083,7 +1083,14 @@ const ontimeMetrics = computed(() => {
 });
 
 const bottomDrivers = computed(() => {
-    return props.delay_breakdown?.bottom_five_drivers || [];
+    if(filters.value.delayType=="origin")
+    return props.delay_breakdown?.bottom_five_drivers.origin || [];
+
+    if(filters.value.delayType=="destination")
+    return props.delay_breakdown?.bottom_five_drivers.destination || [];
+
+    else
+    return props.delay_breakdown?.bottom_five_drivers.total || [];
 });
 
 const ontimeChartData = computed(() => {

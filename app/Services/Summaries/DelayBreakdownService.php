@@ -108,7 +108,7 @@ class DelayBreakdownService
         $bottomFiveOrigin = DB::table('delays')
             ->selectRaw("
                 driver_name,
-                SUM(CASE WHEN delay_type = 'origin' THEN penalty ELSE 0 END) as origin_penalty
+                SUM(CASE WHEN delay_type = 'origin' THEN penalty ELSE 0 END) as total_penalty
             ")
             ->whereBetween('date', [$startDate, $endDate])
             ->where('delay_type', 'origin');
@@ -116,7 +116,7 @@ class DelayBreakdownService
         $this->applyTenantFilter($bottomFiveOrigin);
         
         $bottomFiveOrigin = $bottomFiveOrigin->groupBy('driver_name')
-            ->orderBy('origin_penalty', 'desc')
+            ->orderBy('total_penalty', 'desc')
             ->limit(5)
             ->get();
             
@@ -124,7 +124,7 @@ class DelayBreakdownService
         $bottomFiveDestination = DB::table('delays')
             ->selectRaw("
                 driver_name,
-                SUM(CASE WHEN delay_type = 'destination' THEN penalty ELSE 0 END) as destination_penalty
+                SUM(CASE WHEN delay_type = 'destination' THEN penalty ELSE 0 END) as total_penalty
             ")
             ->whereBetween('date', [$startDate, $endDate])
             ->where('delay_type', 'destination');
@@ -132,7 +132,7 @@ class DelayBreakdownService
         $this->applyTenantFilter($bottomFiveDestination);
         
         $bottomFiveDestination = $bottomFiveDestination->groupBy('driver_name')
-            ->orderBy('destination_penalty', 'desc')
+            ->orderBy('total_penalty', 'desc')
             ->limit(5)
             ->get();
             

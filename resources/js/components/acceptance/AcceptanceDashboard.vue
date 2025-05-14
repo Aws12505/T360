@@ -19,7 +19,7 @@
         :rejection-type="rejectionType"
         class="lg:col-span-1" 
       />
-      <LineChart  :title="'Acceptance Score'" :chartData="lineChartData" :averageAcceptance="averageAcceptance" class="lg:col-span-3" />
+      <LineChart v-if="props.currentDateFilter!='Yesterday'" :title="'Acceptance Score'" :chartData="lineChartData" :averageAcceptance="averageAcceptance" class="lg:col-span-3" />
     </div>
   </div>
 </template>
@@ -46,6 +46,10 @@ const props = defineProps({
   },
   averageAcceptance: {
     type: Number,
+    default: null
+  },
+  currentDateFilter: {
+    type: String,
     default: null
   },
   currentFilters: {

@@ -299,6 +299,7 @@
                     :driversData="bottomDrivers"
                     :chartData="acceptanceChartData"
                     :averageAcceptance="average_acceptance"
+                    :currentDateFilter="props.dateRange.label"
                     :currentFilters="filters"
                 />
                 <!-- Rejections Table -->
@@ -1076,7 +1077,14 @@ const acceptanceMetrics = computed(() => {
 });
 
 const bottomDrivers = computed(() => {
-    return props.rejection_breakdown?.bottom_five_drivers || [];
+    if(filters.value.rejectionType=="load")
+    return props.rejection_breakdown?.bottom_five_drivers.load || [];
+
+    if(filters.value.rejectionType=="block")
+    return props.rejection_breakdown?.bottom_five_drivers.block || [];
+
+    else
+    return props.rejection_breakdown?.bottom_five_drivers.total || [];
 });
 
 const acceptanceChartData = computed(() => {

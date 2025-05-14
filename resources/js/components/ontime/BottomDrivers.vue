@@ -25,7 +25,7 @@
       <!-- Column headers -->
       <div class="flex justify-between items-center mb-2">
         <span class="text-base mb-2 font-medium">Driver Name</span>
-        <span class="text-base mb-2 font-medium">Total</span>
+        <span class="text-base mb-2 font-medium">Total Penalty</span>
       </div>
       <div class="space-y-3">
         <div v-for="(driver, index) in drivers" :key="index" class="flex justify-between items-center">
