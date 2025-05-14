@@ -1740,7 +1740,7 @@ const hasCanceledQSInvoices = computed(() => {
 const showCanceledQSInvoicesDialog = ref(false);
 const minInvoiceAmount = ref(props.initialMinInvoiceAmount || null);
 const outstandingDate = ref(props.initialOutstandingDate || null);
-const showOutstandingInvoicesSection = ref(true);
+const showOutstandingInvoicesSection = ref(false);
 
 // Add this function to handle the filter application
 const applyOutstandingInvoices = () => {
