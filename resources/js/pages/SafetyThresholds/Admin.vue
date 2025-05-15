@@ -101,7 +101,7 @@ const availableMetrics = computed(() => {
 <template>
   <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
     <Head title="Safety Thresholds Management"/>
-    <div class="container w-full md:max-w-3xl lg:max-w-4xl xl:max-w-6xl lg:mx-auto m-0 p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6">
+    <div class="container w-full md:max-w-2xl lg:max-w-3xl xl:max-w-6xl  lg:mx-auto m-0 p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6">
       <!-- Header with title and Add button -->
       <div class="flex flex-col sm:flex-row justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-foreground">
