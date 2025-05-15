@@ -819,57 +819,6 @@ const filters = ref({
 const filteredRejections = computed(() => {
     let result = [...props.rejections.data];
 
-    // Apply search filter
-    if (filters.value.search) {
-        const searchTerm = filters.value.search.toLowerCase();
-        result = result.filter(
-            (item) =>
-                item.driver_name?.toLowerCase().includes(searchTerm) ||
-                item.rejection_type?.toLowerCase().includes(searchTerm) ||
-                item.reason_code?.reason_code?.toLowerCase().includes(searchTerm) ||
-                item.load_number?.toLowerCase().includes(searchTerm),
-        );
-    }
-
-    // Apply date filters
-    if (filters.value.dateFrom) {
-        result = result.filter((item) => item.date && item.date >= filters.value.dateFrom);
-    }
-
-    if (filters.value.dateTo) {
-        result = result.filter((item) => item.date && item.date <= filters.value.dateTo);
-    }
-
-    // Apply rejection type filter
-    if (filters.value.rejectionType) {
-        result = result.filter((item) => item.rejection_type === filters.value.rejectionType);
-    }
-
-    // Apply reason code filter
-    if (filters.value.reasonCode) {
-        result = result.filter((item) => item.reason_code && item.reason_code.id === parseInt(filters.value.reasonCode));
-    }
-
-    // Apply rejection category filter
-    if (filters.value.rejectionCategory) {
-        result = result.filter((item) => item.rejection_category === filters.value.rejectionCategory);
-    }
-
-    // Apply disputed filter
-    if (filters.value.disputed !== '') {
-        const isDisputed = filters.value.disputed === 'true';
-        result = result.filter((item) => item.disputed === isDisputed);
-    }
-
-    // Apply driver controllable filter
-    if (filters.value.driverControllable !== '') {
-        if (filters.value.driverControllable === 'null') {
-            result = result.filter((item) => item.driver_controllable === null);
-        } else {
-            const isControllable = filters.value.driverControllable === 'true';
-            result = result.filter((item) => item.driver_controllable === isControllable);
-        }
-    }
 
     // Apply sorting
     result.sort((a, b) => {
@@ -914,11 +863,17 @@ function sortBy(column) {
 
 // Filter functions
 function applyFilters() {
-    // This function is triggered by input/change events
-    // The filtering is handled by the computed property
+    const routeName = props.tenantSlug ? route('acceptance.index', { tenantSlug: props.tenantSlug }) : route('acceptance.index.admin');
+
+    router.get(routeName, {
+        ...filters.value,
+        dateFilter: activeTab.value,
+        perPage: perPage.value,
+    }, {
+        preserveState: true,
+    });
 }
 
-// Function to reset filters - consolidated version
 function resetFilters() {
     filters.value = {
         search: '',
@@ -933,6 +888,7 @@ function resetFilters() {
 
     applyFilters();
 }
+
 
 // Function to open the rejection form modal (for create or edit)
 const openForm = (rejection = null) => {

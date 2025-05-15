@@ -61,7 +61,40 @@ class RejectionService
         // Apply date filtering
         $dateRange = [];
         $query = $this->filteringService->applyDateFilter($query, $dateFilter, 'date', $dateRange);
-        
+        $request = request();
+
+if ($request->filled('search')) {
+    $search = strtolower($request->input('search'));
+    $query->where(function ($q) use ($search) {
+        $q->whereRaw('LOWER(driver_name) LIKE ?', ["%{$search}%"])
+          ->orWhereRaw('LOWER(load_number) LIKE ?', ["%{$search}%"]);
+    });
+}
+
+if ($request->filled('rejectionType')) {
+    $query->where('rejection_type', $request->input('rejectionType'));
+}
+
+if ($request->filled('reasonCode')) {
+    $query->where('reason_code_id', $request->input('reasonCode'));
+}
+
+if ($request->filled('rejectionCategory')) {
+    $query->where('rejection_category', $request->input('rejectionCategory'));
+}
+
+if ($request->filled('disputed')) {
+    $query->where('disputed', $request->boolean('disputed'));
+}
+
+if ($request->has('driverControllable')) {
+    $driverControllable = $request->input('driverControllable');
+    if ($driverControllable === 'null') {
+        $query->whereNull('driver_controllable');
+    } else {
+        $query->where('driver_controllable', $driverControllable === 'true');
+    }
+}
         // Paginate results
         $rejections = $query->paginate($perPage);
         // Calculate week numbers for display
