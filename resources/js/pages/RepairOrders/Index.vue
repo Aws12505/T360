@@ -83,7 +83,7 @@
                 </div>
             </div>
             <!-- Alert for Canceled QS Invoices -->
-            <div v-if="hasCanceledQSInvoices" class="mb-6">
+            <div v-if="hasCanceledQSInvoices && !SuperAdmin" class="mb-6">
                 <div class="rounded-md border-l-4 border-red-500 bg-red-50 p-4 shadow-sm dark:border-red-400 dark:bg-red-900/30">
                     <div class="flex items-center">
                         <div class="flex-shrink-0">
@@ -158,6 +158,51 @@
                     </div>
                 </CardContent>
             </Card>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 mx-auto max-w-[95vw] md:max-w-[64vw] lg:max-w-full" v-if="activeTab === 'quarterly' || activeTab === '6w'">
+            <!-- Panel: Areas of Concern -->
+    <div class="bg-card rounded-lg border shadow-sm">
+      <div class="p-4 border-b">
+        <h3 class="text-lg font-semibold">Top 5 Frequent Repairs </h3>
+      </div>
+      <div class="p-4">
+        <ul class="space-y-3">
+            <div class="flex justify-between items-center">
+            <span class="text-sm">Parts:</span>
+            <span class="text-sm">Work Orders:</span>
+          </div>
+          <li v-for="(area, index) in topAreasOfConcern" :key="index" class="flex justify-between items-center pr-4">
+            <span class="text-sm">{{ area.concern }}</span>
+            <Badge variant="outline">{{ area.count }}</Badge>
+          </li>
+          <li v-if="topAreasOfConcern.length === 0" class="text-center text-muted-foreground">
+            No data available
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!--  Panel: Work Orders by Truck -->
+    <div class="bg-card rounded-lg border shadow-sm">
+      <div class="p-4 border-b">
+        <h3 class="text-lg font-semibold">Top 5 Frequently Repaired Tractors </h3>
+      </div>
+      <div class="p-4">
+        <ul class="space-y-3">
+        <div class="flex justify-between items-center">
+            <span class="text-sm">Asset ID:</span>
+            <span class="text-sm">Work Orders:</span>
+          </div>
+          <li v-for="(truck, index) in topWorkOrdersByTruck" :key="index" class="flex justify-between items-center pr-4">
+            <span class="text-sm">{{ truck.truckid }}</span>
+            <Badge variant="outline">{{ truck.work_order_count }}</Badge>
+          </li>
+          <li v-if="topWorkOrdersByTruck.length === 0" class="text-center text-muted-foreground">
+            No data available
+          </li>
+        </ul>
+      </div>
+    </div>
+</div>        
             <!-- Outstanding Invoices Filter -->
             <div class="mb-6 rounded-lg border bg-card p-4 shadow-sm mx-auto max-w-[95vw] md:max-w-[64vw] lg:max-w-full overflow-x-auto" v-if="!SuperAdmin">
                 <h3 class="mb-4 text-lg font-semibold">Outstanding Invoices Filter</h3>
@@ -186,35 +231,56 @@
             <!-- Outstanding Invoices Section -->
             <div v-if="outstandingInvoices && outstandingInvoices.length > 0" class="mb-6 rounded-lg border bg-card shadow-sm mx-auto max-w-[95vw] md:max-w-[64vw] lg:max-w-full overflow-x-auto">
                 <div class="flex items-center justify-between border-b p-4">
-                    <h3 class="text-lg font-semibold">Outstanding Invoices</h3>
-                    <div>
-                        <Badge variant="outline" class="text-sm">{{ outstandingInvoices.length }} invoices</Badge>
-                        <Button variant="ghost" size="sm" @click="showOutstandingInvoicesSection = !showOutstandingInvoicesSection">
-                            {{ showOutstandingInvoicesSection ? 'Hide Invoices' : 'Show Invoices' }}
-                            <Icon :name="showOutstandingInvoicesSection ? 'chevron-up' : 'chevron-down'" class="ml-2 h-4 w-4" />
-                        </Button>
-                    </div>
+                    <h3 class="text-lg font-semibold">Outstanding Invoices </h3>
+                    <div class="flex items-start justify-between">
+  <div class="flex flex-col space-y-1 items-center">
+    <Badge variant="outline" class="text-sm">
+      {{ outstandingInvoices.length }} invoices
+    </Badge>
+    <Badge variant="outline" class="text-sm">
+      total: ${{ totalOutstanding.toFixed(2) }}
+    </Badge>
+  </div>
+  <Button variant="ghost" size="sm" @click="showOutstandingInvoicesSection = !showOutstandingInvoicesSection" class="ml-4 mt-1">
+    {{ showOutstandingInvoicesSection ? 'Hide Invoices' : 'Show Invoices' }}
+    <Icon :name="showOutstandingInvoicesSection ? 'chevron-up' : 'chevron-down'" class="ml-2 h-4 w-4" />
+  </Button>
+</div>
+
                 </div>
-                <div class="p-4" v-if="showOutstandingInvoicesSection">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>RO Number</TableHead>
-                                <TableHead>Vendor</TableHead>
-                                <TableHead>Week</TableHead>
-                                <TableHead class="text-right">Amount</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            <TableRow v-for="invoice in outstandingInvoices" :key="invoice.ro_number">
-                                <TableCell>{{ invoice.ro_number }}</TableCell>
-                                <TableCell>{{ invoice.vendor_name }}</TableCell>
-                                <TableCell>W{{ invoice.week_number }}/{{ invoice.year }}</TableCell>
-                                <TableCell class="text-right">{{ formatCurrency(invoice.invoice_amount) }}</TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
-                </div>
+                <div v-if="showOutstandingInvoicesSection" class="mb-6 rounded-lg border bg-card shadow-sm">
+    <!-- Horizontal scroll on really small screens -->
+    <div class="overflow-x-auto">
+      <!-- Vertical scroll container with responsive max-heights -->
+      <div 
+        class="
+          max-h-60    /* ~15rem on xs */
+          sm:max-h-80 /* ~20rem on sm+ */
+          md:max-h-96 /* ~24rem on md+ */
+          overflow-y-auto
+        "
+      >
+        <Table class="min-w-full">
+          <TableHeader>
+            <TableRow>
+              <TableHead>RO Number</TableHead>
+              <TableHead>Vendor</TableHead>
+              <TableHead>Week</TableHead>
+              <TableHead class="text-right">Amount</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow v-for="invoice in outstandingInvoices" :key="invoice.ro_number">
+              <TableCell>{{ invoice.ro_number }}</TableCell>
+              <TableCell>{{ invoice.vendor_name }}</TableCell>
+              <TableCell>W{{ invoice.week_number }}/{{ invoice.year }}</TableCell>
+              <TableCell class="text-right">{{ formatCurrency(invoice.invoice_amount) }}</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+    </div>
             </div>
             <div v-else-if="showOutstandingInvoicesSection" class="mb-6 rounded-lg border bg-card shadow-sm">
                 <div class="border-b p-4">
@@ -1197,6 +1263,8 @@ const props = defineProps({
         default: null,
     },
     outstandingInvoices: { type: Array, default: () => [] },
+    workOrdersByTruck: { type: Array, default: () => [] },
+    workOrderByAreasOfConcern: { type: Array, default: () => [] },
 });
 const weekNumberText = computed(() => {
     // For yesterday and current-week, show single week
@@ -1227,6 +1295,23 @@ const showWoStatusesModal = ref(false);
 const woStatusForm = ref({
     name: '',
 });
+// Get top 5 areas of concern
+const topAreasOfConcern = computed(() => {
+  const areas = props.workOrderByAreasOfConcern || [];
+  return areas.slice(0, 5);
+});
+const totalOutstanding = computed(() => {
+  return props.outstandingInvoices
+    .reduce((sum, inv) => {
+      const amt = Number(inv.invoice_amount) || 0
+      return sum + amt
+    }, 0)
+})
+// Get top 5 trucks by work orders
+const topWorkOrdersByTruck = computed(() => {
+  const trucks = props.workOrdersByTruck || [];
+  return trucks.slice(0, 5);
+});
 // State variables
 const errorMessage = ref('');
 const successMessage = ref('');
@@ -1245,7 +1330,6 @@ const perPage = ref(10);
 const selectedRepairOrders = ref([]);
 const showDeleteSelectedModal = ref(false);
 const showFilters = ref(false); // Controls visibility of the Filters section
-
 // Add this computed property for "Select All" checkbox state
 const isAllSelected = computed(() => {
     return props.repairOrders.data.length > 0 && props.repairOrders.data.every((order) => selectedRepairOrders.value.includes(order.id));
