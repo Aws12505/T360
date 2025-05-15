@@ -2,7 +2,7 @@
     <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
         <Head title="On-Time" />
         <!-- responsive here -->
-        <div class="m-0 w-full lg:max-w-7xl lg:mx-auto space-y-2 p-2 md:space-y-4 md:p-4 lg:space-y-6 lg:p-6 ">
+        <div class="m-0 w-full md:max-w-2xl lg:max-w-3xl xl:max-w-6xl lg:mx-auto space-y-2 p-2 md:space-y-4 md:p-4 lg:space-y-6 lg:p-6 ">
             <!-- Success Message -->
             <Alert v-if="successMessage" variant="success">
                 <AlertTitle>Success</AlertTitle>
@@ -126,14 +126,7 @@
                 </CardContent>
             </Card>
 
-            <!-- No Data Message -->
-            <div v-if="!hasData" class="flex flex-col items-center justify-center rounded-lg border bg-muted/20 py-16">
-                <Icon name="database-x" class="mb-4 h-16 w-16 text-muted-foreground" />
-                <h2 class="text-center text-2xl font-bold text-muted-foreground">There is No Data to give Information about.</h2>
-            </div>
-
-            <!-- Content Section - Only show if data exists -->
-            <template v-if="hasData">
+            
                 <!-- Filters Section -->
                 <Card>
                     <!-- responsive here -->
@@ -284,7 +277,14 @@
                         </div>
                     </CardContent>
                 </Card>
+<!-- No Data Message -->
+<div v-if="!hasData" class="flex flex-col items-center justify-center rounded-lg border bg-muted/20 py-16">
+                <Icon name="database-x" class="mb-4 h-16 w-16 text-muted-foreground" />
+                <h2 class="text-center text-2xl font-bold text-muted-foreground">There is No Data to give Information about.</h2>
+            </div>
 
+            <!-- Content Section - Only show if data exists -->
+            <template v-if="hasData">
                 <!-- On-Time Dashboard -->
                 <OnTimeDashboard
                     v-if="!isSuperAdmin"

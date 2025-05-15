@@ -2,7 +2,7 @@
     <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
         <Head title="Acceptance" />
         <!-- responsive here -->
-        <div class="w-full md:max-w-3xl lg:max-w-4xl xl:max-w-6xl lg:mx-auto m-0 p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6">
+        <div class="m-0 w-full  md:max-w-2xl lg:max-w-3xl xl:max-w-6xl space-y-2 p-2 md:space-y-4 md:p-4 lg:mx-auto  lg:space-y-6 lg:p-6 ">
             <!-- Success Message -->
             <Alert v-if="successMessage" variant="success">
                 <AlertTitle>Success</AlertTitle>
@@ -130,6 +130,159 @@
                 </CardContent>
             </Card>
 
+            <!-- Filters Section -->
+            <Card class="mb-6">
+                <!-- responsive here -->
+                <CardHeader class="p-2 md:p-4 lg:p-6">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <!-- responsive here -->
+                            <CardTitle class="text-lg md:text-xl lg:text-2xl">Filters</CardTitle>
+                            <div v-if="!showFilters && hasActiveFilters" class="ml-4 flex flex-wrap gap-2">
+                                <div v-if="filters.search" class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
+                                    Search: {{ filters.search }}
+                                </div>
+
+                                <div
+                                    v-if="filters.rejectionType"
+                                    class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold"
+                                >
+                                    Type: <span class="capitalize">{{ filters.rejectionType }}</span>
+                                </div>
+                                <div
+                                    v-if="filters.reasonCode"
+                                    class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold"
+                                >
+                                    Reason: {{ getReasonCodeLabel(filters.reasonCode) }}
+                                </div>
+                                <div
+                                    v-if="filters.rejectionCategory"
+                                    class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold"
+                                >
+                                    Category: {{ getRejectionCategoryLabel(filters.rejectionCategory) }}
+                                </div>
+                                <div
+                                    v-if="filters.disputed"
+                                    class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold"
+                                >
+                                    Disputed: {{ filters.disputed === 'true' ? 'Yes' : 'No' }}
+                                </div>
+                                <div
+                                    v-if="filters.driverControllable"
+                                    class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold"
+                                >
+                                    Driver Controllable:
+                                    {{ filters.driverControllable === 'true' ? 'Yes' : filters.driverControllable === 'false' ? 'No' : 'N/A' }}
+                                </div>
+                            </div>
+                        </div>
+                        <Button variant="ghost" size="sm" @click="showFilters = !showFilters">
+                            {{ showFilters ? 'Hide Filters' : 'Show Filters' }}
+                            <Icon :name="showFilters ? 'chevron-up' : 'chevron-down'" class="ml-2 h-4 w-4" />
+                        </Button>
+                    </div>
+                </CardHeader>
+                <!-- responsive here -->
+                <CardContent v-if="showFilters" class="p-2 md:p-4 lg:p-6">
+                    <!-- responsive here -->
+                    <div class="flex flex-col gap-1 md:gap-4">
+                        <!-- responsive here -->
+                        <div class="grid w-full grid-cols-1 gap-1 sm:grid-cols-3 md:gap-4">
+                            <div>
+                                <Label for="search">Search</Label>
+                                <!-- responsive here -->
+                                <Input
+                                    class="h-9 w-full px-1 py-1 md:px-2 md:py-1 lg:h-10 lg:px-3 lg:py-2"
+                                    id="search"
+                                    v-model="filters.search"
+                                    type="text"
+                                    placeholder="Search by driver name..."
+                                />
+                            </div>
+                        </div>
+
+                        <div class="grid w-full grid-cols-1 gap-4 sm:grid-cols-3">
+                            <div>
+                                <Label for="rejectionType">Rejection Type</Label>
+                                <select
+                                    id="rejectionType"
+                                    v-model="filters.rejectionType"
+                                    class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    <option value="">All Types</option>
+                                    <option value="block">Block</option>
+                                    <option value="load">Load</option>
+                                </select>
+                            </div>
+                            <div>
+                                <Label for="reasonCode">Reason Code</Label>
+                                <select
+                                    id="reasonCode"
+                                    v-model="filters.reasonCode"
+                                    class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    <option value="">All Reason Codes</option>
+                                    <option v-for="code in rejection_reason_codes" :key="code.id" :value="code.id">
+                                        {{ code.reason_code }}
+                                    </option>
+                                </select>
+                            </div>
+                            <div>
+                                <Label for="rejectionCategory">Rejection From Start Time</Label>
+                                <select
+                                    id="rejectionCategory"
+                                    v-model="filters.rejectionCategory"
+                                    class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    <option value="">All Categories</option>
+                                    <option value="more_than_6">More than 6 hours</option>
+                                    <option value="within_6">Within 6 hours</option>
+                                    <option value="after_start">After start time</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
+                            <div>
+                                <Label for="disputed">Disputed</Label>
+                                <select
+                                    id="disputed"
+                                    v-model="filters.disputed"
+                                    class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    <option value="">All</option>
+                                    <option value="true">Yes</option>
+                                    <option value="false">No</option>
+                                </select>
+                            </div>
+                            <div>
+                                <Label for="driverControllable">Driver Controllable</Label>
+                                <select
+                                    id="driverControllable"
+                                    v-model="filters.driverControllable"
+                                    class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    <option value="">All</option>
+                                    <option value="true">Yes</option>
+                                    <option value="false">No</option>
+                                    <option value="NA">N/A</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end space-x-2">
+                            <Button @click="resetFilters" variant="ghost" size="sm">
+                                <Icon name="rotate_ccw" class="mr-2 h-4 w-4" />
+                                Reset Filters
+                            </Button>
+                            <Button @click="applyFilters" variant="default" size="sm">
+                                <Icon name="filter" class="mr-2 h-4 w-4" />
+                                Apply Filters
+                            </Button>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
             <!-- No Data Message -->
             <div v-if="!hasData" class="flex flex-col items-center justify-center rounded-lg border bg-muted/20 py-16">
                 <Icon name="database-x" class="mb-4 h-16 w-16 text-muted-foreground" />
@@ -138,163 +291,6 @@
 
             <!-- Content that should be hidden when no data -->
             <div v-if="hasData">
-                <!-- Filters Section -->
-                <Card class="mb-6">
-                    <!-- responsive here -->
-                    <CardHeader class="p-2 md:p-4 lg:p-6">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <!-- responsive here -->
-                                <CardTitle class="text-lg md:text-xl lg:text-2xl">Filters</CardTitle>
-                                <div v-if="!showFilters && hasActiveFilters" class="ml-4 flex flex-wrap gap-2">
-                                    <div
-                                        v-if="filters.search"
-                                        class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold"
-                                    >
-                                        Search: {{ filters.search }}
-                                    </div>
-
-                                    <div
-                                        v-if="filters.rejectionType"
-                                        class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold"
-                                    >
-                                        Type: <span class="capitalize">{{ filters.rejectionType }}</span>
-                                    </div>
-                                    <div
-                                        v-if="filters.reasonCode"
-                                        class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold"
-                                    >
-                                        Reason: {{ getReasonCodeLabel(filters.reasonCode) }}
-                                    </div>
-                                    <div
-                                        v-if="filters.rejectionCategory"
-                                        class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold"
-                                    >
-                                        Category: {{ getRejectionCategoryLabel(filters.rejectionCategory) }}
-                                    </div>
-                                    <div
-                                        v-if="filters.disputed"
-                                        class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold"
-                                    >
-                                        Disputed: {{ filters.disputed === 'true' ? 'Yes' : 'No' }}
-                                    </div>
-                                    <div
-                                        v-if="filters.driverControllable"
-                                        class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold"
-                                    >
-                                        Driver Controllable:
-                                        {{ filters.driverControllable === 'true' ? 'Yes' : filters.driverControllable === 'false' ? 'No' : 'N/A' }}
-                                    </div>
-                                </div>
-                            </div>
-                            <Button variant="ghost" size="sm" @click="showFilters = !showFilters">
-                                {{ showFilters ? 'Hide Filters' : 'Show Filters' }}
-                                <Icon :name="showFilters ? 'chevron-up' : 'chevron-down'" class="ml-2 h-4 w-4" />
-                            </Button>
-                        </div>
-                    </CardHeader>
-                    <!-- responsive here -->
-                    <CardContent v-if="showFilters" class="p-2 md:p-4 lg:p-6">
-                        <!-- responsive here -->
-                        <div class="flex flex-col gap-1 md:gap-4">
-                            <!-- responsive here -->
-                            <div class="grid w-full grid-cols-1 gap-1 sm:grid-cols-3 md:gap-4">
-                                <div>
-                                    <Label for="search">Search</Label>
-                                    <!-- responsive here -->
-                                    <Input
-                                        class="h-9 w-full px-1 py-1 md:px-2 md:py-1 lg:h-10 lg:px-3 lg:py-2"
-                                        id="search"
-                                        v-model="filters.search"
-                                        type="text"
-                                        placeholder="Search by driver name..."
-                                    />
-                                </div>
-                            </div>
-
-                            <div class="grid w-full grid-cols-1 gap-4 sm:grid-cols-3">
-                                <div>
-                                    <Label for="rejectionType">Rejection Type</Label>
-                                    <select
-                                        id="rejectionType"
-                                        v-model="filters.rejectionType"
-                                        class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                    >
-                                        <option value="">All Types</option>
-                                        <option value="block">Block</option>
-                                        <option value="load">Load</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <Label for="reasonCode">Reason Code</Label>
-                                    <select
-                                        id="reasonCode"
-                                        v-model="filters.reasonCode"
-                                        class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                    >
-                                        <option value="">All Reason Codes</option>
-                                        <option v-for="code in rejection_reason_codes" :key="code.id" :value="code.id">
-                                            {{ code.reason_code }}
-                                        </option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <Label for="rejectionCategory">Rejection From Start Time</Label>
-                                    <select
-                                        id="rejectionCategory"
-                                        v-model="filters.rejectionCategory"
-                                        class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                    >
-                                        <option value="">All Categories</option>
-                                        <option value="more_than_6">More than 6 hours</option>
-                                        <option value="within_6">Within 6 hours</option>
-                                        <option value="after_start">After start time</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
-                                <div>
-                                    <Label for="disputed">Disputed</Label>
-                                    <select
-                                        id="disputed"
-                                        v-model="filters.disputed"
-                                        class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                    >
-                                        <option value="">All</option>
-                                        <option value="true">Yes</option>
-                                        <option value="false">No</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <Label for="driverControllable">Driver Controllable</Label>
-                                    <select
-                                        id="driverControllable"
-                                        v-model="filters.driverControllable"
-                                        class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                    >
-                                        <option value="">All</option>
-                                        <option value="true">Yes</option>
-                                        <option value="false">No</option>
-                                        <option value="NA">N/A</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="flex justify-end space-x-2">
-    <Button @click="resetFilters" variant="ghost" size="sm">
-        <Icon name="rotate_ccw" class="mr-2 h-4 w-4" />
-        Reset Filters
-    </Button>
-    <Button @click="applyFilters" variant="default" size="sm">
-        <Icon name="filter" class="mr-2 h-4 w-4" />
-        Apply Filters
-    </Button>
-</div>
-                        </div>
-                    </CardContent>
-                </Card>
-
                 <!-- Acceptance Dashboard -->
                 <AcceptanceDashboard
                     v-if="!isSuperAdmin"
@@ -737,17 +733,16 @@ const props = defineProps({
         type: Number,
     },
     filters: {
-    type: Object,
-    default: () => ({
-        search: '',
-        rejectionType: '',
-        reasonCode: '',
-        rejectionCategory: '',
-        disputed: '',
-        driverControllable: '',
-    }),
-},
-
+        type: Object,
+        default: () => ({
+            search: '',
+            rejectionType: '',
+            reasonCode: '',
+            rejectionCategory: '',
+            disputed: '',
+            driverControllable: '',
+        }),
+    },
 });
 const weekNumberText = computed(() => {
     // For yesterday and current-week, show single week
@@ -817,12 +812,9 @@ const sortDirection = ref('desc');
 
 const filters = ref({ ...props.filters });
 
-
-
 // Computed property for filtered and sorted rejections
 const filteredRejections = computed(() => {
     let result = [...props.rejections.data];
-
 
     // Apply sorting
     result.sort((a, b) => {
@@ -867,21 +859,14 @@ function sortBy(column) {
 
 // Filter functions
 function applyFilters() {
-    const routeName = props.tenantSlug
-        ? route('acceptance.index', { tenantSlug: props.tenantSlug })
-        : route('acceptance.index.admin');
+    const routeName = props.tenantSlug ? route('acceptance.index', { tenantSlug: props.tenantSlug }) : route('acceptance.index.admin');
 
-    router.get(
-        routeName,
-        {
-            ...filters.value,
-            perPage: perPage.value,
-            dateFilter: activeTab.value,
-        },
-    );
+    router.get(routeName, {
+        ...filters.value,
+        perPage: perPage.value,
+        dateFilter: activeTab.value,
+    });
 }
-
-
 
 function resetFilters() {
     filters.value = {
@@ -897,7 +882,6 @@ function resetFilters() {
 
     applyFilters();
 }
-
 
 // Function to open the rejection form modal (for create or edit)
 const openForm = (rejection = null) => {
@@ -1015,51 +999,37 @@ const visitPage = (url) => {
         const urlObj = new URL(url);
         const baseUrl = urlObj.origin + urlObj.pathname;
 
-        router.get(
-            baseUrl,
-            {
-                ...filters.value,
-                perPage: perPage.value,
-                dateFilter: activeTab.value,
-                page: urlObj.searchParams.get('page') || 1,
-            },
-        );
+        router.get(baseUrl, {
+            ...filters.value,
+            perPage: perPage.value,
+            dateFilter: activeTab.value,
+            page: urlObj.searchParams.get('page') || 1,
+        });
     }
 };
-
 
 // Function to handle date filter selection
 function selectDateFilter(filter) {
     activeTab.value = filter;
 
-    const routeName = props.tenantSlug
-        ? route('acceptance.index', { tenantSlug: props.tenantSlug })
-        : route('acceptance.index.admin');
+    const routeName = props.tenantSlug ? route('acceptance.index', { tenantSlug: props.tenantSlug }) : route('acceptance.index.admin');
 
-    router.get(
-        routeName,
-        {
-            ...filters.value,
-            perPage: perPage.value,
-            dateFilter: filter,
-        },
-    );
+    router.get(routeName, {
+        ...filters.value,
+        perPage: perPage.value,
+        dateFilter: filter,
+    });
 }
 
 // Function to handle per page change
 function changePerPage() {
-    const routeName = props.tenantSlug
-        ? route('acceptance.index', { tenantSlug: props.tenantSlug })
-        : route('acceptance.index.admin');
+    const routeName = props.tenantSlug ? route('acceptance.index', { tenantSlug: props.tenantSlug }) : route('acceptance.index.admin');
 
-    router.get(
-        routeName,
-        {
-            ...filters.value,
-            perPage: perPage.value,
-            dateFilter: activeTab.value,
-        },
-    );
+    router.get(routeName, {
+        ...filters.value,
+        perPage: perPage.value,
+        dateFilter: activeTab.value,
+    });
 }
 
 // Remove this duplicate function declaration
