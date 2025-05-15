@@ -54,6 +54,9 @@ class PerformanceService
         $dateRange = [];
         $query = $this->filteringService->applyDateFilter($query, $dateFilter, 'date', $dateRange);
         
+        // Order by date descending (newest to oldest)
+        $query = $query->orderBy('date', 'desc');
+        
         $performances = $query->paginate($perPage);
         
         $isSuperAdmin = is_null(Auth::user()->tenant_id);
@@ -126,6 +129,18 @@ class PerformanceService
      */
     public function storePerformance(array $data)
     {
+        if($data['maintenance_variance_to_spend'] <= 5) {
+            $data['maintenance_variance_to_spend'] = $data['maintenance_variance_to_spend'] * 100;
+        }
+        if($data['on_time_to_destination'] <= 5) {
+            $data['on_time_to_destination'] = $data['on_time_to_destination'] * 100;
+        }
+        if($data['on_time_to_origin'] <= 5) {
+            $data['on_time_to_origin'] = $data['on_time_to_origin'] * 100;
+        }
+        if($data['acceptance'] <= 5) {
+            $data['acceptance'] = $data['acceptance'] * 100;
+        }
         // Calculate the composite on_time value.
         $data['on_time'] = $data['on_time_to_origin'] == 0
             ? 0.5
@@ -157,6 +172,18 @@ class PerformanceService
      */
     public function updatePerformance($id, array $data)
     {
+        if($data['maintenance_variance_to_spend'] <= 5) {
+            $data['maintenance_variance_to_spend'] = $data['maintenance_variance_to_spend'] * 100;
+        }
+        if($data['on_time_to_destination'] <= 5) {
+            $data['on_time_to_destination'] = $data['on_time_to_destination'] * 100;
+        }
+        if($data['on_time_to_origin'] <= 5) {
+            $data['on_time_to_origin'] = $data['on_time_to_origin'] * 100;
+        }
+        if($data['acceptance'] <= 5) {
+            $data['acceptance'] = $data['acceptance'] * 100;
+        }
         $data['on_time'] = $data['on_time_to_origin'] == 0
             ? 0.5
             : ($data['on_time_to_origin'] * 0.375 + $data['on_time_to_destination'] * 0.625);

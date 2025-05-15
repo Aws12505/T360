@@ -196,17 +196,17 @@
                                     </TableCell>
                                     <TableCell>{{ formatDate(item.date) }}</TableCell>
                                     <TableCell>
-                                        <div>{{ item.acceptance }}</div>
+                                        <div>%{{ item.acceptance }}</div>
                                         <div class="text-xs italic text-gray-500">({{ formatRating(item.acceptance_rating) }})</div>
                                     </TableCell>
-                                    <TableCell>{{ item.on_time_to_origin }}</TableCell>
-                                    <TableCell>{{ item.on_time_to_destination }}</TableCell>
+                                    <TableCell>%{{ item.on_time_to_origin }}</TableCell>
+                                    <TableCell>%{{ item.on_time_to_destination }}</TableCell>
                                     <TableCell>
-                                        <div>{{ item.on_time }}</div>
+                                        <div>%{{ item.on_time }}</div>
                                         <div class="text-xs italic text-gray-500">({{ formatRating(item.on_time_rating) }})</div>
                                     </TableCell>
                                     <TableCell>
-                                        <div>{{ item.maintenance_variance_to_spend }}</div>
+                                        <div>%{{ item.maintenance_variance_to_spend }}</div>
                                         <div class="text-xs italic text-gray-500">
                                             ({{ formatRating(item.maintenance_variance_to_spend_rating) }})
                                         </div>
@@ -354,7 +354,7 @@
                     id="maintenance_variance_to_spend"
                     v-model="form.maintenance_variance_to_spend"
                     type="number"
-                    step="0.01"
+                    step="0.001"
                     required
                     class="h-9 px-3 py-1 text-xs sm:h-10 sm:text-sm"
                 />

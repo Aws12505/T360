@@ -70,7 +70,7 @@ class RepairOrderService
             $query->where('tenant_id', Auth::user()->tenant_id);
         }
         
-        $repairOrders = $query->latest()->paginate($perPage);
+        $repairOrders = $query->latest('ro_open_date')->paginate($perPage);
         
         $isSuperAdmin = is_null(Auth::user()->tenant_id);
         $tenantSlug = $isSuperAdmin ? null : Auth::user()->tenant->slug;
