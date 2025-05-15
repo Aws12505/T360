@@ -62,7 +62,6 @@ class RejectionService
         $dateRange = [];
         $query = $this->filteringService->applyDateFilter($query, $dateFilter, 'date', $dateRange);
         $request = request();
-
 if ($request->filled('search')) {
     $search = strtolower($request->input('search'));
     $query->where(function ($q) use ($search) {
@@ -88,9 +87,9 @@ if ($request->filled('disputed')) {
 
 if ($request->has('driverControllable')) {
     $driverControllable = $request->input('driverControllable');
-    if ($driverControllable === 'null') {
+    if ($driverControllable === 'NA') {
         $query->whereNull('driver_controllable');
-    } else {
+    } else if($driverControllable === 'true' || $driverControllable === 'false'){
         $query->where('driver_controllable', $driverControllable === 'true');
     }
 }
@@ -131,14 +130,14 @@ if ($request->has('driverControllable')) {
             $dateRange['end'] ?? null
         );
         $filters = [
-            'search' => $request->input('search', ''),
-            'dateFrom' => $request->input('dateFrom', ''),
-            'dateTo' => $request->input('dateTo', ''),
-            'rejectionType' => $request->input('rejectionType', ''),
-            'reasonCode' => $request->input('reasonCode', ''),
-            'rejectionCategory' => $request->input('rejectionCategory', ''),
-            'disputed' => $request->input('disputed', ''),
-            'driverControllable' => $request->input('driverControllable', ''),
+            'search' => (string) $request->input('search', ''),
+            'dateFrom' => (string) $request->input('dateFrom', ''),
+            'dateTo' => (string) $request->input('dateTo', ''),
+            'rejectionType' => (string) $request->input('rejectionType', ''),
+            'reasonCode' => (string) $request->input('reasonCode', ''),
+            'rejectionCategory' => (string) $request->input('rejectionCategory', ''),
+            'disputed' => (string) $request->input('disputed', ''),
+            'driverControllable' => (string) $request->input('driverControllable', ''),
         ];
         
         return [

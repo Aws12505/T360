@@ -276,7 +276,7 @@
                                         <option value="">All</option>
                                         <option value="true">Yes</option>
                                         <option value="false">No</option>
-                                        <option value="null">N/A</option>
+                                        <option value="NA">N/A</option>
                                     </select>
                                 </div>
                             </div>
@@ -881,7 +881,6 @@ function applyFilters() {
             perPage: perPage.value,
             dateFilter: activeTab.value,
         },
-        { preserveState: true }
     );
 }
 
@@ -1048,7 +1047,6 @@ function selectDateFilter(filter) {
             perPage: perPage.value,
             dateFilter: filter,
         },
-        { preserveState: true }
     );
 }
 
@@ -1095,7 +1093,7 @@ const acceptanceMetrics = computed(() => {
 
     const categoryData = props.rejection_breakdown.by_category;
 
-    const type = filters.value.rejectionType;
+    const type = props.filters.rejectionType;
 
     if (type) {
         return {
@@ -1117,9 +1115,9 @@ const acceptanceMetrics = computed(() => {
 });
 
 const bottomDrivers = computed(() => {
-    if (filters.value.rejectionType == 'load') return props.rejection_breakdown?.bottom_five_drivers.load || [];
+    if (props.filters.rejectionType == 'load') return props.rejection_breakdown?.bottom_five_drivers.load || [];
 
-    if (filters.value.rejectionType == 'block') return props.rejection_breakdown?.bottom_five_drivers.block || [];
+    if (props.filters.rejectionType == 'block') return props.rejection_breakdown?.bottom_five_drivers.block || [];
     else return props.rejection_breakdown?.bottom_five_drivers.total || [];
 });
 
