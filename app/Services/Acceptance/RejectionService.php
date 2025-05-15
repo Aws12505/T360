@@ -66,8 +66,7 @@ class RejectionService
 if ($request->filled('search')) {
     $search = strtolower($request->input('search'));
     $query->where(function ($q) use ($search) {
-        $q->whereRaw('LOWER(driver_name) LIKE ?', ["%{$search}%"])
-          ->orWhereRaw('LOWER(load_number) LIKE ?', ["%{$search}%"]);
+        $q->whereRaw('LOWER(driver_name) LIKE ?', ["%{$search}%"]);
     });
 }
 
@@ -131,6 +130,17 @@ if ($request->has('driverControllable')) {
             $dateRange['start'] ?? null, 
             $dateRange['end'] ?? null
         );
+        $filters = [
+            'search' => $request->input('search', ''),
+            'dateFrom' => $request->input('dateFrom', ''),
+            'dateTo' => $request->input('dateTo', ''),
+            'rejectionType' => $request->input('rejectionType', ''),
+            'reasonCode' => $request->input('reasonCode', ''),
+            'rejectionCategory' => $request->input('rejectionCategory', ''),
+            'disputed' => $request->input('disputed', ''),
+            'driverControllable' => $request->input('driverControllable', ''),
+        ];
+        
         return [
             'rejections'           => $rejections,
             'tenantSlug'           => $isSuperAdmin ? null : $user->tenant->slug,
@@ -147,6 +157,7 @@ if ($request->has('driverControllable')) {
             'rejection_breakdown'  => $rejectionBreakdown,
             'line_chart_data'      => $lineChartData['chartData'] ?? [],
             'average_acceptance'   => $lineChartData['averageAcceptance'] ?? null,
+            'filters' => $filters,
         ];
     }
 /**

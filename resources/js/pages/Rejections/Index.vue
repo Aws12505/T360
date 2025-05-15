@@ -208,7 +208,6 @@
                                         v-model="filters.search"
                                         type="text"
                                         placeholder="Search by driver name..."
-                                        @input="applyFilters"
                                     />
                                 </div>
                             </div>
@@ -219,7 +218,6 @@
                                     <select
                                         id="rejectionType"
                                         v-model="filters.rejectionType"
-                                        @change="applyFilters"
                                         class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                     >
                                         <option value="">All Types</option>
@@ -232,7 +230,6 @@
                                     <select
                                         id="reasonCode"
                                         v-model="filters.reasonCode"
-                                        @change="applyFilters"
                                         class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                     >
                                         <option value="">All Reason Codes</option>
@@ -242,11 +239,10 @@
                                     </select>
                                 </div>
                                 <div>
-                                    <Label for="rejectionCategory">Rejection From Start</Label>
+                                    <Label for="rejectionCategory">Rejection From Start Time</Label>
                                     <select
                                         id="rejectionCategory"
                                         v-model="filters.rejectionCategory"
-                                        @change="applyFilters"
                                         class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                     >
                                         <option value="">All Categories</option>
@@ -263,7 +259,6 @@
                                     <select
                                         id="disputed"
                                         v-model="filters.disputed"
-                                        @change="applyFilters"
                                         class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                     >
                                         <option value="">All</option>
@@ -276,7 +271,6 @@
                                     <select
                                         id="driverControllable"
                                         v-model="filters.driverControllable"
-                                        @change="applyFilters"
                                         class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                     >
                                         <option value="">All</option>
@@ -287,12 +281,16 @@
                                 </div>
                             </div>
 
-                            <div class="flex justify-end">
-                                <Button @click="resetFilters" variant="ghost" size="sm">
-                                    <Icon name="rotate_ccw" class="mr-2 h-4 w-4" />
-                                    Reset Filters
-                                </Button>
-                            </div>
+                            <div class="flex justify-end space-x-2">
+    <Button @click="resetFilters" variant="ghost" size="sm">
+        <Icon name="rotate_ccw" class="mr-2 h-4 w-4" />
+        Reset Filters
+    </Button>
+    <Button @click="applyFilters" variant="default" size="sm">
+        <Icon name="filter" class="mr-2 h-4 w-4" />
+        Apply Filters
+    </Button>
+</div>
                         </div>
                     </CardContent>
                 </Card>
@@ -738,6 +736,20 @@ const props = defineProps({
     average_acceptance: {
         type: Number,
     },
+    filters: {
+    type: Object,
+    default: () => ({
+        search: '',
+        dateFrom: '',
+        dateTo: '',
+        rejectionType: '',
+        reasonCode: '',
+        rejectionCategory: '',
+        disputed: '',
+        driverControllable: '',
+    }),
+},
+
 });
 const weekNumberText = computed(() => {
     // For yesterday and current-week, show single week
@@ -764,6 +776,7 @@ const breadcrumbs = [
         href: props.tenantSlug ? route('acceptance.index', { tenantSlug: props.tenantSlug }) : route('acceptance.index.admin'),
     },
 ];
+const urlParams = new URLSearchParams(window.location.search);
 
 // Reactive state for modals and selected rejection
 const formModal = ref(false);
@@ -771,8 +784,8 @@ const codeModal = ref(false);
 const selectedRejection = ref(null);
 const errorMessage = ref('');
 const successMessage = ref('');
-const activeTab = ref(props.dateFilter || 'full');
-const perPage = ref(props.perPage);
+const activeTab = ref(urlParams.get('dateFilter') || props.dateFilter || 'full');
+const perPage = ref(parseInt(urlParams.get('perPage')) || props.perPage || 10);
 const selectedRejections = ref([]);
 const showDeleteSelectedModal = ref(false);
 const exportForm = ref(null);
@@ -804,16 +817,10 @@ const sortColumn = ref('date');
 const sortDirection = ref('desc');
 
 // Filtering state
-const filters = ref({
-    search: '',
-    dateFrom: '',
-    dateTo: '',
-    rejectionType: '',
-    reasonCode: '',
-    rejectionCategory: '', // Changed from penalty
-    disputed: '',
-    driverControllable: '',
-});
+
+const filters = ref({ ...props.filters });
+
+
 
 // Computed property for filtered and sorted rejections
 const filteredRejections = computed(() => {
@@ -863,16 +870,22 @@ function sortBy(column) {
 
 // Filter functions
 function applyFilters() {
-    const routeName = props.tenantSlug ? route('acceptance.index', { tenantSlug: props.tenantSlug }) : route('acceptance.index.admin');
+    const routeName = props.tenantSlug
+        ? route('acceptance.index', { tenantSlug: props.tenantSlug })
+        : route('acceptance.index.admin');
 
-    router.get(routeName, {
-        ...filters.value,
-        dateFilter: activeTab.value,
-        perPage: perPage.value,
-    }, {
-        preserveState: true,
-    });
+    router.get(
+        routeName,
+        {
+            ...filters.value,
+            perPage: perPage.value,
+            dateFilter: activeTab.value,
+        },
+        { preserveState: true }
+    );
 }
+
+
 
 function resetFilters() {
     filters.value = {
@@ -1003,42 +1016,55 @@ const deleteRejection = (id) => {
 // Function to handle pagination
 const visitPage = (url) => {
     if (url) {
-        // Add perPage parameter to the URL
         const urlObj = new URL(url);
-        urlObj.searchParams.set('perPage', perPage.value);
-        urlObj.searchParams.set('dateFilter', activeTab.value);
+        const baseUrl = urlObj.origin + urlObj.pathname;
 
-        router.get(urlObj.href, {}, { only: ['rejections'] });
+        router.get(
+            baseUrl,
+            {
+                ...filters.value,
+                perPage: perPage.value,
+                dateFilter: activeTab.value,
+                page: urlObj.searchParams.get('page') || 1,
+            },
+            { only: ['rejections'] }
+        );
     }
 };
+
 
 // Function to handle date filter selection
 function selectDateFilter(filter) {
     activeTab.value = filter;
 
-    const routeName = props.tenantSlug ? route('acceptance.index', { tenantSlug: props.tenantSlug }) : route('acceptance.index.admin');
+    const routeName = props.tenantSlug
+        ? route('acceptance.index', { tenantSlug: props.tenantSlug })
+        : route('acceptance.index.admin');
 
     router.get(
         routeName,
         {
-            dateFilter: filter,
+            ...filters.value,
             perPage: perPage.value,
+            dateFilter: filter,
         },
-        { preserveState: true },
+        { preserveState: true }
     );
 }
 
 // Function to handle per page change
 function changePerPage() {
-    const routeName = props.tenantSlug ? route('acceptance.index', { tenantSlug: props.tenantSlug }) : route('acceptance.index.admin');
+    const routeName = props.tenantSlug
+        ? route('acceptance.index', { tenantSlug: props.tenantSlug })
+        : route('acceptance.index.admin');
 
     router.get(
         routeName,
         {
-            dateFilter: activeTab.value,
+            ...filters.value,
             perPage: perPage.value,
+            dateFilter: activeTab.value,
         },
-        { preserveState: true },
     );
 }
 
