@@ -51,8 +51,10 @@ const initChart = () => {
   });
   
   // Calculate min and max values for Y-axis
-  const minValue = 0;
-  const maxValue = 120;
+  // const minValue = 0;
+  // const maxValue = 120;
+  const minValue = dataValues.length > 0 ? Math.min(...dataValues) : 0;
+  const maxValue = dataValues.length > 0 ? Math.max(...dataValues) : 100;
   
   // Add some padding to the min/max values (10% of the range)
   const range = maxValue - minValue;
@@ -101,10 +103,10 @@ const initChart = () => {
       scales: {
         y: {
           beginAtZero: minValue > 10 ? false : true,
-          min: 0,
-          max: 120,
+          min: Math.max(Math.floor(minValue-15),0),
+          max: Math.min(110,Math.ceil(maxValue+15)),
           ticks: {
-            stepSize: 20, // Create approximately 5 steps
+            stepSize: 5, // Create approximately 5 steps
             padding: 10, // Add padding between the axis and the labels
             font: {
               size: 11 // Slightly increase font size for better visibility

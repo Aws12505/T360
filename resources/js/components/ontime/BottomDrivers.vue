@@ -3,7 +3,7 @@
     <h3 class="text-base text-center font-semibold mb-2 md:mb-4 ">{{ title }}</h3>
     {{ console.log(delayType)  }}
     <!-- Display message when no data -->
-    <div v-if="drivers.length === 0" class="text-center text-lg py-4 text-violet-400 font-medium">
+    <div v-if="drivers.length === 0" class="text-center text-sm py-4 text-primary font-medium">
       <template v-if="totalDelays === 0">
         <template v-if="delayType === 'origin'">
           No origin delays recorded. You're on track for Fantastic+ !
