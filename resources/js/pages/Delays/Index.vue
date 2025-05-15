@@ -203,8 +203,7 @@
                                         id="search"
                                         v-model="filters.search"
                                         type="text"
-                                        placeholder="Search by driver or type..."
-                                        @input="applyFilters"
+                                        placeholder="Search by driver..."
                                     />
                                 </div>
 
@@ -213,7 +212,6 @@
                                     <select
                                         id="delayCode"
                                         v-model="filters.delayCode"
-                                        @change="applyFilters"
                                         class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                                     >
                                         <option value="">All Codes</option>
@@ -227,7 +225,6 @@
                                     <select
                                         id="delayCategory"
                                         v-model="filters.delayCategory"
-                                        @change="applyFilters"
                                         class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                                     >
                                         <option value="">All Categories</option>
@@ -241,7 +238,6 @@
                                     <select
                                         id="delayType"
                                         v-model="filters.delayType"
-                                        @change="applyFilters"
                                         class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                                     >
                                         <option value="">All Types</option>
@@ -254,7 +250,6 @@
                                     <select
                                         id="disputed"
                                         v-model="filters.disputed"
-                                        @change="applyFilters"
                                         class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                                     >
                                         <option value="">All</option>
@@ -267,22 +262,25 @@
                                     <select
                                         id="controllable"
                                         v-model="filters.controllable"
-                                        @change="applyFilters"
                                         class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                                     >
                                         <option value="">All</option>
                                         <option value="true">Yes</option>
                                         <option value="false">No</option>
-                                        <option value="null">N/A</option>
+                                        <option value="NA">N/A</option>
                                     </select>
                                 </div>
                             </div>
-                            <div class="flex justify-end">
-                                <Button @click="resetFilters" variant="ghost" size="sm">
-                                    <Icon name="rotate_ccw" class="mr-2 h-4 w-4" />
-                                    Reset Filters
-                                </Button>
-                            </div>
+                            <div class="flex justify-end space-x-2">
+    <Button @click="resetFilters" variant="ghost" size="sm">
+        <Icon name="rotate_ccw" class="mr-2 h-4 w-4" />
+        Reset Filters
+    </Button>
+    <Button @click="applyFilters" variant="default" size="sm">
+        <Icon name="filter" class="mr-2 h-4 w-4" />
+        Apply Filters
+    </Button>
+</div>
                         </div>
                     </CardContent>
                 </Card>
@@ -733,6 +731,17 @@ const props = defineProps({
     average_ontime: {
         type: Number,
     },
+    filters: {
+    type: Object,
+    default: () => ({
+        search: '',
+        delayCode: '',
+        delayCategory: '',
+        delayType: '',
+        disputed: '',
+        driverControllable: '',
+    }),
+},
 });
 const weekNumberText = computed(() => {
     // For yesterday and current-week, show single week
@@ -782,16 +791,8 @@ const sortColumn = ref('date');
 const sortDirection = ref('desc');
 
 // Filtering state
-const filters = ref({
-    search: '',
-    dateFrom: '',
-    dateTo: '',
-    delayCode: '',
-    delayCategory: '',
-    delayType: '',
-    disputed: '',
-    controllable: '',
-});
+const filters = ref({ ...props.filters });
+
 
 // Table columns
 const tableColumns = ['date', 'delay_type', 'driver_name', 'delay_category', 'delay_code', 'disputed', 'driver_controllable'];
@@ -799,54 +800,6 @@ const tableColumns = ['date', 'delay_type', 'driver_name', 'delay_category', 'de
 // Computed property: Filtered and sorted delays
 const filteredDelays = computed(() => {
     let result = [...props.delays.data];
-
-    // Search filter
-    if (filters.value.search) {
-        const term = filters.value.search.toLowerCase();
-        result = result.filter(
-            (item) =>
-                item.driver_name?.toLowerCase().includes(term) ||
-                item.delay_type?.toLowerCase().includes(term) ||
-                item.delay_code?.code?.toLowerCase().includes(term),
-        );
-    }
-
-    // Date filters
-    if (filters.value.dateFrom) {
-        result = result.filter((item) => item.date && item.date >= filters.value.dateFrom);
-    }
-    if (filters.value.dateTo) {
-        result = result.filter((item) => item.date && item.date <= filters.value.dateTo);
-    }
-
-    // Delay code filter
-    if (filters.value.delayCode) {
-        result = result.filter((item) => item.delay_code?.id === parseInt(filters.value.delayCode));
-    }
-    //delay type filter
-    if (filters.value.delayType) {
-        result = result.filter((item) => item.delay_type === filters.value.delayType);
-    }
-    // Delay category filter
-    if (filters.value.delayCategory) {
-        result = result.filter((item) => item.delay_category === filters.value.delayCategory);
-    }
-
-    // Disputed filter
-    if (filters.value.disputed !== '') {
-        const isDisputed = filters.value.disputed === 'true';
-        result = result.filter((item) => item.disputed === isDisputed);
-    }
-
-    // Controllable filter
-    if (filters.value.controllable !== '') {
-        if (filters.value.controllable === 'null') {
-            result = result.filter((item) => item.driver_controllable === null);
-        } else {
-            const isControllable = filters.value.controllable === 'true';
-            result = result.filter((item) => item.driver_controllable === isControllable);
-        }
-    }
 
     // Sorting logic
     result.sort((a, b) => {
@@ -888,7 +841,18 @@ function sortBy(column) {
 
 // Filter handlers
 function applyFilters() {
-    // Automatic via computed property
+    const routeName = props.tenantSlug
+        ? route('ontime.index', { tenantSlug: props.tenantSlug })
+        : route('ontime.index.admin');
+
+    router.get(
+        routeName,
+        {
+            ...filters.value,
+            perPage: perPage.value,
+            dateFilter: activeTab.value,
+        },
+    );
 }
 function resetFilters() {
     filters.value = {
@@ -910,20 +874,43 @@ const activeTab = ref(props.dateFilter || 'full');
 
 function changePerPage() {
     const routeName = props.tenantSlug ? route('ontime.index', { tenantSlug: props.tenantSlug }) : route('ontime.index.admin');
-    router.get(routeName, { dateFilter: activeTab.value, perPage: perPage.value }, { preserveState: true });
+router.get(
+        routeName,
+        {
+            ...filters.value,
+            perPage: perPage.value,
+            dateFilter: activeTab.value,
+        },
+    );
 }
 function selectDateFilter(filter) {
     activeTab.value = filter;
     const routeName = props.tenantSlug ? route('ontime.index', { tenantSlug: props.tenantSlug }) : route('ontime.index.admin');
-    router.get(routeName, { dateFilter: filter, perPage: perPage.value }, { preserveState: true });
+    router.get(
+        routeName,
+        {
+            ...filters.value,
+            perPage: perPage.value,
+            dateFilter: filter,
+        },
+    );
 }
 function visitPage(url) {
     if (url) {
         // Add perPage parameter to the URL
         const urlObj = new URL(url);
-        urlObj.searchParams.set('perPage', perPage.value);
-        urlObj.searchParams.set('dateFilter', activeTab.value);
-        router.get(urlObj.href, {}, { only: ['delays'] });
+        const baseUrl = urlObj.origin + urlObj.pathname;
+
+        router.get(
+            baseUrl,
+            {
+                ...filters.value,
+                perPage: perPage.value,
+                dateFilter: activeTab.value,
+                page: urlObj.searchParams.get('page') || 1,
+            },
+            
+        );
     }
 }
 function formatDate(dateStr) {
@@ -1120,7 +1107,7 @@ const ontimeMetrics = computed(() => {
 
     const categoryData = props.delay_breakdown.by_category;
 
-    const type = filters.value.delayType;
+    const type = props.filters.delayType;
     if (type) {
         return {
             between1_120Count: categoryData[`category_1_120_${type}_count`] || '0',
@@ -1141,9 +1128,9 @@ const ontimeMetrics = computed(() => {
 });
 
 const bottomDrivers = computed(() => {
-    if (filters.value.delayType == 'origin') return props.delay_breakdown?.bottom_five_drivers.origin || [];
+    if (props.filters.delayType == 'origin') return props.delay_breakdown?.bottom_five_drivers.origin || [];
 
-    if (filters.value.delayType == 'destination') return props.delay_breakdown?.bottom_five_drivers.destination || [];
+    if (props.filters.delayType == 'destination') return props.delay_breakdown?.bottom_five_drivers.destination || [];
     else return props.delay_breakdown?.bottom_five_drivers.total || [];
 });
 

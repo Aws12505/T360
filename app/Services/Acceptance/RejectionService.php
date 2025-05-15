@@ -131,8 +131,6 @@ if ($request->has('driverControllable')) {
         );
         $filters = [
             'search' => (string) $request->input('search', ''),
-            'dateFrom' => (string) $request->input('dateFrom', ''),
-            'dateTo' => (string) $request->input('dateTo', ''),
             'rejectionType' => (string) $request->input('rejectionType', ''),
             'reasonCode' => (string) $request->input('reasonCode', ''),
             'rejectionCategory' => (string) $request->input('rejectionCategory', ''),

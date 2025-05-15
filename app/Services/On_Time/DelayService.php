@@ -51,6 +51,39 @@ class DelayService
         if ($dateFilter !== 'full') {
             $query = $this->filteringService->applyDateFilter($query, $dateFilter, 'date', $dateRange);
         }
+        $request = request();
+
+if ($request->filled('search')) {
+    $search = strtolower($request->input('search'));
+    $query->where(function ($q) use ($search) {
+        $q->whereRaw('LOWER(driver_name) LIKE ?', ["%{$search}%"]);
+    });
+}
+
+if ($request->filled('delayCode')) {
+    $query->where('delay_code_id', $request->input('delayCode'));
+}
+
+if ($request->filled('delayCategory')) {
+    $query->where('delay_category', $request->input('delayCategory'));
+}
+
+if ($request->filled('delayType')) {
+    $query->where('delay_type', $request->input('delayType'));
+}
+
+if ($request->filled('disputed')) {
+    $query->where('disputed', $request->boolean('disputed'));
+}
+
+if ($request->has('controllable')) {
+    $controllable = $request->input('controllable');
+    if ($controllable === 'NA') {
+        $query->whereNull('driver_controllable');
+    } elseif ($controllable === 'true' || $controllable === 'false') {
+        $query->where('driver_controllable', $controllable === 'true');
+    }
+}
 
         // Get the per page value from request (default 10)
         $perPage = $this->filteringService->getPerPage(Request::input('perPage', 10));
@@ -103,7 +136,14 @@ class DelayService
             $dateRange['start'] ?? null, 
             $dateRange['end'] ?? null
         );
-        
+        $filters = [
+            'search' => (string) $request->input('search', ''),
+            'delayType' => (string) $request->input('delayType', ''),
+            'delayCode' => (string) $request->input('delayCode', ''),
+            'delayCategory' => (string) $request->input('delayCategory', ''),
+            'disputed' => (string) $request->input('disputed', ''),
+            'driverControllable' => (string) $request->input('driverControllable', ''),
+        ];
         return [
             'delays'      => $delays,
             'tenantSlug'  => $tenantSlug,
@@ -119,6 +159,7 @@ class DelayService
             'delay_breakdown' => $delayBreakdown,
             'line_chart_data'      => $lineChartData['chartData'] ?? [],
             'average_ontime'   => $lineChartData['averageOnTime'] ?? null,
+            'filters' => $filters,
         ];
     }
 /**

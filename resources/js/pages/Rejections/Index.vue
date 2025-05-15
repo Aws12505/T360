@@ -740,8 +740,6 @@ const props = defineProps({
     type: Object,
     default: () => ({
         search: '',
-        dateFrom: '',
-        dateTo: '',
         rejectionType: '',
         reasonCode: '',
         rejectionCategory: '',
@@ -776,7 +774,6 @@ const breadcrumbs = [
         href: props.tenantSlug ? route('acceptance.index', { tenantSlug: props.tenantSlug }) : route('acceptance.index.admin'),
     },
 ];
-const urlParams = new URLSearchParams(window.location.search);
 
 // Reactive state for modals and selected rejection
 const formModal = ref(false);
@@ -784,8 +781,8 @@ const codeModal = ref(false);
 const selectedRejection = ref(null);
 const errorMessage = ref('');
 const successMessage = ref('');
-const activeTab = ref(urlParams.get('dateFilter') || props.dateFilter || 'full');
-const perPage = ref(parseInt(urlParams.get('perPage')) || props.perPage || 10);
+const activeTab = ref(props.dateFilter || 'full');
+const perPage = ref(props.perPage || 10);
 const selectedRejections = ref([]);
 const showDeleteSelectedModal = ref(false);
 const exportForm = ref(null);
@@ -1026,7 +1023,6 @@ const visitPage = (url) => {
                 dateFilter: activeTab.value,
                 page: urlObj.searchParams.get('page') || 1,
             },
-            { only: ['rejections'] }
         );
     }
 };
@@ -1067,7 +1063,6 @@ function changePerPage() {
 }
 
 // Remove this duplicate function declaration
-// function visitPage(url) { ... }
 
 // Format date string from YYYY-MM-DD to m/d/Y
 function formatDate(dateStr) {
