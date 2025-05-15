@@ -83,7 +83,7 @@ $year = null;
 if (!empty($dateRange) && isset($dateRange['start'])) {
     $startDate = Carbon::parse($dateRange['start']);
     $year = $startDate->year;
-
+$endDate = Carbon::parse($dateRange['end']);
     // compute week numbers (Sunday=first day)
     if (in_array($dateFilter, ['yesterday', 'current-week'])) {
         $weekNumber = $this->weekNumberSundayStart($startDate);
@@ -92,7 +92,7 @@ if (!empty($dateRange) && isset($dateRange['start'])) {
         $weekNumber = null;
         $startWeekNumber = $this->weekNumberSundayStart($startDate);
         $endWeekNumber = isset($dateRange['end']) ? 
-            $this->weekNumberSundayStart(Carbon::parse($dateRange['end'])) : 
+            $this->weekNumberSundayStart($endDate) : 
             $startWeekNumber;
     }
 }
@@ -103,7 +103,9 @@ if (!empty($dateRange) && isset($dateRange['start'])) {
         $minInvoiceAmount = Request::input('minInvoiceAmount');
         $outstandingDate = Request::input('outstandingDate');
         $outstandingInvoices = $this->maintenanceBreakdownService->getOutstandingInvoices($minInvoiceAmount, $outstandingDate);
-        
+        $areasOfConcern = $this->maintenanceBreakdownService->getAreasOfConcern($startDate, $endDate);
+        $workOrdersByTruck = $this->maintenanceBreakdownService->getWorkOrdersByTruck($startDate, $endDate);
+       
         return [
             'repairOrders' => $repairOrders,
             'tenantSlug' => $tenantSlug,
@@ -123,6 +125,8 @@ if (!empty($dateRange) && isset($dateRange['start'])) {
             'initialMinInvoiceAmount' => $minInvoiceAmount,
             'initialOutstandingDate' => $outstandingDate,
             'outstandingInvoices' => $outstandingInvoices,
+            'workOrderByAreasOfConcern' => $areasOfConcern,
+            'workOrdersByTruck' => $workOrdersByTruck,
         ];
     }
 /**
