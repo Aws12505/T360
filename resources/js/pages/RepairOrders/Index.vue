@@ -2,7 +2,7 @@
     <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
         <Head title="Repair Orders" />
         <!-- responsive here -->
-        <div class="w-full md:max-w-3xl lg:max-w-4xl xl:max-w-6xl lg:mx-auto m-0 p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6">
+        <div class="w-full md:max-w-2xl lg:max-w-3xl xl:max-w-6xl lg:mx-auto m-0 p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6">
             
             <!-- Success Message -->
             <Alert v-if="successMessage" variant="success">
@@ -368,8 +368,13 @@
                 </CardContent>
             </Card>
             <!-- Repair Orders Table -->
+             <!-- No Data Message -->
+             <div v-if="!hasData" class="flex flex-col items-center justify-center rounded-lg border bg-muted/20 py-16">
+                <Icon name="database-x" class="mb-4 h-16 w-16 text-muted-foreground" />
+                <h2 class="text-center text-2xl font-bold text-muted-foreground">There is No Data to give Information about.</h2>
+            </div>
             <!-- responsive here -->
-            <Card class="mx-auto max-w-[95vw] overflow-x-auto md:max-w-[64vw] lg:max-w-full">
+            <Card v-if="hasData" class="mx-auto max-w-[95vw] overflow-x-auto md:max-w-[64vw] lg:max-w-full">
                 <CardContent class="p-0">
                     <div class="overflow-x-auto border-t border-border bg-background dark:bg-background">
                         <Table class="relative h-[600px] overflow-auto">
@@ -1745,6 +1750,12 @@ const showUploadOptions = ref(false);
 // Computed property for template URL
 const templateUrl = computed(() => {
     return '/storage/upload-data-temps/Repair Orders Template.csv';
+});
+
+
+// Computed property to check if there's data
+const hasData = computed(() => {
+    return props.repairOrders.data && props.repairOrders.data.length > 0;
 });
 
 // Close dropdown when clicking outside
