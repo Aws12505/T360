@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="mx-auto max-w-[95vw] md:max-w-[64vw] lg:max-w-full overflow-x-auto">
     <div class="rounded-md border">
       <table class="w-full caption-bottom text-sm">
         <thead class="[&_tr]:border-b">

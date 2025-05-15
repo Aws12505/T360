@@ -187,10 +187,10 @@ const tenantsArray = computed(() => props.tenants.data);
   <!-- Main layout with breadcrumbs passed to the AppLayout component -->
   <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
     
-    <div class="container mx-auto p-6 space-y-8">
+    <div class="container w-full max-w-screen-xl mx-auto p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6">
       <!-- Page header with title and description -->
       <div class="space-y-2">
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">
+        <h1 class="text-lg md:text-xl lg:text-2xl font-bold text-gray-900 dark:text-gray-100">
           User and Role Management
         </h1>
         <p class="text-gray-500 dark:text-gray-400">
@@ -213,8 +213,8 @@ const tenantsArray = computed(() => props.tenants.data);
       </div>
 
       <!-- Users Section -->
-      <Card>
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+      <Card >
+        <CardHeader class="p-2 md:p-4 lg:p-6 flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle class="text-xl font-semibold">
             <div class="flex items-center space-x-2">
               <Users class="h-5 w-5" />
@@ -231,14 +231,14 @@ const tenantsArray = computed(() => props.tenants.data);
             <span>Add User</span>
           </Button>
         </CardHeader>
-        <CardContent>
+        <CardContent class="p-2 md:p-4 lg:p-6">
           <UserList :users="filteredUsers" :isSuperAdmin="isSuperAdmin" @edit="editUser" @delete="deleteUser" />
         </CardContent>
       </Card>
 
       <!-- Roles Section -->
       <Card>
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardHeader class="p-2 md:p-4 lg:p-6 flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle class="text-xl font-semibold">
             <div class="flex items-center space-x-2">
               <Shield class="h-5 w-5" />
@@ -255,7 +255,7 @@ const tenantsArray = computed(() => props.tenants.data);
             <span>Add Role</span>
           </Button>
         </CardHeader>
-        <CardContent>
+        <CardContent class="p-2 md:p-4 lg:p-6">
           <RoleList :roles="roles" @edit="editRole" @delete="deleteRole" />
         </CardContent>
       </Card>
