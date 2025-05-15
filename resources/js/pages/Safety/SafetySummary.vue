@@ -1,7 +1,7 @@
-<template>
+<template class="mb-2">
   <Card class="bg-background dark:bg-background border border-muted/30">
-    <CardContent class="p-4">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <CardContent class="p-1 md:p-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4">
         <!-- Green Zone Score with Driver Star -->
         <div class="bg-gradient-to-br from-muted/10 to-muted/30 rounded-lg p-4 shadow-md border border-muted/20 hover:shadow-lg transition-shadow">
           <h3 class="text-lg font-semibold text-foreground mb-2">Green Zone Score</h3>
@@ -61,9 +61,9 @@
       <!-- Total Severe Alerts -->
       <div class="mt-6">
         <h3 class="text-lg font-semibold text-foreground mb-4">Total Severe Alerts</h3>
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-4">
           <div v-for="(value, type) in data.alerts" :key="type" 
-               class="bg-gradient-to-br from-muted/10 to-muted/30 rounded-lg p-4 text-center shadow-md border border-muted/20 hover:shadow-lg transition-shadow">
+               class="bg-gradient-to-br from-muted/10 to-muted/30 rounded-lg p-2 md:p-4 text-center shadow-md border border-muted/20 hover:shadow-lg transition-shadow">
             <div class="text-sm text-muted-foreground mb-2">{{ formatAlertType(type) }}</div>
             <div class="text-2xl font-bold text-primary">{{ Math.floor(value) }}</div>
           </div>
@@ -75,9 +75,9 @@
         <h3 class="text-lg font-semibold text-foreground mb-4">Other Severe Safety Infractions</h3>
         
         <!-- Grid for visible infractions (excluding Driver Star which is now in Green Zone Score) -->
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-4">
           <div v-for="(value, type) in filteredVisibleInfractions" :key="type" 
-               class="bg-gradient-to-br from-muted/10 to-muted/30 rounded-lg p-4 text-center shadow-md border border-muted/20 hover:shadow-lg transition-shadow">
+               class="bg-gradient-to-br from-muted/10 to-muted/30 rounded-lg p-2 md:p-4 text-center shadow-md border border-muted/20 hover:shadow-lg transition-shadow">
             <div class="text-sm text-muted-foreground mb-2">{{ formatInfractionType(type) }}</div>
             <div class="text-2xl font-bold text-primary">{{ Math.round(value) }}</div>
           </div>
@@ -100,9 +100,9 @@
 
         <!-- Additional infractions when expanded -->
         <div v-if="showMore" class="mt-4">
-          <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div class="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-4">
             <div v-for="(value, type) in hiddenInfractions" :key="type" 
-                 class="bg-gradient-to-br from-muted/10 to-muted/30 rounded-lg p-4 text-center shadow-md border border-muted/20 hover:shadow-lg transition-shadow">
+                 class="bg-gradient-to-br from-muted/10 to-muted/30 rounded-lg p-2 md:p-4 text-center shadow-md border border-muted/20 hover:shadow-lg transition-shadow">
               <div class="text-sm text-muted-foreground mb-2">{{ formatInfractionType(type) }}</div>
               <div class="text-2xl font-bold text-primary">{{ Math.round(value) }}</div>
             </div>
@@ -127,7 +127,7 @@
       
       <!-- Safety Charts Section -->
       <div v-if="showGraphs" class="mt-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 lg:gap-6">
           <!-- Line Chart - Only show if not on yesterday tab -->
           <div v-if="activeTab !== 'yesterday'" class="bg-gradient-to-br from-muted/10 to-muted/30 rounded-lg p-4 shadow-lg border border-muted/20">
             <h3 class="text-lg font-semibold text-foreground mb-4">Safety Trends</h3>

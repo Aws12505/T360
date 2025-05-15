@@ -2,7 +2,8 @@
     <!-- Main layout wrapped in AppLayout with breadcrumbs and tenantSlug props -->
     <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
         <Head title="Safety" />
-        <div class="mx-auto max-w-7xl space-y-8 p-6">
+        <!-- responsive here -->
+        <div class="w-full max-w-screen-xl mx-auto p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6 ">
             <!-- Success message notification -->
             <Alert v-if="successMessage" variant="success">
                 <AlertTitle>Success</AlertTitle>
@@ -14,18 +15,19 @@
                 <AlertDescription>{{ errorMessage }}</AlertDescription>
             </Alert>
             <!-- Actions Section -->
-            <div class="mb-6 flex flex-col items-center justify-between gap-4 sm:flex-row">
-                <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">Safety Management</h1>
+             <!-- responsive here -->
+            <div class="flex flex-col sm:flex-row justify-between items-center px-2 mb-2 md:mb-4 lg:mb-6">
+                <h1 class="text-lg md:text-xl lg:text-2xl font-bold text-gray-800 dark:text-gray-200">Safety Management</h1>
                 <div class="flex flex-wrap gap-3">
                     <!-- Create New Entry button -->
-                    <Button @click="openCreateModal" variant="default">
-                        <Icon name="plus" class="mr-2 h-4 w-4" />
+                    <Button class="px-2 py-0 md:px-4 md:py-2" @click="openCreateModal" variant="default">
+                        <Icon name="plus" class=" mr-1 h-4 w-4 md:mr-2" />
                         Create New Entry
                     </Button>
 
                     <!-- Delete Selected button - only shows when items are selected -->
-                    <Button v-if="selectedEntries.length > 0" @click="confirmDeleteSelected()" variant="destructive">
-                        <Icon name="trash" class="mr-2 h-4 w-4" />
+                    <Button class="px-2 py-0 md:px-4 md:py-2" v-if="selectedEntries.length > 0" @click="confirmDeleteSelected()" variant="destructive">
+                        <Icon name="trash" class=" mr-1 h-4 w-4 md:mr-2" />
                         Delete Selected ({{ selectedEntries.length }})
                     </Button>
 
@@ -44,16 +46,16 @@
 
                     <!-- Import XLSX button -->
                     <label class="cursor-pointer">
-                        <Button variant="secondary" as="span">
-                            <Icon name="upload" class="mr-2 h-4 w-4" />
+                        <Button class="px-2 py-0 md:px-4 md:py-2" variant="secondary" as="span">
+                            <Icon name="upload" class=" mr-1 h-4 w-4 md:mr-2" />
                             Upload XLSX
                         </Button>
                         <input type="file" class="hidden" @change="handleImport" accept=".xlsx" />
                     </label>
 
                     <!-- Export CSV button -->
-                    <Button @click.prevent="exportCSV" variant="outline">
-                        <Icon name="download" class="mr-2 h-4 w-4" />
+                    <Button class="px-2 py-0 md:px-4 md:py-2" @click.prevent="exportCSV" variant="outline">
+                        <Icon name="download" class=" mr-1 h-4 w-4 md:mr-2" />
                         Download CSV
                     </Button>
                 </div>
@@ -61,9 +63,9 @@
 
             <!-- Date Filter Tabs -->
             <Card>
-                <CardContent class="p-4">
-                    <div class="flex flex-col gap-2">
-                        <div class="flex flex-wrap gap-2">
+                <CardContent class="p-2 md:p-4 lg:p-6">
+                    <div class="flex flex-col items-center md:items-start gap-2">
+                        <div class="flex flex-wrap gap-1 md:gap-2">
                             <Button
                                 @click="selectDateFilter('yesterday')"
                                 variant="outline"
@@ -136,12 +138,13 @@
                     @click="toggleFreezeColumn"
                     variant="outline"
                     size="sm"
+                    class="my-2 md:my-4"
                     :class="{ 'border-primary bg-primary/10 text-primary': freezeColumns }"
                 >
                     <Icon :name="freezeColumns ? 'lock' : 'unlock'" class="mr-2 h-4 w-4" />
                     {{ freezeColumns ? 'Unfreeze Names' : 'Freeze Names' }}
                 </Button>
-                <Card>
+                <Card class="mx-auto max-w-[95vw] md:max-w-[64vw] lg:max-w-full overflow-x-auto">
                     <CardContent class="p-0">
                         <div class="overflow-x-auto border-t border-border bg-background dark:bg-background">
                             <Table class="relative h-[500px] overflow-auto">
@@ -239,9 +242,9 @@
 
                         <!-- Pagination -->
                         <div class="border-t bg-muted/20 px-4 py-3" v-if="entries.links">
-                            <div class="flex items-center justify-between">
+                            <div class="flex flex-col sm:flex-row justify-between items-center gap-2">
                                 <div class="text-sm text-muted-foreground">Showing {{ entries.data.length }} entries</div>
-                                <div class="flex items-center gap-4">
+                                <div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 w-full sm:w-auto">
                                     <div class="flex items-center gap-2">
                                         <Label for="perPage" class="text-sm">Per page:</Label>
                                         <select
@@ -256,7 +259,7 @@
                                             <option value="100">100</option>
                                         </select>
                                     </div>
-                                    <div class="flex">
+                                    <div class="flex flex-wrap">
                                         <Button
                                             v-for="link in entries.links"
                                             :key="link.label"
