@@ -2,7 +2,7 @@
     <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
         <Head title="Repair Orders" />
         <!-- responsive here -->
-        <div class="w-full  m-0 p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6">
+        <div class="w-full lg:max-w-7xl lg:mx-auto m-0 p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6">
             
             <!-- Success Message -->
             <Alert v-if="successMessage" variant="success">
