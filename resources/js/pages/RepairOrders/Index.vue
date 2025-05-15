@@ -298,8 +298,10 @@
                                 <span v-if="filters.vendor_id" class="rounded-full bg-muted px-2 py-1"
                                     >Vendor: {{ vendors.find((v) => v.id == filters.vendor_id)?.vendor_name || filters.vendor_id }}</span
                                 >
-                                <span v-if="filters.status" class="rounded-full bg-muted px-2 py-1">Status: {{ filters.status }}</span>
-                            </div>
+                                <span v-if="filters.status_id" class="rounded-full bg-muted px-2 py-1">
+    Status: {{ woStatuses.find((s) => s.id == filters.status_id)?.name || filters.status_id }}
+</span>                            
+</div>
                         </div>
                         <Button variant="ghost" size="sm" @click="showFilters = !showFilters">
                             {{ showFilters ? 'Hide Filters' : 'Show Filters' }}
@@ -321,8 +323,7 @@
                                     id="search"
                                     v-model="filters.search"
                                     type="text"
-                                    placeholder="Search by RO#, Invoice, etc."
-                                    @input="debounceSearch"
+                                    placeholder="Search by RO#, Invoice, WO#..."
                                 />
                             </div>
                             <div>
@@ -331,7 +332,6 @@
                                     id="vendor_filter"
                                     v-model="filters.vendor_id"
                                     class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                    @change="applyFilters"
                                 >
                                     <option value="">All Vendors</option>
                                     <option v-for="vendor in vendors" :key="vendor.id" :value="vendor.id">
@@ -344,25 +344,26 @@
                                 <Label for="status_filter">Status</Label>
                                 <select
                                     id="status_filter"
-                                    v-model="filters.status"
+                                    v-model="filters.status_id"
                                     class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                    @change="applyFilters"
                                 >
                                     <option value="">All Statuses</option>
-                                    <option disabled value="">Select status</option>
-                                    <option v-for="status in woStatuses" :key="status.id" :value="status.name">
-                                        {{ status.name }}
-                                        <span v-if="status.deleted_at">(Deleted)</span>
-                                    </option>
+                                    <option v-for="status in woStatuses" :key="status.id" :value="status.id">
+        {{ status.name }} <span v-if="status.deleted_at">(Deleted)</span>
+    </option>
                                 </select>
                             </div>
                         </div>
-                        <div class="flex justify-end">
-                            <Button @click="resetFilters" variant="outline" size="sm">
-                                <Icon name="x" class="mr-2 h-4 w-4" />
-                                Reset Filters
-                            </Button>
-                        </div>
+                        <div class="flex justify-end space-x-2">
+    <Button @click="resetFilters" variant="ghost" size="sm">
+        <Icon name="rotate_ccw" class="mr-2 h-4 w-4" />
+        Reset Filters
+    </Button>
+    <Button @click="applyFilters" variant="default" size="sm">
+        <Icon name="filter" class="mr-2 h-4 w-4" />
+        Apply Filters
+    </Button>
+</div>
                     </div>
                 </CardContent>
             </Card>
@@ -1214,7 +1215,6 @@ import {
 } from '@/components/ui';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, router, useForm } from '@inertiajs/vue3';
-import debounce from 'lodash/debounce';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 
 const props = defineProps({
@@ -1259,6 +1259,12 @@ const props = defineProps({
     outstandingInvoices: { type: Array, default: () => [] },
     workOrdersByTruck: { type: Array, default: () => [] },
     workOrderByAreasOfConcern: { type: Array, default: () => [] },
+    filters: { type: Object, default: ()=> ({
+        search: '',
+        vendor_id: '',
+        status_id: '',
+    }),
+}
 });
 const weekNumberText = computed(() => {
     // For yesterday and current-week, show single week
@@ -1284,7 +1290,6 @@ const breadcrumbs = [
         href: props.tenantSlug ? route('repair_orders.index', { tenantSlug: props.tenantSlug }) : route('repair_orders.index.admin'),
     },
 ];
-const woStatuses = ref(props.woStatuses || []);
 const showWoStatusesModal = ref(false);
 const woStatusForm = ref({
     name: '',
@@ -1369,11 +1374,7 @@ function deleteSelectedRepairOrders() {
 }
 
 // Filters
-const filters = ref({
-    search: '',
-    vendor_id: '',
-    status: '',
-});
+const filters = ref({ ...props.filters });
 
 // Form for repair orders
 const form = useForm({
@@ -1598,15 +1599,24 @@ const removeAreaOfConcern = (id) => {
 };
 
 // Pagination and sorting
-const visitPage = (url) => {
+function visitPage(url) {
     if (url) {
+        // Add perPage parameter to the URL
         const urlObj = new URL(url);
-        urlObj.searchParams.set('perPage', perPage.value);
-        urlObj.searchParams.set('dateFilter', activeTab.value);
+        const baseUrl = urlObj.origin + urlObj.pathname;
 
-        router.get(urlObj.href, {}, { only: ['repairOrders'] });
+        router.get(
+            baseUrl,
+            {
+                ...filters.value,
+                perPage: perPage.value,
+                dateFilter: activeTab.value,
+                page: urlObj.searchParams.get('page') || 1,
+            },
+            
+        );
     }
-};
+}
 
 const sortBy = (column) => {
     if (sortColumn.value === column) {
@@ -1629,22 +1639,18 @@ const sortBy = (column) => {
     );
 };
 
-// Filtering
-const debounceSearch = debounce(() => {
-    applyFilters();
-}, 500);
+
 
 const applyFilters = () => {
-    const indexRoute = props.SuperAdmin ? route('repair_orders.index.admin') : route('repair_orders.index', props.tenantSlug);
+    const routeName = props.SuperAdmin ? route('repair_orders.index.admin') : route('repair_orders.index', props.tenantSlug);
 
     router.get(
-        indexRoute,
+        routeName,
         {
-            sort: sortColumn.value,
-            direction: sortDirection.value,
             ...filters.value,
+            perPage: perPage.value,
+            dateFilter: activeTab.value,
         },
-        { preserveState: true },
     );
 };
 
@@ -1666,10 +1672,10 @@ const selectDateFilter = (filter) => {
     router.get(
         routeName,
         {
-            dateFilter: filter,
+            ...filters.value,
             perPage: perPage.value,
+            dateFilter: filter,
         },
-        { preserveState: true },
     );
 };
 
@@ -1680,10 +1686,10 @@ const changePerPage = () => {
     router.get(
         routeName,
         {
-            dateFilter: activeTab.value,
+            ...filters.value,
             perPage: perPage.value,
+            dateFilter: activeTab.value,
         },
-        { preserveState: true },
     );
 };
 

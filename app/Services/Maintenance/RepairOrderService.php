@@ -61,7 +61,21 @@ class RepairOrderService
         if ($dateFilter !== 'full') {
             $query = $this->filteringService->applyDateFilter($query, $dateFilter, 'ro_open_date', $dateRange);
         }
-        
+        $request = request();
+        if ($request->filled('search')) {
+            $search = strtolower($request->input('search'));
+            $query->where(function ($q) use ($search) {
+                $q->whereRaw('LOWER(ro_number) LIKE ?', ["%{$search}%"])
+                  ->orWhereRaw('LOWER(wo_number) LIKE ?', ["%{$search}%"])
+                  ->orWhereRaw('LOWER(invoice) LIKE ?', ["%{$search}%"]);
+            });
+        }
+        if ($request->filled('status_id')) {
+            $query->where('wo_status_id', $request->input('status_id'));
+        }
+        if ($request->filled('vendor_id')) {
+            $query->where('vendor_id', $request->input('vendor_id'));
+        }
         // Get per page value
         $perPage = $this->filteringService->getPerPage(Request::input('perPage', 10));
         
@@ -105,7 +119,11 @@ $endDate = Carbon::parse($dateRange['end']);
         $outstandingInvoices = $this->maintenanceBreakdownService->getOutstandingInvoices($minInvoiceAmount, $outstandingDate);
         $areasOfConcern = $this->maintenanceBreakdownService->getAreasOfConcern($startDate, $endDate);
         $workOrdersByTruck = $this->maintenanceBreakdownService->getWorkOrdersByTruck($startDate, $endDate);
-       
+        $filters = [
+            'search' => (string) $request->input('search', ''),
+            'status_id' => (string) $request->input('status_id', ''),
+            'vendor_id' => (string) $request->input('vendor_id', ''),
+        ];
         return [
             'repairOrders' => $repairOrders,
             'tenantSlug' => $tenantSlug,
@@ -127,6 +145,7 @@ $endDate = Carbon::parse($dateRange['end']);
             'outstandingInvoices' => $outstandingInvoices,
             'workOrderByAreasOfConcern' => $areasOfConcern,
             'workOrdersByTruck' => $workOrdersByTruck,
+            'filters' => $filters,
         ];
     }
 /**
