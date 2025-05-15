@@ -158,7 +158,7 @@
                     </div>
                 </CardContent>
             </Card>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 mx-auto max-w-[95vw] md:max-w-[64vw] lg:max-w-full" v-if="activeTab === 'quarterly' || activeTab === '6w'">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 mx-auto max-w-[95vw] md:max-w-[64vw] lg:max-w-full" v-if="(activeTab === 'quarterly' || activeTab === '6w')&&!SuperAdmin">
             <!-- Panel: Areas of Concern -->
     <div class="bg-card rounded-lg border shadow-sm">
       <div class="p-4 border-b">
