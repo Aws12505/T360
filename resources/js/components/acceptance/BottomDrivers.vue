@@ -3,7 +3,7 @@
     <h3 class="text-base text-center font-semibold mb-4">{{ title }}</h3>
     
     <!-- Display message when no rejections -->
-    <div v-if="totalRejections === '0'" class="text-center text-lg py-4 text-violet-400 font-medium">
+    <div v-if="totalRejections === '0'" class="text-center text-sm py-4 text-primary font-medium">
       {{ noRejectionsMessage }}
     </div>
      
