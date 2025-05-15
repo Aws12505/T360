@@ -2,7 +2,8 @@
     <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
         <Head title="Repair Orders" />
         <!-- responsive here -->
-        <div class="w-full max-w-screen-xl mx-auto p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6">
+        <div class="w-full  m-0 p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6">
+            
             <!-- Success Message -->
             <Alert v-if="successMessage" variant="success">
                 <AlertTitle>Success</AlertTitle>
@@ -15,12 +16,12 @@
             </Alert>
 
             <!-- responsive here -->
-            <div class="flex flex-col sm:flex-row justify-between items-center px-2 mb-2 md:mb-4 lg:mb-6">
+            <div class="mb-2 flex flex-col items-center justify-between px-2 sm:flex-row md:mb-4 lg:mb-6">
                 <!-- responsive here -->
-                <h1 class="text-lg md:text-xl lg:text-2xl font-bold">Repair Orders</h1>
+                <h1 class="text-lg font-bold md:text-xl lg:text-2xl">Repair Orders</h1>
                 <div class="flex flex-wrap gap-3">
                     <!-- responsive here -->
-                    <Button  class="px-2 py-0 md:px-4 md:py-2" @click="openCreateModal" variant="default">
+                    <Button class="px-2 py-0 md:px-4 md:py-2" @click="openCreateModal" variant="default">
                         <!-- responsive here -->
                         <Icon name="plus" class="mr-1 h-4 w-4 md:mr-2" />
                         Create New Repair Order
@@ -54,7 +55,7 @@
                         <Icon name="settings" class="mr-1 h-4 w-4 md:mr-2" />
                         Manage WO Statuses
                     </Button>
-                    <div  class="relative">
+                    <div class="relative">
                         <!-- responsive here -->
                         <Button class="px-2 py-0 md:px-4 md:py-2" @click="showUploadOptions = !showUploadOptions" variant="secondary">
                             <!-- responsive here -->
@@ -109,7 +110,7 @@
                 <!-- responsive here -->
                 <CardContent class="p-2 md:p-4 lg:p-6">
                     <!-- responsive here -->
-                    <div class="flex flex-col items-center md:items-start gap-2">
+                    <div class="flex flex-col items-center gap-2 md:items-start">
                         <!-- responsive here -->
                         <div class="flex flex-wrap gap-1 md:gap-2">
                             <Button
@@ -158,53 +159,55 @@
                     </div>
                 </CardContent>
             </Card>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 mx-auto max-w-[95vw] md:max-w-[64vw] lg:max-w-full" v-if="(activeTab === 'quarterly' || activeTab === '6w')&&!SuperAdmin">
-            <!-- Panel: Areas of Concern -->
-    <div class="bg-card rounded-lg border shadow-sm">
-      <div class="p-4 border-b">
-        <h3 class="text-lg font-semibold">Top 5 Frequent Repairs </h3>
-      </div>
-      <div class="p-4">
-        <ul class="space-y-3">
-            <div class="flex justify-between items-center">
-            <span class="text-sm">Parts:</span>
-            <span class="text-sm">Work Orders:</span>
-          </div>
-          <li v-for="(area, index) in topAreasOfConcern" :key="index" class="flex justify-between items-center pr-4">
-            <span class="text-sm">{{ area.concern }}</span>
-            <Badge variant="outline">{{ area.count }}</Badge>
-          </li>
-          <li v-if="topAreasOfConcern.length === 0" class="text-center text-muted-foreground">
-            No data available
-          </li>
-        </ul>
-      </div>
-    </div>
+            <div
+                class="mx-auto mb-6 grid max-w-[95vw] grid-cols-1 gap-4 md:max-w-[64vw] md:grid-cols-2 lg:max-w-full"
+                v-if="(activeTab === 'quarterly' || activeTab === '6w') && !SuperAdmin"
+            >
+                <!-- Panel: Areas of Concern -->
+                <div class="rounded-lg border bg-card shadow-sm">
+                    <div class="border-b p-4">
+                        <h3 class="text-lg font-semibold">Top 5 Frequent Repairs</h3>
+                    </div>
+                    <div class="p-4">
+                        <ul class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm">Parts:</span>
+                                <span class="text-sm">Work Orders:</span>
+                            </div>
+                            <li v-for="(area, index) in topAreasOfConcern" :key="index" class="flex items-center justify-between pr-4">
+                                <span class="text-sm">{{ area.concern }}</span>
+                                <Badge variant="outline">{{ area.count }}</Badge>
+                            </li>
+                            <li v-if="topAreasOfConcern.length === 0" class="text-center text-muted-foreground">No data available</li>
+                        </ul>
+                    </div>
+                </div>
 
-    <!--  Panel: Work Orders by Truck -->
-    <div class="bg-card rounded-lg border shadow-sm">
-      <div class="p-4 border-b">
-        <h3 class="text-lg font-semibold">Top 5 Frequently Repaired Tractors </h3>
-      </div>
-      <div class="p-4">
-        <ul class="space-y-3">
-        <div class="flex justify-between items-center">
-            <span class="text-sm">Asset ID:</span>
-            <span class="text-sm">Work Orders:</span>
-          </div>
-          <li v-for="(truck, index) in topWorkOrdersByTruck" :key="index" class="flex justify-between items-center pr-4">
-            <span class="text-sm">{{ truck.truckid }}</span>
-            <Badge variant="outline">{{ truck.work_order_count }}</Badge>
-          </li>
-          <li v-if="topWorkOrdersByTruck.length === 0" class="text-center text-muted-foreground">
-            No data available
-          </li>
-        </ul>
-      </div>
-    </div>
-</div>        
+                <!--  Panel: Work Orders by Truck -->
+                <div class="rounded-lg border bg-card shadow-sm">
+                    <div class="border-b p-4">
+                        <h3 class="text-lg font-semibold">Top 5 Frequently Repaired Tractors</h3>
+                    </div>
+                    <div class="p-4">
+                        <ul class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm">Asset ID:</span>
+                                <span class="text-sm">Work Orders:</span>
+                            </div>
+                            <li v-for="(truck, index) in topWorkOrdersByTruck" :key="index" class="flex items-center justify-between pr-4">
+                                <span class="text-sm">{{ truck.truckid }}</span>
+                                <Badge variant="outline">{{ truck.work_order_count }}</Badge>
+                            </li>
+                            <li v-if="topWorkOrdersByTruck.length === 0" class="text-center text-muted-foreground">No data available</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
             <!-- Outstanding Invoices Filter -->
-            <div class="mb-6 rounded-lg border bg-card p-4 shadow-sm mx-auto max-w-[95vw] md:max-w-[64vw] lg:max-w-full overflow-x-auto" v-if="!SuperAdmin">
+            <div
+                class="mx-auto mb-6 max-w-[95vw] overflow-x-auto rounded-lg border bg-card p-4 shadow-sm md:max-w-[64vw] lg:max-w-full"
+                v-if="!SuperAdmin"
+            >
                 <h3 class="mb-4 text-lg font-semibold">Outstanding Invoices Filter</h3>
                 <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <div>
@@ -229,58 +232,49 @@
                 </div>
             </div>
             <!-- Outstanding Invoices Section -->
-            <div v-if="outstandingInvoices && outstandingInvoices.length > 0" class="mb-6 rounded-lg border bg-card shadow-sm mx-auto max-w-[95vw] md:max-w-[64vw] lg:max-w-full overflow-x-auto">
+            <div
+                v-if="outstandingInvoices && outstandingInvoices.length > 0"
+                class="mx-auto mb-6 max-w-[95vw] overflow-x-auto rounded-lg border bg-card shadow-sm md:max-w-[64vw] lg:max-w-full"
+            >
                 <div class="flex items-center justify-between border-b p-4">
-                    <h3 class="text-lg font-semibold">Outstanding Invoices </h3>
+                    <h3 class="text-lg font-semibold">Outstanding Invoices</h3>
                     <div class="flex items-start justify-between">
-  <div class="flex flex-col space-y-1 items-center">
-    <Badge variant="outline" class="text-sm">
-      {{ outstandingInvoices.length }} invoices
-    </Badge>
-    <Badge variant="outline" class="text-sm">
-      total: ${{ totalOutstanding.toFixed(2) }}
-    </Badge>
-  </div>
-  <Button variant="ghost" size="sm" @click="showOutstandingInvoicesSection = !showOutstandingInvoicesSection" class="ml-4 mt-1">
-    {{ showOutstandingInvoicesSection ? 'Hide Invoices' : 'Show Invoices' }}
-    <Icon :name="showOutstandingInvoicesSection ? 'chevron-up' : 'chevron-down'" class="ml-2 h-4 w-4" />
-  </Button>
-</div>
-
+                        <div class="flex flex-col items-center space-y-1">
+                            <Badge variant="outline" class="text-sm"> {{ outstandingInvoices.length }} invoices </Badge>
+                            <Badge variant="outline" class="text-sm"> total: ${{ totalOutstanding.toFixed(2) }} </Badge>
+                        </div>
+                        <Button variant="ghost" size="sm" @click="showOutstandingInvoicesSection = !showOutstandingInvoicesSection" class="ml-4 mt-1">
+                            {{ showOutstandingInvoicesSection ? 'Hide Invoices' : 'Show Invoices' }}
+                            <Icon :name="showOutstandingInvoicesSection ? 'chevron-up' : 'chevron-down'" class="ml-2 h-4 w-4" />
+                        </Button>
+                    </div>
                 </div>
                 <div v-if="showOutstandingInvoicesSection" class="mb-6 rounded-lg border bg-card shadow-sm">
-    <!-- Horizontal scroll on really small screens -->
-    <div class="overflow-x-auto">
-      <!-- Vertical scroll container with responsive max-heights -->
-      <div 
-        class="
-          max-h-60    /* ~15rem on xs */
-          sm:max-h-80 /* ~20rem on sm+ */
-          md:max-h-96 /* ~24rem on md+ */
-          overflow-y-auto
-        "
-      >
-        <Table class="min-w-full">
-          <TableHeader>
-            <TableRow>
-              <TableHead>RO Number</TableHead>
-              <TableHead>Vendor</TableHead>
-              <TableHead>Week</TableHead>
-              <TableHead class="text-right">Amount</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableRow v-for="invoice in outstandingInvoices" :key="invoice.ro_number">
-              <TableCell>{{ invoice.ro_number }}</TableCell>
-              <TableCell>{{ invoice.vendor_name }}</TableCell>
-              <TableCell>W{{ invoice.week_number }}/{{ invoice.year }}</TableCell>
-              <TableCell class="text-right">{{ formatCurrency(invoice.invoice_amount) }}</TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </div>
-    </div>
-    </div>
+                    <!-- Horizontal scroll on really small screens -->
+                    <div class="overflow-x-auto">
+                        <!-- Vertical scroll container with responsive max-heights -->
+                        <div class="/* ~15rem on xs */ /* ~20rem on sm+ */ /* ~24rem on md+ */ max-h-60 overflow-y-auto sm:max-h-80 md:max-h-96">
+                            <Table class="min-w-full">
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>RO Number</TableHead>
+                                        <TableHead>Vendor</TableHead>
+                                        <TableHead>Week</TableHead>
+                                        <TableHead class="text-right">Amount</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    <TableRow v-for="invoice in outstandingInvoices" :key="invoice.ro_number">
+                                        <TableCell>{{ invoice.ro_number }}</TableCell>
+                                        <TableCell>{{ invoice.vendor_name }}</TableCell>
+                                        <TableCell>W{{ invoice.week_number }}/{{ invoice.year }}</TableCell>
+                                        <TableCell class="text-right">{{ formatCurrency(invoice.invoice_amount) }}</TableCell>
+                                    </TableRow>
+                                </TableBody>
+                            </Table>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div v-else-if="showOutstandingInvoicesSection" class="mb-6 rounded-lg border bg-card shadow-sm">
                 <div class="border-b p-4">
@@ -291,11 +285,11 @@
             <!-- Filters Section -->
             <Card>
                 <!-- responsive here -->
-                <CardHeader class=" p-2 md:p-4 lg:p-6">
+                <CardHeader class="p-2 md:p-4 lg:p-6">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
                             <!-- responsive here -->
-                            <CardTitle class=" text-lg md:text-xl lg:text-2xl">Filters</CardTitle>
+                            <CardTitle class="text-lg md:text-xl lg:text-2xl">Filters</CardTitle>
                             <div
                                 v-if="!showFilters && (filters.search || filters.vendor_id || filters.status)"
                                 class="ml-4 flex flex-wrap gap-2 text-xs text-muted-foreground"
@@ -314,16 +308,16 @@
                     </div>
                 </CardHeader>
                 <!-- responsive here -->
-                <CardContent class=" p-2 md:p-4 lg:p-6 " v-if="showFilters">
+                <CardContent class="p-2 md:p-4 lg:p-6" v-if="showFilters">
                     <!-- responsive here -->
                     <div class="flex flex-col gap-1 md:gap-4">
                         <!-- responsive here -->
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-1 md:gap-4 w-full">
+                        <div class="grid w-full grid-cols-1 gap-1 sm:grid-cols-3 md:gap-4">
                             <div>
                                 <Label for="search">Search</Label>
                                 <!-- responsive here -->
                                 <Input
-                                class = "py-1 px-1  md:px-2 md:py-1 h-9 lg:px-3 lg:py-2 lg:h-10"
+                                    class="h-9 px-1 py-1 md:px-2 md:py-1 lg:h-10 lg:px-3 lg:py-2"
                                     id="search"
                                     v-model="filters.search"
                                     type="text"
@@ -374,7 +368,7 @@
             </Card>
             <!-- Repair Orders Table -->
             <!-- responsive here -->
-            <Card class="mx-auto max-w-[95vw] md:max-w-[64vw] lg:max-w-full overflow-x-auto">
+            <Card class="mx-auto max-w-[95vw] overflow-x-auto md:max-w-[64vw] lg:max-w-full">
                 <CardContent class="p-0">
                     <div class="overflow-x-auto border-t border-border bg-background dark:bg-background">
                         <Table class="relative h-[600px] overflow-auto">
@@ -493,10 +487,10 @@
                     <!-- Pagination -->
                     <div class="border-t bg-muted/20 px-4 py-3" v-if="repairOrders.links">
                         <!-- responsive here -->
-                        <div class="flex flex-col sm:flex-row justify-between items-center gap-2">
+                        <div class="flex flex-col items-center justify-between gap-2 sm:flex-row">
                             <div class="text-sm text-muted-foreground">Showing {{ repairOrders.data.length }} entries</div>
                             <!-- responsive here -->
-                            <div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 w-full sm:w-auto">
+                            <div class="flex w-full flex-col items-center gap-2 sm:w-auto sm:flex-row sm:gap-4">
                                 <div class="flex items-center gap-2">
                                     <Label for="perPage" class="text-sm">Per page:</Label>
                                     <select
@@ -512,7 +506,7 @@
                                     </select>
                                 </div>
                                 <!-- responsive here -->
-                                <div class=" flex flex-wrap">
+                                <div class="flex flex-wrap">
                                     <Button
                                         v-for="link in repairOrders.links"
                                         :key="link.label"
@@ -1297,20 +1291,19 @@ const woStatusForm = ref({
 });
 // Get top 5 areas of concern
 const topAreasOfConcern = computed(() => {
-  const areas = props.workOrderByAreasOfConcern || [];
-  return areas.slice(0, 5);
+    const areas = props.workOrderByAreasOfConcern || [];
+    return areas.slice(0, 5);
 });
 const totalOutstanding = computed(() => {
-  return props.outstandingInvoices
-    .reduce((sum, inv) => {
-      const amt = Number(inv.invoice_amount) || 0
-      return sum + amt
-    }, 0)
-})
+    return props.outstandingInvoices.reduce((sum, inv) => {
+        const amt = Number(inv.invoice_amount) || 0;
+        return sum + amt;
+    }, 0);
+});
 // Get top 5 trucks by work orders
 const topWorkOrdersByTruck = computed(() => {
-  const trucks = props.workOrdersByTruck || [];
-  return trucks.slice(0, 5);
+    const trucks = props.workOrdersByTruck || [];
+    return trucks.slice(0, 5);
 });
 // State variables
 const errorMessage = ref('');

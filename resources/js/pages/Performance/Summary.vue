@@ -2,7 +2,7 @@
   <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
     <Head title="Performance Summary Dashboard" />
     
-    <div class="container mx-auto p-6">
+    <div class="container w-full  m-0 p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6">
       <div class="flex items-center justify-between mb-6">
         <!-- Performance Summary Dashboard -->
         <h1 class="text-2xl font-bold"></h1>

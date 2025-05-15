@@ -180,14 +180,14 @@ const tenantsArray = computed(() => props.tenants.data);
 
 </script>
 
-<template>
+<template >
   <!-- Set the page head -->
   <Head title="Users Management" />
 
   <!-- Main layout with breadcrumbs passed to the AppLayout component -->
-  <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
+  <AppLayout  :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
     
-    <div class="container w-full max-w-screen-xl mx-auto p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6">
+    <div class="container w-full  m-0 p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6">
       <!-- Page header with title and description -->
       <div class="space-y-2">
         <h1 class="text-lg md:text-xl lg:text-2xl font-bold text-gray-900 dark:text-gray-100">

@@ -2,7 +2,7 @@
     <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
         <Head title="On-Time" />
         <!-- responsive here -->
-        <div class="mx-auto w-full max-w-screen-xl space-y-2 p-2 md:space-y-4 md:p-4 lg:space-y-6 lg:p-6">
+        <div class="m-0 w-full space-y-2 p-2 md:space-y-4 md:p-4 lg:space-y-6 lg:p-6 ">
             <!-- Success Message -->
             <Alert v-if="successMessage" variant="success">
                 <AlertTitle>Success</AlertTitle>
