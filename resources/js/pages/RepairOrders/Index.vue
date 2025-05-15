@@ -1263,8 +1263,9 @@ const props = defineProps({
         search: '',
         vendor_id: '',
         status_id: '',
-    }),
-}
+    }),},
+    perPage: { type: Number, default: 10 },
+
 });
 const weekNumberText = computed(() => {
     // For yesterday and current-week, show single week
@@ -1323,7 +1324,7 @@ const repairOrderToDelete = ref(null);
 const sortColumn = ref('ro_number');
 const sortDirection = ref('asc');
 const activeTab = ref(props.dateFilter || 'full');
-const perPage = ref(10);
+const perPage = ref(props.perPage || 10);
 // Add these new refs
 const selectedRepairOrders = ref([]);
 const showDeleteSelectedModal = ref(false);

@@ -146,6 +146,7 @@ $endDate = Carbon::parse($dateRange['end']);
             'workOrderByAreasOfConcern' => $areasOfConcern,
             'workOrdersByTruck' => $workOrdersByTruck,
             'filters' => $filters,
+            'perPage' => $perPage,
         ];
     }
 /**
