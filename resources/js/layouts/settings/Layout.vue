@@ -30,36 +30,48 @@ const sidebarNavItems: NavItem[] = [
         title: 'Company',
         href: `/${tenantSlug}/settings/tenant`,
     }] : []),
+    {
+        title: 'User Management',
+        href: tenantSlug? route('users.roles.index', { tenantSlug: tenantSlug }) : route('admin.users.roles.index')
+    },
+    ...(showTenantSettings ? [{
+        title: 'Safety Coaching Thresholds',
+        href: route('sms-coaching.edit', { tenantSlug: tenantSlug }),
+    }] : []),
 ];
 
 const currentPath = page.props.ziggy?.location ? new URL(page.props.ziggy.location).pathname : '';
 </script>
 
 <template>
-    <div class="px-4 py-6">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <Heading title="Settings" description="Manage your profile and account settings" />
 
-        <div class="flex flex-col space-y-8 md:space-y-0 lg:flex-row lg:space-x-12 lg:space-y-0">
-            <aside class="w-full max-w-xl lg:w-48">
-                <nav class="flex flex-col space-x-0 space-y-1">
-                    <Button
-                        v-for="item in sidebarNavItems"
-                        :key="item.href"
-                        variant="ghost"
-                        :class="['w-full justify-start', { 'bg-muted': currentPath === item.href }]"
-                        as-child
-                    >
-                        <Link :href="item.href">
-                            {{ item.title }}
-                        </Link>
-                    </Button>
-                </nav>
+        <div class="flex flex-col space-y-6 md:flex-row md:space-y-0 md:space-x-4 lg:space-x-6 mt-6">
+            <!-- Sidebar navigation - responsive width -->
+            <aside class="w-full md:w-56 lg:w-64 shrink-0">
+                <div class="sticky top-6">
+                    <nav class="flex flex-col space-y-1">
+                        <Button
+                            v-for="item in sidebarNavItems"
+                            :key="item.href"
+                            variant="ghost"
+                            :class="['w-full justify-start', { 'bg-muted': currentPath === item.href }]"
+                            as-child
+                        >
+                            <Link :href="item.href">
+                                {{ item.title }}
+                            </Link>
+                        </Button>
+                    </nav>
+                </div>
             </aside>
 
-            <Separator class="my-6 md:hidden" />
+            <Separator class="my-4 md:hidden" />
 
-            <div class="flex-1 md:max-w-2xl">
-                <section class="max-w-xl space-y-12">
+            <!-- Main content area - centered with responsive width -->
+            <div class="flex-1 w-full flex justify-center">
+                <section class="w-full max-w-3xl space-y-6">
                     <slot />
                 </section>
             </div>

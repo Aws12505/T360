@@ -1,12 +1,12 @@
 <template>
-  <div class="mx-auto max-w-[95vw] md:max-w-[64vw] lg:max-w-full overflow-x-auto">
+  <div class="w-full overflow-x-auto">
     <div class="rounded-md border">
       <table class="w-full caption-bottom text-sm">
         <thead class="[&_tr]:border-b">
           <tr class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
             <th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Name</th>
             <th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Email</th>
-            <th class="h-12 px-4 text-right pr-16 align-middle font-medium text-muted-foreground">Actions</th>
+            <th class="h-12 px-4 text-right align-middle font-medium text-muted-foreground">Actions</th>
           </tr>
         </thead>
         <tbody class="[&_tr:last-child]:border-0">
@@ -59,7 +59,7 @@
     
     <!-- Pagination -->
     <div class="mt-6 flex justify-center" v-if="users.links">
-      <nav class="flex items-center space-x-1">
+      <nav class="flex flex-wrap items-center gap-1 justify-center">
         <Button
           v-for="link in users.links"
           :key="link.label"

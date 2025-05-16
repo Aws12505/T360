@@ -124,6 +124,7 @@ $endDate = Carbon::parse($dateRange['end']);
             'status_id' => (string) $request->input('status_id', ''),
             'vendor_id' => (string) $request->input('vendor_id', ''),
         ];
+        $trucks = Truck::with('tenant')->get();
         return [
             'repairOrders' => $repairOrders,
             'tenantSlug' => $tenantSlug,
@@ -147,6 +148,7 @@ $endDate = Carbon::parse($dateRange['end']);
             'workOrdersByTruck' => $workOrdersByTruck,
             'filters' => $filters,
             'perPage' => $perPage,
+            'entries'     => $trucks,
         ];
     }
 /**

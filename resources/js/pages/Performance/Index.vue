@@ -196,17 +196,17 @@
                                     </TableCell>
                                     <TableCell>{{ formatDate(item.date) }}</TableCell>
                                     <TableCell>
-                                        <div>%{{ item.acceptance }}</div>
+                                        <div>{{ item.acceptance }}%</div>
                                         <div class="text-xs italic text-gray-500">({{ formatRating(item.acceptance_rating) }})</div>
                                     </TableCell>
-                                    <TableCell>%{{ item.on_time_to_origin }}</TableCell>
-                                    <TableCell>%{{ item.on_time_to_destination }}</TableCell>
+                                    <TableCell>{{ item.on_time_to_origin }}%</TableCell>
+                                    <TableCell>{{ item.on_time_to_destination }}%</TableCell>
                                     <TableCell>
-                                        <div>%{{ item.on_time }}</div>
+                                        <div>{{ item.on_time }}%</div>
                                         <div class="text-xs italic text-gray-500">({{ formatRating(item.on_time_rating) }})</div>
                                     </TableCell>
                                     <TableCell>
-                                        <div>%{{ item.maintenance_variance_to_spend }}</div>
+                                        <div>{{ item.maintenance_variance_to_spend }}%</div>
                                         <div class="text-xs italic text-gray-500">
                                             ({{ formatRating(item.maintenance_variance_to_spend_rating) }})
                                         </div>

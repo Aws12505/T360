@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Tenant;
 use App\Services\Filtering\FilteringService;
+use App\Models\MilesDriven;
 
 class SummariesService
 {
@@ -130,7 +131,7 @@ class SummariesService
         // Adjust dates for maintenance breakdown (weeks 16-24 instead of 17-25)
         $maintenanceStartDate = $startDate->copy()->subWeek();
         $maintenanceEndDate = $endDate->copy()->subWeek();
-
+        $milesEntries = MilesDriven::where('tenant_id', Auth::user()->tenant_id)->whereBetween('week_start_date', [$startDate, $endDate])->latest('week_start_date')->paginate(10)->withQueryString();
         return [
             'summaries' => $summaries,
             'tenantSlug' => $tenantSlug,
@@ -140,7 +141,8 @@ class SummariesService
             'rejectionBreakdowns' => $this->rejectionBreakdownService->getRejectionBreakdown($startDate, $endDate),
             'maintenanceBreakdowns' => $this->maintenanceBreakdownService->getMaintenanceBreakdown($maintenanceStartDate, $maintenanceEndDate, $minInvoiceAmount, $outstandingDateCarbon),
             'dateFilter' => $dateFilter,
-            'dateRange' => $dateRange
+            'dateRange' => $dateRange,
+            'milesEntries' => $milesEntries,
         ];
     }
 

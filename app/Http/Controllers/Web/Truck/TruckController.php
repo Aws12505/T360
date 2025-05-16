@@ -27,7 +27,7 @@ class TruckController extends Controller
     public function index(Request $request)
     {
         $data = $this->truckDataService->getTruckIndex();
-        return Inertia::render('Truck/Truck', $data);
+        return Inertia::render('AssetManagement', $data);
     }
 
     /**

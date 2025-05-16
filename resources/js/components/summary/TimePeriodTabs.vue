@@ -81,8 +81,5 @@ const handleTabChange = (tabId: string) => {
   emit('tab-change', tabId);
 };
 
-// Emit the default tab on component mount
-onMounted(() => {
-  emit('tab-change', activeTab.value);
-});
+
 </script>

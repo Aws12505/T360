@@ -45,7 +45,10 @@
         :performanceData="summaries.performance?.data || {}"
         :performanceRatings="summaries.performance?.ratings || {}"
       />
-      
+      <MilesDrivenTable
+      :milesEntries="milesEntries"
+      :tenantSlug="tenantSlug"
+    />
       <!-- Tabs Header -->
       <!-- <TabsHeader @tab-change="handleTabChange" /> -->
       
@@ -108,6 +111,7 @@ import DashboardHeader from '@/components/summary/DashboardHeader.vue';
 import TimePeriodTabs from '@/components/summary/TimePeriodTabs.vue';
 import PerformanceCards from '@/components/summary/PerformanceCards.vue';
 import AdditionalMetricsCard from '@/components/summary/AdditionalMetricsCard.vue';
+import MilesDrivenTable from '@/components/summary/MilesDrivenTable.vue'
 
 // Props
 const props = defineProps({
@@ -117,7 +121,8 @@ const props = defineProps({
   rejectionBreakdowns: Object,
   maintenanceBreakdowns: Object,
   dateFilter: String,
-  dateRange: Object
+  dateRange: Object,
+  milesEntries: Object,
 });
 
 // Active tab state
@@ -196,9 +201,8 @@ const handleTimePeriodChange = (tabId: string) => {
     minInvoiceAmount: minInvoiceAmount.value || null,
     outstandingDate: outstandingDate.value || null
   }), {
-    preserveState: true,
-    preserveScroll: true,
-    only: ['summaries', 'delayBreakdowns', 'rejectionBreakdowns', 'maintenanceBreakdowns', 'dateFilter', 'dateRange']
+
+    only: ['summaries', 'delayBreakdowns', 'rejectionBreakdowns', 'maintenanceBreakdowns', 'dateFilter', 'dateRange','milesEntries']
   });
 };
 

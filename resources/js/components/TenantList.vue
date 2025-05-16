@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="w-full overflow-x-auto">
     <div class="rounded-md border">
       <table class="w-full caption-bottom text-sm">
         <thead class="[&_tr]:border-b">
@@ -46,7 +46,7 @@
     
     <!-- Pagination -->
     <div class="mt-6 flex justify-center" v-if="tenants.links">
-      <nav class="flex items-center space-x-1">
+      <nav class="flex flex-wrap items-center gap-1 justify-center">
         <Button
           v-for="link in tenants.links"
           :key="link.label"

@@ -61,17 +61,6 @@
               <p v-if="form.errors.name" class="text-sm text-destructive">{{ form.errors.name }}</p>
             </div>
             
-            <!-- Slug -->
-            <div class="grid gap-2">
-              <Label for="slug">Slug</Label>
-              <Input 
-                id="slug" 
-                v-model="form.slug" 
-                placeholder="Enter company slug"
-                class="mt-1 block w-full"
-              />
-              <p v-if="form.errors.slug" class="text-sm text-destructive">{{ form.errors.slug }}</p>
-            </div>
             
             <!-- Company Logo -->
             <div class="grid gap-2">

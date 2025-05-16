@@ -52,7 +52,7 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $data = $this->userService->getUserRolesData($request);
-        return Inertia::render('UserRolesManagement', $data);
+        return Inertia::render('settings/UserRolesManagement', $data);
     }
 
     /**

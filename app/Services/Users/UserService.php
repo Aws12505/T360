@@ -27,7 +27,8 @@ class UserService
     {
         $search = $request->input('search');
         $tenantSlug = Auth::user()->tenant ? Auth::user()->tenant->slug : null;
-        $usersQuery = User::with(['roles', 'permissions']);
+        $usersQuery = User::with(['roles', 'permissions'])
+                          ->where('id', '!=', Auth::id()); // Exclude the authenticated user
 
         if ($search) {
             $usersQuery->where(function ($query) use ($search) {

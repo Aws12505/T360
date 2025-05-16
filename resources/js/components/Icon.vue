@@ -45,6 +45,7 @@ import {
   HelpCircle,
   TriangleAlert,
   ShieldAlert,
+  Cog,
   // Add these new icons
 } from 'lucide-vue-next';
 
@@ -90,7 +91,8 @@ export type IconName =
   | 'messageCircle'
   | 'helpCircle'
   | 'triangleAlert'
-  | 'shieldAlert';
+  | 'shieldAlert'
+  | 'cog';
 
 const ICONS: Record<IconName, Component> = {
   truck: Truck,
@@ -134,6 +136,7 @@ const ICONS: Record<IconName, Component> = {
   helpCircle: HelpCircle,
   triangleAlert: TriangleAlert,
   shieldAlert: ShieldAlert,
+  cog: Cog,
 };
 
 // 3. Define props, with defaults for optional values:

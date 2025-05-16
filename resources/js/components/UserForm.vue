@@ -1,14 +1,11 @@
 <template>
   <!-- Modal overlay for user form - fixed to cover entire viewport -->
   <div class="fixed inset-0 z-50">
-    <!-- Full-screen backdrop with blur effect -->
-    <!-- <div class="absolute inset-0 bg-black/25 backdrop-blur-sm"></div> -->
-    
     <!-- Modal content container - centered with flex -->
-    <div class="absolute inset-0 flex items-center justify-center p-4">
-      <div class="bg-background p-6 rounded-lg shadow-xl w-full sm:max-w-lg md:max-w-2xl lg:max-w-3xl overflow-y-auto max-h-[90vh] animate-in fade-in zoom-in-95 duration-200 border border-border">
+    <div class="absolute inset-0 flex items-center justify-center p-2 sm:p-4">
+      <div class="bg-background p-4 sm:p-6 rounded-lg shadow-xl w-full sm:max-w-lg md:max-w-2xl lg:max-w-4xl overflow-y-auto max-h-[95vh] animate-in fade-in zoom-in-95 duration-200 border border-border">
         <div class="flex justify-between items-center mb-4">
-          <h2 class="text-2xl font-bold text-foreground">
+          <h2 class="text-xl sm:text-2xl font-bold text-foreground">
             {{ user ? 'Edit User' : 'Create User' }}
           </h2>
           <Button variant="ghost" size="icon" @click="() => emit('close')">

@@ -26,13 +26,6 @@ const mainNavItems = computed<NavItem[]>(() => [
       : route('admin.dashboard'),
     icon: 'layoutGrid',
   },
-  {
-    title: 'User Management',
-    href: props.tenantSlug
-      ? route('users.roles.index', { tenantSlug: props.tenantSlug })
-      : route('admin.users.roles.index'),
-    icon: 'userCog',
-  },
   // Only show this for global Admin
   ...(!props.tenantSlug
     ? [
@@ -92,22 +85,6 @@ const mainNavItems = computed<NavItem[]>(() => [
       : route('repair_orders.index.admin'),
     icon: 'clipboardList',
   },
-  {
-    title: 'Miles Driven',
-    href: props.tenantSlug
-      ? route('miles_driven.index', { tenantSlug: props.tenantSlug })
-      : route('miles_driven.index.admin'),
-    icon: 'lineChart',
-  },
-  ...(props.tenantSlug
-    ? [
-        {
-          title: 'Safety Coaching Thresholds',
-          href: route('sms-coaching.edit', { tenantSlug: props.tenantSlug }),
-          icon: 'shieldAlert',
-        },
-      ]
-    : []),
 ]);
 
 const footerNavItems: NavItem[] = [
@@ -117,6 +94,11 @@ const footerNavItems: NavItem[] = [
       ? route('support.index', { tenantSlug: props.tenantSlug })
       : route('support.index.admin'),
     icon: 'helpCircle',
+  },
+  {
+    title: 'Settings',
+    href: route('profile.edit'),
+    icon: 'cog',
   },
 ];
 

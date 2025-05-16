@@ -1,9 +1,9 @@
 <template>
   <!-- Modal container only (no background overlay) -->
   <div class="fixed inset-0 flex items-center justify-center z-50">
-    <div class="bg-background p-6 rounded-lg shadow-xl w-full max-w-md overflow-y-auto max-h-[90vh] animate-in fade-in zoom-in-95 duration-200 border border-border">
+    <div class="bg-background p-4 sm:p-6 rounded-lg shadow-xl w-full max-w-sm sm:max-w-md md:max-w-lg overflow-y-auto max-h-[95vh] animate-in fade-in zoom-in-95 duration-200 border border-border">
       <div class="flex justify-between items-center mb-4">
-        <h2 class="text-2xl font-bold text-foreground">
+        <h2 class="text-xl sm:text-2xl font-bold text-foreground">
           {{ role ? 'Edit Role' : 'Create Role' }}
         </h2>
         <Button variant="ghost" size="icon" @click="() => emit('close')">
@@ -47,7 +47,7 @@
             </div>
           </div>
           
-          <div class="h-40 border rounded-md p-2 overflow-y-auto">
+          <div class="h-48 sm:h-56 md:h-64 border rounded-md p-2 overflow-y-auto">
             <div
               v-for="permission in filteredPermissions"
               :key="permission.id"
