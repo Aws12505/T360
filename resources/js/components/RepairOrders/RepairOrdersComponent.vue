@@ -1,328 +1,852 @@
 <template>
-    <div class="w-full md:max-w-2xl lg:max-w-3xl xl:max-w-6xl lg:mx-auto p-2 md:p-4 lg:p-6 space-y-6">
-      <!-- Alerts -->
-      <Alert v-if="successMessage" variant="success">
-        <AlertTitle>Success</AlertTitle>
-        <AlertDescription>{{ successMessage }}</AlertDescription>
-      </Alert>
-      <Alert v-if="errorMessage" variant="destructive">
-        <AlertTitle>Error</AlertTitle>
-        <AlertDescription>{{ errorMessage }}</AlertDescription>
-      </Alert>
-  
-      <!-- Actions -->
-      <div class="flex flex-col sm:flex-row justify-between items-center px-2 mb-4 space-y-2 sm:space-y-0">
-        <h1 class="text-lg md:text-xl lg:text-2xl font-bold">Repair Orders</h1>
-        <div class="flex flex-wrap gap-3">
-          <Button @click="openCreateModal" variant="default"><Icon name="plus" /> Create New</Button>
-          <Button v-if="selectedIds.length" @click="confirmBulkDelete" variant="destructive">
-            <Icon name="trash" /> Delete Selected ({{ selectedIds.length }})
-          </Button>
-          <Button v-if="isAdmin" @click="openAreasModal" variant="outline"><Icon name="settings" /> Areas</Button>
-          <Button v-if="isAdmin" @click="openVendorsModal" variant="outline"><Icon name="settings" /> Vendors</Button>
-          <Button v-if="isAdmin" @click="openStatusModal" variant="outline"><Icon name="settings" /> Statuses</Button>
-          <div class="relative">
-            <Button @click="showUpload = !showUpload" variant="secondary"><Icon name="upload" /> Upload CSV</Button>
-            <div v-if="showUpload" class="absolute right-0 mt-1 w-48 rounded-md border bg-background shadow">
-              <label class="block cursor-pointer px-4 py-2 text-sm hover:bg-muted">
-                <span>Upload CSV</span><input type="file" class="hidden" @change="importCsv" accept=".csv"/>
-              </label>
-              <a :href="templateUrl" download class="block px-4 py-2 text-sm hover:bg-muted">Download Template</a>
-            </div>
-          </div>
-          <Button @click.prevent="exportCsv" variant="outline"><Icon name="download" /> Download CSV</Button>
-        </div>
+  <div class="w-full md:max-w-2xl lg:max-w-3xl xl:max-w-6xl lg:mx-auto p-2 md:p-4 lg:p-6 space-y-6">
+    <!-- Alerts -->
+    <Alert v-if="successMessage" variant="success" class="animate-in fade-in duration-300">
+      <AlertTitle class="flex items-center gap-2">
+        <Icon name="check_circle" class="h-5 w-5 text-green-500" />
+        Success
+      </AlertTitle>
+      <AlertDescription>{{ successMessage }}</AlertDescription>
+    </Alert>
+    <Alert v-if="errorMessage" variant="destructive" class="animate-in fade-in duration-300">
+      <AlertTitle class="flex items-center gap-2">
+        <Icon name="alert_circle" class="h-5 w-5" />
+        Error
+      </AlertTitle>
+      <AlertDescription>{{ errorMessage }}</AlertDescription>
+    </Alert>
+
+    <!-- Actions -->
+    <div class="flex flex-col sm:flex-row justify-between items-center px-2 mb-2 md:mb-4 lg:mb-6 space-y-2 sm:space-y-0">
+      <div class="flex items-center gap-3">
+        <Icon name="clipboard-list" class="h-6 w-6 text-primary hidden sm:block" />
+        <h1 class="text-lg md:text-xl lg:text-2xl font-bold text-gray-800 dark:text-gray-200">Repair Orders</h1>
       </div>
-  
-      <!-- Date Filter Tabs -->
-      <Card>
-        <CardContent>
-          <div class="flex flex-wrap gap-2">
-            <Button
-              v-for="opt in dateOptions"
-              :key="opt.value"
-              size="sm"
-              variant="outline"
-              :class="{'border-primary bg-primary/10 text-primary': filter.dateFilter===opt.value}"
-              @click="selectDate(opt.value)">
-              {{ opt.label }}
+      <div class="flex flex-wrap gap-3">
+        <Button @click="openCreateModal" variant="default" class="px-2 py-0 md:px-4 md:py-2 shadow-sm hover:shadow transition-all">
+          <Icon name="plus" class="mr-1 h-4 w-4 md:mr-2" /> Create New
+        </Button>
+        <Button v-if="selectedIds.length" @click="confirmBulkDelete" variant="destructive" class="px-2 py-0 md:px-4 md:py-2 shadow-sm hover:shadow transition-all">
+          <Icon name="trash" class="mr-1 h-4 w-4 md:mr-2" /> Delete Selected ({{ selectedIds.length }})
+        </Button>
+        <Button v-if="isAdmin" @click="openAreasModal" variant="outline" class="px-2 py-0 md:px-4 md:py-2 shadow-sm hover:shadow transition-all">
+          <Icon name="settings" class="mr-1 h-4 w-4 md:mr-2" /> Areas
+        </Button>
+        <Button v-if="isAdmin" @click="openVendorsModal" variant="outline" class="px-2 py-0 md:px-4 md:py-2 shadow-sm hover:shadow transition-all">
+          <Icon name="settings" class="mr-1 h-4 w-4 md:mr-2" /> Vendors
+        </Button>
+        <Button v-if="isAdmin" @click="openStatusModal" variant="outline" class="px-2 py-0 md:px-4 md:py-2 shadow-sm hover:shadow transition-all">
+          <Icon name="settings" class="mr-1 h-4 w-4 md:mr-2" /> Statuses
+        </Button>
+        <div class="relative">
+          <Button @click="showUpload = !showUpload" variant="secondary" class="px-2 py-0 md:px-4 md:py-2 shadow-sm hover:shadow transition-all">
+            <Icon name="upload" class="mr-1 h-4 w-4 md:mr-2" /> Upload CSV
+            <Icon name="chevron-down" class="ml-2 h-4 w-4" />
+          </Button>
+          <div v-if="showUpload" class="absolute right-0 mt-1 w-48 rounded-md border bg-background shadow-md z-10 animate-in fade-in duration-200">
+            <label class="block cursor-pointer px-4 py-2 text-sm hover:bg-muted transition-colors">
+              <span>Upload CSV</span><input type="file" class="hidden" @change="importCsv" accept=".csv"/>
+            </label>
+            <a :href="templateUrl" download class="block px-4 py-2 text-sm hover:bg-muted transition-colors">Download Template</a>
+          </div>
+        </div>
+        <Button @click.prevent="exportCsv" variant="outline" class="px-2 py-0 md:px-4 md:py-2 shadow-sm hover:shadow transition-all">
+          <Icon name="download" class="mr-1 h-4 w-4 md:mr-2" /> Download CSV
+        </Button>
+      </div>
+    </div>
+
+    <!-- Date Filter Tabs -->
+    <Card class="shadow-sm border bg-card">
+      <CardContent class="p-3 md:p-4">
+        <div class="flex flex-wrap gap-2">
+          <Button
+            v-for="opt in dateOptions"
+            :key="opt.value"
+            size="sm"
+            variant="outline"
+            :class="{'border-primary bg-primary/10 text-primary': filter.dateFilter===opt.value}"
+            @click="selectDate(opt.value)">
+            {{ opt.label }}
+          </Button>
+        </div>
+        <div v-if="dateRange" class="text-sm text-muted-foreground mt-2">
+          <span v-if="dateFilter === 'yesterday' && dateRange.start"> Showing data from {{ formatDate(dateRange.start) }} </span>
+          <span v-else-if="dateRange.start && dateRange.end">
+            Showing data from {{ formatDate(dateRange.start) }} to {{ formatDate(dateRange.end) }}
+          </span>
+          <span v-else>
+            {{ dateRange.label }}
+          </span>
+          <span v-if="weekNumberText" class="ml-1">({{ weekNumberText }})</span>
+        </div>
+      </CardContent>
+    </Card>
+
+    <!-- Filters Card -->
+    <!-- Filters -->
+    <Card class="shadow-sm border">
+      <CardHeader class="p-2 md:p-4 lg:p-6 border-b">
+        <div class="flex justify-between items-center">
+          <CardTitle class="text-lg md:text-xl lg:text-2xl flex items-center gap-2">
+            <Icon name="filter" class="h-5 w-5 text-muted-foreground" />
+            Filters
+          </CardTitle>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            @click="showFilters = !showFilters"
+            class="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <span class="text-sm hidden sm:inline">{{ showFilters ? 'Hide Filters' : 'Show Filters' }}</span>
+            <Icon :name="showFilters ? 'chevron-up' : 'chevron-down'" class="h-4 w-4" />
+          </Button>
+        </div>
+      </CardHeader>
+      <Transition
+        enter-active-class="transition-all duration-300 ease-out"
+        leave-active-class="transition-all duration-200 ease-in"
+        enter-from-class="opacity-0 max-h-0"
+        enter-to-class="opacity-100 max-h-[500px]"
+        leave-from-class="opacity-100 max-h-[500px]"
+        leave-to-class="opacity-0 max-h-0"
+      >
+        <CardContent v-if="showFilters" class="p-4 md:p-6 lg:p-8 overflow-hidden">
+          <div class="flex flex-col gap-6">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full">
+              <div>
+                <Label for="search" class="flex items-center gap-1.5 mb-2">
+                  <Icon name="search" class="h-4 w-4 text-muted-foreground" />
+                  Search
+                </Label>
+                <Input 
+                  id="search" 
+                  type="text" 
+                  v-model="filter.search" 
+                  placeholder="RO#, Invoice..." 
+                  class="py-1 px-1 md:px-2 md:py-1 h-9 lg:px-3 lg:py-2 lg:h-10" 
+                />
+              </div>
+              <div>
+                <Label for="vendor" class="flex items-center gap-1.5 mb-2">
+                  <Icon name="building" class="h-4 w-4 text-muted-foreground" />
+                  Vendor
+                </Label>
+                <div class="relative">
+                  <select 
+                    id="vendor" 
+                    v-model="filter.vendor_id" 
+                    class="flex h-10 w-full appearance-none items-center rounded-md border bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="">All Vendors</option>
+                    <option v-for="v in vendors" :key="v.id" :value="v.id">{{ v.vendor_name }}</option>
+                  </select>
+                  <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                    <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                      <path
+                        fill-rule="evenodd"
+                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <Label for="status" class="flex items-center gap-1.5 mb-2">
+                  <Icon name="activity" class="h-4 w-4 text-muted-foreground" />
+                  Status
+                </Label>
+                <div class="relative">
+                  <select 
+                    id="status" 
+                    v-model="filter.status_id" 
+                    class="flex h-10 w-full appearance-none items-center rounded-md border bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="">All Statuses</option>
+                    <option v-for="s in woStatuses" :key="s.id" :value="s.id">{{ s.name }}</option>
+                  </select>
+                  <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                    <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                      <path
+                        fill-rule="evenodd"
+                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <Button @click="resetFilters" variant="ghost" size="sm" class="self-start">
+              <Icon name="rotate_ccw" class="mr-2 h-4 w-4" /> Reset Filters
             </Button>
           </div>
-          <div v-if="dateRange" class="mt-2 text-sm text-muted-foreground">
-            <span v-if="dateRange.start&&dateRange.end">
-              Showing {{ formatDate(dateRange.start) }} to {{ formatDate(dateRange.end) }}
-            </span>
-          </div>
         </CardContent>
-      </Card>
-  
-      <!-- Filters Card -->
-      <Card>
-        <CardHeader class="flex justify-between items-center">
-          <CardTitle>Filters</CardTitle>
-          <Button size="sm" variant="ghost" @click="showFilters = !showFilters">
-            {{ showFilters?'Hide':'Show' }} Filters <Icon :name="showFilters?'chevron-up':'chevron-down'" />
-          </Button>
-        </CardHeader>
-        <CardContent v-if="showFilters">
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div><Label>Search</Label><Input v-model="filter.search" @input="applyFilters" placeholder="RO#, Invoice..."/></div>
-            <div><Label>Vendor</Label>
-              <select v-model="filter.vendor_id" @change="applyFilters" class="input">
-                <option value="">All Vendors</option>
-                <option v-for="v in vendors" :key="v.id" :value="v.id">{{ v.vendor_name }}</option>
-              </select>
-            </div>
-            <div><Label>Status</Label>
-              <select v-model="filter.status_id" @change="applyFilters" class="input">
-                <option value="">All Statuses</option>
-                <option v-for="s in woStatuses" :key="s.id" :value="s.id">{{ s.name }}</option>
-              </select>
-            </div>
+      </Transition>
+    </Card>
+
+    <!-- Table -->
+        <!-- Data Table -->
+        <template v-if="hasData">
+      <Card class="mx-auto max-w-[95vw] md:max-w-[64vw] lg:max-w-full overflow-x-auto shadow-sm border">
+        <CardContent class="p-0">
+          <div class="overflow-x-auto">
+            <Table class="relative h-[500px] overflow-auto">
+              <TableHeader>
+                <TableRow class="sticky top-0 z-10 border-b bg-background hover:bg-background">
+                  <TableHead class="w-12">
+                    <div class="flex items-center justify-center">
+                      <input 
+                        type="checkbox" 
+                        :checked="allSelected" 
+                        @change="toggleAll" 
+                        class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" 
+                      />
+                    </div>
+                  </TableHead>
+                  <TableHead @click="sort('ro_number')" class="cursor-pointer font-semibold">
+                    <div class="flex items-center space-x-1">
+                      RO#
+                      <SortIndicator column="ro_number" :sortState="sortState"/>
+                    </div>
+                  </TableHead>
+                  <TableHead v-if="isAdmin" class="font-semibold">Company</TableHead>
+                  <TableHead @click="sort('ro_open_date')" class="cursor-pointer font-semibold">
+                    <div class="flex items-center space-x-1">
+                      Open Date
+                      <SortIndicator column="ro_open_date" :sortState="sortState"/>
+                    </div>
+                  </TableHead>
+                  <TableHead @click="sort('ro_close_date')" class="cursor-pointer font-semibold">
+                    <div class="flex items-center space-x-1">
+                      Close Date
+                      <SortIndicator column="ro_close_date" :sortState="sortState"/>
+                    </div>
+                  </TableHead>
+                  <TableHead class="font-semibold">Truck</TableHead>
+                  <TableHead class="font-semibold">Vendor</TableHead>
+                  <TableHead class="font-semibold">Areas of Concern</TableHead>
+                  <TableHead class="font-semibold">WO#</TableHead>
+                  <TableHead class="font-semibold">WO Status</TableHead>
+                  <TableHead class="font-semibold">Invoice</TableHead>
+                  <TableHead class="font-semibold">Amount</TableHead>
+                  <TableHead class="font-semibold">Invoice Received</TableHead>
+                  <TableHead class="font-semibold">On QS</TableHead>
+                  <TableHead class="font-semibold">QS Invoice Date</TableHead>
+                  <TableHead class="font-semibold">Disputed</TableHead>
+                  <TableHead class="font-semibold">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow v-if="!repairOrders.data.length">
+                  <TableCell :colspan="isAdmin ? 16 : 15" class="py-8 text-center">
+                    <div class="flex flex-col items-center justify-center rounded-lg border bg-muted/20 py-16">
+                      <Icon name="database-x" class="h-16 w-16 mx-auto mb-4 opacity-70" />
+                      <h2 class="text-lg font-medium">No repair orders found.</h2>
+                      <p class="text-muted-foreground mt-2">There is no data to display at this time.</p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+                <TableRow v-for="o in repairOrders.data" :key="o.id" class="hover:bg-muted/50 transition-colors">
+                  <TableCell>
+                    <input
+                      type="checkbox"
+                      :value="o.id"
+                      v-model="selectedIds"
+                      class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-1 focus:ring-primary"
+                    />
+                  </TableCell>
+                  <TableCell class="whitespace-nowrap font-medium">{{ o.ro_number }}</TableCell>
+                  <TableCell v-if="isAdmin" class="whitespace-nowrap">{{ o.tenant?.name || '—' }}</TableCell>
+                  <TableCell class="whitespace-nowrap">{{ formatDate(o.ro_open_date) }}</TableCell>
+                  <TableCell class="whitespace-nowrap">{{ o.ro_close_date ? formatDate(o.ro_close_date) : 'N/A' }}</TableCell>
+                  <TableCell class="whitespace-nowrap">{{ o.truck?.truckid || '—' }}</TableCell>
+                  <TableCell class="whitespace-nowrap">{{ o.vendor?.vendor_name || '—' }}</TableCell>
+                  <TableCell class="whitespace-nowrap">
+                    <span v-if="o.areas_of_concern?.length">
+                      <span v-for="(area, idx) in o.areas_of_concern" :key="area.id">
+                        {{ area.concern }}<span v-if="idx < o.areas_of_concern.length - 1">, </span>
+                      </span>
+                    </span>
+                    <span v-else>—</span>
+                  </TableCell>
+                  <TableCell class="whitespace-nowrap">{{ o.wo_number || '—' }}</TableCell>
+                  <TableCell class="whitespace-nowrap">{{ o.wo_status?.name || '—' }}</TableCell>
+                  <TableCell class="whitespace-nowrap">{{ o.invoice || '—' }}</TableCell>
+                  <TableCell class="whitespace-nowrap">{{ formatCurrency(o.invoice_amount) }}</TableCell>
+                  <TableCell class="whitespace-nowrap">{{ o.invoice_received ? 'Yes' : 'No' }}</TableCell>
+                  <TableCell class="whitespace-nowrap">{{ o.on_qs ? (o.on_qs.charAt(0).toUpperCase() + o.on_qs.slice(1)) : 'No' }}</TableCell>
+                  <TableCell class="whitespace-nowrap">{{ o.qs_invoice_date ? formatDate(o.qs_invoice_date) : 'N/A' }}</TableCell>
+                  <TableCell class="whitespace-nowrap">{{ o.disputed ? 'Yes' : 'No' }}</TableCell>
+                  <TableCell>
+                    <div class="flex space-x-2">
+                      <Button size="sm" variant="warning" @click="openEdit(o)" class="h-8 px-2">
+                        <Icon name="pencil" class="h-4 w-4" />
+                      </Button>
+                      <Button size="sm" variant="destructive" @click="deleteOne(o.id)" class="h-8 px-2">
+                        <Icon name="trash" class="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
           </div>
-          <div class="mt-4 flex justify-end gap-2">
-            <Button variant="ghost" size="sm" @click="resetFilters">Reset</Button>
-            <Button variant="default" size="sm" @click="applyFilters">Apply</Button>
-          </div>
-        </CardContent>
-      </Card>
-  
-      <!-- Table -->
-      <Card v-if="hasData">
-        <CardContent class="p-0 overflow-x-auto">
-          <Table class="min-w-full">
-            <TableHeader>
-              <TableRow>
-                <TableHead class="w-12"><input type="checkbox" :checked="allSelected" @change="toggleAll"/></TableHead>
-                <TableHead @click="sort('ro_number')" class="cursor-pointer whitespace-nowrap">RO#<SortIndicator column="ro_number" :sortState="sortState"/></TableHead>
-                <TableHead v-if="isAdmin" class="whitespace-nowrap">Company</TableHead>
-                <TableHead @click="sort('ro_open_date')" class="cursor-pointer whitespace-nowrap">Open Date<SortIndicator column="ro_open_date" :sortState="sortState"/></TableHead>
-                <TableHead @click="sort('ro_close_date')" class="cursor-pointer whitespace-nowrap">Close Date<SortIndicator column="ro_close_date" :sortState="sortState"/></TableHead>
-                <TableHead>Vendor</TableHead>
-                <TableHead>Invoice</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow v-if="!repairOrders.data.length">
-                <TableCell :colspan="isAdmin?9:8" class="text-center py-8">No repair orders found.</TableCell>
-              </TableRow>
-              <TableRow v-for="o in repairOrders.data" :key="o.id" class="hover:bg-muted/50">
-                <TableCell><input type="checkbox" :value="o.id" v-model="selectedIds"/></TableCell>
-                <TableCell class="whitespace-nowrap">{{ o.ro_number }}</TableCell>
-                <TableCell v-if="isAdmin" class="whitespace-nowrap">{{ o.tenant?.name||'—' }}</TableCell>
-                <TableCell class="whitespace-nowrap">{{ formatDate(o.ro_open_date) }}</TableCell>
-                <TableCell class="whitespace-nowrap">{{ o.ro_close_date?formatDate(o.ro_close_date):'N/A' }}</TableCell>
-                <TableCell class="whitespace-nowrap">{{ o.vendor?.vendor_name||'—' }}</TableCell>
-                <TableCell class="whitespace-nowrap">{{ o.invoice||'—' }}</TableCell>
-                <TableCell class="whitespace-nowrap">{{ formatCurrency(o.invoice_amount) }}</TableCell>
-                <TableCell>
-                  <Button size="sm" variant="warning" @click="openEdit(o)"><Icon name="pencil"/></Button>
-                  <Button size="sm" variant="destructive" @click="deleteOne(o.id)"><Icon name="trash"/></Button>
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
         </CardContent>
         <!-- Pagination -->
-        <div class="border-t bg-muted/20 px-4 py-3 flex justify-between items-center">
-          <div>Showing {{ repairOrders.data.length }} of {{ repairOrders.meta.total }} entries</div>
-          <div class="flex items-center gap-2">
-            <Label>Per page</Label>
-            <select v-model.number="localPerPage" @change="changePerPage" class="input w-20">
-              <option v-for="n in [10,25,50,100]" :key="n" :value="n">{{ n }}</option>
+<div class="border-t bg-muted/20 px-4 py-3 flex flex-col sm:flex-row justify-between items-center gap-2">
+  <div class="flex items-center gap-4 text-sm text-muted-foreground">
+    <span class="flex items-center gap-1">
+      <Icon name="list" class="h-4 w-4" />
+      Showing {{ repairOrders.data.length }} of {{ repairOrders.total }} entries
+    </span>
+    <span class="flex items-center gap-1">
+      <Icon name="layout-grid" class="h-4 w-4" />
+      Per page:
+    </span>
+    <div class="relative">
+      <select 
+        v-model.number="localPerPage" 
+        @change="changePerPage"
+        class="h-8 appearance-none rounded-md border bg-background px-2 py-1 text-sm focus:ring-2 focus:ring-ring"
+      >
+        <option v-for="n in [10,25,50,100]" :key="n" :value="n">{{ n }}</option>
+      </select>
+      <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+        <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path
+            fill-rule="evenodd"
+            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+            clip-rule="evenodd"
+          />
+        </svg>
+      </div>
+    </div>
+  </div>
+  <div class="flex space-x-1">
+    <Button size="sm" variant="ghost" @click="go(repairOrders.prev_page_url)" :disabled="!repairOrders.prev_page_url" class="flex items-center gap-1">
+      <Icon name="chevron-left" class="h-4 w-4" /> Prev
+    </Button>
+    <Button 
+      v-for="link in repairOrders.links.slice(1, -1)" 
+      :key="link.label" 
+      size="sm" 
+      variant="ghost" 
+      @click="go(link.url)"
+      :disabled="!link.url"
+      :class="{'border-primary bg-primary/10 text-primary font-medium':link.active}"
+    >
+      <span v-html="link.label"></span>
+    </Button>
+    <Button size="sm" variant="ghost" @click="go(repairOrders.next_page_url)" :disabled="!repairOrders.next_page_url" class="flex items-center gap-1">
+      Next <Icon name="chevron-right" class="h-4 w-4" />
+    </Button>
+  </div>
+</div>
+      </Card>
+    </template>
+
+    <div v-else class="flex flex-col items-center justify-center rounded-lg border bg-muted/20 py-16">
+      <Icon name="database-x" class="h-16 w-16 mx-auto mb-4 opacity-70" />
+      <h2 class="text-lg font-medium">There is No Data to give Information about.</h2>
+    </div>
+
+
+    <!-- Create/Edit Modal -->
+    <Dialog v-model:open="showModal">
+  <DialogContent class="max-w-[95vw] sm:max-w-[90vw] md:max-w-4xl">
+    <DialogHeader class="px-4 sm:px-6 border-b pb-3">
+      <div class="flex items-center gap-2">
+        <Icon :name="form.id ? 'pencil' : 'plus-circle'" class="h-5 w-5 text-primary" />
+        <DialogTitle class="text-lg sm:text-xl font-semibold">{{ formAction }} Repair Order</DialogTitle>
+      </div>
+      <DialogDescription class="text-xs sm:text-sm mt-1 text-muted-foreground">Fill in the details to {{ formAction.toLowerCase() }} a repair order.</DialogDescription>
+    </DialogHeader>
+    
+    <div class="max-h-[70vh] overflow-y-auto px-4 sm:px-6">
+      <form @submit.prevent="submitForm" class="grid grid-cols-1 gap-3 p-3 sm:grid-cols-2 sm:gap-4 sm:p-4">     
+        <!-- Company (Admin only) -->
+        <div v-if="isAdmin" class="col-span-2 mb-1">
+          <Label class="flex items-center gap-1.5 mb-1 text-sm font-medium">
+            <Icon name="building" class="h-4 w-4 text-muted-foreground" />
+            Company
+          </Label>
+          <div class="relative">
+            <select v-model="form.tenant_id" required class="flex h-9 w-full appearance-none rounded-md border bg-background px-3 py-1 text-sm ring-offset-background focus-visible:ring-2">
+              <option disabled value="">Select</option>
+              <option v-for="t in tenants" :key="t.id" :value="t.id">{{ t.name }}</option>
             </select>
-          </div>
-          <div class="flex space-x-1">
-            <Button
-              v-for="link in repairOrders.links"
-              :key="link.label"
-              @click="go(link.url)"
-              :disabled="!link.url"
-              variant="ghost"
-              :class="{'active-page': link.active}"><span v-html="link.label"></span></Button>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+              <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+              </svg>
+            </div>
           </div>
         </div>
-      </Card>
-      <div v-else class="text-center py-16 text-muted-foreground">
-        <Icon name="database-x" class="h-16 w-16 mx-auto mb-4" />
-        <h2>There is No Data to give Information about.</h2>
-      </div>
-  
-      <!-- Create/Edit Modal -->
-      <Dialog v-model:open="showModal">
-        <DialogContent class="max-w-[95vw] sm:max-w-[90vw] md:max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>{{ formAction }} Repair Order</DialogTitle>
-            <DialogDescription>Fill in details to {{ formAction.toLowerCase() }} a repair order.</DialogDescription>
-          </DialogHeader>
-          <form @submit.prevent="submitForm" class="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 sm:gap-6">
-            <div v-if="isAdmin" class="col-span-2">
-              <Label>Company</Label>
-              <select v-model="form.tenant_id" required class="input">
-                <option disabled value="">Select</option>
-                <option v-for="t in tenants" :key="t.id" :value="t.id">{{ t.name }}</option>
-              </select>
-            </div>
-            <div><Label>RO#</Label><Input v-model="form.ro_number" required/></div>
-            <div><Label>Open Date</Label><Input type="date" v-model="form.ro_open_date" required/></div>
-            <div><Label>Close Date</Label><Input type="date" v-model="form.ro_close_date"/></div>
-            <div><Label>Truck</Label>
-              <select v-model="form.truck_id" required class="input">
+        
+        <!-- Basic Information -->
+        <div class="col-span-2 border-b pb-1 mb-2 flex items-center gap-2">
+          <Icon name="info" class="h-4 w-4 text-primary" />
+          <h3 class="text-md font-semibold text-primary">Basic Information</h3>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-3 col-span-2">
+          <div>
+            <Label class="flex items-center gap-1.5 mb-1 text-sm font-medium">
+              <Icon name="hash" class="h-4 w-4 text-muted-foreground" />
+              RO#
+            </Label>
+            <Input v-model="form.ro_number" required class="h-9 w-full"/>
+          </div>
+          <div>
+            <Label class="flex items-center gap-1.5 mb-1 text-sm font-medium">
+              <Icon name="truck" class="h-4 w-4 text-muted-foreground" />
+              Truck
+            </Label>
+            <div class="relative">
+              <select v-model="form.truck_id" required class="flex h-9 w-full appearance-none rounded-md border bg-background px-3 py-1 text-sm">
                 <option disabled value="">Select</option>
                 <option v-for="t in trucks" :key="t.id" :value="t.id">{{ t.truckid }}</option>
               </select>
-            </div>
-            <div class="col-span-2">
-              <Label>Areas of Concern</Label>
-              <div class="flex flex-wrap gap-1 mb-2">
-                <span v-for="id in form.area_of_concerns" :key="id" class="badge">
-                  {{ areasMap[id] }}<button @click="removeArea(id)">×</button>
-                </span>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
               </div>
-              <select @change="addArea($event)" class="input">
-                <option value="">Select</option>
-                <option v-for="a in availableAreas" :key="a.id" :value="a.id">{{ a.concern }}</option>
-              </select>
             </div>
-            <div class="col-span-2"><Label>Repairs Made</Label><textarea v-model="form.repairs_made" class="input"></textarea></div>
-            <div><Label>Vendor</Label>
-              <select v-model="form.vendor_id" required class="input">
+          </div>
+          <div>
+            <Label class="flex items-center gap-1.5 mb-1 text-sm font-medium">
+              <Icon name="calendar" class="h-4 w-4 text-muted-foreground" />
+              Open Date
+            </Label>
+            <Input type="date" v-model="form.ro_open_date" required class="h-9 w-full"/>
+          </div>
+          <div>
+            <Label class="flex items-center gap-1.5 mb-1 text-sm font-medium">
+              <Icon name="calendar-check" class="h-4 w-4 text-muted-foreground" />
+              Close Date
+            </Label>
+            <Input type="date" v-model="form.ro_close_date" class="h-9 w-full"/>
+          </div>
+        </div>
+        
+        <!-- Repair Details -->
+        <div class="col-span-2 border-b pb-1 mb-2 mt-1 flex items-center gap-2">
+          <Icon name="wrench" class="h-4 w-4 text-primary" />
+          <h3 class="text-md font-semibold text-primary">Repair Details</h3>
+        </div>
+        
+        <div class="col-span-2">
+          <Label class="flex items-center gap-1.5 mb-1 text-sm font-medium">
+            <Icon name="alert-triangle" class="h-4 w-4 text-muted-foreground" />
+            Areas of Concern
+          </Label>
+          <div class="flex flex-wrap gap-1 mb-2 bg-muted/30 p-2 rounded-md min-h-[40px]">
+            <span v-for="id in form.area_of_concerns" :key="id" class="badge bg-primary/10 text-primary px-2 py-1 rounded-md flex items-center">
+              {{ areasMap[id] }}<button @click="removeArea(id)" class="ml-1 hover:text-red-500 focus:outline-none">×</button>
+            </span>
+            <span v-if="!form.area_of_concerns.length" class="text-muted-foreground text-sm italic">No areas selected</span>
+          </div>
+          <div class="relative">
+            <select @change="addArea($event)" class="flex h-9 w-full appearance-none rounded-md border bg-background px-3 py-1 text-sm">
+              <option value="">Select an area to add</option>
+              <option v-for="a in availableAreas" :key="a.id" :value="a.id">{{ a.concern }}</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+              <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+              </svg>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-span-2">
+          <Label class="flex items-center gap-1.5 mb-1 text-sm font-medium">
+            <Icon name="clipboard-check" class="h-4 w-4 text-muted-foreground" />
+            Repairs Made
+          </Label>
+          <textarea v-model="form.repairs_made" class="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm" rows="2"></textarea>
+        </div>
+        
+        <!-- Vendor & Invoice Information -->
+        <div class="col-span-2 border-b pb-1 mb-2 mt-1 flex items-center gap-2">
+          <Icon name="receipt" class="h-4 w-4 text-primary" />
+          <h3 class="text-md font-semibold text-primary">Vendor & Invoice Information</h3>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-3 col-span-2">
+          <div>
+            <Label class="flex items-center gap-1.5 mb-1 text-sm font-medium">
+              <Icon name="building-2" class="h-4 w-4 text-muted-foreground" />
+              Vendor
+            </Label>
+            <div class="relative">
+              <select v-model="form.vendor_id" required class="flex h-9 w-full appearance-none rounded-md border bg-background px-3 py-1 text-sm">
                 <option disabled value="">Select</option>
                 <option v-for="v in vendors" :key="v.id" :value="v.id">{{ v.vendor_name }}</option>
               </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+              </div>
             </div>
-            <div><Label>WO#</Label><Input v-model="form.wo_number"/></div>
-            <div><Label>WO Status</Label>
-              <select v-model="form.wo_status_id" required class="input">
+          </div>
+          <div>
+            <Label class="flex items-center gap-1.5 mb-1 text-sm font-medium">
+              <Icon name="file-text" class="h-4 w-4 text-muted-foreground" />
+              WO#
+            </Label>
+            <Input v-model="form.wo_number" class="h-9 w-full"/>
+          </div>
+          <div>
+            <Label class="flex items-center gap-1.5 mb-1 text-sm font-medium">
+              <Icon name="activity" class="h-4 w-4 text-muted-foreground" />
+              WO Status
+            </Label>
+            <div class="relative">
+              <select v-model="form.wo_status_id" required class="flex h-9 w-full appearance-none rounded-md border bg-background px-3 py-1 text-sm">
                 <option disabled value="">Select</option>
                 <option v-for="s in woStatuses" :key="s.id" :value="s.id">{{ s.name }}</option>
               </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+              </div>
             </div>
-            <div><Label>Invoice</Label><Input v-model="form.invoice"/></div>
-            <div><Label>Amount</Label><Input type="number" step="0.01" v-model="form.invoice_amount"/></div>
-            <div><Label>On QS</Label>
-              <select v-model="form.on_qs" required class="input">
+          </div>
+          <div>
+            <Label class="flex items-center gap-1.5 mb-1 text-sm font-medium">
+              <Icon name="check-square" class="h-4 w-4 text-muted-foreground" />
+              On QS
+            </Label>
+            <div class="relative">
+              <select v-model="form.on_qs" required class="flex h-9 w-full appearance-none rounded-md border bg-background px-3 py-1 text-sm">
                 <option value="yes">Yes</option>
                 <option value="no">No</option>
                 <option value="not expected">Not Expected</option>
               </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+              </div>
             </div>
-            <div><Label>Invoice Received</Label><input type="checkbox" v-model="form.invoice_received"/></div>
-            <div><Label>QS Invoice Date</Label><Input type="date" v-model="form.qs_invoice_date"/></div>
-            <div v-if="formAction==='Update'"><Label>Disputed?</Label><input type="checkbox" v-model="form.disputed"/></div>
-            <div v-if="formAction==='Update'"><Label>Dispute Outcome</Label><textarea v-model="form.dispute_outcome" class="input"></textarea></div>
-            <DialogFooter class="col-span-2 flex justify-end gap-2">
-              <Button variant="outline" @click="closeModal">Cancel</Button>
-              <Button type="submit">{{ formAction }}</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-  
-      <!-- Delete One -->
-      <Dialog v-model:open="showDeleteModal">
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirm Deletion</DialogTitle>
-            <DialogDescription>This cannot be undone.</DialogDescription>
-          </DialogHeader>
-          <DialogFooter class="flex gap-2">
-            <Button variant="outline" @click="showDeleteModal=false">Cancel</Button>
-            <Button variant="destructive" @click="confirmDelete">Delete</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-  
-      <!-- Bulk Delete -->
-      <Dialog v-model:open="showBulkDeleteModal">
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete {{ selectedIds.length }} Orders?</DialogTitle>
-          </DialogHeader>
-          <DialogFooter class="flex gap-2">
-            <Button variant="outline" @click="showBulkDeleteModal=false">Cancel</Button>
-            <Button variant="destructive" @click="deleteBulk">Delete</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-  
-      <!-- Areas Modal -->
-      <Dialog v-model:open="showAreasModal">
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Manage Areas</DialogTitle>
-          </DialogHeader>
-          <form @submit.prevent="submitArea" class="space-y-4">
-            <Input v-model="areaForm.concern" placeholder="New Concern" required/>
-            <Button type="submit">Add</Button>
-          </form>
-          <Table class="mt-4">
-            <TableHeader><TableRow><TableHead>Concern</TableHead><TableHead>Actions</TableHead></TableRow></TableHeader>
-            <TableBody>
-              <TableRow v-for="a in areasOfConcern" :key="a.id">
-                <TableCell>{{ a.concern }}</TableCell>
-                <TableCell>
-                  <Button size="sm" @click="deleteArea(a.id)"><Icon name="trash"/></Button>
-                  <Button v-if="a.deleted_at" size="sm" @click="restoreArea(a.id)"><Icon name="undo"/></Button>
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-          <DialogFooter><Button @click="showAreasModal=false">Close</Button></DialogFooter>
-        </DialogContent>
-      </Dialog>
-  
-      <!-- Vendors Modal -->
-      <Dialog v-model:open="showVendorsModal">
-        <DialogContent>
-          <DialogHeader><DialogTitle>Manage Vendors</DialogTitle></DialogHeader>
-          <form @submit.prevent="submitVendor" class="space-y-4">
-            <Input v-model="vendorForm.vendor_name" placeholder="Name" required/>
-            <Button type="submit">Add</Button>
-          </form>
-          <Table class="mt-4">
-            <TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Actions</TableHead></TableRow></TableHeader>
-            <TableBody>
-              <TableRow v-for="v in vendors" :key="v.id">
-                <TableCell>{{ v.vendor_name }}</TableCell>
-                <TableCell>
-                  <Button size="sm" @click="deleteVendor(v.id)"><Icon name="trash"/></Button>
-                  <Button v-if="v.deleted_at" size="sm" @click="restoreVendor(v.id)"><Icon name="undo"/></Button>
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-          <DialogFooter><Button @click="showVendorsModal=false">Close</Button></DialogFooter>
-        </DialogContent>
-      </Dialog>
-  
-      <!-- Status Modal -->
-      <Dialog v-model:open="showStatusModal">
-        <DialogContent>
-          <DialogHeader><DialogTitle>Manage Statuses</DialogTitle></DialogHeader>
-          <form @submit.prevent="submitStatus" class="space-y-4">
-            <Input v-model="statusForm.name" placeholder="Status" required/>
-            <Button type="submit">Add</Button>
-          </form>
-          <Table class="mt-4">
-            <TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Actions</TableHead></TableRow></TableHeader>
-            <TableBody>
-              <TableRow v-for="s in woStatuses" :key="s.id">
-                <TableCell>{{ s.name }}</TableCell>
-                <TableCell>
-                  <Button size="sm" @click="deleteStatus(s.id)"><Icon name="trash"/></Button>
-                  <Button v-if="s.deleted_at" size="sm" @click="restoreStatus(s.id)"><Icon name="undo"/></Button>
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-          <DialogFooter><Button @click="showStatusModal=false">Close</Button></DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-3 col-span-2">
+          <div>
+            <Label class="flex items-center gap-1.5 mb-1 text-sm font-medium">
+              <Icon name="file-invoice" class="h-4 w-4 text-muted-foreground" />
+              Invoice
+            </Label>
+            <Input v-model="form.invoice" class="h-9 w-full"/>
+          </div>
+          <div>
+            <Label class="flex items-center gap-1.5 mb-1 text-sm font-medium">
+              <Icon name="dollar-sign" class="h-4 w-4 text-muted-foreground" />
+              Amount
+            </Label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">$</span>
+              <Input type="number" step="0.01" v-model="form.invoice_amount" class="pl-7 h-9 w-full"/>
+            </div>
+          </div>
+          <div class="flex items-center space-x-2">
+            <input type="checkbox" v-model="form.invoice_received" class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-1 focus:ring-primary"/>
+            <Label class="flex items-center gap-1.5 text-sm font-medium">
+              <Icon name="inbox" class="h-4 w-4 text-muted-foreground" />
+              Invoice Received
+            </Label>
+          </div>
+          <div>
+            <Label class="flex items-center gap-1.5 mb-1 text-sm font-medium">
+              <Icon name="calendar-days" class="h-4 w-4 text-muted-foreground" />
+              QS Invoice Date
+            </Label>
+            <Input type="date" v-model="form.qs_invoice_date" class="h-9 w-full"/>
+          </div>
+        </div>
+        
+        <!-- Dispute Information (Update only) -->
+        <div v-if="formAction==='Update'" class="col-span-2">
+          <div class="border-b pb-1 mb-2 mt-1 flex items-center gap-2">
+            <Icon name="alert-octagon" class="h-4 w-4 text-primary" />
+            <h3 class="text-md font-semibold text-primary">Dispute Information</h3>
+          </div>
+          <div class="flex items-center space-x-2">
+            <input type="checkbox" v-model="form.disputed" class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-1 focus:ring-primary"/>
+            <Label class="flex items-center gap-1.5 text-sm font-medium">
+              <Icon name="alert-circle" class="h-4 w-4 text-muted-foreground" />
+              Disputed?
+            </Label>
+          </div>
+          <div v-if="form.disputed" class="mt-2">
+            <Label class="flex items-center gap-1.5 mb-1 text-sm font-medium">
+              <Icon name="message-square" class="h-4 w-4 text-muted-foreground" />
+              Dispute Outcome
+            </Label>
+            <textarea v-model="form.dispute_outcome" class="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm" rows="2"></textarea>
+          </div>
+        </div>
+      </form>
     </div>
-  </template>
+    
+    <DialogFooter class="px-4 sm:px-6 flex justify-end gap-2 mt-2 pt-3 border-t">
+      <Button variant="outline" @click="closeModal" class="h-9 px-4 py-1 text-xs sm:text-sm">Cancel</Button>
+      <Button type="submit" @click="submitForm" class="h-9 px-4 py-1 text-xs sm:text-sm">{{ formAction }}</Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
+
+    <!-- Delete One -->
+    <Dialog v-model:open="showDeleteModal">
+      <DialogContent class="max-w-[95vw] sm:max-w-md">
+        <DialogHeader class="px-4 sm:px-6">
+          <DialogTitle class="text-lg sm:text-xl">Confirm Deletion</DialogTitle>
+          <DialogDescription class="text-xs sm:text-sm">This action cannot be undone.</DialogDescription>
+        </DialogHeader>
+        <DialogFooter class="px-4 sm:px-6 flex gap-2">
+          <Button variant="outline" @click="showDeleteModal=false" class="h-9 px-4 py-1 text-xs sm:h-10 sm:text-sm">Cancel</Button>
+          <Button variant="destructive" @click="confirmDelete" class="h-9 px-4 py-1 text-xs sm:h-10 sm:text-sm">Delete</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
+    <!-- Bulk Delete -->
+    <Dialog v-model:open="showBulkDeleteModal">
+      <DialogContent class="max-w-[95vw] sm:max-w-md">
+        <DialogHeader class="px-4 sm:px-6">
+          <DialogTitle class="text-lg sm:text-xl">Delete {{ selectedIds.length }} Orders?</DialogTitle>
+          <DialogDescription class="text-xs sm:text-sm">This action cannot be undone.</DialogDescription>
+        </DialogHeader>
+        <DialogFooter class="px-4 sm:px-6 flex gap-2">
+          <Button variant="outline" @click="showBulkDeleteModal=false" class="h-9 px-4 py-1 text-xs sm:h-10 sm:text-sm">Cancel</Button>
+          <Button variant="destructive" @click="deleteBulk" class="h-9 px-4 py-1 text-xs sm:h-10 sm:text-sm">Delete</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
+<!-- Areas Modal -->
+<Dialog v-model:open="showAreasModal">
+  <DialogContent class="max-w-[95vw] sm:max-w-[90vw] md:max-w-[600px]">
+    <DialogHeader>
+      <DialogTitle>Manage Areas of Concern</DialogTitle>
+      <DialogDescription class="text-sm sm:text-base">Add or remove areas of concern for repair orders.</DialogDescription>
+    </DialogHeader>
+
+    <div class="space-y-4 sm:space-y-6">
+      <!-- Add new area of concern form -->
+      <form @submit.prevent="submitArea" class="space-y-3 sm:space-y-4">
+        <div class="space-y-1 sm:space-y-2">
+          <Label for="concern">Area of Concern</Label>
+          <Input id="concern" v-model="areaForm.concern" required class="text-sm sm:text-base" />
+        </div>
+
+        <Button type="submit" class="w-full">Add Area of Concern</Button>
+      </form>
+
+      <!-- List of existing areas of concern with fixed height and scrolling -->
+      <div class="rounded-md border">
+        <div class="max-h-[40vh] overflow-y-auto sm:max-h-[300px]">
+          <Table>
+            <TableHeader class="sticky top-0 z-10 bg-background">
+              <TableRow>
+                <TableHead class="text-xs sm:text-sm">Area of Concern</TableHead>
+                <TableHead class="w-20 text-xs sm:text-sm">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow v-if="!props.areasOfConcern.length">
+                <TableCell colspan="2" class="py-4 text-center text-sm">No areas of concern found.</TableCell>
+              </TableRow>
+              <TableRow v-for="a in areasOfConcern" :key="a.id">
+                <TableCell class="text-xs sm:text-sm">
+                  {{ a.concern }}
+                  <span v-if="a.deleted_at" class="ml-1 text-xs text-red-500">(Deleted)</span>
+                </TableCell>
+                <TableCell>
+                  <div class="flex space-x-1 sm:space-x-2">
+                    <Button v-if="a.deleted_at" @click="restoreArea(a.id)" variant="outline" size="sm">
+                      <Icon name="undo" class="h-4 w-4" />
+                    </Button>
+                    <Button
+                      v-if="!a.deleted_at"
+                      @click="deleteArea(a.id)"
+                      variant="destructive"
+                      size="sm"
+                    >
+                      <Icon name="trash" class="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    </div>
+
+    <DialogFooter>
+      <Button @click="showAreasModal = false" variant="outline" class="w-full sm:w-auto">Close</Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
+
+<!-- Vendors Modal -->
+<Dialog v-model:open="showVendorsModal">
+  <DialogContent class="max-w-[95vw] sm:max-w-[90vw] md:max-w-[600px]">
+    <DialogHeader>
+      <DialogTitle>Manage Vendors</DialogTitle>
+      <DialogDescription class="text-sm sm:text-base">Add or remove vendors for repair orders.</DialogDescription>
+    </DialogHeader>
+
+    <div class="space-y-4 sm:space-y-6">
+      <!-- Add new vendor form -->
+      <form @submit.prevent="submitVendorForm" class="space-y-3 sm:space-y-4">
+        <div class="space-y-1 sm:space-y-2">
+          <Label for="vendor_name">Vendor Name</Label>
+          <Input id="vendor_name" v-model="vendorForm.vendor_name" required class="text-sm sm:text-base" />
+        </div>
+
+        <Button type="submit" class="w-full">Add Vendor</Button>
+      </form>
+
+      <!-- List of existing vendors -->
+      <div class="overflow-hidden rounded-md border">
+        <div class="max-h-[40vh] overflow-y-auto sm:max-h-[300px]">
+          <Table>
+            <TableHeader class="sticky top-0 z-10 bg-background">
+              <TableRow class="sticky top-0 z-10 border-b bg-background">
+                <TableHead class="text-xs sm:text-sm">Vendor Name</TableHead>
+                <TableHead class="text-xs sm:text-sm">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow v-if="vendors.length === 0">
+                <TableCell colspan="2" class="py-4 text-center text-sm">No vendors found.</TableCell>
+              </TableRow>
+              <TableRow v-for="vendor in vendors" :key="vendor.id">
+                <TableCell class="text-xs sm:text-sm">
+                  {{ vendor.vendor_name }}
+                  <span v-if="vendor.deleted_at" class="ml-1 text-xs text-red-500">(Deleted)</span>
+                </TableCell>
+                <TableCell>
+                  <div class="flex space-x-1 sm:space-x-2">
+                    <Button v-if="vendor.deleted_at" @click="restoreVendor(vendor.id)" variant="outline" size="sm">
+                      <Icon name="undo" class="h-4 w-4" />
+                    </Button>
+                    <Button
+                      v-if="!vendor.deleted_at"
+                      @click="deleteVendor(vendor.id)"
+                      variant="destructive"
+                      size="sm"
+                    >
+                      <Icon name="trash" class="h-4 w-4" />
+                    </Button>
+                    <Button
+                      v-if="vendor.deleted_at"
+                      @click="forceDeleteVendor(vendor.id)"
+                      variant="destructive"
+                      size="sm"
+                    >
+                      <Icon name="x" class="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    </div>
+
+    <DialogFooter>
+      <Button @click="showVendorsModal = false" variant="outline" class="w-full sm:w-auto">Close</Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
+
+<!-- Statuses Modal -->
+<Dialog v-model:open="showStatusModal">
+  <DialogContent class="max-w-[95vw] sm:max-w-[90vw] md:max-w-[600px]">
+    <DialogHeader>
+      <DialogTitle>Manage Work Order Statuses</DialogTitle>
+      <DialogDescription class="text-sm sm:text-base"> Add or remove work order statuses for repair orders. </DialogDescription>
+    </DialogHeader>
+
+    <div class="space-y-4 sm:space-y-6">
+      <!-- Add new WO status form -->
+      <form @submit.prevent="submitStatus" class="space-y-3 sm:space-y-4">
+        <div class="space-y-1 sm:space-y-2">
+          <Label for="status_name">Status Name</Label>
+          <Input id="status_name" v-model="statusForm.name" required class="text-sm sm:text-base" />
+        </div>
+
+        <Button type="submit" class="w-full">Add Work Order Status</Button>
+      </form>
+
+      <!-- List of existing WO statuses -->
+      <div class="overflow-hidden rounded-md border">
+        <div class="max-h-[40vh] overflow-y-auto sm:max-h-[300px]">
+          <Table>
+            <TableHeader class="sticky top-0 z-10 bg-background">
+              <TableRow class="sticky top-0 z-10 border-b bg-background">
+                <TableHead class="text-xs sm:text-sm">Status Name</TableHead>
+                <TableHead class="text-xs sm:text-sm">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow v-if="!props.woStatuses.length">
+                <TableCell colspan="2" class="py-4 text-center text-sm">No work order statuses found.</TableCell>
+              </TableRow>
+              <TableRow v-for="s in props.woStatuses" :key="s.id">
+                <TableCell class="text-xs sm:text-sm">
+                  {{ s.name }}
+                  <span v-if="s.deleted_at" class="ml-1 text-xs text-red-500">(Deleted)</span>
+                </TableCell>
+                <TableCell>
+                  <div class="flex space-x-1 sm:space-x-2">
+                    <Button v-if="s.deleted_at" @click="restoreStatus(s.id)" variant="outline" size="sm">
+                      <Icon name="undo" class="h-4 w-4" />
+                    </Button>
+                    <Button
+                      v-if="!s.deleted_at"
+                      @click="deleteStatus(s.id)"
+                      variant="destructive"
+                      size="sm"
+                    >
+                      <Icon name="trash" class="h-4 w-4" />
+                    </Button>
+                    <Button
+                      v-if="s.deleted_at"
+                      @click="forceDeleteStatus(s.id)"
+                      variant="destructive"
+                      size="sm"
+                    >
+                      <Icon name="x" class="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    </div>
+
+    <DialogFooter>
+      <Button @click="showStatusModal = false" variant="outline" class="w-full sm:w-auto">Close</Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
+
+  </div>
+</template>
   
   <script setup lang="ts">
   import { ref, computed, onMounted, onUnmounted } from 'vue'
@@ -337,10 +861,54 @@
   } from '@/components/ui'
   
   const props = defineProps({
-    repairOrders: Object, tenantSlug: String, SuperAdmin: Boolean,
-    tenants: Array, trucks: Array, vendors: Array, areasOfConcern: Array,
-    woStatuses: Array, dateRange: Object, filters: Object, dateFilter: String,
-    perPage: Number
+    repairOrders: { type: Object, default: () => ({ data: [], links: [] }) },
+    tenantSlug: { type: String, default: null },
+    SuperAdmin: { type: Boolean, default: false },
+    tenants: { type: Array, default: () => [] },
+    trucks: { type: Array, default: () => [] },
+    vendors: { type: Array, default: () => [] },
+    areasOfConcern: { type: Array, default: () => [] },
+    dateRange: { type: Object, default: null },
+    dateFilter: { type: String, default: 'yesterday' },
+    woStatuses: { type: Array, default: () => [] },
+    weekNumber: {
+        type: Number,
+        default: null,
+    },
+    startWeekNumber: {
+        type: Number,
+        default: null,
+    },
+    endWeekNumber: {
+        type: Number,
+        default: null,
+    },
+    year: {
+        type: Number,
+        default: null,
+    },
+    canceledQSInvoices: {
+        type: Array,
+        default: () => [],
+    },
+    initialMinInvoiceAmount: {
+        type: [Number, String, null],
+        default: null,
+    },
+    initialOutstandingDate: {
+        type: [String, null],
+        default: null,
+    },
+    outstandingInvoices: { type: Array, default: () => [] },
+    workOrdersByTruck: { type: Array, default: () => [] },
+    workOrderByAreasOfConcern: { type: Array, default: () => [] },
+    filters: { type: Object, default: ()=> ({
+        search: '',
+        vendor_id: '',
+        status_id: '',
+    }),},
+    perPage: { type: Number, default: 10 },
+    openedComponent: { type: String, default: 'trucks' },
   })
   const emit = defineEmits<{'update:perPage':(val:number)=>void}>()
   
@@ -379,18 +947,69 @@
   ]
   
   // Helpers
-  function formatDate(d:string){ if(!d)return ''; return new Date(d).toLocaleDateString() }
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return dateStr;
+    const [year, month, day] = parts;
+    return `${Number(month)}/${Number(day)}/${year}`;
+};
   function formatCurrency(a:any){ return a? new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(a): '$0.00' }
   const templateUrl = '/storage/upload-data-temps/Repair Orders Template.csv'
   
   // Actions
   function selectDate(val:string){ filter.value.dateFilter=val; applyFilters() }
-  function applyFilters(){ const routeName = props.tenantSlug? route('repair_orders.index',{tenantSlug:props.tenantSlug}): route('repair_orders.index.admin'); router.get(routeName,{...filter.value, perPage:localPerPage.value},{preserveState:true}) }
+  function applyFilters() {
+  const routeName = props.SuperAdmin
+    ? 'repair_orders.index.admin'
+    : 'repair_orders.index'
+
+  const params = {
+    ...(props.SuperAdmin ? {} : { tenantSlug: props.tenantSlug }),
+    ...filter.value,
+    perPage:    localPerPage.value,
+    dateFilter: filter.value.dateFilter,
+    openedComponent: 'repairOrders',
+  }
+  router.visit(
+    route(routeName, params),
+    {
+      only: [  'repairOrders',
+      'filters',
+      'perPage',
+      'dateFilter',
+      'weekNumber',
+      'startWeekNumber',
+      'endWeekNumber',
+      'year',
+      'workOrdersByTruck',
+      'workOrderByAreasOfConcern',
+      'openedComponent',
+     ],
+    }
+  )
+}
   function resetFilters(){ filter.value={...filter.value, search:'',vendor_id:'',status_id:''}; applyFilters() }
   const sortState = ref({column:'ro_number',direction:'asc'})
   function sort(col:string){ if(sortState.value.column===col) sortState.value.direction = sortState.value.direction==='asc'?'desc':'asc'; else { sortState.value = {column:col,direction:'asc'} }; applyFilters() }
-  function changePerPage(){ emit('update:perPage', localPerPage.value); applyFilters() }
-  function go(url?:string){ if(url) router.get(new URL(url).pathname,{}, {preserveState:true}) }
+  function changePerPage(){  applyFilters() }
+  function go(url?:string){if (url) {
+        // Add perPage parameter to the URL
+        const urlObj = new URL(url);
+        const baseUrl = urlObj.origin + urlObj.pathname;
+
+        router.get(
+            baseUrl,
+            {
+                ...filter.value,
+                perPage:    localPerPage.value,
+                dateFilter: filter.value.dateFilter,
+                openedComponent: 'repairOrders',
+                page: urlObj.searchParams.get('page') || 1,
+            },
+            {preserveScroll: true}
+        );
+    } }
   function toggleAll(e:Event){ const chk=(e.target as HTMLInputElement).checked; selectedIds.value = chk? props.repairOrders.data.map(o=>o.id):[] }
   
   // CSV
@@ -399,7 +1018,35 @@
   
   // Create/Edit handlers
   function openCreateModal(){ form.reset(); formAction.value='Create'; showModal.value=true }
-  function openEdit(o:any){ form.reset(); form.fill(o); formAction.value='Update'; showModal.value=true }
+  function openEdit(o:any){ form.reset(); form.reset();
+
+// Set all form fields from the order object
+form.id = o.id;
+form.tenant_id = o.tenant_id;
+form.ro_number = o.ro_number;
+form.ro_open_date = o.ro_open_date;
+form.ro_close_date = o.ro_close_date || '';
+form.truck_id = o.truck_id;
+form.vendor_id = o.vendor_id;
+form.wo_number = o.wo_number;
+form.wo_status_id = o.wo_status_id;
+form.invoice = o.invoice || '';
+form.invoice_amount = o.invoice_amount || '';
+// Handle boolean values that might come as 0/1 or true/false
+form.invoice_received = Boolean(o.invoice_received);
+form.on_qs = o.on_qs || 'no';
+form.qs_invoice_date = o.qs_invoice_date || '';
+form.disputed = Boolean(o.disputed);
+form.dispute_outcome = o.dispute_outcome || '';
+form.repairs_made = o.repairs_made || '';
+
+// Handle areas of concern with better error checking - use areas_of_concern (snake_case)
+form.area_of_concerns = [];
+if (o.areas_of_concern && Array.isArray(o.areas_of_concern)) {
+    // Extract just the IDs from the areas_of_concern relationship
+    form.area_of_concerns = o.areas_of_concern.map((area) => area.id);
+}
+formAction.value='Update'; showModal.value=true }
   function closeModal(){ form.reset(); showModal.value=false }
   function submitForm(){ const endpoint = formAction.value==='Update'? (props.tenantSlug? route('repair_orders.update',[props.tenantSlug,form.id]): route('repair_orders.update.admin',form.id)) : (props.tenantSlug? route('repair_orders.store',{tenantSlug:props.tenantSlug}): route('repair_orders.store.admin')); form[formAction.value==='Update'?'put':'post'](endpoint,{ onSuccess:()=>{ successMessage.value=`${formAction.value}d!`; showModal.value=false; } }) }
   
@@ -433,7 +1080,19 @@
   const availableAreas = computed(()=> props.areasOfConcern.filter(a=>!form.area_of_concerns.includes(a.id)))
   function addArea(e:any){ const id=Number(e.target.value); if(id&&!form.area_of_concerns.includes(id)) form.area_of_concerns.push(id); e.target.value='' }
   function removeArea(id:number){ form.area_of_concerns = form.area_of_concerns.filter(x=>x!==id) }
-  
+  const weekNumberText = computed(() => {
+    // For yesterday and current-week, show single week
+    if ((props.dateFilter === 'yesterday' || props.dateFilter === 'current-week') && props.weekNumber && props.year) {
+        return `Week ${props.weekNumber}, ${props.year}`;
+    }
+
+    // For 6w and quarterly, show start-end week range if available
+    if ((props.dateFilter === '6w' || props.dateFilter === 'quarterly') && props.startWeekNumber && props.endWeekNumber && props.year) {
+        return `Weeks ${props.startWeekNumber}-${props.endWeekNumber}, ${props.year}`;
+    }
+
+    return '';
+});
   // Click outside
   onMounted(()=>{ const h=(e:Event)=>{ if(showUpload.value&&! (e.target as HTMLElement).closest('.relative')) showUpload.value=false }; document.addEventListener('click',h); onUnmounted(()=>document.removeEventListener('click',h)) })
   
@@ -442,7 +1101,7 @@
   </script>
   
   <style scoped>
-  .input { @apply rounded-md border px-3 py-1 text-sm w-full }
-  .badge { @apply inline-flex items-center bg-primary/10 text-primary rounded px-2 py-0.5 text-xs }
+  .input { @apply rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 w-full transition-colors }
+  .badge { @apply inline-flex items-center bg-primary/10 text-primary rounded px-2 py-0.5 text-xs transition-colors }
   .active-page { @apply border-primary bg-primary/10 text-primary }
   </style>

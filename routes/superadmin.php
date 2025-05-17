@@ -15,6 +15,8 @@ use App\Http\Controllers\Web\RepairOrder\RepairOrderController;
 use App\Http\Controllers\Web\Miles\MilesDrivenController;
 use App\Http\Controllers\Web\Support\TicketController;
 use App\Http\Controllers\Web\Support\TicketResponseController;
+use App\Http\Controllers\Web\Support\FeedbackController;
+use App\Http\Controllers\Web\Support\FeedbackSubjectsController;
 
 Route::middleware(['auth', 'superAdmin'])->group(function () {
     // Dashboard & UI
@@ -104,7 +106,7 @@ Route::middleware(['auth', 'superAdmin'])->group(function () {
     Route::get    ('/drivers/export',   [DriverController::class, 'export'])->name('driver.export.admin');
 
     // Repair orders
-    Route::get    ('/repair-orders',         [RepairOrderController::class, 'index'])->name('repair_orders.index.admin');
+    Route::get    ('/asset-maintenance',         [RepairOrderController::class, 'index'])->name('repair_orders.index.admin');
     Route::post   ('/repair-orders',         [RepairOrderController::class, 'store'])->name('repair_orders.store.admin');
     Route::put    ('/repair-orders/{repair_order}', [RepairOrderController::class, 'updateAdmin'])->name('repair_orders.update.admin');
     Route::delete ('/repair-orders/{repair_order}', [RepairOrderController::class, 'destroyAdmin'])->name('repair_orders.destroy.admin');
@@ -147,6 +149,20 @@ Route::middleware(['auth', 'superAdmin'])->group(function () {
     Route::delete ('/ticket-subjects/{id}',  [TicketController::class, 'destroySubject'])->name('ticket_subjects.destroy.admin');
     Route::post   ('/ticket-subjects/{id}/restore', [TicketController::class, 'restoreSubject'])->name('ticket_subjects.restore.admin');
     Route::delete ('/ticket-subjects/{id}/force',   [TicketController::class, 'forceDeleteSubject'])->name('ticket_subjects.forceDelete.admin');
+    //feedback 
+    Route::get    ('/feedback',           [FeedbackController::class,'index'])->name('support.feedback.index.admin');
+    Route::post   ('/feedback',           [FeedbackController::class,'store'])->name('support.feedback.store.admin');
+    Route::delete ('/feedback-bulk',      [FeedbackController::class,'destroyBulkAdmin'])->name('support.feedback.destroyBulk.admin');
+    Route::get    ('/feedback/{feedback}', [FeedbackController::class,'showAdmin'])->name('support.feedback.show.admin');
+    Route::delete ('/feedback/{feedback}', [FeedbackController::class,'destroyAdmin'])->name('support.feedback.destroy.admin');
+
+    //
+    // ── Admin-only category management ───────────────────────────────────────
+    //
+    Route::post   ('/feedback-categories',                 [FeedbackSubjectsController::class,'store'])->name('feedback.categories.store.admin');
+    Route::delete ('/feedback-categories/{id}',            [FeedbackSubjectsController::class,'destroy'])->name('feedback.categories.destroy.admin');
+    Route::post   ('/feedback-categories/{id}/restore',    [FeedbackSubjectsController::class,'restore'])->name('feedback.categories.restore.admin');
+    Route::delete ('/feedback-categories/{id}/force-delete',[FeedbackSubjectsController::class,'forceDelete'])->name('feedback.categories.forceDelete.admin');
 
     // Support tickets
     Route::get    ('/support',                      [TicketController::class, 'index'])->name('support.index.admin');

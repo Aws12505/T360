@@ -44,13 +44,6 @@ const mainNavItems = computed<NavItem[]>(() => [
     icon: 'barChart',
   },
   {
-    title: 'Safety',
-    href: props.tenantSlug
-      ? route('safety.index', { tenantSlug: props.tenantSlug })
-      : route('safety.index.admin'),
-    icon: 'shieldCheck',
-  },
-  {
     title: 'Acceptance',
     href: props.tenantSlug
       ? route('acceptance.index', { tenantSlug: props.tenantSlug })
@@ -65,11 +58,18 @@ const mainNavItems = computed<NavItem[]>(() => [
     icon: 'clock',
   },
   {
-    title: 'Trucks',
+    title: 'Safety',
     href: props.tenantSlug
-      ? route('truck.index', { tenantSlug: props.tenantSlug })
-      : route('truck.index.admin'),
-    icon: 'truck',
+      ? route('safety.index', { tenantSlug: props.tenantSlug })
+      : route('safety.index.admin'),
+    icon: 'shieldCheck',
+  },
+  {
+    title: 'Asset Maintenance',
+    href: props.tenantSlug
+      ? route('repair_orders.index', { tenantSlug: props.tenantSlug })
+      : route('repair_orders.index.admin'),
+    icon: 'wrench',
   },
   {
     title: 'Drivers',
@@ -78,13 +78,7 @@ const mainNavItems = computed<NavItem[]>(() => [
       : route('driver.index.admin'),
     icon: 'users',
   },
-  {
-    title: 'Repair Orders',
-    href: props.tenantSlug
-      ? route('repair_orders.index', { tenantSlug: props.tenantSlug })
-      : route('repair_orders.index.admin'),
-    icon: 'clipboardList',
-  },
+
 ]);
 
 const footerNavItems: NavItem[] = [
@@ -94,6 +88,13 @@ const footerNavItems: NavItem[] = [
       ? route('support.index', { tenantSlug: props.tenantSlug })
       : route('support.index.admin'),
     icon: 'helpCircle',
+  },
+  {
+    title: 'Feedback',
+    href: props.tenantSlug
+      ? route('support.feedback.index', { tenantSlug: props.tenantSlug })
+      : route('support.feedback.index.admin'),
+    icon: 'feedback',
   },
   {
     title: 'Settings',

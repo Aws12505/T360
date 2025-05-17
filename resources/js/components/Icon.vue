@@ -46,6 +46,20 @@ import {
   TriangleAlert,
   ShieldAlert,
   Cog,
+  Wrench,
+  Tag,
+  SearchX,
+  CircleCheckBig,
+  CircleAlert,
+  ListFilter,
+  List,
+  Building,
+  Hash,
+  Fuel,
+  IdCard,
+  Fingerprint,
+  ClipboardCheck,
+  MessageSquareMore,
   // Add these new icons
 } from 'lucide-vue-next';
 
@@ -92,7 +106,21 @@ export type IconName =
   | 'helpCircle'
   | 'triangleAlert'
   | 'shieldAlert'
-  | 'cog';
+  | 'cog'
+  | 'wrench'
+  | 'tag'
+  | 'search_x'
+  | 'check_circle'
+  | 'alert_circle'
+  | 'filter'
+  | 'list'
+  | 'building'
+  | 'hash'
+  | 'fuel'
+  | 'id_card'
+  | 'fingerprint'
+  | 'clipboard_check'
+  | 'feedback';
 
 const ICONS: Record<IconName, Component> = {
   truck: Truck,
@@ -137,6 +165,20 @@ const ICONS: Record<IconName, Component> = {
   triangleAlert: TriangleAlert,
   shieldAlert: ShieldAlert,
   cog: Cog,
+  wrench: Wrench,
+  tag: Tag,
+  search_x: SearchX,
+  check_circle: CircleCheckBig,
+  alert_circle: CircleAlert,
+  filter: ListFilter,
+  list: List,
+  building: Building,
+  hash: Hash,
+  fuel: Fuel,
+  id_card: IdCard,
+  fingerprint: Fingerprint,
+  clipboard_check: ClipboardCheck,
+  feedback: MessageSquareMore,
 };
 
 // 3. Define props, with defaults for optional values:

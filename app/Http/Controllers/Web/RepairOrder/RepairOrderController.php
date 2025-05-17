@@ -44,7 +44,11 @@ class RepairOrderController extends Controller
         $data = $this->repairOrderService->getIndexData();
         return Inertia::render('AssetMaintenance', $data);
     }
-
+    public function index2(Request $request)
+    {
+        $data = $this->repairOrderService->getIndexData();
+        return Inertia::render('RepairOrders/Index', $data);
+    }
     public function store(StoreRepairOrderRequest $request)
     {
         $this->repairOrderService->createRepairOrder($request->validated());

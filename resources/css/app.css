@@ -10,12 +10,12 @@ html {
 
 @layer base {
     :root {
-        --background: 0 0% 100%;
-        --foreground: 0 0% 3.9%;
-        --card: 0 0% 100%;
-        --card-foreground: 0 0% 3.9%;
-        --popover: 0 0% 100%;
-        --popover-foreground: 0 0% 3.9%;
+        --background: 210 30% 94%;
+        --foreground: 210 50% 10%;
+        --card: 210 30% 94%;
+        --card-foreground: 210 50% 10%;
+        --popover: 210 30% 94%;
+        --popover-foreground: 210 50% 10%;
         
         /* Updated primary color to #2e368f (deep blue) */
         --primary: 235 51% 37%;
@@ -40,12 +40,12 @@ html {
         --chart-4: 43 74% 66%;
         --chart-5: 27 87% 67%;
         --radius: 0.5rem;
-        --sidebar-background: 235 51% 97%;
-        --sidebar-foreground: 235 51% 26.1%;
+        --sidebar-background: 210 70% 93%;
+        --sidebar-foreground: 210 70% 35%;
         --sidebar-primary: 235 51% 37%;
         --sidebar-primary-foreground: 0 0% 98%;
-        --sidebar-accent: 235 51% 94%;
-        --sidebar-accent-foreground: 235 51% 30%;
+        --sidebar-accent: 210 80% 85%;
+        --sidebar-accent-foreground: 210 90% 25%;
         --sidebar-border: 235 51% 91%;
         --sidebar-ring: 235 51% 37%;
     }

@@ -14,6 +14,7 @@ use App\Http\Controllers\Web\RepairOrder\RepairOrderController;
 use App\Http\Controllers\Web\Miles\MilesDrivenController;
 use App\Http\Controllers\Settings\TenantSettingsController;
 use App\Http\Controllers\Web\Support\TicketController;
+use App\Http\Controllers\Web\Support\FeedbackController;
 use App\Http\Controllers\Web\Support\TicketResponseController;
 
 Route::middleware(['auth', 'tenant'])
@@ -57,7 +58,7 @@ Route::middleware(['auth', 'tenant'])
          ->name('performance.export');
 
     // Repair Orders
-    Route::get('repair-orders', [RepairOrderController::class, 'index'])
+    Route::get('asset-maintenance', [RepairOrderController::class, 'index'])
          ->name('repair_orders.index');
     Route::post('repair-orders', [RepairOrderController::class, 'store'])
          ->name('repair_orders.store');
@@ -87,7 +88,7 @@ Route::middleware(['auth', 'tenant'])
          ->name('safety.export');
 
     // Trucks
-    Route::get('trucks', [TruckController::class, 'index'])->name('truck.index');
+    Route::get('trucks', [RepairOrderController::class, 'index2'])->name('truck.index');
     Route::post('trucks', [TruckController::class, 'store'])->name('truck.store');
     Route::put('trucks/{truck}', [TruckController::class, 'update'])
          ->name('truck.update');
@@ -153,6 +154,14 @@ Route::middleware(['auth', 'tenant'])
          ->name('miles_driven.update');
     Route::delete('miles-driven/{milesDriven}', [MilesDrivenController::class, 'destroy'])
          ->name('miles_driven.destroy');
+
+    // Feedbacks
+    Route::get    ('/feedback',           [FeedbackController::class,'index'])->name('support.feedback.index');
+    Route::post   ('/feedback',           [FeedbackController::class,'store'])->name('support.feedback.store');
+    Route::delete ('/feedback-bulk',      [FeedbackController::class,'destroyBulk'])->name('support.feedback.destroyBulk');
+    // Show + delete single
+    Route::get    ('/feedback/{feedback}', [FeedbackController::class,'show'])->name('support.feedback.show');
+    Route::delete ('/feedback/{feedback}', [FeedbackController::class,'destroy'])->name('support.feedback.destroy');
 
     // Support Tickets
     Route::get('support', [TicketController::class, 'index'])->name('support.index');

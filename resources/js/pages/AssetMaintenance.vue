@@ -1,32 +1,73 @@
 <template>
   <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
-    <Head title="Asset Management" />
+    <Head title="Asset Maintenance" />
 
-    <div class="space-y-6">
-      <!-- Tabs -->
-      <div class="border-b">
-        <div class="flex space-x-8">
-          <button
-            @click="activeTab = 'trucks'"
-            :class="[tabClass('trucks'), 'py-2 px-1 -mb-px font-medium text-sm']"
-          >
-            Trucks
-          </button>
-          <button
-            @click="activeTab = 'repairOrders'"
-            :class="[tabClass('repairOrders'), 'py-2 px-1 -mb-px font-medium text-sm']"
-          >
-            Repair Orders
-          </button>
+    <div class="w-full md:max-w-2xl lg:max-w-3xl xl:max-w-6xl lg:mx-auto p-2 md:p-4 lg:p-6 space-y-6">
+      <!-- Success/Error Messages -->
+      <Alert v-if="successMessage" variant="success" class="animate-in fade-in duration-300">
+        <AlertTitle>Success</AlertTitle>
+        <AlertDescription>{{ successMessage }}</AlertDescription>
+      </Alert>
+      <Alert v-if="errorMessage" variant="destructive" class="animate-in fade-in duration-300">
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>{{ errorMessage }}</AlertDescription>
+      </Alert>
+
+      <!-- Page Header -->
+      <div class="flex flex-col sm:flex-row justify-between items-center px-2 mb-2 md:mb-4 lg:mb-6">
+        <h1 class="text-lg md:text-xl lg:text-2xl font-bold text-gray-800 dark:text-gray-200">
+          Asset Management
+        </h1>
+        <div class="flex flex-wrap gap-3 mt-2 sm:mt-0">
+          <!-- Optional action buttons could go here -->
         </div>
       </div>
 
-      <!-- Dynamically mount the right component -->
-      <component
-        :is="currentComponent"
-        v-bind="currentProps"
-        v-on="currentListeners"
-      />
+      <!-- Tabs -->
+      <Card class="shadow-sm border bg-card">
+        <CardContent class="p-0">
+          <div class="border-b">
+            <div class="flex justify-center space-x-8 px-4 pt-4">
+              <Button
+                @click="switchComponent('trucks')"
+                variant="ghost"
+                :class="[
+                  activeTab === 'trucks'
+                    ? 'border-b-2 border-primary text-primary'
+                    : 'text-muted-foreground hover:text-foreground'
+                ]"
+                class="py-2 px-3 -mb-px font-medium text-sm rounded-none transition-colors duration-200 inline-flex items-center"
+              >
+                <Icon name="truck" class="mr-2 h-4 w-4" />
+                <span>Trucks</span>
+              </Button>
+              <Button
+                @click="switchComponent('repairOrders')"
+                variant="ghost"
+                :class="[
+                  activeTab === 'repairOrders'
+                    ? 'border-b-2 border-primary text-primary'
+                    : 'text-muted-foreground hover:text-foreground'
+                ]"
+                class="py-2 px-3 -mb-px font-medium text-sm rounded-none transition-colors duration-200 inline-flex items-center"
+              >
+                <Icon name="clipboardList" class="mr-2 h-4 w-4" />
+                <span>Repair Orders</span>
+              </Button>
+            </div>
+          </div>
+
+          <!-- Loading State -->
+          <div v-if="isLoading" class="flex justify-center items-center p-12">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+
+          <!-- Dynamic Component -->
+          <div v-else class="p-4">
+            <component :is="currentComponent" v-bind="currentProps" />
+          </div>
+        </CardContent>
+      </Card>
     </div>
   </AppLayout>
 </template>
@@ -37,41 +78,44 @@ import { Head } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
 import TrucksComponent from '@/components/Truck/TrucksComponent.vue'
 import RepairOrdersComponent from '@/components/RepairOrders/RepairOrdersComponent.vue'
+import Icon from '@/components/Icon.vue'
+import { Card, CardContent, Button, Alert, AlertTitle, AlertDescription } from '@/components/ui'
 
-/** Props **/
+// all props passed down from the parent controller
 const props = defineProps({
-  entries:        { type: Array, default: () => [] },
-  tenants:        { type: Array, default: () => [] },
-  trucks:         { type: Array, default: () => [] },
-  vendors:        { type: Array, default: () => [] },
-  areasOfConcern: { type: Array, default: () => [] },
+  entries:        { type: Array,  default: () => [] },
+  tenants:        { type: Array,  default: () => [] },
+  trucks:         { type: Array,  default: () => [] },
+  vendors:        { type: Array,  default: () => [] },
+  areasOfConcern: { type: Array,  default: () => [] },
   repairOrders:   { type: Object, default: () => ({ data: [], links: [] }) },
   dateRange:               { type: Object, default: null },
-  woStatuses:              { type: Array, default: () => [] },
+  woStatuses:              { type: Array,  default: () => [] },
   weekNumber:              { type: Number, default: null },
   startWeekNumber:         { type: Number, default: null },
   endWeekNumber:           { type: Number, default: null },
   year:                    { type: Number, default: null },
-  canceledQSInvoices:      { type: Array, default: () => [] },
-  outstandingInvoices:     { type: Array, default: () => [] },
-  workOrdersByTruck:       { type: Array, default: () => [] },
+  canceledQSInvoices:      { type: Array,  default: () => [] },
+  outstandingInvoices:     { type: Array,  default: () => [] },
+  workOrdersByTruck:       { type: Array,  default: () => [] },
   workOrderByAreasOfConcern:{ type: Array, default: () => [] },
   filters:                 { type: Object, default: () => ({}) },
   dateFilter:              { type: String, default: 'yesterday' },
   tenantSlug:  String,
   SuperAdmin:  Boolean,
   perPage:    { type: Number, default: 10 },
+  openedComponent: { type: String, default: 'trucks' },
 })
 
-/** Emit **/
-const emit = defineEmits<{
-  (e: 'update:perPage', val: number): void
-}>()
+// UI state management
+const isLoading = ref(false)
+const successMessage = ref('')
+const errorMessage = ref('')
 
-/** Local state **/
-const activeTab = ref<'trucks'|'repairOrders'>('trucks')
+// single source of truth for your tab
+const activeTab = ref<'trucks'|'repairOrders'>(props.openedComponent || 'trucks')
 
-/** Breadcrumbs **/
+// breadcrumbs, unchanged
 const breadcrumbs = computed(() => [
   {
     title: props.tenantSlug ? 'Dashboard' : 'Admin Dashboard',
@@ -82,18 +126,14 @@ const breadcrumbs = computed(() => [
   { title: 'Asset Management', href: '#' },
 ])
 
-/** Helpers **/
-const tabClass = (tab: typeof activeTab.value) =>
-  activeTab.value === tab
-    ? 'border-b-2 border-primary text-primary'
-    : 'text-muted-foreground hover:text-foreground'
-
-/** Decide which component to mount **/
+// pick which component to render
 const currentComponent = computed(() =>
-  activeTab.value === 'trucks' ? TrucksComponent : RepairOrdersComponent
+  activeTab.value === 'trucks'
+    ? TrucksComponent
+    : RepairOrdersComponent
 )
 
-/** Build props for child **/
+// build props for that component
 const currentProps = computed(() => {
   if (activeTab.value === 'trucks') {
     return {
@@ -101,38 +141,55 @@ const currentProps = computed(() => {
       tenantSlug:     props.tenantSlug,
       SuperAdmin:     props.SuperAdmin,
       tenants:        props.tenants,
-      perPage:        props.perPage,
       trucks:         props.trucks,
       vendors:        props.vendors,
       areasOfConcern: props.areasOfConcern,
     }
-  }
-  return {
-    repairOrders:             props.repairOrders,
-    tenantSlug:               props.tenantSlug,
-    SuperAdmin:               props.SuperAdmin,
-    tenants:                  props.tenants,
-    trucks:                   props.trucks,
-    vendors:                  props.vendors,
-    areasOfConcern:           props.areasOfConcern,
-    dateRange:                props.dateRange,
-    woStatuses:               props.woStatuses,
-    weekNumber:               props.weekNumber,
-    startWeekNumber:          props.startWeekNumber,
-    endWeekNumber:            props.endWeekNumber,
-    year:                     props.year,
-    canceledQSInvoices:       props.canceledQSInvoices,
-    outstandingInvoices:      props.outstandingInvoices,
-    workOrdersByTruck:        props.workOrdersByTruck,
-    workOrderByAreasOfConcern:props.workOrderByAreasOfConcern,
-    filters:                  props.filters,
-    dateFilter:               props.dateFilter,
-    perPage:                  props.perPage,
+  } else {
+    return {
+      repairOrders:             props.repairOrders,
+      tenantSlug:               props.tenantSlug,
+      SuperAdmin:               props.SuperAdmin,
+      tenants:                  props.tenants,
+      trucks:                   props.trucks,
+      vendors:                  props.vendors,
+      areasOfConcern:           props.areasOfConcern,
+      dateRange:                props.dateRange,
+      woStatuses:               props.woStatuses,
+      weekNumber:               props.weekNumber,
+      startWeekNumber:          props.startWeekNumber,
+      endWeekNumber:            props.endWeekNumber,
+      year:                     props.year,
+      canceledQSInvoices:       props.canceledQSInvoices,
+      outstandingInvoices:      props.outstandingInvoices,
+      workOrdersByTruck:        props.workOrdersByTruck,
+      workOrderByAreasOfConcern:props.workOrderByAreasOfConcern,
+      filters:                  props.filters,
+      dateFilter:               props.dateFilter,
+      perPage:                  props.perPage,
+    }
   }
 })
 
-/** Propagate perPage updates **/
-const currentListeners = computed(() => ({
-  'update:perPage': (val: number) => emit('update:perPage', val)
-}))
+// flip UI + update only the openedComponent param in the URL
+function switchComponent(component: 'trucks'|'repairOrders') {
+  // Show loading state briefly
+  isLoading.value = true
+  activeTab.value = component
+
+  // clear all other query params
+  const url = new URL(window.location.href)
+  url.search = ''
+
+  // set only our tab
+  url.searchParams.set('openedComponent', component)
+
+  // replaceState so no extra history entry
+  window.history.replaceState({}, '', url.href)
+  
+  // Hide loading after a short delay to show transition
+  setTimeout(() => {
+    isLoading.value = false
+  }, 300)
+}
 </script>
