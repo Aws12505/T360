@@ -186,7 +186,6 @@ class DelayBreakdownService
         // Use Carbon for consistent date handling
         $start = Carbon::parse($startDate);
         $end = Carbon::parse($endDate);
-        $daysDifference = $end->diffInDays($start);
         
         // Determine date filter type based on date range
         $dateFilter = $this->determineDateFilterType($start, $end);
@@ -232,7 +231,6 @@ class DelayBreakdownService
         
         $this->applyTenantFilter($query);
         $results = $query->get();
-        
         // Format dates based on the determined grouping
         $chartData = $results->map(function($item) use ($dateFormat, $labelFormat, $dateFilter) {
             // Get the first property (date or yearweek)
@@ -279,8 +277,12 @@ class DelayBreakdownService
      */
     private function determineDateFilterType(Carbon $start, Carbon $end): string
     {
-        $daysDifference = $end->diffInDays($start);
+        $daysDifference = $start->diffInDays($end);
         $now = Carbon::now();
+        $isSunday= $now->dayOfWeek === 0;
+        if($isSunday){
+            $now->subDay();
+        }
         $yesterday = Carbon::yesterday();
         $currentWeekStart = $now->copy()->startOfWeek(Carbon::SUNDAY);
         $currentWeekEnd = $now->copy()->endOfWeek(Carbon::SATURDAY);

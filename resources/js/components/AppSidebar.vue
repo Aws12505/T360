@@ -124,8 +124,8 @@ const footerNavItems: NavItem[] = [
             <NavMain :items="mainNavItems" />
         </SidebarContent>
 
-        <SidebarFooter class="border-t border-sidebar-border/30 pt-2">
-             <NavFooter :items="footerNavItems" class="mb-2" />  
+        <SidebarFooter class="border-t border-sidebar-border/30 pt-2 ">
+             <NavFooter :items="footerNavItems" class="mb-2 " />  
             <NavUser :tenantSlug="props.tenantSlug" />
         </SidebarFooter>
     </Sidebar>

@@ -6,12 +6,13 @@ import { Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { LogOut, Settings, UserX } from 'lucide-vue-next';
 import { trackEvent } from '@/lib/tracking'; // Import the tracking helper
+import { useInitials } from '@/composables/useInitials';
 
 interface Props {
     user: User;
     tenantSlug?: string | null;
 }
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
     tenantSlug: null, 
 });
 
@@ -51,12 +52,26 @@ const handleLogout = () => {
         // Continue with logout even if tracking fails
     }
 };
+
+const { getInitials } = useInitials();
+
+// Compute whether we should show the avatar image
+const showAvatar = computed(() => props.user.avatar && props.user.avatar !== '');
 </script>
 
 <template>
     <DropdownMenuLabel class="p-0 font-normal">
         <div class="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-            <UserInfo :user="user" :show-email="true" />
+            <Avatar class=" inline-flex text-xs h-8 w-8 overflow-hidden rounded-lg bg-secondary items-center justify-center">
+        <AvatarImage v-if="showAvatar" :src="user.avatar" :alt="user.name" />
+        <AvatarFallback class="rounded-lg text-black dark:text-white">
+            {{ getInitials(user.name) }}
+        </AvatarFallback>
+    </Avatar>
+            <div class="grid flex-1 text-left text-sm leading-tight">
+        <span class="truncate font-medium ">{{ user.name }}</span>
+        <span  class="truncate text-xs text-muted-foreground">{{ user.email }}</span>
+    </div>
         </div>
     </DropdownMenuLabel>
     <DropdownMenuSeparator v-if="impersonated"/>

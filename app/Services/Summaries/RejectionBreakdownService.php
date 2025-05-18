@@ -188,8 +188,6 @@ class RejectionBreakdownService
         // Use Carbon for consistent date handling
         $start = Carbon::parse($startDate);
         $end = Carbon::parse($endDate);
-        $daysDifference = $end->diffInDays($start);
-        
         // Determine date filter type based on date range
         $dateFilter = $this->determineDateFilterType($start, $end);
         
@@ -216,7 +214,6 @@ class RejectionBreakdownService
             $groupBy = DB::raw('DATE_FORMAT(date, "%Y-%m")');
             $labelFormat = 'M'; // Month name (Jan, Feb, etc.)
         }
-        
         // Get the average acceptance performance across the entire date range
         $averageQuery = DB::table('performances')
             ->selectRaw('AVG(acceptance) as averageAcceptance')
@@ -280,18 +277,20 @@ class RejectionBreakdownService
      */
     private function determineDateFilterType(Carbon $start, Carbon $end): string
     {
-        $daysDifference = $end->diffInDays($start);
+        $daysDifference = $start->diffInDays($end);
         $now = Carbon::now();
+        $isSunday = $now->dayOfWeek === 0;
+        if($isSunday){
+            $now = $now->copy()->subDays(1);
+        }
         $yesterday = Carbon::yesterday();
         $currentWeekStart = $now->copy()->startOfWeek(Carbon::SUNDAY);
         $currentWeekEnd = $now->copy()->endOfWeek(Carbon::SATURDAY);
         $sixWeeksStart = $currentWeekStart->copy()->subWeeks(5);
-        
         // Check if the date range matches yesterday
         if ($start->isSameDay($yesterday) && $end->isSameDay($yesterday)) {
             return 'yesterday';
         }
-        
         // Check if the date range matches current week
         if ($start->isSameDay($currentWeekStart) && $end->isSameDay($currentWeekEnd)) {
             return 'current-week';

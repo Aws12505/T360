@@ -27,7 +27,7 @@ const isActive = (itemHref: string) => {
 
 <template>
   <SidebarGroup class="px-1 py-0">
-    <SidebarGroupLabel>Platform</SidebarGroupLabel>
+    <SidebarGroupLabel class="text-[color:hsl(var(--fixing-sidebar-foreground))] !important">Platform</SidebarGroupLabel>
     <SidebarMenu>
       <SidebarMenuItem
         v-for="item in items"
@@ -37,11 +37,11 @@ const isActive = (itemHref: string) => {
           as-child
           :is-active="isActive(item.href)"
           :tooltip="item.title"
-          :class="{ 'bg-sidebar-accent font-medium text-sidebar-accent-foreground': isActive(item.href) }"
+          :class="{ 'bg-sidebar-accent font-medium ': isActive(item.href) }"
         >
           <Link :href="item.href" class="flex w-full items-center gap-2">
-            <Icon :name="item.icon" class="h-5 w-5" />
-            <span>{{ item.title }}</span>
+            <Icon :name="item.icon" class="h-5 w-5 text-[color:hsl(var(--fixing-sidebar-foreground))] !important" />
+            <span class="text-[color:hsl(var(--fixing-sidebar-foreground))] !important">{{ item.title }}</span>
           </Link>
         </SidebarMenuButton>
       </SidebarMenuItem>

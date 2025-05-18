@@ -106,10 +106,10 @@ if ($request->has('driverControllable')) {
             // Removed dd($startDate) debug statement
             
             // compute week numbers (Sunday=first day)
-            if (in_array($dateFilter, ['yesterday', 'current-week'])) {
+            if (in_array($dateFilter, [ 'current-week'])) {
                 $weekNumber = $this->weekNumberSundayStart($startDate);
                 $startWeekNumber = $endWeekNumber = null;
-            } else {
+            } else if (in_array($dateFilter, [ '6w','quarterly'])) {
                 $weekNumber = null;
                 $startWeekNumber = $this->weekNumberSundayStart($startDate);
                 $endWeekNumber = isset($dateRange['end']) ? 
@@ -117,7 +117,6 @@ if ($request->has('driverControllable')) {
                     $startWeekNumber;
             }
         }
-        
         // Get rejection breakdown data
         $rejectionBreakdown = $this->rejectionBreakdownService->getRejectionBreakdownDetailsPage(
             $dateRange['start'] ?? null, 
@@ -165,6 +164,7 @@ if ($request->has('driverControllable')) {
      */
     private function weekNumberSundayStart(Carbon $date): int
     {
+        
         // 1..366
         $dayOfYear   = $date->dayOfYear;
 
@@ -172,7 +172,6 @@ if ($request->has('driverControllable')) {
         $firstDayDow = $date->copy()
                             ->startOfYear()
                             ->dayOfWeek;
-
         // shift so weeks bound on Sunday, then ceil
         return (int) ceil(($dayOfYear + $firstDayDow) / 7);
     }

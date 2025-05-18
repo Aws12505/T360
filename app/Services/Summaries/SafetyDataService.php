@@ -327,8 +327,12 @@ class SafetyDataService
      */
     private function determineDateFilterType(Carbon $start, Carbon $end): string
     {
-        $daysDifference = $end->diffInDays($start);
+        $daysDifference = $start->diffInDays($end);
         $now = Carbon::now();
+        $isSunday = $now->dayOfWeek() === 0;
+        if ($isSunday) {
+            $now = $now->subDay();
+        }
         $yesterday = Carbon::yesterday();
         $currentWeekStart = $now->copy()->startOfWeek(Carbon::SUNDAY);
         $currentWeekEnd = $now->copy()->endOfWeek(Carbon::SATURDAY);

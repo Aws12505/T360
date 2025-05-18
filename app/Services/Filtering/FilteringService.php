@@ -49,7 +49,6 @@ class FilteringService
             $currentWeekStart->subWeek();
             $currentWeekEnd->subWeek();
         }
-        
         $rollingStart = $currentWeekStart->copy()->subWeeks(5);
         $rollingEnd = $currentWeekEnd;
         
@@ -90,7 +89,7 @@ class FilteringService
                 
                 $endDate = $now;
                 if ($isSunday) {
-                    $endDate = $endDate->copy()->subWeek();
+                    $endDate = $endDate->copy()->subDay();
                 }
                 $endDate = $endDate->format('Y-m-d');
                 
