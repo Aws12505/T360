@@ -2,7 +2,7 @@
     <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
         <Head title="Acceptance" />
         <!-- responsive here -->
-        <div class="m-0 w-full  md:max-w-2xl lg:max-w-3xl xl:max-w-6xl space-y-2 p-2 md:space-y-4 md:p-4 lg:mx-auto  lg:space-y-6 lg:p-6 ">
+        <div class="w-full md:max-w-2xl lg:max-w-3xl xl:max-w-6xl m-auto pt-2  space-y-2 md:space-y-4 lg:space-y-6  ">
             <!-- Success Message -->
             <Alert v-if="successMessage" variant="success">
                 <AlertTitle>Success</AlertTitle>
