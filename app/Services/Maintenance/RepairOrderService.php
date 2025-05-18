@@ -112,10 +112,8 @@ $endDate = Carbon::parse($dateRange['end']);
         // Get canceled QS invoices that need attention
         $canceledQSInvoices = $this->maintenanceBreakdownService->getCanceledQSInvoices();
         
-        // Get outstanding invoices
-        $minInvoiceAmount = Request::input('minInvoiceAmount');
-        $outstandingDate = Request::input('outstandingDate');
-        $outstandingInvoices = $this->maintenanceBreakdownService->getOutstandingInvoices($minInvoiceAmount, $outstandingDate);
+
+        $outstandingInvoices = $this->maintenanceBreakdownService->getOutstandingInvoices(null, null);
         $areasOfConcern = $this->maintenanceBreakdownService->getAreasOfConcern($startDate, $endDate);
         $workOrdersByTruck = $this->maintenanceBreakdownService->getWorkOrdersByTruck($startDate, $endDate);
         $filters = [
@@ -140,8 +138,6 @@ $endDate = Carbon::parse($dateRange['end']);
             'endWeekNumber' => $endWeekNumber,
             'year' => $year,
             'canceledQSInvoices' => $canceledQSInvoices,
-            'initialMinInvoiceAmount' => $minInvoiceAmount,
-            'initialOutstandingDate' => $outstandingDate,
             'outstandingInvoices' => $outstandingInvoices,
             'workOrderByAreasOfConcern' => $areasOfConcern,
             'workOrdersByTruck' => $workOrdersByTruck,

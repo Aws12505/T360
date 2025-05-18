@@ -198,7 +198,7 @@ class MaintenanceBreakdownService
         }
 
         $query = DB::table('repair_orders')
-            ->select('repair_orders.ro_number', 'repair_orders.invoice_amount', 'vendors.vendor_name as vendor_name', 
+            ->select('repair_orders.ro_number', 'repair_orders.invoice_amount', 'vendors.vendor_name as vendor_name', 'repair_orders.ro_open_date as qs_invoice_date',
                     DB::raw('YEAR(repair_orders.ro_open_date) as year'), 
                     DB::raw('WEEK(repair_orders.ro_open_date) as week_number'))
             ->join('vendors', 'repair_orders.vendor_id', '=', 'vendors.id')
@@ -240,7 +240,8 @@ class MaintenanceBreakdownService
                 'invoice_amount' => $item->invoice_amount,
                 'vendor_name' => $item->vendor_name,
                 'year' => $year,
-                'week_number' => $weekNumber
+                'week_number' => $weekNumber,
+                'qs_invoice_date' => $item->qs_invoice_date,
             ];
         });
 

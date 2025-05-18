@@ -55,7 +55,28 @@
         </Button>
       </div>
     </div>
-
+    <!-- Canceled QS Invoices Alert -->
+    <div v-if="hasCanceledQSInvoices && !SuperAdmin" class="mb-6">
+                <div class="rounded-md border-l-4 border-red-500 bg-red-50 p-4 shadow-sm dark:border-red-400 dark:bg-red-900/30">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 dark:bg-red-800">
+                                <Icon name="triangleAlert" class="h-6 w-6 text-red-600 dark:text-red-300" />
+                            </div>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-lg font-medium text-red-800 dark:text-red-300">Attention Required</h3>
+                            <div class="mt-1 text-sm text-red-700 dark:text-red-200">
+                                {{ props.canceledQSInvoices?.length || 0 }} invoices found with canceled WO status but still on QS. These need
+                                immediate attention.
+                            </div>
+                            <div class="mt-2">
+                                <Button @click="showCanceledQSInvoicesDialog = true" variant="destructive" size="sm"> View Details </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
     <!-- Date Filter Tabs -->
     <Card class="shadow-sm border bg-card">
       <CardContent class="p-3 md:p-4">
@@ -82,6 +103,130 @@
         </div>
       </CardContent>
     </Card>
+    <div
+                class="mx-auto mb-6 grid max-w-[95vw] grid-cols-1 gap-4 md:max-w-[64vw] md:grid-cols-2 lg:max-w-full"
+                v-if="(dateFilter === 'quarterly' || dateFilter === '6w') && !SuperAdmin"
+            >
+                <!-- Panel: Areas of Concern -->
+                <div class="rounded-lg border bg-card shadow-sm">
+                    <div class="border-b p-4">
+                        <h3 class="text-lg font-semibold">Top 5 Frequent Repairs</h3>
+                    </div>
+                    <div class="p-4">
+                        <ul class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm">Parts:</span>
+                                <span class="text-sm">Work Orders:</span>
+                            </div>
+                            <li v-for="(area, index) in topAreasOfConcern" :key="index" class="flex items-center justify-between pr-4">
+                                <span class="text-sm">{{ area.concern }}</span>
+                                <Badge variant="outline">{{ area.count }}</Badge>
+                            </li>
+                            <li v-if="topAreasOfConcern.length === 0" class="text-center text-muted-foreground">No data available</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!--  Panel: Work Orders by Truck -->
+                <div class="rounded-lg border bg-card shadow-sm">
+                    <div class="border-b p-4">
+                        <h3 class="text-lg font-semibold">Top 5 Frequently Repaired Tractors</h3>
+                    </div>
+                    <div class="p-4">
+                        <ul class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm">Asset ID:</span>
+                                <span class="text-sm">Work Orders:</span>
+                            </div>
+                            <li v-for="(truck, index) in topWorkOrdersByTruck" :key="index" class="flex items-center justify-between pr-4">
+                                <span class="text-sm">{{ truck.truckid }}</span>
+                                <Badge variant="outline">{{ truck.work_order_count }}</Badge>
+                            </li>
+                            <li v-if="topWorkOrdersByTruck.length === 0" class="text-center text-muted-foreground">No data available</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <!-- Outstanding Invoices Filter -->
+    <div
+      v-if="!SuperAdmin"
+      class="mx-auto mb-6 max-w-[95vw] overflow-x-auto rounded-lg border bg-card p-4 shadow-sm md:max-w-[64vw] lg:max-w-full"
+    >
+      <h3 class="mb-4 text-lg font-semibold">Outstanding Invoices Filter</h3>
+      <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div>
+          <Label for="min-invoice-amount">Minimum Invoice Amount ($)</Label>
+          <Input
+            id="min-invoice-amount"
+            v-model.number="minInvoiceAmount"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="Enter minimum amount"
+            class="mt-1"
+          />
+        </div>
+        <div>
+          <Label for="outstanding-since">Outstanding Since</Label>
+          <Input
+            id="outstanding-since"
+            v-model="outstandingDate"
+            type="date"
+            class="mt-1"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Outstanding Invoices Section -->
+    <div
+      v-if="filteredOutstandingInvoices.length > 0"
+      class="mx-auto mb-6 max-w-[95vw] overflow-x-auto rounded-lg border bg-card shadow-sm md:max-w-[64vw] lg:max-w-full"
+    >
+      <div class="flex items-center justify-between border-b p-4">
+        <h3 class="text-lg font-semibold">Outstanding Invoices</h3>
+        <div class="flex items-start justify-between">
+          <div class="flex flex-col items-center space-y-1">
+            <Badge variant="outline" class="text-sm"> {{ filteredOutstandingInvoices.length }} invoices </Badge>
+            <Badge variant="outline" class="text-sm"> total: ${{ totalFilteredOutstanding.toFixed(2) }} </Badge>
+          </div>
+          <Button variant="ghost" size="sm" @click="showOutstandingInvoicesSection = !showOutstandingInvoicesSection" class="ml-4 mt-1">
+            {{ showOutstandingInvoicesSection ? 'Hide Invoices' : 'Show Invoices' }}
+            <Icon :name="showOutstandingInvoicesSection ? 'chevron-up' : 'chevron-down'" class="ml-2 h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+      <div v-if="showOutstandingInvoicesSection" class="mb-6 rounded-lg border bg-card shadow-sm">
+        <div class="overflow-x-auto">
+          <div class="max-h-60 overflow-y-auto sm:max-h-80 md:max-h-96">
+            <Table class="min-w-full">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>RO Number</TableHead>
+                  <TableHead>Vendor</TableHead>
+                  <TableHead>Week</TableHead>
+                  <TableHead class="text-right">Amount</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow v-for="invoice in filteredOutstandingInvoices" :key="invoice.ro_number">
+                  <TableCell>{{ invoice.ro_number }}</TableCell>
+                  <TableCell>{{ invoice.vendor_name }}</TableCell>
+                  <TableCell>W{{ invoice.week_number }}/{{ invoice.year }}</TableCell>
+                  <TableCell class="text-right">{{ formatCurrency(invoice.invoice_amount) }}</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div v-else-if="showOutstandingInvoicesSection" class="mb-6 rounded-lg border bg-card shadow-sm">
+      <div class="border-b p-4">
+        <h3 class="text-lg font-semibold">Outstanding Invoices</h3>
+      </div>
+      <div class="p-4 text-center text-muted-foreground">No outstanding invoices match the current criteria</div>
+    </div>
 
     <!-- Filters Card -->
     <!-- Filters -->
@@ -707,7 +852,7 @@
 
     <div class="space-y-4 sm:space-y-6">
       <!-- Add new vendor form -->
-      <form @submit.prevent="submitVendorForm" class="space-y-3 sm:space-y-4">
+      <form @submit.prevent="submitVendor" class="space-y-3 sm:space-y-4">
         <div class="space-y-1 sm:space-y-2">
           <Label for="vendor_name">Vendor Name</Label>
           <Input id="vendor_name" v-model="vendorForm.vendor_name" required class="text-sm sm:text-base" />
@@ -844,12 +989,60 @@
     </DialogFooter>
   </DialogContent>
 </Dialog>
+<!-- Dialog for Canceled QS Invoices -->
+<Dialog v-model:open="showCanceledQSInvoicesDialog">
+            <DialogContent class="max-h-[90vh] max-w-[95vw] overflow-y-auto md:max-w-[80vw] lg:max-w-4xl">
+                <DialogHeader>
+                    <DialogTitle class="flex items-center gap-2 text-lg md:text-xl">
+                        <Icon name="alert-triangle" class="h-5 w-5 text-red-600" />
+                        Canceled Invoices on QS
+                    </DialogTitle>
+                    <DialogDescription>
+                        These invoices have a canceled WO status but are still marked as on QS. Please review and take appropriate action.
+                    </DialogDescription>
+                </DialogHeader>
 
+                <div class="max-h-[60vh] overflow-x-auto overflow-y-auto">
+                    <Table v-if="props.canceledQSInvoices?.length">
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead class="whitespace-nowrap">RO Number</TableHead>
+                                <TableHead class="whitespace-nowrap">Vendor</TableHead>
+                                <TableHead class="whitespace-nowrap text-right">Amount</TableHead>
+                                <TableHead class="whitespace-nowrap">Week</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            <TableRow
+                                v-for="invoice in props.canceledQSInvoices"
+                                :key="invoice.ro_number"
+                                class="hover:bg-red-50 dark:hover:bg-red-900/30"
+                            >
+                                <TableCell class="font-medium">
+                                    <div class="flex items-center gap-2">
+                                        <Icon name="alert-triangle" class="h-4 w-4 text-red-600 dark:text-red-400" />
+                                        {{ invoice.ro_number }}
+                                    </div>
+                                </TableCell>
+                                <TableCell>{{ invoice.vendor_name }}</TableCell>
+                                <TableCell class="text-right">{{ formatCurrency(invoice.invoice_amount) }}</TableCell>
+                                <TableCell>W{{ invoice.week_number }}/{{ invoice.year }}</TableCell>
+                            </TableRow>
+                        </TableBody>
+                    </Table>
+                    <div v-else class="py-8 text-center text-muted-foreground">No canceled QS invoices found.</div>
+                </div>
+
+                <DialogFooter class="mt-4 flex flex-col gap-2 sm:flex-row">
+                    <Button @click="showCanceledQSInvoicesDialog = false" variant="outline" class="w-full sm:w-auto">Close</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
   </div>
 </template>
   
   <script setup lang="ts">
-  import { ref, computed, onMounted, onUnmounted } from 'vue'
+  import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
   import { router, useForm } from '@inertiajs/vue3'
   import SortIndicator from '@/components/SortIndicator.vue'
   import Icon from '@/components/Icon.vue'
@@ -890,14 +1083,6 @@
     canceledQSInvoices: {
         type: Array,
         default: () => [],
-    },
-    initialMinInvoiceAmount: {
-        type: [Number, String, null],
-        default: null,
-    },
-    initialOutstandingDate: {
-        type: [String, null],
-        default: null,
     },
     outstandingInvoices: { type: Array, default: () => [] },
     workOrdersByTruck: { type: Array, default: () => [] },
@@ -1040,6 +1225,7 @@ form.disputed = Boolean(o.disputed);
 form.dispute_outcome = o.dispute_outcome || '';
 form.repairs_made = o.repairs_made || '';
 
+
 // Handle areas of concern with better error checking - use areas_of_concern (snake_case)
 form.area_of_concerns = [];
 if (o.areas_of_concern && Array.isArray(o.areas_of_concern)) {
@@ -1074,7 +1260,10 @@ formAction.value='Update'; showModal.value=true }
   function submitStatus(){ statusForm.post(route('wo_statuses.store.admin'),{onSuccess:()=>statusForm.reset()}) }
   function deleteStatus(id:number){ router.delete(route('wo_statuses.destroy.admin',id)) }
   function restoreStatus(id:number){ router.post(route('wo_statuses.restore.admin',id)) }
-  
+  const hasCanceledQSInvoices = computed(() => {
+    return props.canceledQSInvoices.length > 0;
+});
+const showCanceledQSInvoicesDialog = ref(false);
   // Map areas for display
   const areasMap = computed(()=> Object.fromEntries(props.areasOfConcern.map(a=>[a.id,a.concern])))
   const availableAreas = computed(()=> props.areasOfConcern.filter(a=>!form.area_of_concerns.includes(a.id)))
@@ -1098,6 +1287,47 @@ formAction.value='Update'; showModal.value=true }
   
   // Clear flash
   setTimeout(()=> successMessage.value='',5000)
+
+  // Get top 5 areas of concern
+const topAreasOfConcern = computed(() => {
+    const areas = props.workOrderByAreasOfConcern || [];
+    return areas.slice(0, 5);
+});
+const totalOutstanding = computed(() => {
+    return props.outstandingInvoices.reduce((sum, inv) => {
+        const amt = Number(inv.invoice_amount) || 0;
+        return sum + amt;
+    }, 0);
+});
+// Get top 5 trucks by work orders
+const topWorkOrdersByTruck = computed(() => {
+    const trucks = props.workOrdersByTruck || [];
+    return trucks.slice(0, 5);
+});
+const minInvoiceAmount = ref<number | null>(null)
+const outstandingDate = ref<string | null>(null)
+const showOutstandingInvoicesSection = ref(false);
+
+// Add this function to handle the filter application
+const filteredOutstandingInvoices = computed(() => {
+  return props.outstandingInvoices.filter(inv => {
+    const meetsAmount = minInvoiceAmount.value != null
+      ? Number(inv.invoice_amount) >= minInvoiceAmount.value
+      : true
+    const meetsDate = outstandingDate.value
+      ? new Date(inv.qs_invoice_date) > new Date(outstandingDate.value)
+      : true
+    return meetsAmount && meetsDate
+  })
+})
+
+const totalFilteredOutstanding = computed(() => {
+  return filteredOutstandingInvoices.value.reduce(
+    (sum, inv) => sum + Number(inv.invoice_amount || 0),
+    0
+  )
+})
+
   </script>
   
   <style scoped>
