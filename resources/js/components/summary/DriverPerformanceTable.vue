@@ -86,17 +86,7 @@
                   <Icon v-else name="arrow-up-down" class="h-4 w-4 opacity-50" />
                 </div>
               </TableHead>
-              <TableHead @click="sortBy('overall_score')" class="cursor-pointer text-right whitespace-nowrap">
-                <div class="flex items-center justify-end gap-1">
-                  Overall Score
-                  <Icon 
-                    v-if="sortColumn === 'overall_score'" 
-                    :name="sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'" 
-                    class="h-4 w-4" 
-                  />
-                  <Icon v-else name="arrow-up-down" class="h-4 w-4 opacity-50" />
-                </div>
-              </TableHead>
+              
             </TableRow>
           </TableHeader>
           <TableBody>
