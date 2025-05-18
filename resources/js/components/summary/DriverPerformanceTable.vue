@@ -34,127 +34,125 @@
     </CardHeader>
     <CardContent class="p-0">
       <div class="overflow-x-auto">
-        <div class="max-h-[500px] overflow-y-auto">
-          <Table>
-            <TableHeader class="sticky top-0 z-10 bg-background">
-              <TableRow class="border-b hover:bg-background">
-                <TableHead class="w-12 text-center">
-                  <div class="flex items-center justify-center">
-                    #
+        <Table class="relative h-[500px] overflow-auto">
+          <TableHeader>
+            <TableRow class="sticky top-0 z-10 border-b bg-background hover:bg-background">
+              <TableHead class="w-12 text-center">
+                <div class="flex items-center justify-center">
+                  #
+                </div>
+              </TableHead>
+              <TableHead @click="sortBy('driver_name')" class="cursor-pointer whitespace-nowrap">
+                <div class="flex items-center gap-1">
+                  Driver Name
+                  <Icon 
+                    v-if="sortColumn === 'driver_name'" 
+                    :name="sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'" 
+                    class="h-4 w-4" 
+                  />
+                  <Icon v-else name="arrow-up-down" class="h-4 w-4 opacity-50" />
+                </div>
+              </TableHead>
+              <TableHead @click="sortBy('acceptance_score')" class="cursor-pointer text-right whitespace-nowrap">
+                <div class="flex items-center justify-end gap-1">
+                  Acceptance
+                  <Icon 
+                    v-if="sortColumn === 'acceptance_score'" 
+                    :name="sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'" 
+                    class="h-4 w-4" 
+                  />
+                  <Icon v-else name="arrow-up-down" class="h-4 w-4 opacity-50" />
+                </div>
+              </TableHead>
+              <TableHead @click="sortBy('on_time_score')" class="cursor-pointer text-right whitespace-nowrap">
+                <div class="flex items-center justify-end gap-1">
+                  On-Time
+                  <Icon 
+                    v-if="sortColumn === 'on_time_score'" 
+                    :name="sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'" 
+                    class="h-4 w-4" 
+                  />
+                  <Icon v-else name="arrow-up-down" class="h-4 w-4 opacity-50" />
+                </div>
+              </TableHead>
+              <TableHead @click="sortBy('safety_score')" class="cursor-pointer text-right whitespace-nowrap">
+                <div class="flex items-center justify-end gap-1">
+                  Safety
+                  <Icon 
+                    v-if="sortColumn === 'safety_score'" 
+                    :name="sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'" 
+                    class="h-4 w-4" 
+                  />
+                  <Icon v-else name="arrow-up-down" class="h-4 w-4 opacity-50" />
+                </div>
+              </TableHead>
+              <TableHead @click="sortBy('overall_score')" class="cursor-pointer text-right whitespace-nowrap">
+                <div class="flex items-center justify-end gap-1">
+                  Overall Score
+                  <Icon 
+                    v-if="sortColumn === 'overall_score'" 
+                    :name="sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'" 
+                    class="h-4 w-4" 
+                  />
+                  <Icon v-else name="arrow-up-down" class="h-4 w-4 opacity-50" />
+                </div>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow 
+              v-for="(driver, index) in paginatedDrivers" 
+              :key="driver.driver_name"
+              class="hover:bg-muted/20 transition-colors"
+            >
+              <TableCell class="text-center">
+                <Badge variant="outline" class="min-w-[28px] justify-center">
+                  {{ startIndex + index + 1 }}
+                </Badge>
+              </TableCell>
+              <TableCell class="font-medium">{{ driver.driver_name }}</TableCell>
+              <TableCell class="text-right">
+                <Badge :variant="getScoreBadgeVariant(driver.acceptance_score)">
+                  {{ driver.acceptance_score }}%
+                </Badge>
+              </TableCell>
+              <TableCell class="text-right">
+                <Badge :variant="getScoreBadgeVariant(driver.on_time_score)">
+                  {{ driver.on_time_score }}%
+                </Badge>
+              </TableCell>
+              <TableCell class="text-right">
+                <Badge :variant="getScoreBadgeVariant(driver.safety_score)">
+                  {{ driver.safety_score }}%
+                </Badge>
+              </TableCell>
+              <TableCell class="text-right font-semibold" :class="getScoreColorClass(driver.overall_score)">
+                <div class="flex items-center justify-end gap-2">
+                  <div class="w-16 bg-muted rounded-full h-2 overflow-hidden">
+                    <div 
+                      class="h-full rounded-full" 
+                      :class="getProgressBarColorClass(driver.overall_score)"
+                      :style="{ width: `${driver.overall_score}%` }"
+                    ></div>
                   </div>
-                </TableHead>
-                <TableHead @click="sortBy('driver_name')" class="cursor-pointer whitespace-nowrap">
-                  <div class="flex items-center gap-1">
-                    Driver Name
-                    <Icon 
-                      v-if="sortColumn === 'driver_name'" 
-                      :name="sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'" 
-                      class="h-4 w-4" 
-                    />
-                    <Icon v-else name="arrow-up-down" class="h-4 w-4 opacity-50" />
-                  </div>
-                </TableHead>
-                <TableHead @click="sortBy('acceptance_score')" class="cursor-pointer text-right whitespace-nowrap">
-                  <div class="flex items-center justify-end gap-1">
-                    Acceptance
-                    <Icon 
-                      v-if="sortColumn === 'acceptance_score'" 
-                      :name="sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'" 
-                      class="h-4 w-4" 
-                    />
-                    <Icon v-else name="arrow-up-down" class="h-4 w-4 opacity-50" />
-                  </div>
-                </TableHead>
-                <TableHead @click="sortBy('on_time_score')" class="cursor-pointer text-right whitespace-nowrap">
-                  <div class="flex items-center justify-end gap-1">
-                    On-Time
-                    <Icon 
-                      v-if="sortColumn === 'on_time_score'" 
-                      :name="sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'" 
-                      class="h-4 w-4" 
-                    />
-                    <Icon v-else name="arrow-up-down" class="h-4 w-4 opacity-50" />
-                  </div>
-                </TableHead>
-                <TableHead @click="sortBy('safety_score')" class="cursor-pointer text-right whitespace-nowrap">
-                  <div class="flex items-center justify-end gap-1">
-                    Safety
-                    <Icon 
-                      v-if="sortColumn === 'safety_score'" 
-                      :name="sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'" 
-                      class="h-4 w-4" 
-                    />
-                    <Icon v-else name="arrow-up-down" class="h-4 w-4 opacity-50" />
-                  </div>
-                </TableHead>
-                <TableHead @click="sortBy('overall_score')" class="cursor-pointer text-right whitespace-nowrap">
-                  <div class="flex items-center justify-end gap-1">
-                    Overall Score
-                    <Icon 
-                      v-if="sortColumn === 'overall_score'" 
-                      :name="sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'" 
-                      class="h-4 w-4" 
-                    />
-                    <Icon v-else name="arrow-up-down" class="h-4 w-4 opacity-50" />
-                  </div>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow 
-                v-for="(driver, index) in paginatedDrivers" 
-                :key="driver.driver_name"
-                class="hover:bg-muted/20 transition-colors"
-              >
-                <TableCell class="text-center">
-                  <Badge variant="outline" class="min-w-[28px] justify-center">
-                    {{ startIndex + index + 1 }}
-                  </Badge>
-                </TableCell>
-                <TableCell class="font-medium">{{ driver.driver_name }}</TableCell>
-                <TableCell class="text-right">
-                  <Badge :variant="getScoreBadgeVariant(driver.acceptance_score)">
-                    {{ driver.acceptance_score }}%
-                  </Badge>
-                </TableCell>
-                <TableCell class="text-right">
-                  <Badge :variant="getScoreBadgeVariant(driver.on_time_score)">
-                    {{ driver.on_time_score }}%
-                  </Badge>
-                </TableCell>
-                <TableCell class="text-right">
-                  <Badge :variant="getScoreBadgeVariant(driver.safety_score)">
-                    {{ driver.safety_score }}%
-                  </Badge>
-                </TableCell>
-                <TableCell class="text-right font-semibold" :class="getScoreColorClass(driver.overall_score)">
-                  <div class="flex items-center justify-end gap-2">
-                    <div class="w-16 bg-muted rounded-full h-2 overflow-hidden">
-                      <div 
-                        class="h-full rounded-full" 
-                        :class="getProgressBarColorClass(driver.overall_score)"
-                        :style="{ width: `${driver.overall_score}%` }"
-                      ></div>
-                    </div>
-                    {{ driver.overall_score }}%
-                  </div>
-                </TableCell>
-              </TableRow>
-              <TableRow v-if="filteredDrivers.length === 0">
-                <TableCell colspan="6" class="text-center py-8 text-muted-foreground">
-                  <div class="flex flex-col items-center justify-center gap-2">
-                    <Icon name="users-x" class="h-10 w-10 opacity-50" />
-                    <p v-if="searchQuery">No drivers found matching "{{ searchQuery }}"</p>
-                    <p v-else>No driver performance data available for the selected period.</p>
-                    <Button v-if="searchQuery" variant="outline" size="sm" @click="searchQuery = ''">
-                      Clear search
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </div>
+                  {{ driver.overall_score }}%
+                </div>
+              </TableCell>
+            </TableRow>
+            <TableRow v-if="filteredDrivers.length === 0">
+              <TableCell colspan="6" class="text-center py-8 text-muted-foreground">
+                <div class="flex flex-col items-center justify-center gap-2">
+                  <Icon name="users-x" class="h-10 w-10 opacity-50" />
+                  <p v-if="searchQuery">No drivers found matching "{{ searchQuery }}"</p>
+                  <p v-else>No driver performance data available for the selected period.</p>
+                  <Button v-if="searchQuery" variant="outline" size="sm" @click="searchQuery = ''">
+                    Clear search
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
       </div>
       
       <!-- Pagination Controls -->
