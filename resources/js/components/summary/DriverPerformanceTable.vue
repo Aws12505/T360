@@ -126,7 +126,7 @@
                   {{ driver.safety_score }}%
                 </Badge>
               </TableCell>
-              <TableCell class="text-right font-semibold" :class="getScoreColorClass(driver.overall_score)">
+              <!-- <TableCell class="text-right font-semibold" :class="getScoreColorClass(driver.overall_score)">
                 <div class="flex items-center justify-end gap-2">
                   <div class="w-16 bg-muted rounded-full h-2 overflow-hidden">
                     <div 
@@ -137,7 +137,7 @@
                   </div>
                   {{ driver.overall_score }}%
                 </div>
-              </TableCell>
+              </TableCell> -->
             </TableRow>
             <TableRow v-if="filteredDrivers.length === 0">
               <TableCell colspan="6" class="text-center py-8 text-muted-foreground">

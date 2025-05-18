@@ -3,7 +3,7 @@
     <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
         <Head title="Safety" />
         <!-- responsive here -->
-        <div class="w-full md:max-w-2xl lg:max-w-3xl xl:max-w-6xl m-auto pt-2  space-y-2 md:space-y-4 lg:space-y-6">
+        <div class="w-full md:max-w-xl lg:max-w-2xl xl:max-w-4xl m-auto pt-2  space-y-2 md:space-y-4 lg:space-y-6">
             <!-- Success message notification -->
             <Alert v-if="successMessage" variant="success">
                 <AlertTitle>Success</AlertTitle>
@@ -18,7 +18,7 @@
              <!-- responsive here -->
             <div class="flex flex-col sm:flex-row justify-between items-center px-2 mb-2 md:mb-4 lg:mb-6">
                 <h1 class="text-lg md:text-xl lg:text-2xl font-bold text-gray-800 dark:text-gray-200">Safety Management</h1>
-                <div class="flex flex-wrap gap-3">
+                <div class="flex flex-wrap gap-3 ml-3">
                     <!-- Create New Entry button -->
                     <Button class="px-2 py-0 md:px-4 md:py-2" @click="openCreateModal" variant="default">
                         <Icon name="plus" class=" mr-1 h-4 w-4 md:mr-2" />

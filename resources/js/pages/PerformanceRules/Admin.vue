@@ -114,7 +114,7 @@ function closeEditor() {
 <template>
   <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
     <Head title="Metrics Management"/>
-    <div class="container mx-auto p-6 space-y-8">
+    <div class="w-full md:max-w-xl lg:max-w-2xl xl:max-w-4xl m-auto pt-2  space-y-2 md:space-y-4 lg:space-y-6">
       <!-- Header with title and Edit button -->
       <div class="flex flex-col sm:flex-row justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-foreground">
