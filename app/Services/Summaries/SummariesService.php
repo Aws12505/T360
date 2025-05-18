@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Tenant;
 use App\Services\Filtering\FilteringService;
 use App\Models\MilesDriven;
+use Illuminate\Support\Facades\DB;
+use App\Models\Driver;
 
 class SummariesService
 {
@@ -143,6 +145,7 @@ class SummariesService
             'dateFilter' => $dateFilter,
             'dateRange' => $dateRange,
             'milesEntries' => $milesEntries,
+            'driversOverallPerformance' => $this->getDriversOverallPerformance($startDate, $endDate),
         ];
     }
 
@@ -164,5 +167,143 @@ class SummariesService
 
         // shift so weeks bound on Sunday, then ceil
         return (int) ceil(($dayOfYear + $firstDayDow) / 7);
+    }
+
+    /**
+     * Get drivers' overall performance scores
+     * 
+     * @param string|Carbon $startDate The start date for the query
+     * @param string|Carbon $endDate The end date for the query
+     * @return array The drivers' overall performance data
+     */
+    public function getDriversOverallPerformance($startDate, $endDate): array
+    {
+        // Ensure dates are Carbon instances
+        if (!($startDate instanceof Carbon)) {
+            $startDate = Carbon::parse($startDate);
+        }
+        
+        if (!($endDate instanceof Carbon)) {
+            $endDate = Carbon::parse($endDate);
+        }
+        
+        // Get all drivers
+        $driversQuery = DB::table('drivers')
+            ->select('id', 'first_name', 'last_name', 'netradyne_user_name');
+        
+        $this->applyTenantFilter($driversQuery);
+        $drivers = $driversQuery->get();
+        
+        // Initialize arrays to store results
+        $driverScores = [];
+        $totalSafetyScore = 0;
+        $totalRejectionPenalties = 0;
+        $totalDelayPenalties = 0;
+        
+        // Process each driver
+        foreach ($drivers as $driver) {
+            $driverName = $driver->first_name . ' ' . $driver->last_name;
+            $netradyneUserName = $driver->netradyne_user_name;
+            
+            // Get safety score for the driver
+            $safetyScoreQuery = DB::table('safety_data')
+                ->where(function($query) use ($driverName, $netradyneUserName) {
+                    $query->where('user_name', $netradyneUserName)
+                          ->orWhere('driver_name', $driverName);
+                })
+                ->whereBetween('date', [$startDate, $endDate])
+                ->selectRaw('AVG(driver_score) as safety_score');
+            
+            $this->applyTenantFilter($safetyScoreQuery);
+            $safetyScore = $safetyScoreQuery->first()->safety_score ?? 0;
+            
+            // Get rejection penalties for the driver
+            $rejectionPenaltiesQuery = DB::table('rejections')
+                ->where('driver_name', $driverName)
+                ->whereBetween('date', [$startDate, $endDate])
+                ->selectRaw('SUM(penalty) as total_rejection_penalties');
+            
+            $this->applyTenantFilter($rejectionPenaltiesQuery);
+            $rejectionPenalties = $rejectionPenaltiesQuery->first()->total_rejection_penalties ?? 0;
+            
+            // Get delay penalties for the driver
+            $delayPenaltiesQuery = DB::table('delays')
+                ->where('driver_name', $driverName)
+                ->whereBetween('date', [$startDate, $endDate])
+                ->selectRaw('SUM(penalty) as total_delay_penalties');
+            
+            $this->applyTenantFilter($delayPenaltiesQuery);
+            $delayPenalties = $delayPenaltiesQuery->first()->total_delay_penalties ?? 0;
+            
+            // Store the results
+            $driverScores[$driverName] = [
+                'driver_name' => $driverName,
+                'safety_score' => $safetyScore,
+                'rejection_penalties' => $rejectionPenalties,
+                'delay_penalties' => $delayPenalties,
+            ];
+            
+            // Add to totals
+            $totalSafetyScore += $safetyScore;
+            $totalRejectionPenalties += $rejectionPenalties;
+            $totalDelayPenalties += $delayPenalties;
+        }
+        
+        // Calculate overall scores for each driver
+        $driversOverallScores = [];
+        
+        foreach ($driverScores as $driverName => $scores) {
+            // Calculate acceptance score
+            $acceptanceScore = 100;
+            if ($totalRejectionPenalties > 0) {
+                $acceptanceScore = 100 - ($scores['rejection_penalties'] * 100 / $totalRejectionPenalties);
+            }
+            
+            // Calculate on-time score
+            $onTimeScore = 100;
+            if ($totalDelayPenalties > 0) {
+                $onTimeScore = 100 - ($scores['delay_penalties'] * 100 / $totalDelayPenalties);
+            }
+            
+            // Calculate safety score
+            $safetyScoreNormalized = 0;
+            if ($totalSafetyScore > 0) {
+                $safetyScoreNormalized = $scores['safety_score'] * 100 / $totalSafetyScore;
+            }
+            
+            // Calculate overall score
+            $overallScore = ($acceptanceScore + $onTimeScore + $safetyScoreNormalized) / 3;
+            
+            $driversOverallScores[] = [
+                'driver_name' => $driverName,
+                'acceptance_score' => round($acceptanceScore, 2),
+                'on_time_score' => round($onTimeScore, 2),
+                'safety_score' => round($safetyScoreNormalized, 2),
+                'overall_score' => round($overallScore, 2),
+                'raw_safety_score' => $scores['safety_score'],
+                'rejection_penalties' => $scores['rejection_penalties'],
+                'delay_penalties' => $scores['delay_penalties'],
+            ];
+        }
+        
+        // Sort drivers by overall score (highest to lowest)
+        usort($driversOverallScores, function($a, $b) {
+            return $b['overall_score'] <=> $a['overall_score'];
+        });
+        
+        
+        return [
+            'drivers' => $driversOverallScores,
+        ];
+    }
+    
+    /**
+     * Apply tenant filter to query if user is authenticated
+     */
+    private function applyTenantFilter($query)
+    {
+        if (Auth::check() && Auth::user()->tenant_id !== null) {
+            $query->where('tenant_id', Auth::user()->tenant_id);
+        }
     }
 }

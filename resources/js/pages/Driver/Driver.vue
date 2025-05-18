@@ -296,11 +296,28 @@
                             <Label for="email" class="text-sm md:text-base">Email Address</Label>
                             <Input id="email" v-model="form.email" type="email" required class="h-8 md:h-10 text-xs md:text-sm px-2 md:px-3 py-1 md:py-2" />
                         </div>
-
+                        <div class="sm:col-span-2">
+  <Label for="netradyne_user_name" class="text-sm md:text-base">
+    Netradyne User Name
+  </Label>
+  <Input
+    id="netradyne_user_name"
+    v-model="form.netradyne_user_name"
+    type="text"
+    required
+    class="h-8 md:h-10 text-xs md:text-sm px-2 md:px-3 py-1 md:py-2"
+  />
+</div>
                         <div class="sm:col-span-2">
                             <Label for="mobile_phone" class="text-sm md:text-base">Mobile Phone Number</Label>
-                            <Input id="mobile_phone" v-model="form.mobile_phone" type="text" required class="h-8 md:h-10 text-xs md:text-sm px-2 md:px-3 py-1 md:py-2" />
-                        </div>
+                            <Input
+  id="mobile_phone"
+  v-model="form.mobile_phone"
+  type="tel"
+  required
+  class="h-8 md:h-10 text-xs md:text-sm px-2 md:px-3 py-1 md:py-2"
+  @input="onPhoneInput"
+/>                        </div>
 
                         <div class="sm:col-span-2">
                             <Label for="hiring_date" class="text-sm md:text-base">Hiring Date</Label>
@@ -497,7 +514,7 @@ const columns = computed(() => {
     return baseColumns;
 });
 
-const tableColumns = ['first_name', 'last_name', 'email', 'mobile_phone', 'hiring_date'];
+const tableColumns = ['first_name', 'last_name', 'email','netradyne_user_name', 'mobile_phone', 'hiring_date'];
 
 const form = useForm({
     id: null,
@@ -506,6 +523,7 @@ const form = useForm({
     email: '',
     mobile_phone: '',
     hiring_date: '',
+    netradyne_user_name: '',
     tenant_id: null,
 });
 
@@ -591,6 +609,7 @@ function resetFilters() {
 function openCreateModal() {
     form.reset();
     form.tenant_id = null;
+    form.netradyne_user_name = '';
     formTitle.value = 'Create Driver';
     formAction.value = 'Create';
     showModal.value = true;
@@ -604,7 +623,7 @@ function openEditModal(item) {
     form.mobile_phone = item.mobile_phone;
     form.hiring_date = item.hiring_date;
     form.tenant_id = item.tenant_id;
-
+    form.netradyne_user_name = item.netradyne_user_name;
     formTitle.value = 'Edit Driver';
     formAction.value = 'Update';
     showModal.value = true;
@@ -622,6 +641,7 @@ function submitForm() {
         mobile_phone: form.mobile_phone,
         hiring_date: form.hiring_date,
         tenant_id: form.tenant_id,
+        netradyne_user_name: form.netradyne_user_name,
     };
 
     if (form.id) {
@@ -724,20 +744,23 @@ function formatDate(dateStr) {
     return `${Number(month)}/${Number(day)}/${year}`;
 }
 
-// Function to handle date filter selection
-function selectDateFilter(filter) {
-    activeTab.value = filter;
+function onPhoneInput(e) {
+  // 1) grab only digits, up to 10
+  let digits = e.target.value.replace(/\D/g, '').slice(0, 10);
 
-    const routeName = props.tenantSlug ? route('driver.index', { tenantSlug: props.tenantSlug }) : route('driver.index.admin');
+  // 2) build the formatted string
+  let formatted = digits;
+  if (digits.length > 6) {
+    formatted = `(${digits.slice(0,3)}) ${digits.slice(3,6)}-${digits.slice(6)}`;
+  } else if (digits.length > 3) {
+    formatted = `(${digits.slice(0,3)}) ${digits.slice(3)}`;
+  } else if (digits.length > 0) {
+    formatted = `(${digits}`;
+  }
 
-    router.get(
-        routeName,
-        {
-            dateFilter: filter,
-            perPage: perPage.value,
-        },
-        { preserveState: true },
-    );
+  // 3) overwrite both the visible input and your form state
+  e.target.value = formatted;
+  form.mobile_phone = formatted;
 }
 
 // Function to handle per page change

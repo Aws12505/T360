@@ -18,6 +18,7 @@ class Driver extends Model
         'mobile_phone',
         'hiring_date',
         'tenant_id',
+        'netradyne_user_name',
     ];
 
     public function tenant()

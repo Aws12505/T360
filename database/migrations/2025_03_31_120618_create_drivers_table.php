@@ -12,6 +12,7 @@ class CreateDriversTable extends Migration
             $table->id();
             $table->string('first_name',50);
             $table->string('last_name',50);
+            $table->string('netradyne_user_name')->comment('Netradyne user name');
             $table->string('email')->unique();
             $table->string('mobile_phone',30);
             $table->date('hiring_date');

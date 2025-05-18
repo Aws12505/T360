@@ -2,7 +2,7 @@
   <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
     <Head title="Performance Summary Dashboard" />
     
-    <div class="container w-full md:max-w-2xl lg:max-w-3xl xl:max-w-6xl  lg:mx-auto m-0 p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6">
+    <div class="container w-full md:max-w-2xl lg:max-w-3xl xl:max-w-6xl lg:mx-auto m-0 p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6">
       <div class="flex items-center justify-between mb-6">
         <!-- Performance Summary Dashboard -->
         <h1 class="text-2xl font-bold"></h1>
@@ -38,6 +38,14 @@
         :rejectionBreakdowns="rejectionBreakdowns?.by_reason || []"
         :maintenanceBreakdowns="maintenanceBreakdowns || {}"
       />
+      
+      <!-- Driver Performance Table -->
+      <div class="h-auto">
+        <DriverPerformanceTable 
+          v-if="driversOverallPerformance"
+          :driversData="driversOverallPerformance.drivers || []"
+        />
+      </div>
       
       <!-- Additional Metrics Card -->
       <AdditionalMetricsCard 
@@ -112,6 +120,7 @@ import TimePeriodTabs from '@/components/summary/TimePeriodTabs.vue';
 import PerformanceCards from '@/components/summary/PerformanceCards.vue';
 import AdditionalMetricsCard from '@/components/summary/AdditionalMetricsCard.vue';
 import MilesDrivenTable from '@/components/summary/MilesDrivenTable.vue'
+import DriverPerformanceTable from '@/components/summary/DriverPerformanceTable.vue';
 
 // Props
 const props = defineProps({
@@ -123,6 +132,7 @@ const props = defineProps({
   dateFilter: String,
   dateRange: Object,
   milesEntries: Object,
+  driversOverallPerformance: Object,
 });
 
 // Active tab state

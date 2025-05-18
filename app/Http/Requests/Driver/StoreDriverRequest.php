@@ -21,6 +21,7 @@ class StoreDriverRequest extends FormRequest
             'mobile_phone' => 'required|string',
             'hiring_date'  => 'required|date',
             'tenant_id'    => 'required|exists:tenants,id',
+            'netradyne_user_name' => 'required|string',
         ];
     }
 
