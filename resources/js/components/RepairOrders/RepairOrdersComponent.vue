@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full md:max-w-2xl lg:max-w-3xl xl:max-w-6xl lg:mx-auto p-2 md:p-4 lg:p-6 space-y-6">
+  <div class="w-full md:max-w-2xl lg:max-w-3xl xl:max-w-6xl lg:mx-auto p-1 space-y-6">
     <!-- Alerts -->
     <Alert v-if="successMessage" variant="success" class="animate-in fade-in duration-300">
       <AlertTitle class="flex items-center gap-2">
@@ -150,7 +150,7 @@
             <!-- Outstanding Invoices Filter -->
     <div
       v-if="!SuperAdmin"
-      class="mx-auto mb-6 max-w-[95vw] overflow-x-auto rounded-lg border bg-card p-4 shadow-sm md:max-w-[64vw] lg:max-w-full"
+      class="mx-auto mb-6 max-w-[90vw] overflow-x-auto rounded-lg border bg-card p-4 shadow-sm md:max-w-[64vw] lg:max-w-full"
     >
       <h3 class="mb-4 text-lg font-semibold">Outstanding Invoices Filter</h3>
       <div class="grid grid-cols-1 gap-6 md:grid-cols-2">

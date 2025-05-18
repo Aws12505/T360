@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full md:max-w-2xl lg:max-w-3xl xl:max-w-6xl lg:mx-auto p-2 md:p-4 lg:p-6 space-y-6">
+  <div class="w-full md:max-w-2xl lg:max-w-3xl xl:max-w-6xl lg:mx-auto p-1  space-y-6">
     <!-- Success / Error Alerts -->
     <Alert v-if="successMessage" variant="success" class="animate-in fade-in duration-300">
       <AlertTitle class="flex items-center gap-2">
@@ -160,7 +160,7 @@
     </Card>
 
     <!-- Data Table -->
-    <Card class="mx-auto max-w-[95vw] md:max-w-[64vw] lg:max-w-full overflow-x-auto shadow-sm border">
+    <Card class="mx-auto max-w-[90vw] md:max-w-[64vw] lg:max-w-full overflow-x-auto shadow-sm border">
       <CardContent class="p-0">
         <div class="overflow-x-auto">
           <Table class="relative h-[500px] overflow-auto">

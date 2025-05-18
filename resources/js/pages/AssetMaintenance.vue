@@ -2,7 +2,7 @@
   <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
     <Head title="Asset Maintenance" />
 
-    <div class="w-full md:max-w-2xl lg:max-w-3xl xl:max-w-6xl lg:mx-auto p-2 md:p-4 lg:p-6 space-y-6">
+    <div class="w-full md:max-w-2xl lg:max-w-3xl xl:max-w-6xl m-auto pt-2 space-y-2 md:space-y-4 lg:space-y-6">
       <!-- Success/Error Messages -->
       <Alert v-if="successMessage" variant="success" class="animate-in fade-in duration-300">
         <AlertTitle>Success</AlertTitle>
@@ -27,7 +27,7 @@
       <Card class="shadow-sm border bg-card">
         <CardContent class="p-0">
           <div class="border-b">
-            <div class="flex justify-center space-x-8 px-4 pt-4">
+            <div class="flex justify-center space-x-8 px-0 pt-4">
               <Button
                 @click="switchComponent('trucks')"
                 variant="ghost"
@@ -49,7 +49,7 @@
                     ? 'border-b-2 border-primary text-primary'
                     : 'text-muted-foreground hover:text-foreground'
                 ]"
-                class="py-2 px-3 -mb-px font-medium text-sm rounded-none transition-colors duration-200 inline-flex items-center"
+                class="py-2 px-0 -mb-px font-medium text-sm rounded-none transition-colors duration-200 inline-flex items-center"
               >
                 <Icon name="clipboardList" class="mr-2 h-4 w-4" />
                 <span>Repair Orders</span>
@@ -63,7 +63,7 @@
           </div>
 
           <!-- Dynamic Component -->
-          <div v-else class="p-4">
+          <div v-else class="p-0">
             <component :is="currentComponent" v-bind="currentProps" />
           </div>
         </CardContent>

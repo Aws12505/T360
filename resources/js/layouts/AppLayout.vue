@@ -16,7 +16,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 <template>
     <AppLayout :breadcrumbs="props.breadcrumbs" :tenantSlug="props.tenantSlug">
-        <div class="w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-10 max-w-7xl">
+        <div class="w-full mx-auto px-1 sm:px-2 md:px-3 lg:px-4 max-w-7xl">
             <slot />
         </div>
     </AppLayout>

@@ -26,7 +26,7 @@ const isActive = (itemHref: string) => {
 </script>
 
 <template>
-  <SidebarGroup class="px-2 py-0">
+  <SidebarGroup class="px-1 py-0">
     <SidebarGroupLabel>Platform</SidebarGroupLabel>
     <SidebarMenu>
       <SidebarMenuItem
