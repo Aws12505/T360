@@ -1,90 +1,95 @@
 <template>
-  <!-- Modal container only (no background overlay) -->
-  <div class="fixed inset-0 flex items-center justify-center z-50">
-    <div class="bg-background p-4 sm:p-6 rounded-lg shadow-xl w-full max-w-sm sm:max-w-md md:max-w-lg overflow-y-auto max-h-[95vh] animate-in fade-in zoom-in-95 duration-200 border border-border">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl sm:text-2xl font-bold text-foreground">
-          {{ role ? 'Edit Role' : 'Create Role' }}
-        </h2>
-        <Button variant="ghost" size="icon" @click="() => emit('close')">
-          <X class="h-5 w-5" />
-        </Button>
-      </div>
-      
-      <form @submit.prevent="submit" class="space-y-4">
-        <!-- Role Name Field -->
-        <div class="space-y-2">
-          <Label for="name">Role Name</Label>
-          <Input
-            id="name"
-            v-model="form.name"
-            placeholder="Enter role name"
-            class="w-full"
-          />
-          <InputError :message="form.errors.name" />
+  <!-- Modal container with background overlay -->
+  <div class="fixed inset-0 z-50">
+    <!-- Add a semi-transparent background overlay -->
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+    <!-- Modal content container - centered with flex -->
+    <div class="absolute inset-0 flex items-center justify-center p-2 sm:p-4">
+      <div class="bg-background p-4 sm:p-6 rounded-lg shadow-xl w-full max-w-sm sm:max-w-md md:max-w-lg overflow-y-auto max-h-[95vh] animate-in fade-in zoom-in-95 duration-200 border border-border">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl sm:text-2xl font-bold text-foreground">
+            {{ role ? 'Edit Role' : 'Create Role' }}
+          </h2>
+          <Button variant="ghost" size="icon" @click="() => emit('close')">
+            <X class="h-5 w-5" />
+          </Button>
         </div>
         
-        <!-- Permissions Assignment with Search and Scrollable Container -->
-        <div class="space-y-2">
-          <Label>Permissions</Label>
-          <div class="relative">
-            <div class="flex items-center space-x-2">
-              <Input
-                v-model="permissionSearch"
-                placeholder="Search permissions..."
-                class="w-full"
-              />
-              <Button 
-                v-if="permissionSearch" 
-                type="button" 
-                variant="ghost" 
-                size="icon" 
-                @click="permissionSearch = ''" 
-                class="absolute right-2"
-              >
-                <X class="h-4 w-4" />
-              </Button>
-            </div>
+        <form @submit.prevent="submit" class="space-y-4">
+          <!-- Role Name Field -->
+          <div class="space-y-2">
+            <Label for="name">Role Name</Label>
+            <Input
+              id="name"
+              v-model="form.name"
+              placeholder="Enter role name"
+              class="w-full"
+            />
+            <InputError :message="form.errors.name" />
           </div>
           
-          <div class="h-48 sm:h-56 md:h-64 border rounded-md p-2 overflow-y-auto">
-            <div
-              v-for="permission in filteredPermissions"
-              :key="permission.id"
-              class="flex items-center py-1 px-2 hover:bg-muted/50 rounded transition-colors"
-            >
-              <Checkbox
-                :id="`permission-${permission.name}`"
-                :checked="form.permissions.includes(permission.name)"
-                @update:checked="togglePermission(permission.name)"
-                class="mr-2"
-              />
-              <Label :for="`permission-${permission.name}`" class="cursor-pointer">
-                {{ permission.name }}
-              </Label>
+          <!-- Permissions Assignment with Search and Scrollable Container -->
+          <div class="space-y-2">
+            <Label>Permissions</Label>
+            <div class="relative">
+              <div class="flex items-center space-x-2">
+                <Input
+                  v-model="permissionSearch"
+                  placeholder="Search permissions..."
+                  class="w-full"
+                />
+                <Button 
+                  v-if="permissionSearch" 
+                  type="button" 
+                  variant="ghost" 
+                  size="icon" 
+                  @click="permissionSearch = ''" 
+                  class="absolute right-2"
+                >
+                  <X class="h-4 w-4" />
+                </Button>
+              </div>
             </div>
+            
+            <div class="h-48 sm:h-56 md:h-64 border rounded-md p-2 overflow-y-auto">
+              <div
+                v-for="permission in filteredPermissions"
+                :key="permission.id"
+                class="flex items-center py-1 px-2 hover:bg-muted/50 rounded transition-colors"
+              >
+                <Checkbox
+                  :id="`permission-${permission.name}`"
+                  :checked="form.permissions.includes(permission.name)"
+                  @update:checked="togglePermission(permission.name)"
+                  class="mr-2"
+                />
+                <Label :for="`permission-${permission.name}`" class="cursor-pointer">
+                  {{ permission.name }}
+                </Label>
+              </div>
+            </div>
+            <InputError :message="form.errors.permissions" />
           </div>
-          <InputError :message="form.errors.permissions" />
-        </div>
-        
-        <!-- Action Buttons -->
-        <div class="flex justify-end space-x-3 pt-4">
-          <Button
-            type="button"
-            @click="() => emit('close')"
-            variant="outline"
-          >
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            :disabled="form.processing"
-          >
-            <Loader2 v-if="form.processing" class="mr-2 h-4 w-4 animate-spin" />
-            {{ form.processing ? 'Saving...' : 'Save' }}
-          </Button>
-        </div>
-      </form>
+          
+          <!-- Action Buttons -->
+          <div class="flex justify-end space-x-3 pt-4">
+            <Button
+              type="button"
+              @click="() => emit('close')"
+              variant="outline"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              :disabled="form.processing"
+            >
+              <Loader2 v-if="form.processing" class="mr-2 h-4 w-4 animate-spin" />
+              {{ form.processing ? 'Saving...' : 'Save' }}
+            </Button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 </template>

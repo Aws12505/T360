@@ -102,19 +102,18 @@
               </TableCell>
               <TableCell class="font-medium">{{ driver.driver_name }}</TableCell>
               <TableCell class="text-right">
-                <Badge :variant="getScoreBadgeVariant(driver.acceptance_score)">
+                <Badge :variant="getScoreBadgeOperationalVariant(driver.acceptance_score)">
                   {{ driver.acceptance_score }}%
                 </Badge>
               </TableCell>
               <TableCell class="text-right">
-                <Badge :variant="getScoreBadgeVariant(driver.on_time_score)">
+                <Badge :variant="getScoreBadgeOperationalVariant(driver.on_time_score)">
                   {{ driver.on_time_score }}%
                 </Badge>
               </TableCell>
               <TableCell class="text-right">
-                <Badge :variant="getScoreBadgeVariant(driver.safety_score)">
-                  <!-- {{ driver.safety_score }} -->
-                1050
+                <Badge :variant="getScoreBadgeVariant(driver.raw_safety_score)">
+                  {{ driver.raw_safety_score }}
                 </Badge>
               </TableCell>
               <!-- <TableCell class="text-right font-semibold" :class="getScoreColorClass(driver.overall_score)">
@@ -383,13 +382,18 @@ const paginatedDrivers = computed(() => {
 });
 
 // Helper functions for styling
-const getScoreBadgeVariant = (score) => {
-  if (score >= 90) return 'success';
-  if (score >= 75) return 'default';
-  if (score >= 60) return 'warning';
+const getScoreBadgeOperationalVariant = (score) => {
+  if (score >= 75) return 'success';
+  if (score >= 50) return 'midRange';
+  if (score >= 25) return 'warning';
   return 'destructive';
 };
-
+const getScoreBadgeVariant = (score) => {
+  if (score >= 900) return 'success';
+  if (score >= 750) return 'midRange';
+  if (score >= 600) return 'warning';
+  return 'destructive';
+};
 const getScoreColorClass = (score) => {
   if (score >= 90) return 'text-green-600 dark:text-green-500';
   if (score >= 75) return 'text-blue-600 dark:text-blue-500';

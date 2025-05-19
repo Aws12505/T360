@@ -1,6 +1,8 @@
 <template>
   <!-- Modal overlay for user form - fixed to cover entire viewport -->
   <div class="fixed inset-0 z-50">
+    <!-- Add a semi-transparent background overlay -->
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
     <!-- Modal content container - centered with flex -->
     <div class="absolute inset-0 flex items-center justify-center p-2 sm:p-4">
       <div class="bg-background p-4 sm:p-6 rounded-lg shadow-xl w-full sm:max-w-lg md:max-w-2xl lg:max-w-4xl overflow-y-auto max-h-[95vh] animate-in fade-in zoom-in-95 duration-200 border border-border">
@@ -57,21 +59,20 @@
             <!-- Tenant Dropdown for SuperAdmin users -->
             <div v-if="isSuperAdmin" class="space-y-2 md:col-span-2">
               <Label for="tenant">Company Name</Label>
-              <Select v-model="form.tenant_id">
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a company" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem :value="null">None</SelectItem>
-                  <SelectItem
-                    v-for="tenant in tenants"
-                    :value="tenant.id"
-                    :key="tenant.id"
-                  >
-                    {{ tenant.name }}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+              <select
+                id="tenant"
+                v-model="form.tenant_id"
+                class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option :value="null">None</option>
+                <option
+                  v-for="tenant in tenants"
+                  :value="tenant.id"
+                  :key="tenant.id"
+                >
+                  {{ tenant.name }}
+                </option>
+              </select>
               <InputError :message="form.errors.tenant_id" />
             </div>
           </div>

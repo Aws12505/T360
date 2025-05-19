@@ -16,7 +16,7 @@
       <!-- Page Header -->
       <div class="flex flex-col sm:flex-row justify-between items-center px-2 mb-2 md:mb-4 lg:mb-6">
         <h1 class="text-lg md:text-xl lg:text-2xl font-bold text-gray-800 dark:text-gray-200">
-          Asset Management
+          Asset Maintenance
         </h1>
         <div class="flex flex-wrap gap-3 mt-2 sm:mt-0">
           <!-- Optional action buttons could go here -->
@@ -54,6 +54,19 @@
                 <Icon name="clipboardList" class="mr-2 h-4 w-4" />
                 <span>Repair Orders</span>
               </Button>
+              <Button
+                @click="switchComponent('milesDriven')"
+                variant="ghost"
+                :class="[
+                  activeTab === 'milesDriven'
+                    ? 'border-b-2 border-primary text-primary'
+                    : 'text-muted-foreground hover:text-foreground'
+                ]"
+                class="py-2 px-3 -mb-px font-medium text-sm rounded-none transition-colors duration-200 inline-flex items-center"
+              >
+                <Icon name="gauge" class="mr-2 h-4 w-4" />
+                <span>Miles Driven</span>
+              </Button>
             </div>
           </div>
 
@@ -78,6 +91,7 @@ import { Head } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
 import TrucksComponent from '@/components/Truck/TrucksComponent.vue'
 import RepairOrdersComponent from '@/components/RepairOrders/RepairOrdersComponent.vue'
+import MilesDrivenComponent from '@/components/summary/MilesDrivenTable.vue'
 import Icon from '@/components/Icon.vue'
 import { Card, CardContent, Button, Alert, AlertTitle, AlertDescription } from '@/components/ui'
 
@@ -105,6 +119,7 @@ const props = defineProps({
   SuperAdmin:  Boolean,
   perPage:    { type: Number, default: 10 },
   openedComponent: { type: String, default: 'trucks' },
+  milesEntries: Array,
 })
 
 // UI state management
@@ -113,7 +128,7 @@ const successMessage = ref('')
 const errorMessage = ref('')
 
 // single source of truth for your tab
-const activeTab = ref<'trucks'|'repairOrders'>(props.openedComponent || 'trucks')
+const activeTab = ref<'trucks'|'repairOrders'|'milesDriven'>(props.openedComponent || 'trucks')
 
 // breadcrumbs, unchanged
 const breadcrumbs = computed(() => [
@@ -123,14 +138,14 @@ const breadcrumbs = computed(() => [
       ? route('dashboard', { tenantSlug: props.tenantSlug })
       : route('admin.dashboard'),
   },
-  { title: 'Asset Management', href: '#' },
+  { title: 'Asset Maintenance', href: '#' },
 ])
 
 // pick which component to render
 const currentComponent = computed(() =>
   activeTab.value === 'trucks'
     ? TrucksComponent
-    : RepairOrdersComponent
+    : activeTab.value === 'milesDriven' ? MilesDrivenComponent : RepairOrdersComponent
 )
 
 // build props for that component
@@ -145,7 +160,14 @@ const currentProps = computed(() => {
       vendors:        props.vendors,
       areasOfConcern: props.areasOfConcern,
     }
-  } else {
+  }
+  else if (activeTab.value === 'milesDriven') {
+    return {
+      milesEntries:   props.milesEntries,
+      tenantSlug:     props.tenantSlug,
+    }
+  }
+  else {
     return {
       repairOrders:             props.repairOrders,
       tenantSlug:               props.tenantSlug,
@@ -172,7 +194,7 @@ const currentProps = computed(() => {
 })
 
 // flip UI + update only the openedComponent param in the URL
-function switchComponent(component: 'trucks'|'repairOrders') {
+function switchComponent(component: 'trucks'|'repairOrders'|'milesDriven') {
   // Show loading state briefly
   isLoading.value = true
   activeTab.value = component

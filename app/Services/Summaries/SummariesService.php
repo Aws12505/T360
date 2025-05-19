@@ -133,7 +133,7 @@ class SummariesService
         // Adjust dates for maintenance breakdown (weeks 16-24 instead of 17-25)
         $maintenanceStartDate = $startDate->copy()->subWeek();
         $maintenanceEndDate = $endDate->copy()->subWeek();
-        $milesEntries = MilesDriven::where('tenant_id', Auth::user()->tenant_id)->whereBetween('week_start_date', [$startDate, $endDate])->latest('week_start_date')->paginate(10)->withQueryString();
+        $driverOverAll = $this->getDriversOverallPerformance($startDate, $endDate);
         return [
             'summaries' => $summaries,
             'tenantSlug' => $tenantSlug,
@@ -144,8 +144,7 @@ class SummariesService
             'maintenanceBreakdowns' => $this->maintenanceBreakdownService->getMaintenanceBreakdown($maintenanceStartDate, $maintenanceEndDate, $minInvoiceAmount, $outstandingDateCarbon),
             'dateFilter' => $dateFilter,
             'dateRange' => $dateRange,
-            'milesEntries' => $milesEntries,
-            'driversOverallPerformance' => $this->getDriversOverallPerformance($startDate, $endDate),
+            'driversOverallPerformance' => $driverOverAll,
         ];
     }
 
@@ -187,6 +186,28 @@ class SummariesService
             $endDate = Carbon::parse($endDate);
         }
         
+        // First, get total penalties and scores from the database
+        $totalSafetyScoreQuery = DB::table('safety_data')
+            ->whereBetween('date', [$startDate, $endDate])
+            ->selectRaw('SUM(driver_score) as total_safety_score');
+        
+        $this->applyTenantFilter($totalSafetyScoreQuery);
+        $totalSafetyScore = $totalSafetyScoreQuery->first()->total_safety_score ?? 0;
+        
+        $totalRejectionPenaltiesQuery = DB::table('rejections')
+            ->whereBetween('date', [$startDate, $endDate])
+            ->selectRaw('SUM(penalty) as total_rejection_penalties');
+        
+        $this->applyTenantFilter($totalRejectionPenaltiesQuery);
+        $totalRejectionPenalties = $totalRejectionPenaltiesQuery->first()->total_rejection_penalties ?? 0;
+        
+        $totalDelayPenaltiesQuery = DB::table('delays')
+            ->whereBetween('date', [$startDate, $endDate])
+            ->selectRaw('SUM(penalty) as total_delay_penalties');
+        
+        $this->applyTenantFilter($totalDelayPenaltiesQuery);
+        $totalDelayPenalties = $totalDelayPenaltiesQuery->first()->total_delay_penalties ?? 0;
+        
         // Get all drivers
         $driversQuery = DB::table('drivers')
             ->select('id', 'first_name', 'last_name', 'netradyne_user_name');
@@ -194,13 +215,10 @@ class SummariesService
         $this->applyTenantFilter($driversQuery);
         $drivers = $driversQuery->get();
         
-        // Initialize arrays to store results
-        $driverScores = [];
-        $totalSafetyScore = 0;
-        $totalRejectionPenalties = 0;
-        $totalDelayPenalties = 0;
+        // Initialize array to store results
+        $driversOverallScores = [];
         
-        // Process each driver
+        // Process each driver in a single loop
         foreach ($drivers as $driver) {
             $driverName = $driver->first_name . ' ' . $driver->last_name;
             $netradyneUserName = $driver->netradyne_user_name;
@@ -235,54 +253,34 @@ class SummariesService
             $this->applyTenantFilter($delayPenaltiesQuery);
             $delayPenalties = $delayPenaltiesQuery->first()->total_delay_penalties ?? 0;
             
-            // Store the results
-            $driverScores[$driverName] = [
-                'driver_name' => $driverName,
-                'safety_score' => $safetyScore,
-                'rejection_penalties' => $rejectionPenalties,
-                'delay_penalties' => $delayPenalties,
-            ];
-            
-            // Add to totals
-            $totalSafetyScore += $safetyScore;
-            $totalRejectionPenalties += $rejectionPenalties;
-            $totalDelayPenalties += $delayPenalties;
-        }
-        
-        // Calculate overall scores for each driver
-        $driversOverallScores = [];
-        
-        foreach ($driverScores as $driverName => $scores) {
-            // Calculate acceptance score
+            // Calculate scores directly
             $acceptanceScore = 100;
             if ($totalRejectionPenalties > 0) {
-                $acceptanceScore = 100 - ($scores['rejection_penalties'] * 100 / $totalRejectionPenalties);
+                $acceptanceScore = 100 - ($rejectionPenalties * 100 / $totalRejectionPenalties);
             }
             
-            // Calculate on-time score
             $onTimeScore = 100;
             if ($totalDelayPenalties > 0) {
-                $onTimeScore = 100 - ($scores['delay_penalties'] * 100 / $totalDelayPenalties);
+                $onTimeScore = 100 - ($delayPenalties * 100 / $totalDelayPenalties);
             }
             
-            // Calculate safety score
             $safetyScoreNormalized = 0;
             if ($totalSafetyScore > 0) {
-                $safetyScoreNormalized = $scores['safety_score'] * 100 / $totalSafetyScore;
+                $safetyScoreNormalized = $safetyScore * 100 / $totalSafetyScore;
             }
             
-            // Calculate overall score
             $overallScore = ($acceptanceScore + $onTimeScore + $safetyScoreNormalized) / 3;
             
+            // Add driver data with all scores calculated
             $driversOverallScores[] = [
                 'driver_name' => $driverName,
                 'acceptance_score' => round($acceptanceScore, 2),
                 'on_time_score' => round($onTimeScore, 2),
                 'safety_score' => round($safetyScoreNormalized, 2),
                 'overall_score' => round($overallScore, 2),
-                'raw_safety_score' => $scores['safety_score'],
-                'rejection_penalties' => $scores['rejection_penalties'],
-                'delay_penalties' => $scores['delay_penalties'],
+                'raw_safety_score' => round($safetyScore,2),
+                'rejection_penalties' => $rejectionPenalties,
+                'delay_penalties' => $delayPenalties,
             ];
         }
         
@@ -290,8 +288,6 @@ class SummariesService
         usort($driversOverallScores, function($a, $b) {
             return $b['overall_score'] <=> $a['overall_score'];
         });
-        
-        
         return [
             'drivers' => $driversOverallScores,
         ];

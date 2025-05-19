@@ -212,7 +212,7 @@ const handleTimePeriodChange = (tabId: string) => {
     outstandingDate: outstandingDate.value || null
   }), {
 
-    only: ['summaries', 'delayBreakdowns', 'rejectionBreakdowns', 'maintenanceBreakdowns', 'dateFilter', 'dateRange','milesEntries']
+    only: ['summaries', 'delayBreakdowns', 'rejectionBreakdowns', 'maintenanceBreakdowns', 'dateFilter', 'dateRange','milesEntries', 'driversOverallPerformance']
   });
 };
 

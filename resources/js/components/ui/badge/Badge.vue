@@ -20,7 +20,7 @@ const props = defineProps({
     default: 'default',
     validator: (value: string) => {
       return ['default', 'secondary', 'destructive', 'outline', 'success', 'warning', 
-              'gold', 'silver', 'not-eligible', 'fantastic-plus', 'fantastic', 'good', 'fair', 'poor'].includes(value);
+              'gold', 'silver', 'not-eligible', 'fantastic-plus', 'fantastic', 'good', 'fair', 'poor', 'midRange'].includes(value);
     }
   },
   size: {
@@ -51,6 +51,7 @@ const variantClasses = {
   'good': 'border-2 border-blue-600 bg-transparent text-blue-600',
   'fair': 'border-2 border-amber-600 bg-transparent text-amber-600',
   'poor': 'border-2 border-red-600 bg-transparent text-red-600',
+  midRange: 'border-transparent bg-yellow-300 text-black hover:bg-yellow-400',
   open: 'bg-[#28a745] text-white border-transparent hover:bg-[#218838]',
   in_progress: 'bg-[#ffc107] text-black border-transparent hover:bg-[#e0a800]',
   closed: 'bg-[#007bff] text-white border-transparent hover:bg-[#0069d9]'

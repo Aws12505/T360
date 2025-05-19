@@ -99,7 +99,7 @@
 
         <TableBody>
           <TableRow
-            v-for="item in sortedmilesEntries"
+            v-for="item in paginatedEntries"
             :key="item.id"
           >
             <TableCell>
@@ -141,7 +141,7 @@
               </div>
             </TableCell>
           </TableRow>
-          <TableRow v-if="!milesEntries.data.length">
+          <TableRow v-if="!milesEntries.length">
             <TableCell
               :colspan="5"
               class="py-4 text-center text-muted-foreground"
@@ -156,27 +156,42 @@
     <!-- Pagination -->
     <div
       class="border-t mt-4 px-4 py-3 bg-muted/20"
-      v-if="milesEntries.links"
+      v-if="totalPages > 1"
     >
       <div
         class="flex flex-col sm:flex-row items-center justify-between gap-2"
       >
         <div class="text-sm text-muted-foreground">
-          Showing {{ milesEntries.data.length }} entries
+          Showing {{ paginatedEntries.length }} of {{ milesEntries.length }} entries
         </div>
         <div class="flex flex-wrap gap-2">
           <Button
-            v-for="link in milesEntries.links"
-            :key="link.label"
-            @click="visitPage(link.url)"
-            :disabled="!link.url"
+            @click="goToPage(currentPage - 1)"
+            :disabled="currentPage === 1"
+            variant="ghost"
+            size="sm"
+          >
+            Previous
+          </Button>
+          <Button
+            v-for="page in paginationRange"
+            :key="page"
+            @click="goToPage(page)"
             variant="ghost"
             size="sm"
             :class="{
-              'border-primary bg-primary/10 text-primary': link.active
+              'border-primary bg-primary/10 text-primary': currentPage === page
             }"
           >
-            <span v-html="link.label" />
+            {{ page }}
+          </Button>
+          <Button
+            @click="goToPage(currentPage + 1)"
+            :disabled="currentPage === totalPages"
+            variant="ghost"
+            size="sm"
+          >
+            Next
           </Button>
         </div>
       </div>
@@ -276,116 +291,166 @@
 </template>
 
   
-  <script setup lang="ts">
-  import {
-    Button,
-    Dialog,
-    DialogContent,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogDescription,
-    Input,
-    Label,
-    Table,
-    TableHeader,
-    TableBody,
-    TableRow,
-    TableCell,
-    TableHead,
-  } from '@/components/ui'
-  import Icon from '@/components/Icon.vue'
-  import { useForm, router } from '@inertiajs/vue3'
-  import { ref, computed } from 'vue'
-  import { route } from 'ziggy-js'
-  
-  const props = defineProps<{
-    milesEntries: any
-    tenantSlug: string | null
-  }>()
-  
-  // local state
-  const isModalOpen = ref(false)
-  const sortColumn = ref<'week_start_date' | 'week_end_date' | 'miles'>(
-    'week_start_date'
-  )
-  const sortDirection = ref<'asc' | 'desc'>('desc')
-  
-  // form
-  const form = useForm({
-    id: null,
-    year: '',
-    week_number: '',
-    week_start_date: '',
-    week_end_date: '',
-    miles: '',
-    notes: '',
+<script setup lang="ts">
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  Input,
+  Label,
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableCell,
+  TableHead,
+} from '@/components/ui'
+import Icon from '@/components/Icon.vue'
+import { useForm, router } from '@inertiajs/vue3'
+import { ref, computed } from 'vue'
+import { route } from 'ziggy-js'
+
+const props = defineProps<{
+  milesEntries: Array<any>,
+  tenantSlug: string | null
+}>()
+
+// local state
+const isModalOpen = ref(false)
+const sortColumn = ref<'week_start_date' | 'week_end_date' | 'miles'>(
+  'week_start_date'
+)
+const sortDirection = ref<'asc' | 'desc'>('desc')
+
+// pagination state
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
+
+// form
+const form = useForm({
+  id: null,
+  year: '',
+  week_number: '',
+  week_start_date: '',
+  week_end_date: '',
+  miles: '',
+  notes: '',
+})
+
+// sorting
+const sortedEntries = computed(() => {
+  const data = [...props.milesEntries]
+  data.sort((a, b) => {
+    let av = a[sortColumn.value]
+    let bv = b[sortColumn.value]
+    if (av > bv) return sortDirection.value === 'asc' ? 1 : -1
+    if (av < bv) return sortDirection.value === 'asc' ? -1 : 1
+    return 0
   })
+  return data
+})
+
+// pagination
+const totalPages = computed(() => {
+  return Math.ceil(sortedEntries.value.length / itemsPerPage.value)
+})
+
+const paginatedEntries = computed(() => {
+  const startIndex = (currentPage.value - 1) * itemsPerPage.value
+  const endIndex = startIndex + itemsPerPage.value
+  return sortedEntries.value.slice(startIndex, endIndex)
+})
+
+const paginationRange = computed(() => {
+  const range = []
+  const maxVisiblePages = 5
   
-  // sorting
-  const sortedmilesEntries = computed(() => {
-    const data = [...props.milesEntries.data]
-    data.sort((a, b) => {
-      let av = a[sortColumn.value]
-      let bv = b[sortColumn.value]
-      if (av > bv) return sortDirection.value === 'asc' ? 1 : -1
-      if (av < bv) return sortDirection.value === 'asc' ? -1 : 1
-      return 0
-    })
-    return data
-  })
-  function sortBy(col) {
-    if (sortColumn.value === col) {
-      sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc'
-    } else {
-      sortColumn.value = col
-      sortDirection.value = 'asc'
+  if (totalPages.value <= maxVisiblePages) {
+    // Show all pages if there are few
+    for (let i = 1; i <= totalPages.value; i++) {
+      range.push(i)
+    }
+  } else {
+    // Show a subset of pages with current page in the middle when possible
+    let start = Math.max(1, currentPage.value - Math.floor(maxVisiblePages / 2))
+    let end = Math.min(totalPages.value, start + maxVisiblePages - 1)
+    
+    // Adjust start if we're near the end
+    if (end === totalPages.value) {
+      start = Math.max(1, end - maxVisiblePages + 1)
+    }
+    
+    for (let i = start; i <= end; i++) {
+      range.push(i)
     }
   }
   
-  // open modal for add or edit
-  function openModal(item = null) {
-    form.reset()
-    form.clearErrors()
-    if (item) {
-      form.id = item.id
-      form.week_start_date = item.week_start_date
-      form.week_end_date = item.week_end_date
-      form.miles = item.miles
-      form.notes = item.notes
-      const sd = new Date(item.week_start_date);
-      const tmp = new Date(Date.UTC(sd.getUTCFullYear(), sd.getUTCMonth(), sd.getUTCDate()));
-      tmp.setUTCDate(tmp.getUTCDate() + 4 - (tmp.getUTCDay() || 7));
-      const Y = tmp.getUTCFullYear();
-      const W = Math.ceil(((tmp - Date.UTC(Y, 0, 1)) / 86400000 + 1) / 7) + 1;
-      form.year = Y;
-      form.week_number = W;
-    }
-    isModalOpen.value = true
+  return range
+})
+
+function goToPage(page) {
+  if (page < 1 || page > totalPages.value) return
+  currentPage.value = page
+}
+
+function sortBy(col) {
+  if (sortColumn.value === col) {
+    sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc'
+  } else {
+    sortColumn.value = col
+    sortDirection.value = 'asc'
   }
-  
-  // calculate Sunday–Saturday span
-  function computeWeekSpan() {
-    const Y = +form.year
-    const W = +form.week_number
-    if (!Y || !W) {
-      form.week_start_date = ''
-      form.week_end_date = ''
-      return
-    }
-    const d = new Date(Date.UTC(Y, 0, 4))
-    const day = d.getUTCDay() || 7
-    d.setUTCDate(d.getUTCDate() + (W - 1) * 7 + (1 - day))
-    const sunday = new Date(d)
-    sunday.setUTCDate(d.getUTCDate() -1)
-    const saturday = new Date(sunday)
-    saturday.setUTCDate(sunday.getUTCDate() + 6)
-    form.week_start_date = sunday.toISOString().slice(0, 10)
-    form.week_end_date = saturday.toISOString().slice(0, 10)
+  // Reset to first page when sorting changes
+  currentPage.value = 1
+}
+
+// open modal for add or edit
+function openModal(item = null) {
+  form.reset()
+  form.clearErrors()
+  if (item) {
+    form.id = item.id
+    form.week_start_date = item.week_start_date
+    form.week_end_date = item.week_end_date
+    form.miles = item.miles
+    form.notes = item.notes
+    const sd = new Date(item.week_start_date);
+    const tmp = new Date(Date.UTC(sd.getUTCFullYear(), sd.getUTCMonth(), sd.getUTCDate()));
+    tmp.setUTCDate(tmp.getUTCDate() + 4 - (tmp.getUTCDay() || 7));
+    const Y = tmp.getUTCFullYear();
+    const W = Math.ceil(((tmp - Date.UTC(Y, 0, 1)) / 86400000 + 1) / 7) + 1;
+    form.year = Y;
+    form.week_number = W;
   }
-  
-  // submit form
-  function submitForm() {
+  isModalOpen.value = true
+}
+
+// calculate Sunday–Saturday span
+function computeWeekSpan() {
+  const Y = +form.year
+  const W = +form.week_number
+  if (!Y || !W) {
+    form.week_start_date = ''
+    form.week_end_date = ''
+    return
+  }
+  const d = new Date(Date.UTC(Y, 0, 4))
+  const day = d.getUTCDay() || 7
+  d.setUTCDate(d.getUTCDate() + (W - 1) * 7 + (1 - day))
+  const sunday = new Date(d)
+  sunday.setUTCDate(d.getUTCDate() -1)
+  const saturday = new Date(sunday)
+  saturday.setUTCDate(sunday.getUTCDate() + 6)
+  form.week_start_date = sunday.toISOString().slice(0, 10)
+  form.week_end_date = saturday.toISOString().slice(0, 10)
+}
+
+// submit form
+function submitForm() {
   const routeName = form.id ? 'miles_driven.update' : 'miles_driven.store'
   const params = form.id
     ? { tenantSlug: props.tenantSlug, milesDriven: form.id }
@@ -394,7 +459,6 @@
   form[ form.id ? 'put' : 'post' ](
     route(routeName, params),
     {
-      only: ['milesEntries'],
       preserveScroll: true,
       onSuccess: () => {
         isModalOpen.value = false
@@ -402,21 +466,20 @@
     }
   )
 }
-  
-  // delete
-  const toDelete = ref(null)
-  function confirmDelete(item) {
-    toDelete.value = item
-    if (confirm('Really delete this record?')) deleteRecord()
-  }
-  function deleteRecord() {
+
+// delete
+const toDelete = ref(null)
+function confirmDelete(item) {
+  toDelete.value = item
+  if (confirm('Really delete this record?')) deleteRecord()
+}
+function deleteRecord() {
   const name = 'miles_driven.destroy'
   const params = { tenantSlug: props.tenantSlug, milesDriven: toDelete.value.id }
 
   form.delete(
     route(name, params),
     {
-      only: ['milesEntries'],
       preserveScroll: true,
       onSuccess: () => {
         // modal already closed via confirmDelete
@@ -424,36 +487,22 @@
     }
   )
 }
-  
-  // helpers
-  function formatDate(s) {
-    if (!s) return '';
-    const d = new Date(s);
-    const utc = new Date(d.getTime() + d.getTimezoneOffset() * 60000);
-    return utc.toLocaleDateString();
-}
-  function formatNumber(n: any) {
-    return Number(n).toLocaleString(undefined, {
-      minimumFractionDigits: 4,
-      maximumFractionDigits: 4,
-    })
-  }
-  function truncateText(t: string, m: number) {
-    return t?.length > m ? t.slice(0, m) + '…' : t || ''
-  }
-  
-  // pagination
-  function visitPage(url: string) {
-  if (!url) return
 
-  router.get(
-    url,
-    {}, 
-    {
-      only: ['milesEntries'],
-      preserveScroll: true,
-    }
-  )
+// helpers
+function formatDate(s) {
+  if (!s) return '';
+  const d = new Date(s);
+  const utc = new Date(d.getTime() + d.getTimezoneOffset() * 60000);
+  return utc.toLocaleDateString();
 }
-  </script>
+function formatNumber(n: any) {
+  return Number(n).toLocaleString(undefined, {
+    minimumFractionDigits: 4,
+    maximumFractionDigits: 4,
+  })
+}
+function truncateText(t: string, m: number) {
+  return t?.length > m ? t.slice(0, m) + '…' : t || ''
+}
+</script>
   

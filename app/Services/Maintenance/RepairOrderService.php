@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Request;
 use App\Models\WoStatus;
 use Carbon\Carbon;
 use App\Services\Summaries\MaintenanceBreakdownService;
+use App\Models\MilesDriven;
 //
 /**
  * Class RepairOrderService
@@ -122,6 +123,8 @@ $endDate = Carbon::parse($dateRange['end']);
             'vendor_id' => (string) $request->input('vendor_id', ''),
         ];
         $trucks = Truck::with('tenant')->get();
+        $milesEntries = MilesDriven::where('tenant_id', Auth::user()->tenant_id)->latest('week_start_date')->get();
+
         return [
             'repairOrders' => $repairOrders,
             'tenantSlug' => $tenantSlug,
@@ -145,6 +148,7 @@ $endDate = Carbon::parse($dateRange['end']);
             'perPage' => $perPage,
             'openedComponent' => $openedComponent,
             'entries'     => $trucks,
+            'milesEntries' => $milesEntries,
         ];
     }
 /**

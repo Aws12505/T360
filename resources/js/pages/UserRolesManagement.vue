@@ -285,6 +285,7 @@ const tenantsArray = computed(() => props.tenants.data);
       </Card>
 
       <!-- Modals for creating/editing users, roles, and tenants -->
+      <!-- User Form Modal -->
       <Transition name="fade">
         <UserForm
           v-if="showUserModal"
@@ -299,6 +300,7 @@ const tenantsArray = computed(() => props.tenants.data);
         />
       </Transition>
       
+      <!-- Tenant Form Modal -->
       <Transition name="fade">
         <TenantForm
           v-if="showTenantModal"
@@ -309,6 +311,7 @@ const tenantsArray = computed(() => props.tenants.data);
         />
       </Transition>
       
+      <!-- Role Form Modal -->
       <Transition name="fade">
         <RoleForm
           v-if="showRoleModal"
