@@ -53,10 +53,10 @@
         :performanceData="summaries.performance?.data || {}"
         :performanceRatings="summaries.performance?.ratings || {}"
       />
-      <MilesDrivenTable
+      <!-- <MilesDrivenTable
       :milesEntries="milesEntries"
       :tenantSlug="tenantSlug"
-    />
+    /> -->
       <!-- Tabs Header -->
       <!-- <TabsHeader @tab-change="handleTabChange" /> -->
       
