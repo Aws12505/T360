@@ -203,15 +203,15 @@ const availableMetrics = computed(() => {
         <Transition name="fade">
           <div
             v-if="showForm"
-            class="fixed inset-0 z-50 flex items-center justify-center"
+            class="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto overflow-x-hidden"
           >
             <!-- gray overlay -->
             <div
-              class="absolute inset-0 bg-black bg-opacity-50"
+              class="fixed inset-0 bg-black/50 backdrop-blur-sm"
               @click="closeEditor"
             />
             <!-- form sits on top -->
-            <div class="relative z-10">
+            <div class="relative z-10 mx-auto my-4 w-full max-w-md p-4 md:max-w-xl">
               <ThresholdForm
                 :tenantSlug="tenantSlug"
                 :entry="editing" 

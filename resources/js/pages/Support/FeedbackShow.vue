@@ -3,7 +3,7 @@
     <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
       <Head :title="`Feedback #${feedback.id}`" />
   
-      <div class="w-[95%] max-w-4xl mx-auto p-6 space-y-6">
+      <div class="w-full md:max-w-2xl lg:max-w-3xl xl:max-w-6xl lg:mx-auto m-0 p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6">
         <Alert v-if="successMessage" variant="success" class="animate-in fade-in duration-300">
           <AlertTitle class="flex items-center gap-2">
             <Icon name="check-circle" class="h-5 w-5 text-green-500" />

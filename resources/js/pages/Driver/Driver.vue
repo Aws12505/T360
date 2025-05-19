@@ -2,7 +2,7 @@
     <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
         <Head title="Drivers" />
         <!-- responsive here -->
-        <div class=" w-full md:max-w-xl lg:max-w-2xl xl:max-w-4xl m-auto pt-2  space-y-2 md:space-y-4 lg:space-y-6">
+        <div class="w-full md:max-w-2xl lg:max-w-3xl xl:max-w-6xl lg:mx-auto m-0 p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6">
 
             <!-- Success Message -->
             <Alert v-if="successMessage" variant="success">

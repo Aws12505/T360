@@ -2,7 +2,7 @@
     <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
         <Head title="Performance" />
         <!-- responsive here -->
-        <div class="w-full md:max-w-xl lg:max-w-2xl xl:max-w-4xl m-auto pt-2  space-y-2 md:space-y-4 lg:space-y-6">
+        <div class="w-full md:max-w-2xl lg:max-w-3xl xl:max-w-6xl lg:mx-auto m-0 p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6">
             <!-- Success Message -->
             <Alert v-if="successMessage" variant="success">
                 <AlertTitle>Success</AlertTitle>
@@ -17,7 +17,7 @@
 
             <!-- Actions Section -->
             <!-- responsive here -->
-            <div class="flex flex-col sm:flex-row justify-between items-center px-2 mb-2 md:mb-4 lg:mb-6">
+            <div class="w-full md:max-w-xl lg:max-w-2xl xl:max-w-6xl m-auto pt-2  space-y-2 md:space-y-4 lg:space-y-6">
                 <!-- responsive here -->
                 <h1 class="text-lg md:text-xl lg:text-2xl font-bold text-gray-800 dark:text-gray-200">Performance Management</h1>
                 <div class="flex flex-wrap gap-3 ml-3">

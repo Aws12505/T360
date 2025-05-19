@@ -1,109 +1,94 @@
 <template>
-  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6 mb-4 sm:mb-6">
-    <div class="xl:col-span-3">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
-        <!-- Acceptance Score Card -->
-        <div class="bg-card rounded-lg border shadow-sm p-3 sm:p-4 flex flex-col min-h-[16rem] sm:h-80">
-          <h3 class="text-base font-semibold mb-1">Acceptance</h3>
-          <div class="text-xs text-muted-foreground mb-1">Total Score</div>
-          <div class="flex items-center justify-between gap-2 sm:gap-3 mb-2">
-            <div class="text-3xl sm:text-4xl font-bold" :class="getScoreColorClass(performanceRatings.average_acceptance)">
-              {{ formatPercentage(performanceData.average_acceptance) }}
-            </div>
-            <Badge :variant="getRatingVariant(performanceRatings.average_acceptance)" class="text-xs">
-              {{ formatRating(performanceRatings.average_acceptance) }}
-            </Badge>
-          </div>
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-6">
 
-          <div class="text-xs sm:text-sm mb-1 flex justify-between">
-            <span class="font-semibold">Rejections by Reason</span>
-            <span class="font-semibold">Total</span>
-          </div>
-          <div class="space-y-1 text-xs sm:text-sm max-h-28 sm:max-h-36 overflow-y-auto flex-grow">
-            <div v-for="(rejection, index) in topRejections" :key="index" class="flex justify-between">
-              <span class="truncate mr-2 max-w-[70%]">{{ rejection.reason_code }}</span>
-              <span>{{ rejection.total_rejections }}</span>
-            </div>
-          </div>
+    <!-- Acceptance Score Card -->
+    <div class="bg-card rounded-lg border shadow-sm p-4">
+      <h3 class="text-base font-semibold mb-1">Acceptance</h3>
+      <div class="text-xs text-muted-foreground mb-1">Total Score</div>
+      <div class="flex items-center justify-between gap-3 mb-4">
+        <div class="text-4xl font-bold" :class="getScoreColorClass(performanceRatings.average_acceptance)">
+          {{ formatPercentage(performanceData.average_acceptance) }}
         </div>
-
-        <!-- On-Time Score Card -->
-        <div class="bg-card rounded-lg border shadow-sm p-3 sm:p-4 flex flex-col min-h-[16rem] sm:h-80">
-          <h3 class="text-base font-semibold mb-1">On-Time</h3>
-          <div class="text-xs text-muted-foreground mb-1">Total Score</div>
-          <div class="flex items-center justify-between gap-2 sm:gap-3 mb-2">
-            <div class="text-3xl sm:text-4xl font-bold" :class="getScoreColorClass(performanceRatings.average_on_time)">
-              {{ formatPercentage(performanceData.average_on_time) }}
-            </div>
-            <Badge :variant="getRatingVariant(performanceRatings.average_on_time)" class="text-xs">
-              {{ formatRating(performanceRatings.average_on_time) }}
-            </Badge>
-          </div>
-
-          <div class="text-xs sm:text-sm mb-1 flex justify-between">
-            <span class="font-semibold">Delays by Reason</span>
-            <span class="font-semibold">Total</span>
-          </div>
-          <div class="space-y-1 text-xs sm:text-sm max-h-28 sm:max-h-36 overflow-y-auto flex-grow">
-            <div v-for="(delay, index) in topDelays" :key="index" class="flex justify-between">
-              <span class="truncate mr-2 max-w-[70%]">{{ delay.code }}</span>
-              <span>{{ delay.total_delays }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Maintenance Metrics Card -->
-        <div class="bg-card rounded-lg border shadow-sm p-3 sm:p-4 flex flex-col min-h-[16rem] sm:h-80">
-          <h3 class="text-base font-semibold mb-1">Maintenance</h3>
-          <div class="text-xs text-muted-foreground mb-1">MVtS Score</div>
-          <div class="flex items-center justify-between gap-2 sm:gap-3 mb-2">
-            <div class="text-3xl sm:text-4xl font-bold"
-              :class="getScoreColorClass(performanceRatings.average_maintenance_variance_to_spend)">
-              {{ formatPercentage(performanceData.average_maintenance_variance_to_spend) }}
-            </div>
-            <Badge :variant="getRatingVariant(performanceRatings.average_maintenance_variance_to_spend)" class="text-xs">
-              {{ formatRating(performanceRatings.average_maintenance_variance_to_spend) }}
-            </Badge>
-          </div>
-
-          <div class="text-xs sm:text-sm space-y-1 flex-grow">
-            <div class="flex justify-between">
-              <span>Cost per mile</span>
-              <span>${{ formatCurrency(maintenanceBreakdowns.cpm) }}</span>
-            </div>
-            <div class="flex justify-between">
-              <span>Num of WOs</span>
-              <span>{{ maintenanceBreakdowns.total_repair_orders }}</span>
-            </div>
-            <div class="flex justify-between">
-              <span>Current Costs</span>
-              <span>${{ formatCurrency(maintenanceBreakdowns.total_invoice_amount) }}</span>
-            </div>
-            <div class="flex justify-between">
-              <span>Missing Invoices</span>
-              <span>{{ maintenanceBreakdowns.missing_invoices_count || 0 }}</span>
-            </div>
-          </div>
+        <Badge :variant="getRatingVariant(performanceRatings.average_acceptance)" class="text-xs">
+          {{ formatRating(performanceRatings.average_acceptance) }}
+        </Badge>
+      </div>
+      
+      <div class="text-sm mb-2 flex justify-between">
+        <span class="font-semibold">Rejections by Reason</span>
+        <span class="font-semibold">Total</span>
+      </div>
+      <div class="space-y-2 text-sm max-h-40 overflow-y-auto">
+        <div v-for="(rejection, index) in topRejections" :key="index" class="flex justify-between">
+          <span>{{ rejection.reason_code }}</span>
+          <span>{{ rejection.total_rejections }}</span>
         </div>
       </div>
+    </div>
+    <!-- On-Time Score Card -->
+    <div class="bg-card rounded-lg border shadow-sm p-4">
+      <h3 class="text-base font-semibold mb-1">On-Time</h3>
+      <div class="text-xs text-muted-foreground mb-1">Total Score</div>
+      <div class="flex items-center justify-between gap-3 mb-4">
+        <div class="text-4xl font-bold" :class="getScoreColorClass(performanceRatings.average_on_time)">
+          {{ formatPercentage(performanceData.average_on_time) }}
+        </div>
+        <Badge :variant="getRatingVariant(performanceRatings.average_on_time)" class="text-xs">
+          {{ formatRating(performanceRatings.average_on_time) }}
+        </Badge>
+      </div>
 
-      <!-- Miles Driven Card -->
-      <div class="bg-card rounded-lg border shadow-sm p-3 sm:p-4 h-16 sm:h-20">
-        <div class="flex items-center justify-between h-full">
-          <h3 class="text-base font-semibold">Miles Driven</h3>
-          <div class="text-xl sm:text-2xl font-bold text-indigo-600">
-            {{ formatNumber(milesDriven) }} Mile
-          </div>
+      <div class="text-sm mb-2 flex justify-between">
+        <span class="font-semibold">Delays by Reason</span>
+        <span class="font-semibold">Total</span>
+      </div>
+      <div class="space-y-2 text-sm max-h-40 overflow-y-auto">
+        <div v-for="(delay, index) in topDelays" :key="index" class="flex justify-between">
+          <span>{{ delay.code }}</span>
+          <span>{{ delay.total_delays }}</span>
+        </div>
+      </div>
+    </div
+    <!-- Maintenance Metrics Card -->
+    <div class="bg-card rounded-lg border shadow-sm p-4">
+      <h3 class="text-base font-semibold mb-1">Maintenance</h3>
+      <div class="text-xs text-muted-foreground mb-1">MVtS Score</div>
+      <div class="flex items-center justify-between gap-3 mb-4">
+        <div class="text-4xl font-bold"
+          :class="getScoreColorClass(performanceRatings.average_maintenance_variance_to_spend)">
+          {{ formatPercentage(performanceData.average_maintenance_variance_to_spend) }}
+        </div>
+        <Badge :variant="getRatingVariant(performanceRatings.average_maintenance_variance_to_spend)" class="text-xs">
+          {{ formatRating(performanceRatings.average_maintenance_variance_to_spend) }}
+        </Badge>
+      </div>
+
+      <div class="text-sm mb-2 space-y-2">
+        <div class="flex justify-between">
+          <span>Cost per mile</span>
+          <span>${{ formatCurrency(maintenanceBreakdowns.cpm) }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Num of WOs</span>
+          <span>{{ maintenanceBreakdowns.total_repair_orders }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Current Costs</span>
+          <span>${{ formatCurrency(maintenanceBreakdowns.total_invoice_amount) }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Missing Invoices</span>
+          <span>{{ maintenanceBreakdowns.missing_invoices_count || 0 }}</span>
         </div>
       </div>
     </div>
 
     <!-- Safety Score Card -->
-    <div class="bg-card rounded-lg border shadow-sm p-3 sm:p-4 min-h-[20rem] sm:h-75 flex flex-col">
+    <div class="bg-card rounded-lg border shadow-sm p-4">
       <h3 class="text-base font-semibold mb-1">Netradyne Alerts Bonus Criteria</h3>
       <div class="text-xs text-muted-foreground mb-1">Green Zone Score</div>
-      <div class="flex items-center justify-between gap-2 sm:gap-3 mb-3 sm:mb-4">
-        <div class="text-3xl sm:text-4xl font-bold text-indigo-600">
+      <div class="flex items-center justify-between gap-3 mb-4">
+        <div class="text-4xl font-bold " :class="getSafetyScoreColorClass(safetyData.average_driver_score)">
           {{ formatDecimal(safetyData.average_driver_score || 'N/A') }}
         </div>
         <Badge :variant="getSafetyBadgeVariant(overallSafetyRating)" class="text-xs">
@@ -112,15 +97,16 @@
       </div>
 
       <!-- Column headers -->
-      <div class="flex justify-between items-center text-xs sm:text-sm font-semibold mb-2">
+      <div class="flex justify-between items-center text-sm font-semibold mb-2">
         <span>Alert Type</span>
-        <div class="flex items-center gap-1 sm:gap-2">
-          <span class="w-10 sm:w-12 text-right">Total</span>
-          <span class="w-14 sm:w-16 text-right">P1KH</span>
+        <div class="flex items-center gap-2">
+          <span class="w-12 text-right">Total</span>
+          <span class="w-16 text-right">P1KH</span>
         </div>
       </div>
 
-      <div class="space-y-1 sm:space-y-2 text-xs sm:text-sm flex-grow">
+      <div class="space-y-2 text-sm">
+        <!-- Distracted Driving (formerly Driver Distraction) -->
         <div class="flex justify-between items-center">
           <span>Distracted Driving</span>
           <div class="flex items-center gap-2">
@@ -128,13 +114,16 @@
             <span class="w-16 text-right">{{ formatRate(safetyData.rates?.driver_distraction) }}</span>
           </div>
         </div>
-        <div class="flex justify-between items-center">
+ <!-- Speeding (formerly Speeding Violations) -->
+ <div class="flex justify-between items-center">
           <span>Speeding</span>
           <div class="flex items-center gap-2">
             <span class="w-12 text-right">{{ formatDecimal(safetyData.speeding_violations) }}</span>
             <span class="w-16 text-right">{{ formatRate(safetyData.rates?.speeding_violations) }}</span>
           </div>
         </div>
+
+        <!-- Sign Violation (formerly Sign Violations) -->
         <div class="flex justify-between items-center">
           <span>Sign Violation</span>
           <div class="flex items-center gap-2">
@@ -142,6 +131,8 @@
             <span class="w-16 text-right">{{ formatRate(safetyData.rates?.sign_violations) }}</span>
           </div>
         </div>
+
+        <!-- Traffic Light Violation (unchanged name) -->
         <div class="flex justify-between items-center">
           <span>Traffic Light Violation</span>
           <div class="flex items-center gap-2">
@@ -149,22 +140,23 @@
             <span class="w-16 text-right">{{ formatRate(safetyData.rates?.traffic_light_violation) }}</span>
           </div>
         </div>
-        <div class="flex justify-between items-center">
-          <span>Following Distance</span>
-          <div class="flex items-center gap-2">
-            <span class="w-12 text-right">{{ formatDecimal(safetyData.following_distance) }}</span>
-            <span class="w-16 text-right">{{ formatRate(safetyData.rates?.following_distance) }}</span>
-          </div>
-        </div>
-      </div>
 
-      <div class="text-xs sm:text-sm text-muted-foreground mt-2 sm:mt-3">
-        <div>Total Hours Analyzed: {{ formatDecimal(safetyData.total_hours || 0) }}</div>
-      </div>
-    </div>
+<!-- Following Distance (unchanged name) -->
+<div class="flex justify-between items-center">
+  <span>Following Distance</span>
+  <div class="flex items-center gap-2">
+    <span class="w-12 text-right">{{ formatDecimal(safetyData.following_distance) }}</span>
+    <span class="w-16 text-right">{{ formatRate(safetyData.rates?.following_distance) }}</span>
   </div>
-</template>
+</div>
+</div>
 
+<div class="text-sm text-muted-foreground mt-3">
+<div>Total Hours Analyzed: {{ formatDecimal(safetyData.total_hours || 0) }}</div>
+</div>
+</div>
+</div>
+</template>
 <script setup lang="ts">
 import { computed } from 'vue';
 import { Badge } from '@/components/ui/badge';
@@ -193,11 +185,7 @@ const props = defineProps({
   maintenanceBreakdowns: {
     type: Object,
     default: () => ({})
-  },
-  milesDriven: {
-    type: Number,
-    default: 0
-  },
+  }
 });
 
 // Get top 3 delays by count
@@ -223,11 +211,11 @@ const formatPercentage = (value) => {
 
 // Format decimal for display
 const formatDecimal = (value) => {
+
   // Convert string values to numbers
   if (typeof value === 'string') {
     value = parseFloat(value);
   }
-
   if (value === undefined || value === null || isNaN(value)) return '0';
   return Math.round(value).toString();
 };
@@ -253,13 +241,6 @@ const formatCurrency = (value) => {
   if (value === undefined || value === null || isNaN(value)) return '0.00';
   return value.toFixed(2);
 };
-
-// Format number with commas for thousands
-const formatNumber = (value) => {
-  if (value === undefined || value === null) return '0';
-  return new Intl.NumberFormat().format(value);
-};
-
 // Format rating for display
 const formatRating = (rating) => {
   if (!rating) return 'Not Available';
@@ -285,7 +266,6 @@ const formatRating = (rating) => {
       return rating;
   }
 };
-
 // Get badge variant based on rating
 const getRatingVariant = (rating) => {
   if (!rating) return 'outline';
@@ -311,7 +291,6 @@ const getRatingVariant = (rating) => {
       return 'outline';
   }
 };
-
 // Get custom badge class for safety ratings
 const getSafetyBadgeClass = (rating) => {
   if (!rating) return 'bg-transparent border border-gray-300 text-gray-500';
@@ -338,7 +317,6 @@ const getSafetyBadgeVariant = (rating) => {
 
   return 'outline';
 };
-
 // Calculate overall safety rating based on safety metrics
 const overallSafetyRating = computed(() => {
   if (!props.safetyData?.ratings) return null;
@@ -366,7 +344,6 @@ const overallSafetyRating = computed(() => {
       bestRating = ratings[key];
     }
   }
-
   switch (bestRating) {
     case 'gold':
       return 'Gold Tier';
@@ -398,7 +375,7 @@ const getScoreColorClass = (rating) => {
       return 'text-blue-600';
     case 'fair':
       return 'text-amber-600';
-    case 'poor':
+      case 'poor':
       return 'text-red-600';
     default:
       return 'text-indigo-600';
@@ -407,12 +384,11 @@ const getScoreColorClass = (rating) => {
 
 // Get safety score color class based on rating
 const getSafetyScoreColorClass = (rating) => {
-  if (!rating) return 'text-gray-600';
+  
+  if(rating >= 900) return 'text-green-600';
+  if(rating >= 750) return 'text-emerald-600';
+  if(rating >= 600) return 'text-blue-600';
 
-  if (rating === 'Gold Tier') return 'text-amber-600';
-  if (rating === 'Silver Tier') return 'text-slate-600';
-  if (rating === 'Not Eligible') return 'text-red-600';
-
-  return 'text-indigo-600';
+  return 'text-red-600';
 };
 </script>

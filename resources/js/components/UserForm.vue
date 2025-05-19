@@ -1,8 +1,8 @@
 <template>
   <!-- Modal overlay for user form - fixed to cover entire viewport -->
-  <div class="fixed inset-0 z-50">
+  <div class="fixed inset-0 z-[100]">
     <!-- Add a semi-transparent background overlay -->
-    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="() => emit('close')"></div>
     <!-- Modal content container - centered with flex -->
     <div class="absolute inset-0 flex items-center justify-center p-2 sm:p-4">
       <div class="bg-background p-4 sm:p-6 rounded-lg shadow-xl w-full sm:max-w-lg md:max-w-2xl lg:max-w-4xl overflow-y-auto max-h-[95vh] animate-in fade-in zoom-in-95 duration-200 border border-border">

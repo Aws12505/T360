@@ -72,7 +72,7 @@ const formatMetricName = (name) => {
 </script>
 
 <template>
-  <div class="bg-background p-4 sm:p-6 rounded-lg shadow-xl w-full sm:max-w-lg md:max-w-xl overflow-y-auto max-h-[95vh] animate-in fade-in zoom-in-95 duration-200 border border-border">
+  <div class="bg-background p-4 sm:p-6 rounded-lg shadow-xl w-full overflow-y-auto max-h-[90vh] animate-in fade-in zoom-in-95 duration-200 border border-border">
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-xl sm:text-2xl font-bold text-foreground">
         {{ formTitle }}

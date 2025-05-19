@@ -187,16 +187,10 @@ class SummariesService
             $endDate = Carbon::parse($endDate);
         }
         
-        // First, get total penalties and scores from the database
-        $totalSafetyScoreQuery = DB::table('safety_data')
-            ->whereBetween('date', [$startDate, $endDate])
-            ->selectRaw('SUM(driver_score) as total_safety_score');
-        
-        $this->applyTenantFilter($totalSafetyScoreQuery);
-        $totalSafetyScore = $totalSafetyScoreQuery->first()->total_safety_score ?? 0;
         
         $totalRejectionPenaltiesQuery = DB::table('rejections')
             ->whereBetween('date', [$startDate, $endDate])
+            ->where('driver_controllable', true)
             ->selectRaw('SUM(penalty) as total_rejection_penalties');
         
         $this->applyTenantFilter($totalRejectionPenaltiesQuery);
@@ -204,6 +198,7 @@ class SummariesService
         
         $totalDelayPenaltiesQuery = DB::table('delays')
             ->whereBetween('date', [$startDate, $endDate])
+            ->where('driver_controllable', true)
             ->selectRaw('SUM(penalty) as total_delay_penalties');
         
         $this->applyTenantFilter($totalDelayPenaltiesQuery);
@@ -231,15 +226,22 @@ class SummariesService
                           ->orWhere('driver_name', $driverName);
                 })
                 ->whereBetween('date', [$startDate, $endDate])
-                ->selectRaw('AVG(driver_score) as safety_score');
+                ->selectRaw("AVG(driver_score) as safety_score, SUM(minutes_analyzed) as minutes_analyzed");
             
             $this->applyTenantFilter($safetyScoreQuery);
             $safetyScore = $safetyScoreQuery->first()->safety_score ?? 0;
-            
+            $minutesAnalyzed = $safetyScoreQuery->first()->minutes_analyzed?? 0;
+
+            if($minutesAnalyzed == 0){
+                continue;
+            }
+
+
             // Get rejection penalties for the driver
             $rejectionPenaltiesQuery = DB::table('rejections')
                 ->where('driver_name', $driverName)
                 ->whereBetween('date', [$startDate, $endDate])
+                ->where('driver_controllable', true)
                 ->selectRaw('SUM(penalty) as total_rejection_penalties');
             
             $this->applyTenantFilter($rejectionPenaltiesQuery);
@@ -249,6 +251,7 @@ class SummariesService
             $delayPenaltiesQuery = DB::table('delays')
                 ->where('driver_name', $driverName)
                 ->whereBetween('date', [$startDate, $endDate])
+                ->where('driver_controllable', true)
                 ->selectRaw('SUM(penalty) as total_delay_penalties');
             
             $this->applyTenantFilter($delayPenaltiesQuery);
@@ -266,9 +269,7 @@ class SummariesService
             }
             
             $safetyScoreNormalized = 0;
-            if ($totalSafetyScore > 0) {
-                $safetyScoreNormalized = $safetyScore * 100 / $totalSafetyScore;
-            }
+                $safetyScoreNormalized = $safetyScore * 100 / 1050;
             
             $overallScore = ($acceptanceScore + $onTimeScore + $safetyScoreNormalized) / 3;
             
@@ -282,6 +283,7 @@ class SummariesService
                 'raw_safety_score' => round($safetyScore,2),
                 'rejection_penalties' => $rejectionPenalties,
                 'delay_penalties' => $delayPenalties,
+                'minutes_analyzed' => $minutesAnalyzed,
             ];
         }
         
@@ -289,6 +291,7 @@ class SummariesService
         usort($driversOverallScores, function($a, $b) {
             return $b['overall_score'] <=> $a['overall_score'];
         });
+        
         return [
             'drivers' => $driversOverallScores,
         ];

@@ -302,38 +302,53 @@ const tenantsArray = computed(() => props.tenants.data);
       
       <!-- Tenant Form Modal -->
       <Transition name="fade">
-        <TenantForm
-          v-if="showTenantModal"
-          :tenants="tenants"
-          :tenant="selectedTenant"
-          @close="closeTenantModal"
-          @saved="refreshData"
-        />
+        <div v-if="showTenantModal" class="fixed inset-0 z-[100]">
+          <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="closeTenantModal"></div>
+          <div class="absolute inset-0 flex items-center justify-center p-2 sm:p-4">
+            <TenantForm
+              :tenants="tenants"
+              :tenant="selectedTenant"
+              @close="closeTenantModal"
+              @saved="refreshData"
+              class="bg-background p-4 sm:p-6 rounded-lg shadow-xl w-full sm:max-w-lg md:max-w-xl overflow-y-auto max-h-[95vh] animate-in fade-in zoom-in-95 duration-200 border border-border"
+            />
+          </div>
+        </div>
       </Transition>
       
       <!-- Role Form Modal -->
       <Transition name="fade">
-        <RoleForm
-          v-if="showRoleModal"
-          :role="selectedRole"
-          :permissions="permissions"
-          :isSuperAdmin="isSuperAdmin"
-          :tenantSlug="tenantSlug"
-          @close="closeRoleModal"
-          @saved="refreshData"
-        />
+        <div v-if="showRoleModal" class="fixed inset-0 z-[100]">
+          <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="closeRoleModal"></div>
+          <div class="absolute inset-0 flex items-center justify-center p-2 sm:p-4">
+            <RoleForm
+              :role="selectedRole"
+              :permissions="permissions"
+              :isSuperAdmin="isSuperAdmin"
+              :tenantSlug="tenantSlug"
+              @close="closeRoleModal"
+              @saved="refreshData"
+              class="bg-background p-4 sm:p-6 rounded-lg shadow-xl w-full sm:max-w-lg md:max-w-xl overflow-y-auto max-h-[95vh] animate-in fade-in zoom-in-95 duration-200 border border-border"
+            />
+          </div>
+        </div>
       </Transition>
       
       <!-- Confirmation modal for deletion -->
       <Transition name="fade">
-        <ConfirmDeleteModal
-          v-if="showConfirmDelete"
-          :deleteUrl="deleteUrl"
-          :message="deleteMessage"
-          :tenantSlug="tenantSlug"
-          @cancel="showConfirmDelete = false"
-          @confirmed="onDeleteConfirmed"
-        />
+        <div v-if="showConfirmDelete" class="fixed inset-0 z-[100]">
+          <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="showConfirmDelete = false"></div>
+          <div class="absolute inset-0 flex items-center justify-center p-2 sm:p-4">
+            <ConfirmDeleteModal
+              :deleteUrl="deleteUrl"
+              :message="deleteMessage"
+              :tenantSlug="tenantSlug"
+              @cancel="showConfirmDelete = false"
+              @confirmed="onDeleteConfirmed"
+              class="bg-background p-4 sm:p-6 rounded-lg shadow-xl w-full sm:max-w-md overflow-y-auto max-h-[95vh] animate-in fade-in zoom-in-95 duration-200 border border-border"
+            />
+          </div>
+        </div>
       </Transition>
     </div>
   </AppLayout>

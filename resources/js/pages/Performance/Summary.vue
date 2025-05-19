@@ -54,6 +54,16 @@
         :performanceData="summaries.performance?.data || {}"
         :performanceRatings="summaries.performance?.ratings || {}"
       />
+
+      <!-- Miles Driven Card -->
+      <div class="bg-card rounded-lg border shadow-sm p-3 sm:p-4 h-16 sm:h-20">
+        <div class="flex items-center justify-between h-full">
+          <h3 class="text-base font-semibold">Miles Driven</h3>
+          <div class="text-xl sm:text-2xl font-bold text-indigo-600">
+            {{ formatNumber(milesDriven) }} Mile
+          </div>
+        </div>
+      </div>
       <!-- <MilesDrivenTable
       :milesEntries="milesEntries"
       :tenantSlug="tenantSlug"
@@ -303,7 +313,11 @@ const formatDateShort = (date) => {
     year: 'numeric'
   }).format(date)
 }
-
+// Format number with commas for thousands
+const formatNumber = (value) => {
+  if (value === undefined || value === null) return '0';
+  return new Intl.NumberFormat().format(value);
+};
 // Compute operational excellence score based on performance ratings
 const operationalExcellenceScore = computed(() => {
   if (!props.summaries?.performance?.ratings) return 'Not Available';

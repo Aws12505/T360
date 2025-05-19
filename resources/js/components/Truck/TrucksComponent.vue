@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full md:max-w-2xl lg:max-w-3xl xl:max-w-6xl lg:mx-auto p-1  space-y-6">
+  <div class="w-full pt-6 md:max-w-2xl lg:max-w-3xl xl:max-w-6xl lg:mx-auto p-1  space-y-6">
     <!-- Success / Error Alerts -->
     <Alert v-if="successMessage" variant="success" class="animate-in fade-in duration-300">
       <AlertTitle class="flex items-center gap-2">

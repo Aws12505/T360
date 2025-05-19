@@ -113,7 +113,7 @@
               </TableCell>
               <TableCell class="text-right">
                 <Badge :variant="getScoreBadgeVariant(driver.raw_safety_score)">
-                  {{ driver.raw_safety_score }}
+                  {{ Math.round(driver.raw_safety_score) }}
                 </Badge>
               </TableCell>
               <!-- <TableCell class="text-right font-semibold" :class="getScoreColorClass(driver.overall_score)">
