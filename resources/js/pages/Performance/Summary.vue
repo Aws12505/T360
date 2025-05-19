@@ -37,6 +37,7 @@
         :delayBreakdowns="delayBreakdowns?.by_code || []"
         :rejectionBreakdowns="rejectionBreakdowns?.by_reason || []"
         :maintenanceBreakdowns="maintenanceBreakdowns || {}"
+        :milesDriven="milesDriven"
       />
       
       <!-- Driver Performance Table -->
@@ -131,8 +132,8 @@ const props = defineProps({
   maintenanceBreakdowns: Object,
   dateFilter: String,
   dateRange: Object,
-  milesEntries: Object,
   driversOverallPerformance: Object,
+  milesDriven: Number,
 });
 
 // Active tab state
@@ -212,7 +213,7 @@ const handleTimePeriodChange = (tabId: string) => {
     outstandingDate: outstandingDate.value || null
   }), {
 
-    only: ['summaries', 'delayBreakdowns', 'rejectionBreakdowns', 'maintenanceBreakdowns', 'dateFilter', 'dateRange','milesEntries', 'driversOverallPerformance']
+    only: ['summaries', 'delayBreakdowns', 'rejectionBreakdowns', 'maintenanceBreakdowns', 'dateFilter', 'dateRange','milesDriven', 'driversOverallPerformance']
   });
 };
 

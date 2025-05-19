@@ -145,6 +145,7 @@ class SummariesService
             'dateFilter' => $dateFilter,
             'dateRange' => $dateRange,
             'driversOverallPerformance' => $driverOverAll,
+            'milesDriven' => $this->getMilesDrivenSum($startDate, $endDate, $dateFilter),
         ];
     }
 
@@ -301,5 +302,43 @@ class SummariesService
         if (Auth::check() && Auth::user()->tenant_id !== null) {
             $query->where('tenant_id', Auth::user()->tenant_id);
         }
+    }
+
+    /**
+     * Get the sum of miles driven within a specified timeframe, except for yesterday timeframe
+     * 
+     * @param string|Carbon $startDate The start date for the query
+     * @param string|Carbon $endDate The end date for the query
+     * @param string|null $dateFilter The date filter type
+     * @return float The total miles driven
+     */
+    public function getMilesDrivenSum($startDate, $endDate, $dateFilter = null): float
+    {
+        // Skip calculation for yesterday timeframe
+        if ($dateFilter === 'yesterday') {
+            return 0;
+        }
+        
+        // Ensure dates are Carbon instances
+        if (!($startDate instanceof Carbon)) {
+            $startDate = Carbon::parse($startDate);
+        }
+        
+        if (!($endDate instanceof Carbon)) {
+            $endDate = Carbon::parse($endDate);
+        }
+        
+        // Query to get sum of miles driven within the date range
+        $query = MilesDriven::whereBetween('week_start_date', [$startDate, $endDate])
+            ->orWhereBetween('week_end_date', [$startDate, $endDate])
+            ->selectRaw('SUM(miles) as total_miles');
+        
+        // Apply tenant filter if user is authenticated
+        $this->applyTenantFilter($query);
+        
+        // Get the result
+        $result = $query->first();
+        
+        return $result ? (float)$result->total_miles : 0;
     }
 }

@@ -34,7 +34,7 @@
     </CardHeader>
     <CardContent class="p-0">
       <div class="overflow-x-auto">
-        <Table class="relative h-[500px] overflow-auto">
+        <Table class="relative h-[400px] overflow-auto">
           <TableHeader>
             <TableRow class="sticky top-0 z-10 border-b bg-background hover:bg-background">
               <TableHead class="w-12 text-center">
