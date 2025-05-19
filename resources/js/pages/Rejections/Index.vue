@@ -1199,7 +1199,7 @@ function handleImport(event) {
 
     router.post(routeName, formData, {
         onSuccess: () => {
-            successMessage.value = 'Delays imported successfully';
+            successMessage.value = 'Rejections imported successfully';
             event.target.value = ''; // Reset the file input
         },
         onError: (errors) => {

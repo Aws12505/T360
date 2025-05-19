@@ -77,7 +77,7 @@
               </TableHead>
               <TableHead @click="sortBy('safety_score')" class="cursor-pointer text-right whitespace-nowrap">
                 <div class="flex items-center justify-end gap-1">
-                  Safety
+                  Green Zone Score
                   <Icon 
                     v-if="sortColumn === 'safety_score'" 
                     :name="sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'" 
@@ -113,7 +113,8 @@
               </TableCell>
               <TableCell class="text-right">
                 <Badge :variant="getScoreBadgeVariant(driver.safety_score)">
-                  {{ driver.safety_score }}%
+                  <!-- {{ driver.safety_score }} -->
+                1050
                 </Badge>
               </TableCell>
               <!-- <TableCell class="text-right font-semibold" :class="getScoreColorClass(driver.overall_score)">
