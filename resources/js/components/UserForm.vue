@@ -44,15 +44,25 @@
             </div>
             
             <!-- Password Field (shown only when creating a new user) -->
-            <div v-if="!user" class="space-y-2 md:col-span-2">
+            <div class="space-y-2 md:col-span-2">
               <Label for="password">Password</Label>
-              <Input
-                id="password"
-                v-model="form.password"
-                type="password"
-                placeholder="Enter password"
-                class="w-full"
-              />
+              <div class="relative">
+                <Input
+                  id="password"
+                  v-model="form.password"
+                  :type="showPassword ? 'text' : 'password'"
+                  placeholder="Enter password"
+                  class="w-full pr-10"
+                />
+                <button 
+                  type="button" 
+                  @click="showPassword = !showPassword"
+                  class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                >
+                  <Eye v-if="!showPassword" class="h-5 w-5" />
+                  <EyeOff v-else class="h-5 w-5" />
+                </button>
+              </div>
               <InputError :message="form.errors.password" />
             </div>
             
@@ -205,6 +215,7 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import InputError from '@/components/InputError.vue';
+import { Eye, EyeOff, X, Loader2 } from 'lucide-vue-next';
 
 const props = defineProps({
   user: { type: Object, default: null },
@@ -220,7 +231,7 @@ const emit = defineEmits(['close', 'saved']);
 const form = useForm({
   name: props.user ? props.user.name : '',
   email: props.user ? props.user.email : '',
-  password: '',
+  password: props.user ? props.user.password : '',
   tenant_id: props.user ? props.user.tenant_id : props.tenants.length ? props.tenants[0].id : null,
   roles: props.user && props.user.roles ? props.user.roles.map((r: any) => r.id) : [],
   user_permissions: props.user && props.user.permissions ? props.user.permissions.map((p: any) => p.name) : [],
@@ -228,6 +239,8 @@ const form = useForm({
 
 const roleSearch = ref('');
 const permissionSearch = ref('');
+// Add password visibility state
+const showPassword = ref(false);
 
 // Compute filtered roles based on search term.
 const filteredRoles = computed(() => {
@@ -266,6 +279,7 @@ watch(() => props.user, (newVal) => {
   if (newVal) {
     form.name = newVal.name;
     form.email = newVal.email;
+    form.password = newVal.password;
     form.tenant_id = newVal.tenant_id;
     form.roles = newVal.roles ? newVal.roles.map((r: any) => r.id) : [];
     form.user_permissions = newVal.permissions ? newVal.permissions.map((p: any) => p.name) : [];
