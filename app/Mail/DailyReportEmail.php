@@ -8,9 +8,11 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 use App\Models\PerformanceMetricRule;
 use App\Services\Performance\PerformanceCalculationsService;
+use App\Services\Summaries\SafetyDataService;
+use App\Services\Summaries\PerformanceDataService;
+use App\Services\Summaries\MaintenanceBreakdownService;
 
 class DailyReportEmail extends Mailable
 {
@@ -18,33 +20,53 @@ class DailyReportEmail extends Mailable
 
     protected int    $tenantId;
     public    string $reportDate;
-    public    string $userName; // Add this property for the user's name
+    public    string $userName;
 
+    // Yesterday's data
     public    array  $performanceMain;
     public    array  $performanceRolling;
     public    float  $mvtsPercent;
-    public    array  $performanceRatings;
-    public    string $operationalExcellenceScore;
-
     public    array  $safetyAggregate;
+    public    array  $safetyInfractions;
+    public    string $yesterdayOperationalExcellenceScore; // Add this line
+    
+    // T6W data
+    public    array  $t6wPerformanceMain;
+    public    array  $t6wPerformanceRolling;
+    public    array  $t6wSafetyAggregate;
     public    array  $safetyRates;
     public    array  $safetyRatings;
-    public    array  $safetyInfractions;
+    public    array  $performanceRatings;
+    public    string $operationalExcellenceScore;
     
-    // Add new property to track data availability
+    // Track data availability
     public    array  $dataAvailability;
 
-    public function __construct(int $tenantId, string $userName = 'User')
-    {
+    protected SafetyDataService $safetyDataService;
+    protected PerformanceDataService $performanceDataService;
+    protected MaintenanceBreakdownService $maintenanceBreakdownService;
+    protected PerformanceCalculationsService $performanceCalculationsService;
+
+    public function __construct(
+        int $tenantId, 
+        string $userName = 'User',
+        SafetyDataService $safetyDataService = null,
+        PerformanceDataService $performanceDataService = null,
+        MaintenanceBreakdownService $maintenanceBreakdownService = null,
+        PerformanceCalculationsService $performanceCalculationsService = null
+    ) {
         $this->tenantId = $tenantId;
-        $this->userName = $userName; // Store the user's name
-
-        // ─── Yesterday's Data ────────────────────────────────────────────────────
-        $yesterday = Carbon::yesterday();
-        $start = $yesterday->copy()->startOfDay();
-        $end = $yesterday->copy()->endOfDay();
-
-        $this->reportDate = $yesterday->format('M d, Y');
+        $this->userName = $userName;
+        
+        // Initialize services
+        $this->safetyDataService = $safetyDataService ?? new SafetyDataService();
+        $this->performanceCalculationsService = $performanceCalculationsService ?? new PerformanceCalculationsService();
+        $this->maintenanceBreakdownService = $maintenanceBreakdownService ?? new MaintenanceBreakdownService();
+        // Fix: Pass required dependencies to PerformanceDataService
+        $this->performanceDataService = $performanceDataService ?? new PerformanceDataService(
+            $this->performanceCalculationsService,
+            $this->maintenanceBreakdownService
+        );
         
         // Initialize data availability tracking
         $this->dataAvailability = [
@@ -52,161 +74,134 @@ class DailyReportEmail extends Mailable
             'safety' => false
         ];
 
-        $this->collectData($start, $end);
+        // Calculate yesterday's date range
+        $now = Carbon::now();
+        $isSunday = $now->dayOfWeek === 0; // 0 = Sunday in Carbon
+        
+        // Yesterday date range
+        $yesterdayStart = Carbon::yesterday()->startOfDay();
+        $yesterdayEnd = Carbon::yesterday()->endOfDay();
+        
+        // T6W date range (6 weeks)
+        $t6wStart = $now->copy()->modify('last sunday');
+        if ($isSunday) {
+            $t6wStart->subWeek();
+        }
+        $t6wStart = $t6wStart->subWeeks(5)->startOfDay();
+        
+        $t6wEnd = $now->copy()->modify('this saturday');
+        if ($isSunday) {
+            $t6wEnd->subWeek();
+        }
+        $t6wEnd = $t6wEnd->endOfDay();
+        
+        $this->reportDate = Carbon::yesterday()->format('M d, Y');
+        
+        // Collect data for both time periods
+        $this->collectData($yesterdayStart, $yesterdayEnd, $t6wStart, $t6wEnd);
     }
 
-    protected function collectData(Carbon $start, Carbon $end): void
+    protected function collectData(Carbon $yesterdayStart, Carbon $yesterdayEnd, Carbon $t6wStart, Carbon $t6wEnd): void
     {
         $rule = PerformanceMetricRule::first();
-        $calc = new PerformanceCalculationsService();
-
-        // ─── PERFORMANCE MAIN ───────────────────────────────────────────────────
-        $main = DB::table('performances')
-            ->where('tenant_id', $this->tenantId)
-            ->whereBetween('date', [$start, $end])
-            ->selectRaw("
-                AVG(acceptance)         AS avg_acceptance,
-                AVG(on_time)            AS avg_on_time,
-                CASE WHEN SUM(meets_safety_bonus_criteria) >= COUNT(*)/2 
-                     THEN 1 ELSE 0 END AS meets_safety
-            ")
-            ->first();
-            
+        
+        // ─── SAFETY DATA - YESTERDAY ───────────────────────────────────────────────
+        // Get aggregate safety data
+        $yesterdaySafetyAggregate = $this->safetyDataService->getAggregateSafetyData($yesterdayStart, $yesterdayEnd);
+        
+        // Get infractions data
+        $yesterdaySafetyInfractions = $this->safetyDataService->getInfractionsData($yesterdayStart, $yesterdayEnd);
+        
+        // Check if safety data exists
+        $hasSafetyData = $yesterdaySafetyAggregate && 
+                         ($yesterdaySafetyAggregate->total_minutes_analyzed ?? 0) > 0;
+        $this->dataAvailability['safety'] = $hasSafetyData;
+        
+        // ─── SAFETY DATA - T6W ───────────────────────────────────────────────────
+        // Get aggregate safety data for T6W
+        $t6wSafetyAggregate = $this->safetyDataService->getAggregateSafetyData($t6wStart, $t6wEnd);
+        
+        // Get infractions data for T6W (not needed for the email template)
+        $t6wSafetyInfractions = $this->safetyDataService->getInfractionsData($t6wStart, $t6wEnd);
+        
+        // Calculate safety rates and ratings for T6W
+        $totalHours = ($t6wSafetyAggregate->total_minutes_analyzed ?? 0) / 60;
+        $safetyRates = $this->safetyDataService->calculateViolationRates($t6wSafetyAggregate, $totalHours);
+        $safetyRatings = $this->safetyDataService->calculateSafetyRatings($safetyRates, $rule);
+        
+        // ─── PERFORMANCE DATA - YESTERDAY ───────────────────────────────────────────
+        // Get main performance data for yesterday
+        $yesterdayPerformanceMain = $this->performanceDataService->getMainPerformanceData($yesterdayStart, $yesterdayEnd);
+        
+        // Get rolling performance data for yesterday
+        $yesterdayPerformanceRolling = $this->performanceDataService->getRollingPerformanceData($yesterdayStart, $yesterdayEnd);
+        
         // Check if performance data exists
-        $hasPerformanceData = $main && (
-            ($main->avg_acceptance !== null && $main->avg_acceptance > 0) || 
-            ($main->avg_on_time !== null && $main->avg_on_time > 0) || 
-            ($main->meets_safety !== null && $main->meets_safety > 0)
+        $hasPerformanceData = $yesterdayPerformanceMain && (
+            ($yesterdayPerformanceMain->average_acceptance !== null && $yesterdayPerformanceMain->average_acceptance > 0) || 
+            ($yesterdayPerformanceMain->average_on_time !== null && $yesterdayPerformanceMain->average_on_time > 0) || 
+            ($yesterdayPerformanceMain->meets_safety_bonus_criteria !== null && $yesterdayPerformanceMain->meets_safety_bonus_criteria > 0)
+        );
+        $this->dataAvailability['performance'] = $hasPerformanceData;
+        
+        // ─── PERFORMANCE DATA - T6W ───────────────────────────────────────────
+        // Get main performance data for T6W
+        $t6wPerformanceMain = $this->performanceDataService->getMainPerformanceData($t6wStart, $t6wEnd);
+        
+        // Get rolling performance data for T6W
+        $t6wPerformanceRolling = $this->performanceDataService->getRollingPerformanceData($t6wStart, $t6wEnd);
+        
+        // ─── MVtS CALCULATION - YESTERDAY ───────────────────────────────────────────────────
+        // Get QS invoice amount and total miles for MVtS calculation
+        $yesterdayQsInvoiceAmount = $this->maintenanceBreakdownService->getQSInvoiceAmount($yesterdayStart, $yesterdayEnd);
+        $yesterdayTotalMiles = $this->maintenanceBreakdownService->getTotalMiles($yesterdayStart, $yesterdayEnd);
+        $yesterdayQsMVtS = $this->maintenanceBreakdownService->calculateQSMVtS($yesterdayQsInvoiceAmount, $yesterdayTotalMiles) * 100;
+        
+        // ─── MVtS CALCULATION - T6W ───────────────────────────────────────────────────
+        // Get QS invoice amount and total miles for T6W MVtS calculation
+        $t6wQsInvoiceAmount = $this->maintenanceBreakdownService->getQSInvoiceAmount($t6wStart, $t6wEnd);
+        $t6wTotalMiles = $this->maintenanceBreakdownService->getTotalMiles($t6wStart, $t6wEnd);
+        $t6wQsMVtS = $this->maintenanceBreakdownService->calculateQSMVtS($t6wQsInvoiceAmount, $t6wTotalMiles) * 100;
+        
+        // ─── PERFORMANCE RATINGS - T6W ────────────────────────────────────────────────
+        $performanceRatings = $this->performanceDataService->calculateRatings(
+            $t6wPerformanceMain, 
+            $t6wPerformanceRolling, 
+            ['qs_MVtS' => $t6wQsMVtS], 
+            $rule
         );
         
-        $this->dataAvailability['performance'] = $hasPerformanceData;
-
-        // ─── PERFORMANCE ROLLING ────────────────────────────────────────────────
-        $roll = DB::table('performances')
-            ->where('tenant_id', $this->tenantId)
-            ->whereBetween('date', [$start, $end])
-            ->selectRaw("
-                SUM(open_boc)           AS sum_open_boc,
-                SUM(vcr_preventable)    AS sum_vcr_preventable,
-                SUM(vmcr_p)             AS sum_vmcr_p
-            ")
-            ->first();
-
-        // ─── MVtS WITH CANCELLATION FILTER ──────────────────────────────────────
-        $qsInvoice = DB::table('repair_orders')
-            ->leftJoin('wo_statuses', 'repair_orders.wo_status_id', '=', 'wo_statuses.id')
-            ->where('repair_orders.tenant_id', $this->tenantId)
-            ->where('repair_orders.on_qs', 'yes')
-            ->whereBetween('repair_orders.qs_invoice_date', [$start, $end])
-            ->where(function($q) {
-                $q->where('wo_statuses.name', '!=', 'Canceled');
-            })
-            ->sum('repair_orders.invoice_amount') ?: 0;
-
-        $totalMiles = DB::table('miles_driven')
-            ->where('tenant_id', $this->tenantId)
-            ->whereBetween('week_start_date', [$start, $end])
-            ->sum('miles') ?: 0;
-
-        $divisor     = $rule->mvts_divisor ?: 0.135;
-        $mvtsRaw     = $totalMiles > 0
-            ? ($qsInvoice / $totalMiles) / $divisor * 100
-            : 0;
-        $mvtsPercent = round($mvtsRaw, 2);
-
-        // ─── PERFORMANCE RATINGS ────────────────────────────────────────────────
-        $ratings = [
-            'average_acceptance'                => $calc->getRating($main->avg_acceptance,  $rule, 'acceptance'),
-            'average_on_time'                   => $calc->getRating($main->avg_on_time,       $rule, 'on_time'),
-            'average_maintenance_variance_to_spend' => $calc->getRating($mvtsRaw,                $rule, 'maintenance_variance'),
-            'open_boc'                          => $calc->getRating($roll->sum_open_boc,      $rule, 'open_boc'),
-            'vcr_preventable'                   => $calc->getRating($roll->sum_vcr_preventable,$rule,'vcr_preventable'),
-            'vmcr_p'                            => $calc->getRating($roll->sum_vmcr_p,         $rule,'vmcr_p'),
-            'meets_safety_bonus_criteria'       => $calc->getSafetyBonusRating($main->meets_safety, $rule),
-        ];
-
-        // ─── OPERATIONAL EXCELLENCE SCORE ─────────────────────────────────────
-        $this->operationalExcellenceScore = $this->calculateOperationalExcellenceScore($ratings);
-
-        // ─── SAFETY AGGREGATE ──────────────────────────────────────────────────
-        $agg = DB::table('safety_data')
-            ->where('tenant_id', $this->tenantId)
-            ->whereBetween('date', [$start, $end])
-            ->selectRaw("
-                SUM(traffic_light_violation) AS traffic_light_violation,
-                SUM(speeding_violations)     AS speeding_violations,
-                SUM(following_distance)      AS following_distance,
-                SUM(driver_distraction)      AS driver_distraction,
-                SUM(sign_violations)         AS sign_violations,
-                SUM(minutes_analyzed)        AS total_minutes,
-                AVG(driver_score)            AS avg_driver_score
-            ")
-            ->first();
-            
-        // Check if safety data exists
-        $hasSafetyData = $agg && $agg->total_minutes > 0;
-        $this->dataAvailability['safety'] = $hasSafetyData;
-
-        $hours = ($agg->total_minutes ?: 0) / 60;
-
-        // rates per 1 000 h
-        $rates = [];
-        foreach ([
-            'traffic_light_violation',
-            'speeding_violations',
-            'following_distance',
-            'driver_distraction',
-            'sign_violations',
-        ] as $metric) {
-            $agg->$metric = round($agg->$metric,0);
-            $rates[$metric] = $hours > 0
-                ? round(($agg->$metric / $hours) * 1000, 2)
-                : 0;
-        }
-
-        // safety ratings
-        $safetyRatings = [];
-        foreach ($rates as $metric => $rate) {
-            $prefix = match($metric) {
-                'speeding_violations' => 'speeding_violation',
-                'sign_violations'     => 'sign_violation',
-                default               => $metric,
-            };
-            $safetyRatings[$metric] = $this->calcSafetyRating($rate, $rule, $prefix);
-        }
-
-        // infractions
-        $infra = DB::table('safety_data')
-            ->where('tenant_id', $this->tenantId)
-            ->whereBetween('date', [$start, $end])
-            ->selectRaw("
-                SUM(driver_star)           AS driver_star,
-                SUM(potential_collision)   AS potential_collision,
-                SUM(hard_braking)          AS hard_braking,
-                SUM(hard_turn)             AS hard_turn,
-                SUM(hard_acceleration)     AS hard_acceleration,
-                SUM(u_turn)                AS u_turn,
-                SUM(seatbelt_compliance)   AS seatbelt_compliance,
-                SUM(camera_obstruction)    AS camera_obstruction,
-                SUM(driver_drowsiness)     AS driver_drowsiness,
-                SUM(weaving)               AS weaving,
-                SUM(collision_warning)     AS collision_warning,
-                SUM(backing)               AS backing,
-                SUM(roadside_parking)      AS roadside_parking,
-                SUM(high_g)                AS high_g
-            ")
-            ->first();
-
-        // assign to properties
-        $this->performanceMain     = (array)$main;
-        $this->performanceRolling  = (array)$roll;
-        $this->mvtsPercent         = $mvtsPercent;
-        $this->performanceRatings  = $ratings;
-
-        $this->safetyAggregate     = (array)$agg;
-        $this->safetyRates         = $rates;
-        $this->safetyRatings       = $safetyRatings;
-        $this->safetyInfractions   = (array)$infra;
+        // ─── OPERATIONAL EXCELLENCE SCORE - T6W ─────────────────────────────────────
+        $operationalExcellenceScore = $this->calculateOperationalExcellenceScore($performanceRatings);
+        
+        // ─── PERFORMANCE RATINGS - YESTERDAY ────────────────────────────────────────────────
+        $yesterdayPerformanceRatings = $this->performanceDataService->calculateRatings(
+            $yesterdayPerformanceMain, 
+            $yesterdayPerformanceRolling, 
+            ['qs_MVtS' => $yesterdayQsMVtS], 
+            $rule
+        );
+        
+        // ─── OPERATIONAL EXCELLENCE SCORE - YESTERDAY ─────────────────────────────────────
+        $yesterdayOperationalExcellenceScore = $this->calculateOperationalExcellenceScore($yesterdayPerformanceRatings);
+        
+        // ─── ASSIGN TO PROPERTIES ───────────────────────────────────────────────
+        // Yesterday's data
+        $this->performanceMain = (array)$yesterdayPerformanceMain;
+        $this->performanceRolling = (array)$yesterdayPerformanceRolling;
+        $this->mvtsPercent = round($yesterdayQsMVtS, 2);
+        $this->safetyAggregate = (array)$yesterdaySafetyAggregate;
+        $this->safetyInfractions = (array)$yesterdaySafetyInfractions;
+        $this->yesterdayOperationalExcellenceScore = $yesterdayOperationalExcellenceScore;
+        
+        // T6W data
+        $this->t6wPerformanceMain = (array)$t6wPerformanceMain;
+        $this->t6wPerformanceRolling = (array)$t6wPerformanceRolling;
+        $this->t6wSafetyAggregate = (array)$t6wSafetyAggregate;
+        $this->safetyRates = $safetyRates;
+        $this->safetyRatings = $safetyRatings;
+        $this->performanceRatings = $performanceRatings;
+        $this->operationalExcellenceScore = $operationalExcellenceScore;
     }
 
     private function calculateOperationalExcellenceScore(array $ratings): string
@@ -242,35 +237,6 @@ class DailyReportEmail extends Mailable
             'poor'           => 'Poor',
             default          => 'Not Available',
         };
-    }
-
-    private function compareValues($value, $threshold, $operator): bool
-    {
-        return match ($operator) {
-            'less'          => $value < $threshold,
-            'less_or_equal' => $value <= $threshold,
-            'equal'         => $value == $threshold,
-            'more_or_equal'=> $value >= $threshold,
-            'more'          => $value > $threshold,
-            default         => false,
-        };
-    }
-
-    private function calcSafetyRating(float $rate, PerformanceMetricRule $rule, string $prefix): string
-    {
-        $goldTh = $rule->{"{$prefix}_gold"} ?? null;
-        $goldOp = $rule->{"{$prefix}_gold_operator"} ?? null;
-        if ($goldTh !== null && $goldOp && $this->compareValues($rate, $goldTh, $goldOp)) {
-            return 'gold';
-        }
-
-        $silverTh = $rule->{"{$prefix}_silver"} ?? null;
-        $silverOp = $rule->{"{$prefix}_silver_operator"} ?? null;
-        if ($silverTh !== null && $silverOp && $this->compareValues($rate, $silverTh, $silverOp)) {
-            return 'silver';
-        }
-
-        return 'not_eligible';
     }
 
     public function envelope(): Envelope
