@@ -17,51 +17,53 @@
 
             <!-- Actions Section -->
             <!-- responsive here -->
-            <div class="w-full md:max-w-xl lg:max-w-2xl xl:max-w-6xl m-auto pt-2  space-y-2 md:space-y-4 lg:space-y-6">
+            <div class="w-full md:max-w-xl lg:max-w-2xl xl:max-w-6xl m-auto pt-2 space-y-2 md:space-y-4 lg:space-y-6">
                 <!-- responsive here -->
-                <h1 class="text-lg md:text-xl lg:text-2xl font-bold text-gray-800 dark:text-gray-200">Performance Management</h1>
-                <div class="flex flex-wrap gap-3 ml-3">
-                    <!-- responsive here -->
-                    <Button class="px-2 py-0 md:px-4 md:py-2" @click="openCreateModal" variant="default">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                    <h1 class="text-lg md:text-xl lg:text-2xl font-bold text-gray-800 dark:text-gray-200">Performance Management</h1>
+                    <div class="flex flex-wrap gap-3">
                         <!-- responsive here -->
-                        <Icon name="plus" class="mr-1 h-4 w-4 md:mr-2" />
-                        Create New Performance
-                    </Button>
-
-                    <!-- Add Delete Selected button -->
-                    <!-- responsive here -->
-                    <Button class="px-2 py-0 md:px-4 md:py-2" v-if="selectedPerformances.length > 0" @click="confirmDeleteSelected()" variant="destructive">
-                        <!-- responsive here -->
-                        <Icon name="trash" class="mr-1 h-4 w-4 md:mr-2" />
-                        Delete Selected ({{ selectedPerformances.length }})
-                    </Button>
-
-                    <div class="relative">
-                        <!-- responsive here -->
-                        <Button class="px-2 py-0 md:px-4 md:py-2" @click="showUploadOptions = !showUploadOptions" variant="secondary">
+                        <Button class="px-2 py-0 md:px-4 md:py-2" @click="openCreateModal" variant="default">
                             <!-- responsive here -->
-                            <Icon name="upload" class="mr-1 h-4 w-4 md:mr-2" />
-                            Upload CSV
-                            <Icon name="chevron-down" class="ml-2 h-4 w-4" />
+                            <Icon name="plus" class="mr-1 h-4 w-4 md:mr-2" />
+                            Create New Performance
                         </Button>
-                        <div v-if="showUploadOptions" class="absolute right-0 z-10 mt-1 w-48 rounded-md border bg-background shadow-lg">
-                            <div class="py-1">
-                                <label class="block cursor-pointer px-4 py-2 text-sm hover:bg-muted">
-                                    <span>Upload CSV File</span>
-                                    <input type="file" class="hidden" @change="handleImport" accept=".csv" />
-                                </label>
-                                <a :href="templateUrl" download="Performances Template.csv" class="block px-4 py-2 text-sm hover:bg-muted">
-                                    Download Template
-                                </a>
+
+                        <!-- Add Delete Selected button -->
+                        <!-- responsive here -->
+                        <Button class="px-2 py-0 md:px-4 md:py-2" v-if="selectedPerformances.length > 0" @click="confirmDeleteSelected()" variant="destructive">
+                            <!-- responsive here -->
+                            <Icon name="trash" class="mr-1 h-4 w-4 md:mr-2" />
+                            Delete Selected ({{ selectedPerformances.length }})
+                        </Button>
+
+                        <div class="relative">
+                            <!-- responsive here -->
+                            <Button class="px-2 py-0 md:px-4 md:py-2" @click="showUploadOptions = !showUploadOptions" variant="secondary">
+                                <!-- responsive here -->
+                                <Icon name="upload" class="mr-1 h-4 w-4 md:mr-2" />
+                                Upload CSV
+                                <Icon name="chevron-down" class="ml-2 h-4 w-4" />
+                            </Button>
+                            <div v-if="showUploadOptions" class="absolute right-0 z-10 mt-1 w-48 rounded-md border bg-background shadow-lg">
+                                <div class="py-1">
+                                    <label class="block cursor-pointer px-4 py-2 text-sm hover:bg-muted">
+                                        <span>Upload CSV File</span>
+                                        <input type="file" class="hidden" @change="handleImport" accept=".csv" />
+                                    </label>
+                                    <a :href="templateUrl" download="Performances Template.csv" class="block px-4 py-2 text-sm hover:bg-muted">
+                                        Download Template
+                                    </a>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <!-- responsive here -->
-                    <Button class="px-2 py-0 md:px-4 md:py-2" @click.prevent="exportCSV" variant="outline">
                         <!-- responsive here -->
-                        <Icon name="download" class="mr-1 h-4 w-4 md:mr-2" />
-                        Download CSV
-                    </Button>
+                        <Button class="px-2 py-0 md:px-4 md:py-2" @click.prevent="exportCSV" variant="outline">
+                            <!-- responsive here -->
+                            <Icon name="download" class="mr-1 h-4 w-4 md:mr-2" />
+                            Download CSV
+                        </Button>
+                    </div>
                 </div>
             </div>
 

@@ -97,7 +97,7 @@ const getOperatorLabel = (value) => {
 </script>
 
 <template>
-  <form @submit.prevent="submit" class="space-y-8">
+  <form @submit.prevent="submit" class="w-full space-y-8">
     <Card v-for="metric in metrics" :key="metric" class="shadow-sm">
       <CardHeader>
         <CardTitle class="capitalize">{{ metric.replace(/_/g, ' ') }}</CardTitle>
