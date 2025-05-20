@@ -45,7 +45,7 @@ class PerformanceImportExportService
         $handle = fopen($file->getRealPath(), 'r');
 
         if (!$handle) {
-            throw new \Exception('Could not open the file.');
+            return redirect()->back()->with('error', 'Could not open the CSV file. Please try again later.');
         }
 
         // Determine if the current user is a SuperAdmin.
@@ -173,7 +173,7 @@ class PerformanceImportExportService
 
         // If there are no records, throw an exception or handle accordingly.
         if ($performances->isEmpty()) {
-            throw new \Exception('No performance data to export.');
+            return redirect()->back()->with('error', 'No performance records to export.');
         }
 
         // Generate a random filename for the CSV export.

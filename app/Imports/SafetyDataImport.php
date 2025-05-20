@@ -204,7 +204,6 @@ class SafetyDataImport implements ToCollection, WithStartRow, WithChunkReading, 
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
-            throw new \Exception("Error on row {$rowIndex} (Excel row): " . $e->getMessage());
         }
     }
     

@@ -47,7 +47,7 @@ class RepairOrderImportExportService
         $file = $request->file('file');
         $handle = fopen($file->getRealPath(), 'r');
         if (!$handle) {
-            dd('Could not open the file.');
+            return redirect()->back()->with('error', 'Unable to open CSV file.');
         }
 
         // Determine if the current user is a SuperAdmin.
@@ -74,7 +74,7 @@ class RepairOrderImportExportService
         $headerRow = fgetcsv($handle, 0, ',');
         // dd('Header row from CSV:', $headerRow);
         if (count($headerRow) !== count($expectedHeaders)) {
-            dd('Header row count mismatch', $headerRow, $expectedHeaders);
+            return redirect()->back()->with('error', 'CSV header row does not match expected headers.');
         }
 
         $rowsImported = 0;
@@ -82,7 +82,6 @@ class RepairOrderImportExportService
 
         while (($row = fgetcsv($handle, 0, ',')) !== false) {
             if (count($row) !== count($expectedHeaders)) {
-                dd('Row column count mismatch', $row, $expectedHeaders);
                 $rowsSkipped++;
                 continue;
             }
@@ -95,7 +94,6 @@ class RepairOrderImportExportService
             try {
                 $data['ro_open_date'] = Carbon::createFromFormat('m/d/Y', $data['ro_open_date'])->format('Y-m-d');
             } catch (\Exception $e) {
-                dd('Error converting ro_open_date', $data['ro_open_date'], $e);
                 $rowsSkipped++;
                 continue;
             }
@@ -103,7 +101,6 @@ class RepairOrderImportExportService
                 try {
                     $data['ro_close_date'] = Carbon::createFromFormat('m/d/Y', $data['ro_close_date'])->format('Y-m-d');
                 } catch (\Exception $e) {
-                    dd('Error converting ro_close_date', $data['ro_close_date'], $e);
                     $data['ro_close_date'] = null;
                 }
             } else {
@@ -113,7 +110,6 @@ class RepairOrderImportExportService
                 try {
                     $data['qs_invoice_date'] = Carbon::createFromFormat('m/d/Y', $data['qs_invoice_date'])->format('Y-m-d');
                 } catch (\Exception $e) {
-                    dd('Error converting qs_invoice_date', $data['qs_invoice_date'], $e);
                     $data['qs_invoice_date'] = null;
                 }
             } else {
@@ -132,7 +128,6 @@ class RepairOrderImportExportService
             // Process truck: look up Truck by its unique 'truckid' field.
             $truck = Truck::where('truckid', $data['truckid'])->first();
             if (!$truck) {
-                dd('Truck not found for truckid:', $data['truckid'], $row);
                 $rowsSkipped++;
                 continue;
             }
@@ -143,13 +138,11 @@ class RepairOrderImportExportService
             // Process vendor: look up by vendor_name.
             $vendor = Vendor::where('vendor_name', $data['vendor'])->first();
             if (!$vendor) {
-                dd('Vendor not found for vendor:', $data['vendor'], $row);
                 $rowsSkipped++;
                 continue;
             }
             // Check if vendor is soft-deleted
             if ($vendor->trashed()) {
-                dd('Vendor is soft-deleted:', $data['vendor'], $row);
                 $rowsSkipped++;
                 continue;
             }
@@ -160,13 +153,11 @@ class RepairOrderImportExportService
             // Process WO Status: look up by name
             $woStatus = WoStatus::where('name', $data['wo_status'])->first();
             if (!$woStatus) {
-                dd('WO Status not found:', $data['wo_status'], $row);
                 $rowsSkipped++;
                 continue;
             }
             // Check if WO Status is soft-deleted
             if ($woStatus->trashed()) {
-                dd('WO Status is soft-deleted:', $data['wo_status'], $row);
                 $rowsSkipped++;
                 continue;
             }
@@ -216,7 +207,6 @@ class RepairOrderImportExportService
             if ($isSuperAdmin) {
                 $tenant = Tenant::where('name', $data['tenant_name'])->first();
                 if (!$tenant) {
-                    dd('Tenant not found for tenant_name:', $data['tenant_name'], $row);
                     $rowsSkipped++;
                     continue;
                 }
@@ -253,7 +243,6 @@ class RepairOrderImportExportService
                 'repairs_made'     => 'nullable|string',
             ]);
             if ($validator->fails()) {
-                dd('Validation failed:', $validator->errors(), $data);
                 $rowsSkipped++;
                 continue;
             }
@@ -323,7 +312,7 @@ class RepairOrderImportExportService
         ])->get();
 
         if ($repairOrders->isEmpty()) {
-            throw new \Exception('No repair order data to export.');
+            return redirect()->back()->with('error', 'No Data');
         }
 
         $fileName = 'repair_orders_' . Str::random(8) . '.csv';

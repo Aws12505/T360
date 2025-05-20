@@ -31,7 +31,7 @@ class TruckImportExportService
         $handle = fopen($file->getRealPath(), 'r');
 
         if (!$handle) {
-            throw new \Exception('Could not open the file.');
+            return redirect()->back()->with('error', 'Could not open the CSV file. Please try again later.');
         }
 
         // Determine if the current user is a SuperAdmin.
@@ -47,7 +47,7 @@ class TruckImportExportService
         $headers = fgetcsv($handle, 0, ',');
         if ($headers === false) {
             fclose($handle);
-            throw new \Exception('CSV file is empty.');
+            return redirect()->back()->with('error', 'Invalid CSV file format.');
         }
 
         // Check if the CSV header count matches expected.

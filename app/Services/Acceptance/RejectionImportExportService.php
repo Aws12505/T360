@@ -32,7 +32,7 @@ class RejectionImportExportService
         $handle = fopen($file->getRealPath(), 'r');
 
         if (!$handle) {
-            throw new \Exception('Could not open the file.');
+            return redirect()->back()->with('error', 'Could not open the CSV file. Please try again later.');
         }
 
         // Determine if the current user is a SuperAdmin.
@@ -169,7 +169,7 @@ class RejectionImportExportService
 
         // If there are no records, throw an exception or handle accordingly.
         if ($rejections->isEmpty()) {
-            throw new \Exception('No rejection data to export.');
+            return redirect()->back()->with('error', 'No rejection records to export.');
         }
 
         // Generate a random filename for the CSV export.

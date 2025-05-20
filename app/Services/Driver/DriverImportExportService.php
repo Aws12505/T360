@@ -29,7 +29,7 @@ class DriverImportExportService
         $handle = fopen($file->getRealPath(), 'r');
 
         if (!$handle) {
-            throw new \Exception('Could not open the file.');
+            return redirect()->back()->with('error', 'Could Not Open File');
         }
 
         $isSuperAdmin = Auth::user()->tenant_id === null;
@@ -41,7 +41,7 @@ class DriverImportExportService
         $headers = fgetcsv($handle, 0, ',');
         if ($headers === false) {
             fclose($handle);
-            throw new \Exception('CSV file is empty.');
+            return redirect()->back()->with('error', 'No Date');
         }
 
         if (count($headers) !== count($expectedHeaders)) {

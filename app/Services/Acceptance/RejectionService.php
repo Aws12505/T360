@@ -103,7 +103,6 @@ if ($request->has('driverControllable')) {
         if (!empty($dateRange) && isset($dateRange['start'])) {
             $startDate = Carbon::parse($dateRange['start']);
             $year = $startDate->year;
-            // Removed dd($startDate) debug statement
             
             // compute week numbers (Sunday=first day)
             if (in_array($dateFilter, [ 'current-week'])) {
