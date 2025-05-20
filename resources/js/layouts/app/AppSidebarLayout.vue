@@ -70,13 +70,16 @@ onUnmounted(() => {
 <style scoped>
 .content-wrapper {
     width: 100%;
-    overflow-x: auto; /* Allow horizontal scrolling when needed */
+    overflow-x: hidden; /* Change from auto to hidden to prevent horizontal overflow */
     max-width: 100%;
+    box-sizing: border-box; /* Ensure padding is included in width calculations */
 }
 
 .responsive-content {
     max-width: 100vw;
     transition: padding 0.3s ease;
+    overflow: hidden; /* Add overflow hidden to prevent content from expanding beyond container */
+    box-sizing: border-box; /* Ensure padding is included in width calculations */
 }
 
 /* Desktop styles (default) */
@@ -104,6 +107,7 @@ onUnmounted(() => {
     width: 100%;
     min-width: auto; /* Override any fixed min-width */
     table-layout: auto; /* Allow the table to adjust based on content */
+    max-width: 100%; /* Ensure tables don't exceed container width */
 }
 
 /* Responsive table handling */
@@ -112,6 +116,7 @@ onUnmounted(() => {
         display: block;
         overflow-x: auto;
         white-space: nowrap;
+        max-width: 100%; /* Ensure tables don't exceed container width */
     }
 }
 
@@ -136,5 +141,21 @@ onUnmounted(() => {
 :deep(input, select, textarea) {
     max-width: 100%;
     box-sizing: border-box;
+}
+
+/* Add strict containment for all elements */
+:deep(*) {
+    max-width: 100%;
+    box-sizing: border-box;
+    word-wrap: break-word; /* Allow long words to break */
+    overflow-wrap: break-word;
+}
+
+/* Ensure text doesn't overflow */
+:deep(p, h1, h2, h3, h4, h5, h6, span, div) {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
 }
 </style>
