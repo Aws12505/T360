@@ -23,6 +23,16 @@
               <p style="margin:8px 0 0;font-size:16px;color:#ffffff;opacity:0.9;">{{ $reportDate }}</p>
             </td>
           </tr>
+          
+          <!-- Greeting and Introduction -->
+          <tr>
+            <td style="padding:24px 24px 0;border-bottom:0;">
+              <p style="margin:0 0 16px;font-size:16px;color:#1a1a1a;">Good morning {{ $userName }},</p>
+              <p style="margin:0 0 24px;font-size:16px;color:#1a1a1a;">
+                Here is your daily performance overview from Trucking 360. This summary reflects your most recent metrics and is designed to help you stay on track for Fantastic+ performance.
+              </p>
+            </td>
+          </tr>
 
           @if(!$dataAvailability['performance'] && !$dataAvailability['safety'])
           <!-- No Data Available Message -->
@@ -47,9 +57,15 @@
               <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
                 <tr>
                   <td style="background:#f9fafb;padding:12px;border-radius:6px;text-align:center;">
-                    <strong style="display:block;margin-bottom:4px;color:#4b5563;">Overall Performance Score</strong>
-                    <span style="font-size:18px;font-weight:600;{{ strtolower($operationalExcellenceScore)=='good'||str_contains(strtolower($operationalExcellenceScore),'fantastic')?'color:#10b981;':(strtolower($operationalExcellenceScore)=='poor'?'color:#ef4444;':'color:#f59e0b;') }}">
-                      {{ $operationalExcellenceScore }}
+                    {{-- <strong style="display:block;margin-bottom:4px;color:#4b5563;">Overall Performance Score</strong> --}}
+                    <span style="font-size:18px;font-weight:600;{{ 
+                      strtolower($operationalExcellenceScore)=='good' ? 'color:#2563eb;' : 
+                      (str_contains(strtolower($operationalExcellenceScore),'fantastic_plus') ? 'color:#10b981;' : 
+                      (str_contains(strtolower($operationalExcellenceScore),'fantastic') ? 'color:#059669;' : 
+                      (strtolower($operationalExcellenceScore)=='fair' ? 'color:#d97706;' : 
+                      (strtolower($operationalExcellenceScore)=='poor' ? 'color:#dc2626;' : 'color:#4b5563;')))) 
+                    }}">
+                      {{ str_contains(strtolower($operationalExcellenceScore), 'fantastic_plus') ? 'Fantastic Plus' : ucfirst($operationalExcellenceScore) }}
                     </span>
                   </td>
                 </tr>
@@ -71,22 +87,27 @@
                 </thead>
                 <tbody>
                   @foreach ([
-                    ['Acceptance Rate', number_format($performanceMain['avg_acceptance'] ?? 0,1).'%', ucfirst($performanceRatings['average_acceptance'] ?? 'N/A')],
-                    ['On-Time Rate', number_format($performanceMain['avg_on_time'] ?? 0,1).'%', ucfirst($performanceRatings['average_on_time'] ?? 'N/A')],
+                    ['Acceptance', number_format($performanceMain['avg_acceptance'] ?? 0,1).'%', ucfirst($performanceRatings['average_acceptance'] ?? 'N/A')],
+                    ['On-Time', number_format($performanceMain['avg_on_time'] ?? 0,1).'%', ucfirst($performanceRatings['average_on_time'] ?? 'N/A')],
+                    ['MVtS', number_format($mvtsPercent,1).'%', ucfirst($performanceRatings['average_maintenance_variance_to_spend'] ?? 'N/A')],
                     ['Safety Bonus Met', ($performanceMain['meets_safety'] ?? 0) ? 'Yes' : 'No', ucfirst($performanceRatings['meets_safety_bonus_criteria'] ?? 'N/A')],
                     ['Open BOC', $performanceRolling['sum_open_boc'] ?? 0, ucfirst($performanceRatings['open_boc'] ?? 'N/A')],
                     ['VCR Preventable', $performanceRolling['sum_vcr_preventable'] ?? 0, ucfirst($performanceRatings['vcr_preventable'] ?? 'N/A')],
                     ['VMCR P', $performanceRolling['sum_vmcr_p'] ?? 0, ucfirst($performanceRatings['vmcr_p'] ?? 'N/A')],
-                    ['MVtS', number_format($mvtsPercent,1).'%', ucfirst($performanceRatings['average_maintenance_variance_to_spend'] ?? 'N/A')],
                   ] as $row)
                     @php
                       $rating = strtolower($row[2]);
-                      $color = $rating==='good' ? '#10b981' : ($rating==='poor' ? '#ef4444' : '#f59e0b');
+                      $displayRating = str_contains($rating, 'fantastic_plus') ? 'Fantastic Plus' : $row[2];
+                      $color = $rating === 'good' ? '#2563eb' : 
+                              ($rating === 'fantastic_plus' || str_contains($rating, 'fantastic_plus') ? '#10b981' : 
+                              (str_contains($rating, 'fantastic') ? '#059669' : 
+                              ($rating === 'fair' ? '#d97706' : 
+                              ($rating === 'poor' ? '#dc2626' : '#4b5563'))));
                     @endphp
                     <tr style="background-color:{{ $loop->even ? '#f9fafb' : '#ffffff' }};">
                       <td style="padding:10px;border:1px solid #eaeaea;">{{ $row[0] }}</td>
                       <td style="padding:10px;border:1px solid #eaeaea;font-weight:500;">{{ $row[1] }}</td>
-                      <td style="padding:10px;border:1px solid #eaeaea;font-weight:500;color:{{ $color }};">{{ $row[2] }}</td>
+                      <td style="padding:10px;border:1px solid #eaeaea;font-weight:500;color:{{ $color }};">{{ $displayRating }}</td>
                     </tr>
                   @endforeach
                 </tbody>
@@ -128,20 +149,26 @@
                       $label = ucwords(str_replace('_',' ',$metric));
                       $count = $safetyAggregate[$metric] ?? 0;
                       $ratingText = ucfirst($safetyRatings[$metric] ?? 'N/A');
-                      $ratingColor = strtolower($ratingText)==='good' ? '#10b981' : (strtolower($ratingText)==='poor' ? '#ef4444' : '#f59e0b');
+                      $ratingLower = strtolower($ratingText);
+                      $displayRating = str_contains($ratingLower, 'fantastic_plus') ? 'Fantastic Plus' : $ratingText;
+                      $ratingColor = $ratingLower === 'good' ? '#2563eb' : 
+                                    ($ratingLower === 'fantastic_plus' || str_contains($ratingLower, 'fantastic_plus') ? '#10b981' : 
+                                    (str_contains($ratingLower, 'fantastic') ? '#059669' : 
+                                    ($ratingLower === 'fair' ? '#d97706' : 
+                                    ($ratingLower === 'poor' ? '#dc2626' : '#4b5563'))));
                     @endphp
                     <tr style="background-color:{{ $loop->even ? '#f9fafb' : '#ffffff' }};">
                       <td style="padding:10px;border:1px solid #eaeaea;">{{ $label }}</td>
                       <td style="padding:10px;border:1px solid #eaeaea;font-weight:500;">{{ $count }}</td>
                       <td style="padding:10px;border:1px solid #eaeaea;font-weight:500;">{{ number_format($rate,2) }}</td>
-                      <td style="padding:10px;border:1px solid #eaeaea;font-weight:500;color:{{ $ratingColor }};">{{ $ratingText }}</td>
+                      <td style="padding:10px;border:1px solid #eaeaea;font-weight:500;color:{{ $ratingColor }};">{{ $displayRating }}</td>
                     </tr>
                   @endforeach
                 </tbody>
               </table>
 
               <!-- Infractions -->
-              <h3 style="margin:20px 0 12px;font-size:16px;font-weight:600;color:#2c3e50;">Infractions</h3>
+              <h3 style="margin:20px 0 12px;font-size:16px;font-weight:600;color:#2c3e50;">Other Important Infractions</h3>
               <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="font-size:14px;">
                 <thead>
                   <tr>
@@ -151,10 +178,12 @@
                 </thead>
                 <tbody>
                   @foreach($safetyInfractions as $inf => $cnt)
+                  @if($inf != 'driver_star')
                     <tr style="background-color:{{ $loop->even ? '#f9fafb' : '#ffffff' }};">
                       <td style="padding:10px;border:1px solid #eaeaea;">{{ ucwords(str_replace('_',' ',$inf)) }}</td>
                       <td style="padding:10px;border:1px solid #eaeaea;font-weight:500;">{{ $cnt }}</td>
                     </tr>
+                  @endif
                   @endforeach
                 </tbody>
               </table>
@@ -164,11 +193,15 @@
                 <tr>
                   <td style="background:#f9fafb;padding:12px;border-radius:6px;text-align:center;">
                     <strong style="display:block;margin-bottom:4px;color:#4b5563;">Average Driver Score</strong>
-                    <span style="font-size:18px;font-weight:600;">{{ number_format($safetyAggregate['avg_driver_score'] ?? 0,1) }}</span>
+                    <span style="font-size:18px;font-weight:600;">{{ number_format($safetyAggregate['avg_driver_score'] ?? 0,0) }}</span>
                   </td>
                   <td style="background:#f9fafb;padding:12px;border-radius:6px;text-align:center;">
                     <strong style="display:block;margin-bottom:4px;color:#4b5563;">Total Hours Analyzed</strong>
                     <span style="font-size:18px;font-weight:600;">{{ number_format(($safetyAggregate['total_minutes'] ?? 0)/60,1) }}</span>
+                  </td>
+                  <td style="background:#f9fafb;padding:12px;border-radius:6px;text-align:center;">
+                    <strong style="display:block;margin-bottom:4px;color:#4b5563;">Driver Star</strong>
+                    <span style="font-size:18px;font-weight:600;">{{ number_format(($safetyInfractions['driver_star'] ?? 0),0) }}</span>
                   </td>
                 </tr>
               </table>

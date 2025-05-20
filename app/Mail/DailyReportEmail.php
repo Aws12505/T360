@@ -18,6 +18,7 @@ class DailyReportEmail extends Mailable
 
     protected int    $tenantId;
     public    string $reportDate;
+    public    string $userName; // Add this property for the user's name
 
     public    array  $performanceMain;
     public    array  $performanceRolling;
@@ -33,9 +34,10 @@ class DailyReportEmail extends Mailable
     // Add new property to track data availability
     public    array  $dataAvailability;
 
-    public function __construct(int $tenantId)
+    public function __construct(int $tenantId, string $userName = 'User')
     {
         $this->tenantId = $tenantId;
+        $this->userName = $userName; // Store the user's name
 
         // ─── Yesterday's Data ────────────────────────────────────────────────────
         $yesterday = Carbon::yesterday();
@@ -156,6 +158,7 @@ class DailyReportEmail extends Mailable
             'driver_distraction',
             'sign_violations',
         ] as $metric) {
+            $agg->$metric = round($agg->$metric,0);
             $rates[$metric] = $hours > 0
                 ? round(($agg->$metric / $hours) * 1000, 2)
                 : 0;

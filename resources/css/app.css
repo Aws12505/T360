@@ -105,8 +105,36 @@ html {
     body {
         @apply bg-background text-foreground;
     }
+    
+    /* Loading bar styling */
+    #nprogress .bar {
+        background: #6f78de !important;
+        height: 3px !important;
+    }
+    
+    #nprogress .peg {
+        box-shadow: 0 0 10px #6f78de, 0 0 5px #6f78de !important;
+    }
+    
+    #nprogress .spinner-icon {
+        border-top-color: #6f78de !important;
+        border-left-color: #6f78de !important;
+    }
+    
+    /* Dark mode loading bar */
+    .dark #nprogress .bar {
+        background: hsl(var(--primary)) !important;
+    }
+    
+    .dark #nprogress .peg {
+        box-shadow: 0 0 10px hsl(var(--primary)), 0 0 5px hsl(var(--primary)) !important;
+    }
+    
+    .dark #nprogress .spinner-icon {
+        border-top-color: hsl(var(--primary)) !important;
+        border-left-color: hsl(var(--primary)) !important;
+    }
 }
-
 
 /* Add custom border styling for thicker borders */
 @layer utilities {

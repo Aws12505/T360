@@ -27,9 +27,10 @@ class SendReport extends Command
             // Pass tenant_id explicitly
             $tenantId = $user->tenant_id;
             if(!is_null($tenantId)) {
-            Mail::to($user->email)
-                ->send(new DailyReportEmail($tenantId));
-            $this->info("Sent report to {$user->email}");}
+                Mail::to($user->email)
+                    ->send(new DailyReportEmail($tenantId, $user->name));
+                $this->info("Sent report to {$user->email}");
+            }
         }
 
         return 0;
