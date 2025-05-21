@@ -385,7 +385,6 @@ const paginatedDrivers = computed(() => {
 const getScoreBadgeOperationalVariant = (score) => {
   if (score >= 75) return 'success';
   if (score >= 50) return 'midRange';
-  if (score >= 25) return 'warning';
   return 'destructive';
 };
 const getScoreBadgeVariant = (score) => {
