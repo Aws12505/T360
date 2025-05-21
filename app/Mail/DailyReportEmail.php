@@ -58,8 +58,6 @@ class DailyReportEmail extends Mailable
     ) {
         $this->tenantId = $tenantId;
         $this->userName = $userName;
-        $this->logoUrl = config('app.url') . '/logo.svg'; // Set the logo URL
-        
         // Initialize services
         $this->safetyDataService = $safetyDataService ?? new SafetyDataService();
         $this->performanceCalculationsService = $performanceCalculationsService ?? new PerformanceCalculationsService();
