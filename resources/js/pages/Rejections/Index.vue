@@ -283,23 +283,16 @@
                     </div>
                 </CardContent>
             </Card>
-            <!-- No Data Message -->
-            <div v-if="!hasData" class="flex flex-col items-center justify-center rounded-lg border bg-muted/20 py-16">
-                <Icon name="database-x" class="mb-4 h-16 w-16 text-muted-foreground" />
-                <h2 class="text-center text-2xl font-bold text-muted-foreground">There is No Data to give Information about.</h2>
-            </div>
 
-            <!-- Content that should be hidden when no data -->
-            <div v-if="hasData">
                 <!-- Acceptance Dashboard -->
                 <AcceptanceDashboard
                     v-if="!isSuperAdmin"
-                    :metricsData="acceptanceMetrics"
-                    :driversData="bottomDrivers"
-                    :chartData="acceptanceChartData"
-                    :averageAcceptance="average_acceptance"
-                    :currentDateFilter="props.dateRange.label"
-                    :currentFilters="filters"
+                    :metricsData="acceptanceMetrics || {}"
+                    :driversData="bottomDrivers || []"
+                    :chartData="acceptanceChartData || {}"
+                    :averageAcceptance="average_acceptance || null"
+                    :currentDateFilter="props.dateRange?.label || ''"
+                    :currentFilters="filters || {}"
                 />
                 <!-- Rejections Table -->
                 <!-- responsive here -->
@@ -465,7 +458,6 @@
                         </div>
                     </CardContent>
                 </Card>
-            </div>
             <!-- Rejection Form Modal -->
             <Dialog v-model:open="formModal">
                 <DialogContent class="max-w-[95vw] sm:max-w-[90vw] md:max-w-4xl">
@@ -1070,10 +1062,10 @@ const acceptanceMetrics = computed(() => {
         };
     } else {
         return {
-            totalRejections: categoryData.total_rejections,
-            moreThan6Count: categoryData.more_than_6_count,
-            within6Count: categoryData.within_6_count,
-            afterStartCount: categoryData.after_start_count,
+            totalRejections: categoryData.total_rejections || 0,
+            moreThan6Count: categoryData.more_than_6_count || 0,
+            within6Count: categoryData.within_6_count || 0,
+            afterStartCount: categoryData.after_start_count || 0,
             by_category: true,
         };
     }

@@ -220,7 +220,8 @@
                                                 'left-[150px]': freezeColumns && col === 'driver_name' && SuperAdmin,
                                             }"
                                         >
-                                            {{ item[col] }}
+                                        {{ typeof item[col] === 'number' ? Math.round(item[col]) : 
+                                        (typeof item[col] === 'string' && !isNaN(parseFloat(item[col])) ? Math.round(parseFloat(item[col])) : item[col]) }}
                                         </TableCell>
                                         <!-- Actions for each entry - removed freezing -->
                                         <TableCell>

@@ -101,17 +101,17 @@ const initChart = () => {
       scales: {
         y: {
           beginAtZero: minValue > 10 ? false : true,
-          min: Math.max(Math.floor(minValue-15),0),
-          max: Math.min(110,Math.ceil(maxValue+15)),
+          min: Math.max(Math.floor(minValue-5),0),
+          max: Math.min(102.5,Math.ceil(maxValue+5)),
           ticks: {
-            stepSize: 5, // Create approximately 5 steps
+            stepSize: 2.5, // Create approximately 5 steps
             padding: 10, // Add padding between the axis and the labels
             font: {
               size: 11 // Slightly increase font size for better visibility
             },
             callback: function(value) {
               // Hide the last label (120)
-              return value < 120 ? value : '';
+              return value <= 100 ? value : '';
             }
           },
           grid: {

@@ -277,14 +277,8 @@
                         </div>
                     </CardContent>
                 </Card>
-<!-- No Data Message -->
-<div v-if="!hasData" class="flex flex-col items-center justify-center rounded-lg border bg-muted/20 py-16">
-                <Icon name="database-x" class="mb-4 h-16 w-16 text-muted-foreground" />
-                <h2 class="text-center text-2xl font-bold text-muted-foreground">There is No Data to give Information about.</h2>
-            </div>
 
-            <!-- Content Section - Only show if data exists -->
-            <template v-if="hasData">
+
                 <!-- On-Time Dashboard -->
                 <OnTimeDashboard
                     v-if="!isSuperAdmin"
@@ -357,7 +351,7 @@
                                                 </div>
                                             </div>
                                         </TableHead>
-                                        <TableHead>Actions</TableHead>
+                                        <TableHead class="text-right">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -458,7 +452,6 @@
                         </div>
                     </CardContent>
                 </Card>
-            </template>
             <!-- Delay Form Modal (Pass only active delay codes) -->
             <Dialog v-model:open="formModal">
                 <DialogContent class="max-w-[95vw] sm:max-w-[90vw] md:max-w-4xl">

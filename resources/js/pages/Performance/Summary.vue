@@ -316,7 +316,7 @@ const formatDateShort = (date) => {
 // Format number with commas for thousands
 const formatNumber = (value) => {
   if (value === undefined || value === null) return '0';
-  return new Intl.NumberFormat().format(value);
+  return new Intl.NumberFormat().format(Math.round(value));
 };
 // Compute operational excellence score based on performance ratings
 const operationalExcellenceScore = computed(() => {

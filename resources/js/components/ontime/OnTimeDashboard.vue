@@ -12,9 +12,15 @@
                 :drivers="bottomDrivers"
                 :delayType="delayType"
                 :totalDelays="props.metricsData.totalDelays"
-                class="lg:col-span-1"
+                :class="{'lg:col-span-1': hasEnoughChartData, 'lg:col-span-4': !hasEnoughChartData}"
             />
-            <LineChart v-if="props.currentDateFilter!='Yesterday'" :title="'On-Time Score'" :chartData="lineChartData" :averageOntime="averageOntime" class="lg:col-span-3" />
+            <LineChart 
+                v-if="props.currentDateFilter!='Yesterday' && hasEnoughChartData" 
+                :title="'On-Time Score'" 
+                :chartData="lineChartData" 
+                :averageOntime="averageOntime" 
+                class="lg:col-span-3" 
+            />
         </div>
     </div>
 </template>
@@ -44,9 +50,9 @@ const props = defineProps({
         default: null,
     },
     currentDateFilter: {
-    type: String,
-    default: null
-  },
+        type: String,
+        default: null
+    },
     delayType: {
         type: String,
         default: 'all',
@@ -79,5 +85,13 @@ const lineChartData = computed(() => {
         return props.chartData;
     }
     return {};
+});
+
+// Check if there's enough data for the chart (more than 1 data point)
+const hasEnoughChartData = computed(() => {
+    if (!props.chartData || !props.chartData.labels) {
+        return false;
+    }
+    return props.chartData.labels.length > 1;
 });
 </script>

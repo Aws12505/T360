@@ -103,12 +103,12 @@
               <TableCell class="font-medium">{{ driver.driver_name }}</TableCell>
               <TableCell class="text-right">
                 <Badge :variant="getScoreBadgeOperationalVariant(driver.acceptance_score)">
-                  {{ driver.acceptance_score }}%
+                  {{ Math.round(driver.acceptance_score) }}%
                 </Badge>
               </TableCell>
               <TableCell class="text-right">
                 <Badge :variant="getScoreBadgeOperationalVariant(driver.on_time_score)">
-                  {{ driver.on_time_score }}%
+                  {{ Math.round(driver.on_time_score) }}%
                 </Badge>
               </TableCell>
               <TableCell class="text-right">

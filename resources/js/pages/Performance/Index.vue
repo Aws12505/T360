@@ -193,43 +193,43 @@
                                             class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                                         />
                                     </TableCell>
-                                    <TableCell v-if="SuperAdmin">
+                                    <TableCell v-if="SuperAdmin" class="min-w-[120px]">
                                         {{ item.tenant?.name ?? '—' }}
                                     </TableCell>
-                                    <TableCell>{{ formatDate(item.date) }}</TableCell>
-                                    <TableCell>
+                                    <TableCell class="min-w-[100px]">{{ formatDate(item.date) }}</TableCell>
+                                    <TableCell class="min-w-[120px]">
                                         <div>{{ item.acceptance }}%</div>
-                                        <div class="text-xs italic text-gray-500">({{ formatRating(item.acceptance_rating) }})</div>
+                                        <div class="text-xs italic text-gray-500 whitespace-normal">({{ formatRating(item.acceptance_rating) }})</div>
                                     </TableCell>
-                                    <TableCell>{{ item.on_time_to_origin }}%</TableCell>
-                                    <TableCell>{{ item.on_time_to_destination }}%</TableCell>
-                                    <TableCell>
+                                    <TableCell class="min-w-[120px]">{{ item.on_time_to_origin }}%</TableCell>
+                                    <TableCell class="min-w-[120px]">{{ item.on_time_to_destination }}%</TableCell>
+                                    <TableCell class="min-w-[120px]">
                                         <div>{{ item.on_time }}%</div>
-                                        <div class="text-xs italic text-gray-500">({{ formatRating(item.on_time_rating) }})</div>
+                                        <div class="text-xs italic text-gray-500 whitespace-normal">({{ formatRating(item.on_time_rating) }})</div>
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell class="min-w-[140px]">
                                         <div>{{ item.maintenance_variance_to_spend }}%</div>
-                                        <div class="text-xs italic text-gray-500">
+                                        <div class="text-xs italic text-gray-500 whitespace-normal">
                                             ({{ formatRating(item.maintenance_variance_to_spend_rating) }})
                                         </div>
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell class="min-w-[120px]">
                                         <div>{{ item.open_boc }}</div>
-                                        <div class="text-xs italic text-gray-500">({{ formatRating(item.open_boc_rating) }})</div>
+                                        <div class="text-xs italic text-gray-500 whitespace-normal">({{ formatRating(item.open_boc_rating) }})</div>
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell class="min-w-[140px]">
                                         <div>{{ item.meets_safety_bonus_criteria ? 'Yes' : 'No' }}</div>
-                                        <div class="text-xs italic text-gray-500">({{ formatRating(item.meets_safety_bonus_criteria_rating) }})</div>
+                                        <div class="text-xs italic text-gray-500 whitespace-normal">({{ formatRating(item.meets_safety_bonus_criteria_rating) }})</div>
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell class="min-w-[120px]">
                                         <div>{{ item.vcr_preventable }}</div>
-                                        <div class="text-xs italic text-gray-500">({{ formatRating(item.vcr_preventable_rating) }})</div>
+                                        <div class="text-xs italic text-gray-500 whitespace-normal">({{ formatRating(item.vcr_preventable_rating) }})</div>
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell class="min-w-[120px]">
                                         <div>{{ item.vmcr_p }}</div>
-                                        <div class="text-xs italic text-gray-500">({{ formatRating(item.vmcr_p_rating) }})</div>
+                                        <div class="text-xs italic text-gray-500 whitespace-normal">({{ formatRating(item.vmcr_p_rating) }})</div>
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell class="min-w-[120px]">
                                         <div class="flex space-x-2">
                                             <Button @click="openEditModal(item)" variant="warning" size="sm">
                                                 <Icon name="pencil" class="mr-1 h-4 w-4" />
@@ -761,7 +761,7 @@ function formatDate(dateString) {
     const day = date.getDate();
     const year = date.getFullYear();
 
-    return `${month}-${day}-${year}`;
+    return `${month}/${day}/${year}`;
 }
 // Add these functions after the other function definitions (around line 550-600)
 function openCreateModal() {

@@ -3,8 +3,21 @@
     <h3 class="text-base text-center font-semibold mb-4">{{ title }}</h3>
     
     <!-- Display message when no rejections -->
-    <div v-if="totalRejections === '0'" class="text-center text-sm py-4 text-primary font-medium">
-      {{ noRejectionsMessage }}
+    <div v-if="drivers.length === 0" class="text-center text-sm py-4 text-primary font-medium">
+      <template v-if="totalRejections === 0">
+        <template v-if="rejectionType === 'block'">
+          No block rejections recorded. You're on track for Fantastic+ !
+        </template>
+        <template v-else-if="rejectionType === 'load'">
+          No load rejections recorded. You're on track for Fantastic+ !
+        </template>
+        <template v-else>
+          No rejections recorded. You're on track for Fantastic+ !
+        </template>
+      </template>
+      <template v-else>
+        No delays recorded. You're on track for Fantastic+ !
+      </template>
     </div>
      
     <!-- Display drivers list when there are rejections -->

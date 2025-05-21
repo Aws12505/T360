@@ -1,7 +1,6 @@
 <template>
   <div class="bg-background rounded-lg border shadow-sm p-2 md:p-4">
     <h3 class="text-base text-center font-semibold mb-2 md:mb-4 ">{{ title }}</h3>
-    {{ console.log(delayType)  }}
     <!-- Display message when no data -->
     <div v-if="drivers.length === 0" class="text-center text-sm py-4 text-primary font-medium">
       <template v-if="totalDelays === 0">
