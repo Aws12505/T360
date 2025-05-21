@@ -21,6 +21,7 @@ class DailyReportEmail extends Mailable
     protected int    $tenantId;
     public    string $reportDate;
     public    string $userName;
+    public    string $logoUrl; // Add this property
 
     // Yesterday's data
     public    array  $performanceMain;
@@ -57,6 +58,7 @@ class DailyReportEmail extends Mailable
     ) {
         $this->tenantId = $tenantId;
         $this->userName = $userName;
+        $this->logoUrl = config('app.url') . '/logo.svg'; // Set the logo URL
         
         // Initialize services
         $this->safetyDataService = $safetyDataService ?? new SafetyDataService();
