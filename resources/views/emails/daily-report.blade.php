@@ -18,7 +18,7 @@
           <!-- Header -->
           <tr>
             <td align="center" bgcolor="#2c3e50" style="padding:24px;">
-              <img src="dashboard.trucking360solutions.com/logo.svg" width="60" alt="T360 Logo" style="display:block;margin-bottom:16px;border:0;">
+              <img src="{{ $logoUrl }}" width="60" alt="T360 Logo" style="display:block;margin-bottom:16px;border:0;">
               <h1 style="margin:0;font-size:24px;font-weight:600;color:#ffffff;">Performance Report</h1>
               <p style="margin:8px 0 0;font-size:16px;color:#ffffff;opacity:0.9;">{{ $reportDate }}</p>
             </td>
