@@ -21,7 +21,8 @@ class DailyReportEmail extends Mailable
     protected int    $tenantId;
     public    string $reportDate;
     public    string $userName;
-    public    string $logoUrl; // Add this property
+    public    string $logoUrl;
+    public    string $logoCid;
 
     // Yesterday's data
     public    array  $performanceMain;
@@ -58,9 +59,7 @@ class DailyReportEmail extends Mailable
     ) {
         $this->tenantId = $tenantId;
         $this->userName = $userName;
-        $svg       = file_get_contents(public_path('logo.svg'));
-        $base64    = base64_encode($svg);
-        $this->logoUrl   = "data:image/svg+xml;base64,{$base64}";        // Initialize services
+        
         $this->safetyDataService = $safetyDataService ?? new SafetyDataService();
         $this->performanceCalculationsService = $performanceCalculationsService ?? new PerformanceCalculationsService();
         $this->maintenanceBreakdownService = $maintenanceBreakdownService ?? new MaintenanceBreakdownService();
@@ -249,5 +248,13 @@ class DailyReportEmail extends Mailable
     public function content(): Content
     {
         return new Content(view: 'emails.daily-report');
+    }
+
+    public function build()
+    {
+        // Embed the logo and get the CID
+        $this->logoCid = $this->embed(public_path('logo.svg'));
+        
+        return $this;
     }
 }
