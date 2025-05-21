@@ -252,9 +252,29 @@ class DailyReportEmail extends Mailable
 
     public function build()
     {
-        // Embed the logo and get the CID
-        $this->logoCid = $this->embed(public_path('logo.svg'));
+        // Read the PNG bytes
+        $pngData = file_get_contents(public_path('images/logo.png'));
+        
+        // Embed it and get the CID
+        $this->logoCid = $this->embedData($pngData, 'logo.png', 'image/png');
         
         return $this;
+    }
+
+    /**
+     * Embed raw data in the message as an attachment.
+     *
+     * @param  string  $data
+     * @param  string  $name
+     * @param  string  $contentType
+     * @return string
+     */
+    protected function embedData($data, $name, $contentType)
+    {
+        $this->attachData($data, $name, [
+            'mime' => $contentType,
+        ]);
+        
+        return 'cid:' . $name;
     }
 }
