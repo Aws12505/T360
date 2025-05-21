@@ -51,6 +51,8 @@ return [
             'verify_peer'        => env('MAIL_VERIFY_PEER', true),
             'verify_peer_name'   => env('MAIL_VERIFY_PEER_NAME', true),
             'allow_self_signed'  => env('MAIL_ALLOW_SELF_SIGNED', false),
+
+            'logger' => true,
         ],
 
         'ses' => [
