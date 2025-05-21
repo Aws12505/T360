@@ -58,7 +58,7 @@ class DailyReportEmail extends Mailable
     ) {
         $this->tenantId = $tenantId;
         $this->userName = $userName;
-        $svg       = file_get_contents(public_path('images/logo.svg'));
+        $svg       = file_get_contents(public_path('logo.svg'));
         $base64    = base64_encode($svg);
         $this->logoUrl   = "data:image/svg+xml;base64,{$base64}";        // Initialize services
         $this->safetyDataService = $safetyDataService ?? new SafetyDataService();
