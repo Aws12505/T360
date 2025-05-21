@@ -46,7 +46,7 @@ return [
             'password'       => env('MAIL_PASSWORD'),
             'timeout'        => null,
             'auth_mode'      => null,
-
+            'auto_tls'        => false,
             // ← New: control peer verification directly here
             'verify_peer'        => env('MAIL_VERIFY_PEER', true),
             'verify_peer_name'   => env('MAIL_VERIFY_PEER_NAME', true),
