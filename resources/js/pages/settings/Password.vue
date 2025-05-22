@@ -17,6 +17,7 @@ const page = usePage<SharedData>();
 
 interface Props {
     tenantSlug?: string;
+    permissions?: string[];
 }
 
 const props = withDefaults(defineProps<Props>(), {

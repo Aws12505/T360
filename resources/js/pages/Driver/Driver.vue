@@ -21,21 +21,21 @@
                 <h1 class="text-lg md:text-xl lg:text-2xl font-bold">Driver Management</h1>
                 <div class="flex flex-wrap gap-3">
                     <!-- responsive here -->
-                    <Button class="px-2 py-0 md:px-4 md:py-2" @click="openCreateModal" variant="default">
+                    <Button class="px-2 py-0 md:px-4 md:py-2" @click="openCreateModal" variant="default" v-if="permissionNames.includes('drivers.create')">
                         <!-- responsive here -->
                         <Icon name="plus" class="mr-1 h-4 w-4 md:mr-2" />
                         Create New Driver
                     </Button>
                     <!-- Add Delete Selected button -->
                     <!-- responsive here -->
-                    <Button class="px-2 py-0 md:px-4 md:py-2" v-if="selectedDrivers.length > 0" @click="confirmDeleteSelected()" variant="destructive">
+                    <Button class="px-2 py-0 md:px-4 md:py-2" v-if="selectedDrivers.length > 0 && permissionNames.includes('drivers.delete')" @click="confirmDeleteSelected()" variant="destructive" >
                         <!-- responsive here -->
                         <Icon name="trash" class="mr-1 h-4 w-4 md:mr-2" />
                         Delete Selected ({{ selectedDrivers.length }})
                     </Button>
                     <div class="relative">
                         <!-- responsive here -->
-                        <Button class="px-2 py-0 md:px-4 md:py-2" @click="showUploadOptions = !showUploadOptions" variant="secondary">
+                        <Button class="px-2 py-0 md:px-4 md:py-2" @click="showUploadOptions = !showUploadOptions" variant="secondary" v-if="permissionNames.includes('drivers.import')">
                             <!-- responsive here -->
                             <Icon name="upload" class="mr-1 h-4 w-4 md:mr-2" />
                             Upload CSV
@@ -55,7 +55,7 @@
                         </div>
                     </div>
                     <!-- responsive here -->
-                    <Button class="px-2 py-0 md:px-4 md:py-2" @click.prevent="exportCSV" variant="outline">
+                    <Button class="px-2 py-0 md:px-4 md:py-2" @click.prevent="exportCSV" variant="outline" v-if="permissionNames.includes('drivers.export')">
                         <!-- responsive here -->
                         <Icon name="download" class="mr-1 h-4 w-4 md:mr-2" />
                         Download CSV
@@ -116,7 +116,7 @@
                             <TableHeader>
                                 <TableRow class="sticky top-0 z-10 border-b bg-background hover:bg-background">
                                     <!-- Add checkbox column for selecting all -->
-                                    <TableHead class="w-[50px]">
+                                    <TableHead class="w-[50px]" v-if="permissionNames.includes('drivers.delete')">
                                         <div class="flex items-center justify-center">
                                             <input
                                                 type="checkbox"
@@ -164,7 +164,7 @@
                                             </div>
                                         </div>
                                     </TableHead>
-                                    <TableHead>Actions</TableHead>
+                                    <TableHead v-if="permissionNames.includes('drivers.update') || permissionNames.includes('drivers.delete')">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -195,13 +195,13 @@
                                         </template>
                                     </TableCell>
                                     <!-- Actions column -->
-                                    <TableCell>
+                                    <TableCell v-if="permissionNames.includes('drivers.delete')||permissionNames.includes('drivers.update')">
                                         <div class="flex space-x-2">
-                                            <Button @click="openEditModal(driver)" variant="warning" size="sm">
+                                            <Button @click="openEditModal(driver)" variant="warning" size="sm" v-if="permissionNames.includes('drivers.udpate')">
                                                 <Icon name="pencil" class="mr-1 h-4 w-4" />
                                                 Edit
                                             </Button>
-                                            <Button @click="deleteEntry(driver.id)" variant="destructive" size="sm">
+                                            <Button @click="deleteEntry(driver.id)" variant="destructive" size="sm" v-if="permissionNames.includes('drivers.delete')">
                                                 <Icon name="trash" class="mr-1 h-4 w-4" />
                                                 Delete
                                             </Button>
@@ -418,6 +418,7 @@ const props = defineProps({
     tenantSlug: String,
     SuperAdmin: Boolean,
     tenants: Array,
+    permissions: Array,
 });
 
 // Add activeTab ref
@@ -850,4 +851,8 @@ onMounted(() => {
         document.removeEventListener('click', handleClickOutside);
     });
 });
+
+const permissionNames = computed(() =>
+      props.permissions.map(p => p.name)
+    );
 </script>

@@ -40,12 +40,14 @@ class DriverDataService
         $isSuperAdmin = is_null(Auth::user()->tenant_id);
         $tenantSlug = $isSuperAdmin ? null : Auth::user()->tenant->slug;
         $tenants = $isSuperAdmin ? Tenant::all() : [];
-        
+        $permissions = Auth::user()->getAllPermissions();
+
         return [
             'entries'    => $drivers,
             'tenantSlug' => $tenantSlug,
             'SuperAdmin' => $isSuperAdmin,
             'tenants'    => $tenants,
+            'permissions'=> $permissions,
 
         ];
     }

@@ -135,7 +135,8 @@ if ($request->has('driverControllable')) {
             'disputed' => (string) $request->input('disputed', ''),
             'driverControllable' => (string) $request->input('driverControllable', ''),
         ];
-        
+        $permissions = Auth::user()->getAllPermissions();
+
         return [
             'rejections'           => $rejections,
             'tenantSlug'           => $isSuperAdmin ? null : $user->tenant->slug,
@@ -153,6 +154,7 @@ if ($request->has('driverControllable')) {
             'line_chart_data'      => $lineChartData['chartData'] ?? [],
             'average_acceptance'   => $lineChartData['averageAcceptance'] ?? null,
             'filters' => $filters,
+            'permissions' => $permissions,
         ];
     }
 /**

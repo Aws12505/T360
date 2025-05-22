@@ -36,6 +36,7 @@ const props = defineProps({
     type: String,
     default: null,
   },
+  permissions: Array,
 });
 const { tenantSlug } = props;
 

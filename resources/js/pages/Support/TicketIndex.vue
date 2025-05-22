@@ -479,7 +479,8 @@ const props = defineProps({
   SuperAdmin:        Boolean,
   filters:           Object,
   ticket_subjects:   { type: Array, default: () => [] },
-  deleted_subjects:  { type: Array, default: () => [] }
+  deleted_subjects:  { type: Array, default: () => [] },
+  permissions: Array,
 });
 props.filters['status']="";
 const successMessage           = ref('');

@@ -8,6 +8,7 @@
         Miles Driven
       </h3>
       <Button
+        v-if="permissionNames.includes('miles-driven.create')"
         @click="openModal()"
         variant="default"
       >
@@ -114,9 +115,10 @@
             <TableCell>
               {{ truncateText(item.notes, 30) }}
             </TableCell>
-            <TableCell>
+            <TableCell v-if="permissionNames.includes('miles-driven.update')||permissionNames.includes('miles-driven.delete')">
               <div class="flex space-x-2">
                 <Button
+                 v-if="permissionNames.includes('miles-driven.update')"
                   variant="outline"
                   size="sm"
                   @click="openModal(item)"
@@ -128,6 +130,7 @@
                   <span>Edit</span>
                 </Button>
                 <Button
+                  v-if="permissionNames.includes('miles-driven.delete')"
                   variant="destructive"
                   size="sm"
                   @click="confirmDelete(item)"
@@ -316,7 +319,8 @@ import { route } from 'ziggy-js'
 
 const props = defineProps<{
   milesEntries: Array<any>,
-  tenantSlug: string | null
+  tenantSlug: string | null,
+  permissions: Array<any>,
 }>()
 
 // local state
@@ -504,5 +508,8 @@ function formatNumber(n: any) {
 function truncateText(t: string, m: number) {
   return t?.length > m ? t.slice(0, m) + '…' : t || ''
 }
+const permissionNames = computed(() =>
+      props.permissions.map(p => p.name)
+    );
 </script>
   

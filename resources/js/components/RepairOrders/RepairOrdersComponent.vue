@@ -23,10 +23,10 @@
         <h1 class="text-lg md:text-xl lg:text-2xl font-bold text-gray-800 dark:text-gray-200">Repair Orders</h1>
       </div>
       <div class="flex flex-wrap gap-3">
-        <Button @click="openCreateModal" variant="default" class="px-2 py-0 md:px-4 md:py-2 shadow-sm hover:shadow transition-all">
+        <Button @click="openCreateModal" variant="default" v-if="permissionNames.includes('repair-orders.create')" class="px-2 py-0 md:px-4 md:py-2 shadow-sm hover:shadow transition-all">
           <Icon name="plus" class="mr-1 h-4 w-4 md:mr-2" /> Create New
         </Button>
-        <Button v-if="selectedIds.length" @click="confirmBulkDelete" variant="destructive" class="px-2 py-0 md:px-4 md:py-2 shadow-sm hover:shadow transition-all">
+        <Button v-if="selectedIds.length && permissionNames.includes('repair-orders.delete')" @click="confirmBulkDelete" variant="destructive" class="px-2 py-0 md:px-4 md:py-2 shadow-sm hover:shadow transition-all">
           <Icon name="trash" class="mr-1 h-4 w-4 md:mr-2" /> Delete Selected ({{ selectedIds.length }})
         </Button>
         <Button v-if="isAdmin" @click="openAreasModal" variant="outline" class="px-2 py-0 md:px-4 md:py-2 shadow-sm hover:shadow transition-all">
@@ -39,7 +39,7 @@
           <Icon name="settings" class="mr-1 h-4 w-4 md:mr-2" /> Statuses
         </Button>
         <div class="relative">
-          <Button @click="showUpload = !showUpload" variant="secondary" class="px-2 py-0 md:px-4 md:py-2 shadow-sm hover:shadow transition-all">
+          <Button @click="showUpload = !showUpload" v-if="permissionNames.includes('repair-orders.import')" variant="secondary" class="px-2 py-0 md:px-4 md:py-2 shadow-sm hover:shadow transition-all">
             <Icon name="upload" class="mr-1 h-4 w-4 md:mr-2" /> Upload CSV
             <Icon name="chevron-down" class="ml-2 h-4 w-4" />
           </Button>
@@ -50,7 +50,7 @@
             <a :href="templateUrl" download class="block px-4 py-2 text-sm hover:bg-muted transition-colors">Download Template</a>
           </div>
         </div>
-        <Button @click.prevent="exportCsv" variant="outline" class="px-2 py-0 md:px-4 md:py-2 shadow-sm hover:shadow transition-all">
+        <Button v-if="permissionNames.includes('repair-orders.export')" @click.prevent="exportCsv" variant="outline" class="px-2 py-0 md:px-4 md:py-2 shadow-sm hover:shadow transition-all">
           <Icon name="download" class="mr-1 h-4 w-4 md:mr-2" /> Download CSV
         </Button>
       </div>
@@ -347,7 +347,7 @@
             <Table class="relative h-[500px] overflow-auto">
               <TableHeader>
                 <TableRow class="sticky top-0 z-10 border-b bg-background hover:bg-background">
-                  <TableHead class="w-12">
+                  <TableHead class="w-12" v-if="permissionNames.includes('repair-orders.delete')">
                     <div class="flex items-center justify-center">
                       <input 
                         type="checkbox" 
@@ -387,7 +387,7 @@
                   <TableHead class="font-semibold">On QS</TableHead>
                   <TableHead class="font-semibold">QS Invoice Date</TableHead>
                   <TableHead class="font-semibold">Disputed</TableHead>
-                  <TableHead class="font-semibold">Actions</TableHead>
+                  <TableHead class="font-semibold" v-if="permissionNames.includes('repair-orders.delete') || permissionNames.includes('repair-orders.update')">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -401,7 +401,7 @@
                   </TableCell>
                 </TableRow>
                 <TableRow v-for="o in repairOrders.data" :key="o.id" class="hover:bg-muted/50 transition-colors">
-                  <TableCell>
+                  <TableCell v-if="permissionNames.includes('repair-orders.delete')">
                     <input
                       type="checkbox"
                       :value="o.id"
@@ -431,12 +431,12 @@
                   <TableCell class="whitespace-nowrap">{{ o.on_qs ? (o.on_qs.charAt(0).toUpperCase() + o.on_qs.slice(1)) : 'No' }}</TableCell>
                   <TableCell class="whitespace-nowrap">{{ o.qs_invoice_date ? formatDate(o.qs_invoice_date) : 'N/A' }}</TableCell>
                   <TableCell class="whitespace-nowrap">{{ o.disputed ? 'Yes' : 'No' }}</TableCell>
-                  <TableCell>
+                  <TableCell v-if="permissionNames.includes('repair-orders.update')||permissionNames.includes('repair-orders.delete')">
                     <div class="flex space-x-2">
-                      <Button size="sm" variant="warning" @click="openEdit(o)" class="h-8 px-2">
+                      <Button size="sm" variant="warning" @click="openEdit(o)" class="h-8 px-2" v-if="permissionNames.includes('repair-orders.update')">
                         <Icon name="pencil" class="h-4 w-4" />
                       </Button>
-                      <Button size="sm" variant="destructive" @click="deleteOne(o.id)" class="h-8 px-2">
+                      <Button size="sm" variant="destructive" @click="deleteOne(o.id)" class="h-8 px-2" v-if="permissionNames.includes('repair-orders.delete')">
                         <Icon name="trash" class="h-4 w-4" />
                       </Button>
                     </div>
@@ -1101,8 +1101,8 @@
     }),},
     perPage: { type: Number, default: 10 },
     openedComponent: { type: String, default: 'trucks' },
+    permissions: {type: Array, default: () => []},
   })
-  const emit = defineEmits<{'update:perPage':(val:number)=>void}>()
   
   // State
   const filter = ref({...props.filters, dateFilter:props.dateFilter})
@@ -1334,7 +1334,9 @@ const totalFilteredOutstanding = computed(() => {
     0
   )
 })
-
+const permissionNames = computed(() =>
+      props.permissions.map(p => p.name)
+    );
   </script>
   
   <style scoped>

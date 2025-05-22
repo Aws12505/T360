@@ -124,6 +124,7 @@ $endDate = Carbon::parse($dateRange['end']);
         ];
         $trucks = Truck::with('tenant')->get();
         $milesEntries = MilesDriven::where('tenant_id', Auth::user()->tenant_id)->latest('week_start_date')->get();
+        $permissions = Auth::user()->getAllPermissions();
 
         return [
             'repairOrders' => $repairOrders,
@@ -149,6 +150,7 @@ $endDate = Carbon::parse($dateRange['end']);
             'openedComponent' => $openedComponent,
             'entries'     => $trucks,
             'milesEntries' => $milesEntries,
+            'permissions' => $permissions,
         ];
     }
 /**

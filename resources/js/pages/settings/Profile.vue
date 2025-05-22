@@ -16,6 +16,7 @@ interface Props {
     mustVerifyEmail: boolean;
     status?: string;
     tenantSlug?: string;
+    permissions?: string[];
 }
 
 const props = defineProps<Props>();

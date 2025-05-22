@@ -29,6 +29,7 @@
           <div class="border-b">
             <div class="flex justify-center space-x-8 px-0 pt-4">
               <Button
+              v-if="permissionNames.includes('repair-orders.view')"
                 @click="switchComponent('repairOrders')"
                 variant="ghost"
                 :class="[
@@ -42,6 +43,7 @@
                 <span>Repair Orders</span>
               </Button>
               <Button
+              v-if="permissionNames.includes('miles-driven.view')"
                 @click="switchComponent('milesDriven')"
                 variant="ghost"
                 :class="[
@@ -55,6 +57,7 @@
                 <span>Miles Driven</span>
               </Button>
               <Button
+              v-if="permissionNames.includes('trucks.view')"
                 @click="switchComponent('trucks')"
                 variant="ghost"
                 :class="[
@@ -120,6 +123,7 @@ const props = defineProps({
   perPage:    { type: Number, default: 10 },
   openedComponent: { type: String, default: 'repairOrders' },
   milesEntries: Array,
+  permissions: Array,
 })
 
 // UI state management
@@ -147,7 +151,9 @@ const currentComponent = computed(() =>
     ? TrucksComponent
     : activeTab.value === 'milesDriven' ? MilesDrivenComponent : RepairOrdersComponent
 )
-
+const permissionNames = computed(() =>
+      props.permissions.map(p => p.name)
+    );
 // build props for that component
 const currentProps = computed(() => {
   if (activeTab.value === 'trucks') {
@@ -159,12 +165,14 @@ const currentProps = computed(() => {
       trucks:         props.trucks,
       vendors:        props.vendors,
       areasOfConcern: props.areasOfConcern,
+      permissions:    props.permissions,
     }
   }
   else if (activeTab.value === 'milesDriven') {
     return {
       milesEntries:   props.milesEntries,
       tenantSlug:     props.tenantSlug,
+      permissions:    props.permissions,
     }
   }
   else {
@@ -189,6 +197,7 @@ const currentProps = computed(() => {
       filters:                  props.filters,
       dateFilter:               props.dateFilter,
       perPage:                  props.perPage,
+      permissions:              props.permissions,
     }
   }
 })
@@ -214,4 +223,6 @@ function switchComponent(component: 'trucks'|'repairOrders'|'milesDriven') {
     isLoading.value = false
   }, 300)
 }
+
+
 </script>

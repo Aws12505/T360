@@ -11,6 +11,7 @@ import SettingsLayout from '@/layouts/settings/Layout.vue';
 
 interface Props {
     tenantSlug?: string;
+    permissions?: any[];
 }
 
 const props = defineProps<Props>();

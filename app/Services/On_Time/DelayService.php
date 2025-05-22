@@ -144,6 +144,8 @@ if ($request->has('controllable')) {
             'disputed' => (string) $request->input('disputed', ''),
             'driverControllable' => (string) $request->input('driverControllable', ''),
         ];
+        $permissions = Auth::user()->getAllPermissions();
+
         return [
             'delays'      => $delays,
             'tenantSlug'  => $tenantSlug,
@@ -160,6 +162,7 @@ if ($request->has('controllable')) {
             'line_chart_data'      => $lineChartData['chartData'] ?? [],
             'average_ontime'   => $lineChartData['averageOnTime'] ?? null,
             'filters' => $filters,
+            'permissions' => $permissions,
         ];
     }
 /**

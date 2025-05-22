@@ -20,13 +20,13 @@
                 <h1 class="text-lg md:text-xl lg:text-2xl font-bold text-gray-800 dark:text-gray-200">Safety Management</h1>
                 <div class="flex flex-wrap gap-3 ml-3">
                     <!-- Create New Entry button -->
-                    <Button class="px-2 py-0 md:px-4 md:py-2" @click="openCreateModal" variant="default">
+                    <Button class="px-2 py-0 md:px-4 md:py-2" @click="openCreateModal" variant="default" v-if="permissionNames.includes('safety-data.create')">
                         <Icon name="plus" class=" mr-1 h-4 w-4 md:mr-2" />
                         Create New Entry
                     </Button>
 
                     <!-- Delete Selected button - only shows when items are selected -->
-                    <Button class="px-2 py-0 md:px-4 md:py-2" v-if="selectedEntries.length > 0" @click="confirmDeleteSelected()" variant="destructive">
+                    <Button class="px-2 py-0 md:px-4 md:py-2" v-if="selectedEntries.length > 0 && permissionNames.includes('safety-data.delete')" @click="confirmDeleteSelected()" variant="destructive">
                         <Icon name="trash" class=" mr-1 h-4 w-4 md:mr-2" />
                         Delete Selected ({{ selectedEntries.length }})
                     </Button>
@@ -40,13 +40,13 @@
                     </div>
 
                     <!-- Date input for the import file -->
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2" v-if="permissionNames.includes('safety-data.import')">
                         <Input v-model="importForm.date" type="date" required placeholder="Date for Import" />
                     </div>
 
                     <!-- Import XLSX button -->
                     <label class="cursor-pointer">
-                        <Button class="px-2 py-0 md:px-4 md:py-2" variant="secondary" as="span">
+                        <Button class="px-2 py-0 md:px-4 md:py-2" variant="secondary" as="span" v-if="permissionNames.includes('safety-data.import')">
                             <Icon name="upload" class=" mr-1 h-4 w-4 md:mr-2" />
                             Upload XLSX
                         </Button>
@@ -54,7 +54,7 @@
                     </label>
 
                     <!-- Export CSV button -->
-                    <Button class="px-2 py-0 md:px-4 md:py-2" @click.prevent="exportCSV" variant="outline">
+                    <Button class="px-2 py-0 md:px-4 md:py-2" @click.prevent="exportCSV" variant="outline" v-if="permissionNames.includes('safety-data.export')">
                         <Icon name="download" class=" mr-1 h-4 w-4 md:mr-2" />
                         Download CSV
                     </Button>
@@ -151,7 +151,7 @@
                                 <TableHeader>
                                     <TableRow class="sticky top-0 z-10 border-b bg-background hover:bg-background">
                                         <!-- Checkbox column for selecting all -->
-                                        <TableHead class="w-[50px]" :class="{ 'sticky left-0 z-20 bg-background': freezeColumns }">
+                                        <TableHead v-if="permissionNames.includes('safety-data.delete')" class="w-[50px]" :class="{ 'sticky left-0 z-20 bg-background': freezeColumns }">
                                             <div class="flex items-center justify-center">
                                                 <input
                                                     type="checkbox"
@@ -183,7 +183,7 @@
                                             {{ col.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) }}
                                         </TableHead>
                                         <!-- Actions column - removed freezing -->
-                                        <TableHead>Actions</TableHead>
+                                        <TableHead v-if="permissionNames.includes('safety-data.update') || permissionNames.includes('safety-data.delete')">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -194,7 +194,7 @@
                                     </TableRow>
                                     <TableRow v-for="item in entries.data" :key="item.id" class="hover:bg-muted/50">
                                         <!-- Checkbox for selecting individual row -->
-                                        <TableCell class="text-center" :class="{ 'sticky left-0 z-10 bg-background': freezeColumns }">
+                                        <TableCell v-if="permissionNames.includes('safety-data.delete')" class="text-center" :class="{ 'sticky left-0 z-10 bg-background': freezeColumns }">
                                             <input
                                                 type="checkbox"
                                                 :value="item.id"
@@ -225,13 +225,13 @@
                                         (typeof item[col] === 'number' ? Math.round(item[col]) : item[col])) }}
                                         </TableCell>
                                         <!-- Actions for each entry - removed freezing -->
-                                        <TableCell>
+                                        <TableCell v-if="permissionNames.includes('safety-data.delete') || permissionNames.includes('safety-data.update')">
                                             <div class="flex space-x-2">
-                                                <Button @click="openEditModal(item)" variant="warning" size="sm">
+                                                <Button @click="openEditModal(item)" variant="warning" size="sm" v-if="permissionNames.includes('safety-data.update')">
                                                     <Icon name="pencil" class="mr-1 h-4 w-4" />
                                                     Edit
                                                 </Button>
-                                                <Button @click="deleteEntry(item.id)" variant="destructive" size="sm">
+                                                <Button @click="deleteEntry(item.id)" variant="destructive" size="sm" v-if="permissionNames.includes('safety-data.delete')">
                                                     <Icon name="trash" class="mr-1 h-4 w-4" />
                                                     Delete
                                                 </Button>
@@ -483,6 +483,7 @@ const props = defineProps({
         type: Number,
         default: null,
     },
+    permissions: Array,
 });
 console.log(props.entries.data.length);
 // Reactive state variables
@@ -877,6 +878,10 @@ function deleteSelectedEntries() {
 //     highG: 1050
 //   }
 // });
+
+const permissionNames = computed(() =>
+      props.permissions.map(p => p.name)
+    );
 </script>
 
 <style scoped>

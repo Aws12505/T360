@@ -23,14 +23,14 @@
         <h1 class="text-lg md:text-xl lg:text-2xl font-bold text-gray-800 dark:text-gray-200">Truck Management</h1>
       </div>
       <div class="flex flex-wrap gap-3">
-        <Button @click="openCreateModal" variant="default" class="px-2 py-0 md:px-4 md:py-2 shadow-sm hover:shadow transition-all">
+        <Button v-if="permissionNames.includes('trucks.create')" @click="openCreateModal" variant="default" class="px-2 py-0 md:px-4 md:py-2 shadow-sm hover:shadow transition-all">
           <Icon name="plus" class="mr-1 h-4 w-4 md:mr-2"/> Create New Truck
         </Button>
-        <Button v-if="selectedTrucks.length" @click="confirmDeleteSelected" variant="destructive" class="px-2 py-0 md:px-4 md:py-2 shadow-sm hover:shadow transition-all">
+        <Button v-if="selectedTrucks.length && permissionNames.includes('trucks.delete')" @click="confirmDeleteSelected" variant="destructive" class="px-2 py-0 md:px-4 md:py-2 shadow-sm hover:shadow transition-all">
           <Icon name="trash" class="mr-1 h-4 w-4 md:mr-2"/> Delete Selected ({{ selectedTrucks.length }})
         </Button>
         <div class="relative">
-          <Button @click="showUploadOpts = !showUploadOpts" variant="secondary" class="px-2 py-0 md:px-4 md:py-2 shadow-sm hover:shadow transition-all">
+          <Button @click="showUploadOpts = !showUploadOpts" v-if="permissionNames.includes('trucks.import')" variant="secondary" class="px-2 py-0 md:px-4 md:py-2 shadow-sm hover:shadow transition-all">
             <Icon name="upload" class="mr-1 h-4 w-4 md:mr-2"/> Upload CSV <Icon name="chevron-down" class="ml-2 h-4 w-4"/>
           </Button>
           <div v-if="showUploadOpts" class="absolute right-0 mt-1 w-48 rounded-md border bg-background shadow-lg z-10">
@@ -43,7 +43,7 @@
             </div>
           </div>
         </div>
-        <Button @click.prevent="exportCSV" variant="outline" class="px-2 py-0 md:px-4 md:py-2 shadow-sm hover:shadow transition-all">
+        <Button v-if="permissionNames.includes('trucks.export')" @click.prevent="exportCSV" variant="outline" class="px-2 py-0 md:px-4 md:py-2 shadow-sm hover:shadow transition-all">
           <Icon name="download" class="mr-1 h-4 w-4 md:mr-2"/> Download CSV
         </Button>
       </div>
@@ -166,7 +166,7 @@
           <Table class="relative h-[500px] overflow-auto">
             <TableHeader>
               <TableRow class="sticky top-0 z-10 border-b bg-background hover:bg-background">
-                <TableHead class="w-12">
+                <TableHead class="w-12" v-if="permissionNames.includes('trucks.delete')">
                   <div class="flex items-center justify-center">
                     <input 
                       type="checkbox" 
@@ -218,7 +218,7 @@
                     </div>
                   </div>
                 </TableHead>
-                <TableHead class="font-semibold">Actions</TableHead>
+                <TableHead v-if="permissionNames.includes('trucks.update') || permissionNames.includes('trucks.delete')" class="font-semibold">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -231,7 +231,7 @@
                 </TableCell>
               </TableRow>
               <TableRow v-for="t in paginatedEntries" :key="t.id" class="hover:bg-muted/50">
-                <TableCell class="text-center">
+                <TableCell class="text-center" v-if="permissionNames.includes('trucks.delete')">
                   <input 
                     type="checkbox" 
                     :value="t.id" 
@@ -268,12 +268,12 @@
                     {{ formatCell(t, col) }}
                   </template>
                 </TableCell>
-                <TableCell>
+                <TableCell v-if="permissionNames.includes('trucks.delete') || permissionNames.includes('trucks.update')">
                   <div class="flex space-x-2">
-                    <Button variant="warning" size="sm" @click="openEditModal(t)" class="shadow-sm hover:shadow transition-all">
+                    <Button variant="warning" size="sm" @click="openEditModal(t)" class="shadow-sm hover:shadow transition-all" v-if="permissionNames.includes('trucks.update')">
                       <Icon name="pencil" class="mr-1 h-4 w-4"/> Edit
                     </Button>
-                    <Button variant="destructive" size="sm" @click="confirmDelete(t)" class="shadow-sm hover:shadow transition-all">
+                    <Button variant="destructive" size="sm" @click="confirmDelete(t)" class="shadow-sm hover:shadow transition-all" v-if="permissionNames.includes('trucks.delete')">
                       <Icon name="trash" class="mr-1 h-4 w-4"/> Delete
                     </Button>
                   </div>
@@ -766,7 +766,7 @@
   } from '@/components/ui'
   
   const props = defineProps<{
-    entries: any[], tenantSlug: string|null, SuperAdmin: boolean, tenants: any[], perPage: number
+    entries: any[], tenantSlug: string|null, SuperAdmin: boolean, tenants: any[], perPage: number, permissions: any[],
   }>()
   const emit = defineEmits<{'update:perPage':(v:number)=>void}>()
   
@@ -945,5 +945,9 @@ const paginatedEntries = computed(() => {
   
   return pageWindow;
 });
-  </script>
+
+const permissionNames = computed(() =>
+      props.permissions.map(p => p.name)
+    );
+</script>
   

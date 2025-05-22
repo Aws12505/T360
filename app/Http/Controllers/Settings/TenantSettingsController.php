@@ -42,11 +42,13 @@ class TenantSettingsController extends Controller
 
         // Get the tenant's subscription using the relationship
         $subscription = $tenant->subscription;
+        $permissions = Auth::user()->getAllPermissions();
 
         return Inertia::render('settings/TenantSettings', [
             'tenant' => $tenant,
             'tenantSlug' => $tenantSlug,
             'subscription' => $subscription,
+            'permissions' => $permissions,
         ]);
     }
 

@@ -85,7 +85,8 @@ class PerformanceService
                     $startWeekNumber;
             }
         }
-        
+        $permissions = Auth::user()->getAllPermissions();
+
         return [
             'performances' => $performances,
             'tenantSlug'   => $tenantSlug,
@@ -98,6 +99,7 @@ class PerformanceService
             'startWeekNumber' => $startWeekNumber,
             'endWeekNumber'   => $endWeekNumber,
             'year'         => $year,
+            'permissions' => $permissions,
         ];
     }
     

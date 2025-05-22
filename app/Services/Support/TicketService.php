@@ -37,6 +37,7 @@ class TicketService
         // Retrieve ALL ticket subjects including soft-deleted ones, for listing in the table and
         // the "Manage Ticket Subjects" section, similar to how delay codes are handled
         $ticketSubjects = TicketSubject::withTrashed()->get();
+        $permissions = Auth::user()->getAllPermissions();
 
         return [
             'tickets' => $tickets,
@@ -44,6 +45,7 @@ class TicketService
                 'per_page'       => $tickets->perPage(),
             ],
             'ticket_subjects' => $ticketSubjects,
+            'permissions' => $permissions,
         ];
     }
 

@@ -209,7 +209,8 @@ const props = defineProps({
   subscription: {
     type: Object,
     default: null
-  }
+  },
+  permissions: Array,
 });
 
 // Active tab state

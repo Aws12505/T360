@@ -40,10 +40,13 @@ class SafetyThresholdController extends Controller
         $thresholds = $this->safetyThresholdService->getAllThresholds();
         $metrics = $this->safetyThresholdService->getAvailableSafetyMetrics();
         $tenantSlug = Auth::user()->tenant->slug;
+        $permissions = Auth::user()->getAllPermissions();
+
         return Inertia::render('SafetyThresholds/Admin', [
             'thresholds' => $thresholds,
             'metrics' => $metrics,
             'tenantSlug' => $tenantSlug,
+            'permissions' => $permissions,  
         ]);
     }
 

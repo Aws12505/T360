@@ -28,11 +28,13 @@ class FeedbackService
             ->withQueryString();
 
         $subjects = FeedbackSubject::withTrashed()->get();
+        $permissions = Auth::user()->getAllPermissions();
 
         return [
             'feedbacks'        => $feedbacks,
             'filters'          => ['per_page' => $feedbacks->perPage()],
             'feedback_subjects'=> $subjects,
+            'permissions'      => $permissions,
         ];
     }
 

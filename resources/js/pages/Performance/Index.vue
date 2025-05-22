@@ -23,7 +23,7 @@
                     <h1 class="text-lg md:text-xl lg:text-2xl font-bold text-gray-800 dark:text-gray-200">Performance Management</h1>
                     <div class="flex flex-wrap gap-3">
                         <!-- responsive here -->
-                        <Button class="px-2 py-0 md:px-4 md:py-2" @click="openCreateModal" variant="default">
+                        <Button class="px-2 py-0 md:px-4 md:py-2" @click="openCreateModal" variant="default" v-if="permissionNames.includes('performance.create')">
                             <!-- responsive here -->
                             <Icon name="plus" class="mr-1 h-4 w-4 md:mr-2" />
                             Create New Performance
@@ -31,7 +31,7 @@
 
                         <!-- Add Delete Selected button -->
                         <!-- responsive here -->
-                        <Button class="px-2 py-0 md:px-4 md:py-2" v-if="selectedPerformances.length > 0" @click="confirmDeleteSelected()" variant="destructive">
+                        <Button class="px-2 py-0 md:px-4 md:py-2" v-if="selectedPerformances.length > 0 && permissionNames.includes('performance.delete')" @click="confirmDeleteSelected()" variant="destructive">
                             <!-- responsive here -->
                             <Icon name="trash" class="mr-1 h-4 w-4 md:mr-2" />
                             Delete Selected ({{ selectedPerformances.length }})
@@ -39,7 +39,7 @@
 
                         <div class="relative">
                             <!-- responsive here -->
-                            <Button class="px-2 py-0 md:px-4 md:py-2" @click="showUploadOptions = !showUploadOptions" variant="secondary">
+                            <Button class="px-2 py-0 md:px-4 md:py-2" @click="showUploadOptions = !showUploadOptions" variant="secondary" v-if="permissionNames.includes('performance.import')">
                                 <!-- responsive here -->
                                 <Icon name="upload" class="mr-1 h-4 w-4 md:mr-2" />
                                 Upload CSV
@@ -58,7 +58,7 @@
                             </div>
                         </div>
                         <!-- responsive here -->
-                        <Button class="px-2 py-0 md:px-4 md:py-2" @click.prevent="exportCSV" variant="outline">
+                        <Button class="px-2 py-0 md:px-4 md:py-2" @click.prevent="exportCSV" variant="outline" v-if="permissionNames.includes('performance.export')">
                             <!-- responsive here -->
                             <Icon name="download" class="mr-1 h-4 w-4 md:mr-2" />
                             Download CSV
@@ -134,7 +134,7 @@
                             <TableHeader>
                                 <TableRow class="sticky top-0 z-10 border-b bg-background hover:bg-background">
                                     <!-- Add checkbox column for selecting all -->
-                                    <TableHead class="w-[50px]">
+                                    <TableHead class="w-[50px]" v-if="permissionNames.includes('performance.delete')">
                                         <div class="flex items-center justify-center">
                                             <input
                                                 type="checkbox"
@@ -174,7 +174,7 @@
                                             </div>
                                         </div>
                                     </TableHead>
-                                    <TableHead>Actions</TableHead>
+                                    <TableHead v-if="permissionNames.includes('performance.update')||permissionNames.includes('performance.delete')">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -185,7 +185,7 @@
                                 </TableRow>
                                 <TableRow v-for="item in filteredPerformances" :key="item.id" class="hover:bg-muted/50">
                                     <!-- Add checkbox for selecting individual row -->
-                                    <TableCell class="text-center">
+                                    <TableCell class="text-center" v-if="permissionNames.includes('performance.delete')">
                                         <input
                                             type="checkbox"
                                             :value="item.id"
@@ -229,13 +229,13 @@
                                         <div>{{ item.vmcr_p }}</div>
                                         <div class="text-xs italic text-gray-500 whitespace-normal">({{ formatRating(item.vmcr_p_rating) }})</div>
                                     </TableCell>
-                                    <TableCell class="min-w-[120px]">
+                                    <TableCell class="min-w-[120px]" v-if="permissionNames.includes('performance.update')||permissionNames.includes('performance.delete')">
                                         <div class="flex space-x-2">
-                                            <Button @click="openEditModal(item)" variant="warning" size="sm">
+                                            <Button @click="openEditModal(item)" variant="warning" size="sm" v-if="permissionNames.includes('performance.update')" >
                                                 <Icon name="pencil" class="mr-1 h-4 w-4" />
                                                 Edit
                                             </Button>
-                                            <Button @click="deletePerformance(item.id)" variant="destructive" size="sm">
+                                            <Button @click="deletePerformance(item.id)" variant="destructive" size="sm" v-if="permissionNames.includes('performance.delete')">
                                                 <Icon name="trash" class="mr-1 h-4 w-4" />
                                                 Delete
                                             </Button>
@@ -503,6 +503,7 @@ const props = defineProps({
         type: Number,
         default: null,
     },
+    permissions: Array,
 });
 const weekNumberText = computed(() => {
     // For yesterday and current-week, show single week
@@ -994,4 +995,7 @@ const formatDecimal = (value) => {
     // Otherwise return with 2 decimal places
     return num.toFixed(2);
 }
+const permissionNames = computed(() =>
+      props.permissions.map(p => p.name)
+    );
 </script>

@@ -22,20 +22,20 @@
                 <h1 class="text-lg font-bold md:text-xl lg:text-2xl">On-Time Management</h1>
                 <div class="flex flex-wrap gap-3 ml-3">
                     <!-- responsive here -->
-                    <Button class="px-2 py-0 md:px-4 md:py-2" @click="openForm()" variant="default">
+                    <Button class="px-2 py-0 md:px-4 md:py-2" @click="openForm()" variant="default" v-if="permissionNames.includes('delays.create')">
                         <!-- responsive here -->
                         <Icon name="plus" class="mr-1 h-4 w-4 md:mr-2" />
                         Add Delay
                     </Button>
                     <!-- responsive here -->
-                    <Button class="px-2 py-0 md:px-4 md:py-2" v-if="selectedDelays.length > 0" @click="confirmDeleteSelected()" variant="destructive">
+                    <Button class="px-2 py-0 md:px-4 md:py-2" v-if="selectedDelays.length > 0 && permissionNames.includes('delays.delete')" @click="confirmDeleteSelected()" variant="destructive">
                         <!-- responsive here -->
                         <Icon name="trash" class="mr-1 h-4 w-4 md:mr-2" />
                         Delete Selected ({{ selectedDelays.length }})
                     </Button>
                     <div class="relative">
                         <!-- responsive here -->
-                        <Button class="px-2 py-0 md:px-4 md:py-2" @click="showUploadOptions = !showUploadOptions" variant="secondary">
+                        <Button class="px-2 py-0 md:px-4 md:py-2" @click="showUploadOptions = !showUploadOptions" variant="secondary" v-if="permissionNames.includes('delays.import')">
                             <!-- responsive here -->
                             <Icon name="upload" class="mr-1 h-4 w-4 md:mr-2" />
                             Upload CSV
@@ -54,7 +54,7 @@
                         </div>
                     </div>
                     <!-- responsive here -->
-                    <Button class="px-2 py-0 md:px-4 md:py-2" @click.prevent="exportCSV" variant="outline">
+                    <Button class="px-2 py-0 md:px-4 md:py-2" @click.prevent="exportCSV" variant="outline" v-if="permissionNames.includes('delays.export')">
                         <!-- responsive here -->
                         <Icon name="download" class="mr-1 h-4 w-4 md:mr-2" />
                         Download CSV
@@ -298,7 +298,7 @@
                             <Table class="relative h-[500px] overflow-auto">
                                 <TableHeader>
                                     <TableRow class="sticky top-0 z-10 border-b bg-background hover:bg-background">
-                                        <TableHead class="w-[50px]">
+                                        <TableHead class="w-[50px]" v-if="permissionNames.includes('delays.delete')">
                                             <div class="flex items-center justify-center">
                                                 <input
                                                     type="checkbox"
@@ -351,7 +351,7 @@
                                                 </div>
                                             </div>
                                         </TableHead>
-                                        <TableHead class="text-right">Actions</TableHead>
+                                        <TableHead class="text-right" v-if="permissionNames.includes('delays.delete') || permissionNames.includes('delays.update')">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -364,7 +364,7 @@
                                         </TableCell>
                                     </TableRow>
                                     <TableRow v-for="delay in filteredDelays" :key="delay.id" class="hover:bg-muted/50">
-                                        <TableCell class="text-center">
+                                        <TableCell class="text-center" v-if="permissionNames.includes('delays.delete')">
                                             <input
                                                 type="checkbox"
                                                 :value="delay.id"
@@ -394,13 +394,13 @@
                                                 {{ delay[col] }}
                                             </template>
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell v-if="permissionNames.includes('delays.udpate') || permissionNames.includes('delays.delete')">
                                             <div class="flex space-x-2">
-                                                <Button @click="openForm(delay)" variant="warning" size="sm">
+                                                <Button @click="openForm(delay)" variant="warning" size="sm" v-if="permissionNames.includes('delays.update')">
                                                     <Icon name="pencil" class="mr-1 h-4 w-4" />
                                                     Edit
                                                 </Button>
-                                                <Button @click="confirmDelete(delay.id)" variant="destructive" size="sm">
+                                                <Button @click="confirmDelete(delay.id)" variant="destructive" size="sm" v-if="permissionNames.includes('delays.delete')">
                                                     <Icon name="trash" class="mr-1 h-4 w-4" />
                                                     Delete
                                                 </Button>
@@ -735,6 +735,7 @@ const props = defineProps({
         driverControllable: '',
     }),
 },
+    permissions: Array,
 });
 const weekNumberText = computed(() => {
     // For yesterday and current-week, show single week
@@ -1268,5 +1269,8 @@ onMounted(() => {
     });
 });
 
+const permissionNames = computed(() =>
+      props.permissions.map(p => p.name)
+    );
 // Remove the separate onUnmounted hook since it's now inside onMounted
 </script>

@@ -21,11 +21,14 @@ class PasswordController extends Controller
     {
         $isSuperAdmin = is_null(Auth::user()->tenant_id);
         $tenantSlug = $isSuperAdmin ? null : Auth::user()->tenant->slug;
+        $permissions = Auth::user()->getAllPermissions();
+
         return Inertia::render('settings/Password', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
             'tenantSlug' => $tenantSlug,
             'isSuperAdmin' => $isSuperAdmin,
+            'permissions' => $permissions,
         ]);
     }
 

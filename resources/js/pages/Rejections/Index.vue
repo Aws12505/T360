@@ -20,7 +20,7 @@
                 <h1 class="text-lg font-bold text-gray-800 dark:text-gray-200 md:text-xl lg:text-2xl">Acceptance</h1>
                 <div class="flex flex-wrap gap-3 ml-3">
                     <!-- responsive here -->
-                    <Button class="px-2 py-0 md:px-4 md:py-2" @click="openForm()" variant="default">
+                    <Button v-if="permissionNames.includes('acceptance.create')" class="px-2 py-0 md:px-4 md:py-2" @click="openForm()" variant="default">
                         <!-- responsive here -->
                         <Icon name="plus" class="mr-1 h-4 w-4 md:mr-2" />
                         Add Rejection
@@ -29,7 +29,7 @@
                     <!-- responsive here -->
                     <Button
                         class="px-2 py-0 md:px-4 md:py-2"
-                        v-if="selectedRejections.length > 0"
+                        v-if="selectedRejections.length > 0 && permissionNames.includes('acceptance.delete')"
                         @click="confirmDeleteSelected()"
                         variant="destructive"
                     >
@@ -39,7 +39,7 @@
                     </Button>
                     <div class="relative">
                         <!-- responsive here -->
-                        <Button class="px-2 py-0 md:px-4 md:py-2" @click="showUploadOptions = !showUploadOptions" variant="secondary">
+                        <Button class="px-2 py-0 md:px-4 md:py-2" @click="showUploadOptions = !showUploadOptions" variant="secondary" v-if="permissionNames.includes('acceptance.import')">
                             <!-- responsive here -->
                             <Icon name="upload" class="mr-1 h-4 w-4 md:mr-2" />
                             Upload CSV
@@ -58,7 +58,7 @@
                         </div>
                     </div>
                     <!-- responsive here -->
-                    <Button class="px-2 py-0 md:px-4 md:py-2" @click.prevent="exportCSV" variant="outline">
+                    <Button class="px-2 py-0 md:px-4 md:py-2" @click.prevent="exportCSV" variant="outline" v-if="permissionNames.includes('acceptance.export')">
                         <!-- responsive here -->
                         <Icon name="download" class="mr-1 h-4 w-4 md:mr-2" />
                         Download CSV
@@ -303,7 +303,7 @@
                                 <TableHeader>
                                     <TableRow class="sticky top-0 z-10 border-b bg-background hover:bg-background">
                                         <!-- Add checkbox column for selecting all -->
-                                        <TableHead class="w-[50px]">
+                                        <TableHead class="w-[50px]" v-if="permissionNames.includes('acceptance.delete')">
                                             <div class="flex items-center justify-center">
                                                 <input
                                                     type="checkbox"
@@ -356,7 +356,7 @@
                                                 </div>
                                             </div>
                                         </TableHead>
-                                        <TableHead>Actions</TableHead>
+                                        <TableHead v-if="permissionNames.includes('acceptance.update') || permissionNames.includes('acceptance.delete')">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -370,7 +370,7 @@
                                     </TableRow>
                                     <TableRow v-for="rejection in filteredRejections" :key="rejection.id" class="hover:bg-muted/50">
                                         <!-- Add checkbox for selecting individual row -->
-                                        <TableCell class="text-center">
+                                        <TableCell class="text-center" v-if="permissionNames.includes('acceptance.delete')">
                                             <input
                                                 type="checkbox"
                                                 :value="rejection.id"
@@ -403,13 +403,13 @@
                                                 {{ rejection[col] }}
                                             </template>
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell v-if="permissionNames.includes('acceptance.delete')||permissionNames.includes('acceptance.update')">
                                             <div class="flex space-x-2">
-                                                <Button size="sm" @click="openForm(rejection)" variant="warning">
+                                                <Button size="sm" @click="openForm(rejection)" variant="warning" v-if="permissionNames.includes('acceptance.update')">
                                                     <Icon name="pencil" class="mr-1 h-4 w-4" />
                                                     Edit
                                                 </Button>
-                                                <Button size="sm" variant="destructive" @click="deleteRejection(rejection.id)">
+                                                <Button size="sm" variant="destructive" @click="deleteRejection(rejection.id)" v-if="permissionNames.includes('acceptance.delete')">
                                                     <Icon name="trash" class="mr-1 h-4 w-4" />
                                                     Delete
                                                 </Button>
@@ -735,6 +735,7 @@ const props = defineProps({
             driverControllable: '',
         }),
     },
+    permissions: Array,
 });
 const weekNumberText = computed(() => {
     // For yesterday and current-week, show single week
@@ -1284,4 +1285,7 @@ function getRejectionCategoryLabel(category) {
 
     return labels[category] || category;
 }
+const permissionNames = computed(() =>
+      props.permissions.map(p => p.name)
+    );
 </script>

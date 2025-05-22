@@ -1270,6 +1270,7 @@ const props = defineProps({
         status_id: '',
     }),},
     perPage: { type: Number, default: 10 },
+    permissions: Array,
 });
 const weekNumberText = computed(() => {
     // For yesterday and current-week, show single week

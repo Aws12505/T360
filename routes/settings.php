@@ -17,11 +17,13 @@ Route::middleware('auth')->group(function () {
     Route::put('settings/password', [PasswordController::class, 'update'])->name('password.update');
 
     Route::get('settings/appearance', function () {
+        $permissions = Auth::user()->getAllPermissions();
         $isSuperAdmin = is_null(Auth::user()->tenant_id);
         $tenantSlug = $isSuperAdmin ? null : Auth::user()->tenant->slug;
         return Inertia::render('settings/Appearance',[
             'tenantSlug' => $tenantSlug,
             'isSuperAdmin' => $isSuperAdmin,
+            'permissions' => $permissions,
         ]);
     })->name('appearance');
 });

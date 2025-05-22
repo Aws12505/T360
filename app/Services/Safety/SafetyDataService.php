@@ -81,6 +81,8 @@ class SafetyDataService
                     $startWeekNumber;
             }
         }
+        $permissions = Auth::user()->getAllPermissions();
+
         // Get formatted safety data using the date range from filtering
         $safetyData = $this->getSafetyDataWithFiltering($dateFilter, $dateRange);
         return [
@@ -95,6 +97,7 @@ class SafetyDataService
             'startWeekNumber' => $startWeekNumber,
             'endWeekNumber' => $endWeekNumber,
             'year' => $year,
+            'permissions' => $permissions,
         ];
     }
 /**

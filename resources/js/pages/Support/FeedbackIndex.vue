@@ -397,7 +397,8 @@
     tenantSlug: { type: String, default: null },
     SuperAdmin: { type: Boolean, default: false },
     filters: { type: Object, default: () => ({ search: '', unseen: false }) },
-    feedback_subjects: { type: Array, default: () => [] }
+    feedback_subjects: { type: Array, default: () => [] },
+    permissions: Array,
   });
   
   // Reactive state
@@ -495,6 +496,9 @@
   function formatDateTime(dt) { if (!dt) return 'N/A'; const d = new Date(dt); return `${d.getMonth()+1}-${d.getDate()}-${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
   
   watch(successMessage, v => { if (v) setTimeout(() => successMessage.value = '', 8000); });
+  const permissionNames = computed(() =>
+      props.permissions.map(p => p.name)
+    );
   </script>
   
   <style scoped>
