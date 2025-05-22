@@ -1,7 +1,7 @@
 <template>
   <div class="bg-background rounded-lg border shadow-sm p-2 md:p-4 lg:p-6 flex flex-col items-center justify-center">
     <h3 class="text-base font-semibold mb-2 text-foreground">{{ title }}</h3>
-    <p class="text-2xl font-bold text-primary">{{ displayValue }}</p>
+    <p class="text-2xl font-bold" :class="shouldBeRed ? 'text-red-600' : 'text-primary'">{{ displayValue }}</p>
   </div>
 </template>
 
@@ -24,5 +24,10 @@ const displayValue = computed(() => {
     return 'No Data';
   }
   return props.value;
+});
+
+const shouldBeRed = computed(() => {
+  const numericValue = Number(props.value);
+  return props.title.toLowerCase().includes('total') && numericValue > 0;
 });
 </script>

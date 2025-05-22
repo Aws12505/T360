@@ -129,6 +129,10 @@
                                     <TableHead v-if="SuperAdmin">Company Name</TableHead>
                                     <TableHead v-for="col in tableColumns" :key="col" class="cursor-pointer" @click="sortBy(col)">
                                         <div class="flex items-center">
+                                            <div v-if="col === 'hiring_date'">
+                                                Hire Date
+                                            </div>
+                                            <div v-else>
                                             {{
                                                 col
                                                     .replace(/_/g, ' ')
@@ -136,6 +140,7 @@
                                                     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
                                                     .join(' ')
                                             }}
+                                            </div>
                                             <div v-if="sortColumn === col" class="ml-2">
                                                 <svg
                                                     v-if="sortDirection === 'asc'"

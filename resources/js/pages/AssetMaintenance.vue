@@ -29,19 +29,6 @@
           <div class="border-b">
             <div class="flex justify-center space-x-8 px-0 pt-4">
               <Button
-                @click="switchComponent('trucks')"
-                variant="ghost"
-                :class="[
-                  activeTab === 'trucks'
-                    ? 'border-b-2 border-primary text-primary'
-                    : 'text-muted-foreground hover:text-foreground'
-                ]"
-                class="py-2 px-3 -mb-px font-medium text-sm rounded-none transition-colors duration-200 inline-flex items-center"
-              >
-                <Icon name="truck" class="mr-2 h-4 w-4" />
-                <span>Trucks</span>
-              </Button>
-              <Button
                 @click="switchComponent('repairOrders')"
                 variant="ghost"
                 :class="[
@@ -66,6 +53,19 @@
               >
                 <Icon name="gauge" class="mr-2 h-4 w-4" />
                 <span>Miles Driven</span>
+              </Button>
+              <Button
+                @click="switchComponent('trucks')"
+                variant="ghost"
+                :class="[
+                  activeTab === 'trucks'
+                    ? 'border-b-2 border-primary text-primary'
+                    : 'text-muted-foreground hover:text-foreground'
+                ]"
+                class="py-2 px-3 -mb-px font-medium text-sm rounded-none transition-colors duration-200 inline-flex items-center"
+              >
+                <Icon name="truck" class="mr-2 h-4 w-4" />
+                <span>Trucks</span>
               </Button>
             </div>
           </div>
@@ -118,7 +118,7 @@ const props = defineProps({
   tenantSlug:  String,
   SuperAdmin:  Boolean,
   perPage:    { type: Number, default: 10 },
-  openedComponent: { type: String, default: 'trucks' },
+  openedComponent: { type: String, default: 'repairOrders' },
   milesEntries: Array,
 })
 

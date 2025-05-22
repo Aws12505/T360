@@ -84,7 +84,7 @@ class RepairOrderService
         if (!is_null(Auth::user()->tenant_id)) {
             $query->where('tenant_id', Auth::user()->tenant_id);
         }
-        $openedComponent = $request->input('openedComponent','trucks');
+        $openedComponent = $request->input('openedComponent','repairOrders');
         $repairOrders = $query->latest('ro_open_date')->paginate($perPage);
         $isSuperAdmin = is_null(Auth::user()->tenant_id);
         $tenantSlug = $isSuperAdmin ? null : Auth::user()->tenant->slug;

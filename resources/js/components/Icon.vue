@@ -60,6 +60,7 @@ import {
   Fingerprint,
   ClipboardCheck,
   MessageSquareMore,
+  ChartBar,
   // Add these new icons
 } from 'lucide-vue-next';
 
@@ -120,7 +121,8 @@ export type IconName =
   | 'id_card'
   | 'fingerprint'
   | 'clipboard_check'
-  | 'feedback';
+  | 'feedback'
+  | 'chart_bar';
 
 const ICONS: Record<IconName, Component> = {
   truck: Truck,
@@ -179,6 +181,7 @@ const ICONS: Record<IconName, Component> = {
   fingerprint: Fingerprint,
   clipboard_check: ClipboardCheck,
   feedback: MessageSquareMore,
+  chart_bar: ChartBar,
 };
 
 // 3. Define props, with defaults for optional values:

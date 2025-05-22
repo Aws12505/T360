@@ -358,7 +358,7 @@
                                     <TableRow v-if="filteredDelays.length === 0">
                                         <TableCell
                                             :colspan="isSuperAdmin ? tableColumns.length + 2 : tableColumns.length + 1"
-                                            class="py-8 text-center"
+                                            class="py-8 text-center text-primary font-medium"
                                         >
                                             No delays found matching your criteria
                                         </TableCell>

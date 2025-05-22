@@ -363,7 +363,7 @@
                                     <TableRow v-if="filteredRejections.length === 0">
                                         <TableCell
                                             :colspan="isSuperAdmin ? tableColumns.length + 3 : tableColumns.length + 2"
-                                            class="py-8 text-center"
+                                            class="py-8 text-center text-primary font-medium"
                                         >
                                             No rejections found matching your criteria
                                         </TableCell>

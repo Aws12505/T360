@@ -323,9 +323,16 @@
                 </div>
               </div>
             </div>
-            <Button @click="resetFilters" variant="ghost" size="sm" class="self-start">
-              <Icon name="rotate_ccw" class="mr-2 h-4 w-4" /> Reset Filters
-            </Button>
+            <div class="flex justify-end space-x-2">
+              <Button @click="resetFilters" variant="ghost" size="sm">
+                <Icon name="rotate-ccw" class="mr-2 h-4 w-4" />
+                Reset Filters
+              </Button>
+              <Button @click="applyFilters" variant="default" size="sm">
+                <Icon name="filter" class="mr-2 h-4 w-4" />
+                Apply Filters
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Transition>

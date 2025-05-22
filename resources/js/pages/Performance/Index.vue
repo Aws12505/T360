@@ -198,17 +198,17 @@
                                     </TableCell>
                                     <TableCell class="min-w-[100px]">{{ formatDate(item.date) }}</TableCell>
                                     <TableCell class="min-w-[120px]">
-                                        <div>{{ item.acceptance }}%</div>
+                                        <div>{{ formatDecimal(item.acceptance) }}%</div>
                                         <div class="text-xs italic text-gray-500 whitespace-normal">({{ formatRating(item.acceptance_rating) }})</div>
                                     </TableCell>
-                                    <TableCell class="min-w-[120px]">{{ item.on_time_to_origin }}%</TableCell>
-                                    <TableCell class="min-w-[120px]">{{ item.on_time_to_destination }}%</TableCell>
+                                    <TableCell class="min-w-[120px]">{{ formatDecimal(item.on_time_to_origin) }}%</TableCell>
+                                    <TableCell class="min-w-[120px]">{{ formatDecimal(item.on_time_to_destination) }}%</TableCell>
                                     <TableCell class="min-w-[120px]">
-                                        <div>{{ item.on_time }}%</div>
+                                        <div>{{ formatDecimal(item.on_time) }}%</div>
                                         <div class="text-xs italic text-gray-500 whitespace-normal">({{ formatRating(item.on_time_rating) }})</div>
                                     </TableCell>
                                     <TableCell class="min-w-[140px]">
-                                        <div>{{ item.maintenance_variance_to_spend }}%</div>
+                                        <div>{{ formatDecimal(item.maintenance_variance_to_spend) }}%</div>
                                         <div class="text-xs italic text-gray-500 whitespace-normal">
                                             ({{ formatRating(item.maintenance_variance_to_spend_rating) }})
                                         </div>
@@ -974,5 +974,24 @@ function changePerPage() {
         },
         { preserveState: true },
     );
+}
+const formatDecimal = (value) => {
+    if (value === null || value === undefined) return '—';
+    
+    // Convert to number if it's a string
+    const num = typeof value === 'string' ? parseFloat(value) : value;
+    
+    // Check if it's a whole number or ends with .00
+    if (Number.isInteger(num) || (num.toFixed(2).endsWith('.00'))) {
+        return Math.floor(num);
+    }
+    
+    // Check if it ends with .x0 (remove trailing zero)
+    if (num.toFixed(2).endsWith('0')) {
+        return num.toFixed(1);
+    }
+    
+    // Otherwise return with 2 decimal places
+    return num.toFixed(2);
 }
 </script>

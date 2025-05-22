@@ -5,7 +5,7 @@
         <!-- Green Zone Score with Driver Star -->
         <div class="bg-gradient-to-br from-muted/10 to-muted/30 rounded-lg p-4 shadow-md border border-muted/20 hover:shadow-lg transition-shadow">
           <h3 class="text-lg font-semibold text-foreground mb-2">Green Zone Score</h3>
-          <div class="text-4xl font-bold text-primary">{{ Math.round(data.greenZoneScore) }}</div>
+          <div class="text-4xl font-bold" :class="getScoreTextColor(data.greenZoneScore)">{{ Math.round(data.greenZoneScore) }}</div>
           
           <!-- Driver Star visualization -->
           <div class="mt-3 pt-3 border-t border-muted/30">
@@ -31,7 +31,7 @@
               <div v-for="(driver, index) in data.topDrivers" :key="index" 
                    class="flex justify-between items-center">
                 <span class="text-foreground">{{ driver.name }}</span>
-                <span class="text-primary font-medium">{{ Math.round(driver.score) }}</span>
+                <span class="font-medium" :class="getScoreTextColor(driver.score)">{{ Math.round(driver.score) }}</span>
               </div>
             </div>
             <div v-else class="text-center text-muted-foreground italic">
@@ -48,7 +48,7 @@
               <div v-for="(driver, index) in data.bottomDrivers" :key="index" 
                    class="flex justify-between items-center">
                 <span class="text-foreground">{{ driver.name }}</span>
-                <span class="text-destructive font-medium">{{ Math.round(driver.score) }}</span>
+                <span class="font-medium" :class="getScoreTextColor(driver.score)">{{ Math.round(driver.score) }}</span>
               </div>
             </div>
             <div v-else class="text-center text-muted-foreground italic">
@@ -435,4 +435,12 @@ onMounted(() => {
     }, 100);
   }
 });
+
+// Add the score color function based on DriverPerformanceTable.vue
+const getScoreTextColor = (score) => {
+  if (score >= 900) return 'text-green-600'; // success
+  if (score >= 750) return 'text-yellow-500'; // midRange
+  if (score >= 600) return 'text-amber-500'; // warning
+  return 'text-red-600'; // destructive
+};
 </script>

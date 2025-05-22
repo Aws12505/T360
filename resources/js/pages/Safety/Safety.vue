@@ -170,7 +170,7 @@
                                         <TableHead
                                             v-for="col in tableColumns.filter(
                                                 (col) =>
-                                                    !['user_name', 'group', 'group_hierarchy'].includes(col) && !col.toLowerCase().includes('impact'),
+                                                    !['user_name', 'group', 'group_hierarchy','requested_video','safety_normalisation_factor'].includes(col) && !col.toLowerCase().includes('impact'),
                                             )"
                                             :key="col"
                                             class="whitespace-nowrap"
@@ -210,7 +210,7 @@
                                         <TableCell
                                             v-for="col in tableColumns.filter(
                                                 (col) =>
-                                                    !['user_name', 'group', 'group_hierarchy'].includes(col) && !col.toLowerCase().includes('impact'),
+                                                    !['user_name', 'group', 'group_hierarchy','requested_video','safety_normalisation_factor'].includes(col) && !col.toLowerCase().includes('impact'),
                                             )"
                                             :key="col"
                                             class="whitespace-nowrap"
@@ -220,8 +220,9 @@
                                                 'left-[150px]': freezeColumns && col === 'driver_name' && SuperAdmin,
                                             }"
                                         >
-                                        {{ typeof item[col] === 'number' ? Math.round(item[col]) : 
-                                        (typeof item[col] === 'string' && !isNaN(parseFloat(item[col])) ? Math.round(parseFloat(item[col])) : item[col]) }}
+                                        {{ typeof item[col] === 'string' && /^\d{4}-\d{2}-\d{2}/.test(item[col]) ? formatDate(item[col]) : 
+                                        (typeof item[col] === 'string' && !isNaN(parseFloat(item[col])) ? Math.round(parseFloat(item[col])) : 
+                                        (typeof item[col] === 'number' ? Math.round(item[col]) : item[col])) }}
                                         </TableCell>
                                         <!-- Actions for each entry - removed freezing -->
                                         <TableCell>

@@ -241,7 +241,32 @@
                 </TableCell>
                 <TableCell v-if="SuperAdmin">{{ t.tenant?.name||'—' }}</TableCell>
                 <TableCell v-for="col in tableColumns" :key="col" class="whitespace-nowrap">
-                  {{ formatCell(t, col) }}
+                  <template v-if="col === 'status'">
+                    <span
+                      :class="{
+                        'px-2 py-1 rounded-full text-xs font-medium': true,
+                        'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': t[col] === 'active',
+                        'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200': t[col] === 'inactive',
+                        'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200': t[col] === 'Returned to AMZ'
+                      }"
+                    >
+                    {{ formatCell(t, col) }}
+                    </span>
+                  </template>
+                  <template v-else-if="col === 'inspection_status'">
+                    <span
+                      :class="{
+                        'px-2 py-1 rounded-full text-xs font-medium': true,
+                        'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': t[col] === 'good',
+                        'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200': t[col] === 'expired'
+                      }"
+                    >
+                      {{ t[col] === 'good' ? 'Good' : 'Expired' }}
+                    </span>
+                  </template>
+                  <template v-else>
+                    {{ formatCell(t, col) }}
+                  </template>
                 </TableCell>
                 <TableCell>
                   <div class="flex space-x-2">
@@ -383,6 +408,159 @@
               >
                 <option value="daycab">Daycab</option>
                 <option value="sleepercab">Sleepercab</option>
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path
+                    fill-rule="evenodd"
+                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-span-2 sm:col-span-1">
+            <Label for="make" class="flex items-center gap-1.5 mb-1.5">
+              <Icon name="tag" class="h-4 w-4 text-muted-foreground" />
+              Make
+            </Label>
+            <div class="relative">
+              <select 
+                id="make" 
+                v-model="form.make" 
+                required 
+                class="flex h-10 w-full appearance-none items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-shadow hover:shadow-sm focus:shadow-sm"
+              >
+                <option value="international">International</option>
+                <option value="kenworth">Kenworth</option>
+                <option value="peterbilt">Peterbilt</option>
+                <option value="volvo">Volvo</option>
+                <option value="freightliner">Freightliner</option>
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path
+                    fill-rule="evenodd"
+                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Additional Information Section -->
+          <div class="col-span-2 mt-2 mb-2 border-b pb-2">
+            <h3 class="text-sm font-medium text-muted-foreground">Additional Information</h3>
+          </div>
+          
+          <div class="col-span-2 sm:col-span-1">
+            <Label for="fuel" class="flex items-center gap-1.5 mb-1.5">
+              <Icon name="fuel" class="h-4 w-4 text-muted-foreground" />
+              Fuel
+            </Label>
+            <div class="relative">
+              <select 
+                id="fuel" 
+                v-model="form.fuel" 
+                required 
+                class="flex h-10 w-full appearance-none items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-shadow hover:shadow-sm focus:shadow-sm"
+              >
+                <option value="diesel">Diesel</option>
+                <option value="cng">CNG</option>
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path
+                    fill-rule="evenodd"
+                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-span-2 sm:col-span-1">
+            <Label for="license" class="flex items-center gap-1.5 mb-1.5">
+              <Icon name="id_card" class="h-4 w-4 text-muted-foreground" />
+              License
+            </Label>
+            <Input 
+              id="license" 
+              v-model.number="form.license" 
+              type="number" 
+              min="0" 
+              required 
+              placeholder="Enter license number"
+              class="transition-shadow hover:shadow-sm focus:shadow-sm"
+            />
+          </div>
+          
+          <div class="col-span-2 sm:col-span-1">
+            <Label for="vin" class="flex items-center gap-1.5 mb-1.5">
+              <Icon name="fingerprint" class="h-4 w-4 text-muted-foreground" />
+              VIN
+            </Label>
+            <Input 
+              id="vin" 
+              v-model="form.vin" 
+              type="text" 
+              required 
+              placeholder="Enter vehicle identification number"
+              class="transition-shadow hover:shadow-sm focus:shadow-sm"
+            />
+          </div>
+          
+          <!-- Inspection Section -->
+          <div class="col-span-2 mt-2 mb-2 border-b pb-2">
+            <h3 class="text-sm font-medium text-muted-foreground">Inspection Details</h3>
+          </div>
+          
+          <div class="col-span-2 sm:col-span-1">
+            <Label for="inspection_status" class="flex items-center gap-1.5 mb-1.5">
+              <Icon name="clipboard_check" class="h-4 w-4 text-muted-foreground" />
+              Annual Inspection Status
+            </Label>
+            <div class="relative">
+              <select 
+                id="inspection_status" 
+                v-model="form.inspection_status" 
+                required 
+                class="flex h-10 w-full appearance-none items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-shadow hover:shadow-sm focus:shadow-sm"
+              >
+                <option value="good">Good</option>
+                <option value="expired">Expired</option>
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path
+                    fill-rule="evenodd"
+                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-span-2 sm:col-span-1">
+            <Label for="status" class="flex items-center gap-1.5 mb-1.5">
+              <Icon name="activity" class="h-4 w-4 text-muted-foreground" />
+              Status
+            </Label>
+            <div class="relative">
+              <select 
+                id="status" 
+                v-model="form.status" 
+                required 
+                class="flex h-10 w-full appearance-none items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-shadow hover:shadow-sm focus:shadow-sm"
+              >
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="Returned to AMZ">Returned to AMZ</option>
               </select>
               <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                 <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -663,9 +841,9 @@ const paginatedEntries = computed(() => {
   function humanize(col:string){ return col.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase()) }
   function formatDate(s:string){ if(!s) return '—'; const d=new Date(s+'T00:00:00'); return d.toLocaleDateString() }
   function formatCell(t:any,col:string){
-    if(col==='status') return t.status
     if(col==='inspection_status') return t.inspection_status==='good'?'Good':'Expired'
     if(col==='inspection_expiry_date') return formatDate(t[col])
+    if(col==='fuel' && t.fuel==='cng') return 'CNG'
     const v=t[col]; return typeof v==='string'? v.charAt(0).toUpperCase()+v.slice(1): v
   }
   const resetPage = () => {
