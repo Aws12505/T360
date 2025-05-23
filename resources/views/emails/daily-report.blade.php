@@ -168,7 +168,13 @@
           @if($dataAvailability['safety'])
           <tr>
             <td style="padding:24px;border-bottom:1px solid #eaeaea;">
-              <h2 style="margin:0 0 16px;font-size:18px;font-weight:600;color:#2c3e50;">Safety Alerts &amp; Rates</h2>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <h2 style="margin:0;font-size:18px;font-weight:600;color:#2c3e50;">Safety Alerts &amp; Rates</h2>
+                <div style="background:#f5f7fa;padding:8px 12px;border-radius:6px;border:1px solid #eaeaea;">
+                  <span style="font-weight:600;color:#2c3e50;margin-right:6px;">Overall Safety Rating:</span>
+                  <span style="font-weight:600;{{ strtolower($overallSafetyRating) === 'gold tier' ? 'color:#e17100;' : (strtolower($overallSafetyRating) === 'silver tier' ? 'color:#45556c;' : (strtolower($overallSafetyRating) === 'not eligible' ? 'color:#e7000b;' : 'color:#4b5563;')) }}">{{ $overallSafetyRating }}</span>
+                </div>
+              </div>
               <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="font-size:14px;">
                 <thead>
                   <tr>

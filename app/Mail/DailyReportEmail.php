@@ -40,6 +40,7 @@ class DailyReportEmail extends Mailable
     public    array  $safetyRatings;
     public    array  $performanceRatings;
     public    string $operationalExcellenceScore;
+    public    string $overallSafetyRating;
     
     // Track data availability
     public    array  $dataAvailability;
@@ -130,6 +131,9 @@ class DailyReportEmail extends Mailable
         $safetyRates = $this->safetyDataService->calculateViolationRates($t6wSafetyAggregate, $totalHours);
         $safetyRatings = $this->safetyDataService->calculateSafetyRatings($safetyRates, $rule);
         
+        // Calculate overall safety rating for T6W
+        $overallSafetyRating = $this->calculateOverallSafetyRating($safetyRatings);
+        
         // ─── PERFORMANCE DATA - YESTERDAY ───────────────────────────────────────────
         // Get main performance data for yesterday
         $yesterdayPerformanceMain = $this->performanceDataService->getMainPerformanceData($yesterdayStart, $yesterdayEnd);
@@ -203,6 +207,7 @@ class DailyReportEmail extends Mailable
         $this->safetyRatings = $safetyRatings;
         $this->performanceRatings = $performanceRatings;
         $this->operationalExcellenceScore = $operationalExcellenceScore;
+        $this->overallSafetyRating = $overallSafetyRating;
     }
 
     private function calculateOperationalExcellenceScore(array $ratings): string
@@ -237,6 +242,46 @@ class DailyReportEmail extends Mailable
             'fair'           => 'Fair',
             'poor'           => 'Poor',
             default          => 'Not Available',
+        };
+    }
+    
+    /**
+     * Calculate the overall safety rating based on individual safety ratings
+     * 
+     * @param array $ratings The safety ratings array
+     * @return string The formatted overall safety rating
+     */
+    private function calculateOverallSafetyRating(array $ratings): string
+    {
+        $ratingValues = [
+            'gold' => 3,
+            'silver' => 2,
+            'not_eligible' => 1,
+        ];
+
+        // Get all safety ratings as an array
+        $safetyRatingKeys = [
+            'traffic_light_violation',
+            'speeding_violations',
+            'following_distance',
+            'driver_distraction',
+            'sign_violations'
+        ];
+
+        // Find the best rating
+        $bestRating = 'gold';
+        foreach ($safetyRatingKeys as $key) {
+            if (isset($ratings[$key]) && isset($ratingValues[$ratings[$key]]) && 
+                $ratingValues[$ratings[$key]] < $ratingValues[$bestRating]) {
+                $bestRating = $ratings[$key];
+            }
+        }
+        
+        return match ($bestRating) {
+            'gold' => 'Gold Tier',
+            'silver' => 'Silver Tier',
+            'not_eligible' => 'Not Eligible',
+            default => 'Not Available',
         };
     }
 

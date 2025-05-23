@@ -260,7 +260,6 @@ Route::get('acceptance/export', [RejectionsController::class, 'export'])
          ->name('support.destroy');
     Route::delete('support-bulk', [TicketController::class, 'destroyBulk'])
          ->name('support.destroyBulk');
-
     Route::post('support/responses', [TicketResponseController::class, 'store'])
          ->name('support.responses.store');
 
