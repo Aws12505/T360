@@ -71,10 +71,10 @@ const updatePassword = () => {
 </script>
 
 <template>
-    <AppLayout :breadcrumbs="breadcrumbItems" :tenantSlug="props.tenantSlug">
+    <AppLayout :breadcrumbs="breadcrumbItems" :tenantSlug="props.tenantSlug" :permissions="props.permissions">
         <Head title="Password settings" />
 
-        <SettingsLayout>
+        <SettingsLayout :permissions="props.permissions">
             <div class="space-y-6">
                 <HeadingSmall title="Update password" description="Ensure your account is using a long, random password to stay secure" />
 

@@ -1,6 +1,6 @@
 <!-- FeedbackShow.vue -->
 <template>
-    <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
+    <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug" :permissions="props.permissions">
       <Head :title="`Feedback #${feedback.id}`" />
   
       <div class="w-full md:max-w-2xl lg:max-w-3xl xl:max-w-6xl lg:mx-auto m-0 p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6">

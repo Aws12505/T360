@@ -39,7 +39,10 @@ const props = defineProps({
   permissions: Array,
 });
 const { tenantSlug } = props;
-
+const permissionsNames=computed(()=>{
+  if(!props.permissions) return [];
+  return props.permissions.map(p=>p.name);
+});
 // Make breadcrumbs reactive with computed property
 const breadcrumbs = computed(() => [
   {
@@ -109,11 +112,11 @@ const availableMetrics = computed(() => {
 </script>
 
 <template>
-  <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
+  <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug" :permissions="props.permissions">
     <!-- Set the page head -->
     <Head title="Safety Thresholds Management" />
 
-    <SettingsLayout>
+    <SettingsLayout :permissions="props.permissions">
       <div class="flex flex-col space-y-6 w-full">
         <!-- Page header with title and description -->
         <HeadingSmall 
@@ -130,7 +133,7 @@ const availableMetrics = computed(() => {
             variant="default"
             size="sm"
             class="gap-1"
-            v-if="availableMetrics.length > 0"
+            v-if="availableMetrics.length > 0 && permissionsNames.includes('sms-coaching.update')"
           >
             <Plus class="h-4 w-4" />
             <span>Add New Threshold</span>
@@ -157,7 +160,7 @@ const availableMetrics = computed(() => {
                     <TableHead>Good Enabled</TableHead>
                     <TableHead>Bad Threshold</TableHead>
                     <TableHead>Bad Enabled</TableHead>
-                    <TableHead class="text-right">Actions</TableHead>
+                    <TableHead class="text-right" v-if="permissionsNames.includes('sms-coaching.update')">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -177,6 +180,7 @@ const availableMetrics = computed(() => {
                     </TableCell>
                     <TableCell class="text-right">
                       <Button 
+                      v-if="permissionsNames.includes('sms-coaching.update')"
                         variant="outline" 
                         size="sm"
                         @click="openEditor(threshold)"

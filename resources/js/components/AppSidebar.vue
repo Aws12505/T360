@@ -11,13 +11,17 @@ import { computed } from 'vue';
 interface Props {
     breadcrumbs?: BreadcrumbItemType[];
     tenantSlug?: string | null;
+    permissions: string[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
     breadcrumbs: () => [],
     tenantSlug: null, 
+    permissions: [],
 });
-
+const permissionNames = computed(() =>
+      props.permissions.map(p => p.name)
+    );
 const mainNavItems = computed<NavItem[]>(() => [
   {
     title: props.tenantSlug ? 'Dashboard' : 'Admin Dashboard',
@@ -36,48 +40,70 @@ const mainNavItems = computed<NavItem[]>(() => [
         },
       ]
     : []),
-  {
-    title: 'Performance',
-    href: props.tenantSlug
-      ? route('performance.index', { tenantSlug: props.tenantSlug })
-      : route('performance.index.admin'),
-    icon: 'barChart',
-  },
-  {
+  // Only show Performance if user has performance.view permission
+  ...(permissionNames.value.includes('performance.view')
+    ? [
+        {
+          title: 'Performance',
+          href: props.tenantSlug
+            ? route('performance.index', { tenantSlug: props.tenantSlug })
+            : route('performance.index.admin'),
+          icon: 'barChart',
+        },
+      ]
+    : []),
+    ...(permissionNames.value.includes('acceptance.view')
+    ? [
+    {
     title: 'Acceptance',
     href: props.tenantSlug
       ? route('acceptance.index', { tenantSlug: props.tenantSlug })
       : route('acceptance.index.admin'),
     icon: 'checkCircle',
-  },
+  },]
+  : []),
+  ...(permissionNames.value.includes('delays.view')
+  ? [
   {
     title: 'On-Time',
     href: props.tenantSlug
       ? route('ontime.index', { tenantSlug: props.tenantSlug })
       : route('ontime.index.admin'),
     icon: 'clock',
-  },
+  },]
+  : []),
+  ...(permissionNames.value.includes('safety-data.view')
+  ? [
   {
     title: 'Safety',
     href: props.tenantSlug
       ? route('safety.index', { tenantSlug: props.tenantSlug })
       : route('safety.index.admin'),
     icon: 'shieldCheck',
-  },
+  },]
+  : []),
+  ...(permissionNames.value.includes('trucks.view') || 
+      permissionNames.value.includes('repair-orders.view') || 
+      permissionNames.value.includes('miles-driven.view')
+  ? [
   {
     title: 'Asset Maintenance',
     href: props.tenantSlug
       ? route('repair_orders.index', { tenantSlug: props.tenantSlug })
       : route('repair_orders.index.admin'),
     icon: 'wrench',
-  },
+  },]
+  : []),
+  ...(permissionNames.value.includes('drivers.view')
+  ? [
   {
     title: 'Drivers',
     href: props.tenantSlug
       ? route('driver.index', { tenantSlug: props.tenantSlug })
       : route('driver.index.admin'),
     icon: 'users',
-  },
+  },]
+  : []),
 
 ]);
 

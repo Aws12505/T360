@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Services\Performance\PerformanceMetricRuleService;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Class PerformanceMetricRuleController
@@ -38,7 +39,8 @@ class PerformanceMetricRuleController extends Controller
     public function editGlobal()
     {
         $metrics = $this->performanceMetricRuleService->getGlobalMetrics();
-        return Inertia::render('PerformanceRules/Admin', ['metrics' => $metrics]);
+        $permissions = Auth::user()->getAllPermissions();
+        return Inertia::render('PerformanceRules/Admin', ['permissions' => $permissions,'metrics' => $metrics]);
     }
 
     /**

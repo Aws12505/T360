@@ -26,10 +26,10 @@ const breadcrumbItems = computed(() => [
 </script>
 
 <template>
-    <AppLayout :breadcrumbs="breadcrumbItems" :tenantSlug="props.tenantSlug">
+    <AppLayout :breadcrumbs="breadcrumbItems" :tenantSlug="props.tenantSlug" :permissions="props.permissions">
         <Head title="Appearance settings" />
 
-        <SettingsLayout>
+        <SettingsLayout :permissions="props.permissions">
             <div class="space-y-6">
                 <HeadingSmall title="Appearance settings" description="Update your account's appearance settings" />
                 <AppearanceTabs />

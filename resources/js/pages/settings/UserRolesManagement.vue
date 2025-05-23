@@ -175,14 +175,15 @@ const refreshData = () => {
 // Computed properties to extract arrays
 const rolesArray = computed(() => props.roles.data);
 const tenantsArray = computed(() => props.tenants.data);
+const permissionsNames = computed(() => props.permissions.map((permission: any) => permission.name));
 </script>
 
 <template>
-  <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
+  <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug" :permissions="props.permissions">
     <!-- Set the page head -->
     <Head title="Users Management" />
 
-    <SettingsLayout>
+    <SettingsLayout :permissions="props.permissions">
       <div class="flex flex-col space-y-6 w-full">
         <!-- Page header with title and description -->
         <HeadingSmall 
@@ -193,7 +194,7 @@ const tenantsArray = computed(() => props.tenants.data);
         <Separator />
 
         <!-- Search bar with icon -->
-        <div class="relative w-full max-w-lg">
+        <div class="relative w-full max-w-lg" v-if="permissionsNames.includes('users.view')">
           <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <Search class="h-5 w-5 text-gray-400" />
           </div>
@@ -205,7 +206,7 @@ const tenantsArray = computed(() => props.tenants.data);
         </div>
 
         <!-- Users Section -->
-        <Card class="w-full">
+        <Card class="w-full" v-if="permissionsNames.includes('users.view')">
           <CardHeader class="p-2 md:p-4 lg:p-6 flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle class="text-xl font-semibold">
               <div class="flex items-center space-x-2">
@@ -214,6 +215,7 @@ const tenantsArray = computed(() => props.tenants.data);
               </div>
             </CardTitle>
             <Button
+              v-if="permissionsNames.includes('users.create')"
               @click="openUserModal"
               variant="default"
               size="sm"
@@ -224,12 +226,12 @@ const tenantsArray = computed(() => props.tenants.data);
             </Button>
           </CardHeader>
           <CardContent class="p-2 md:p-4 lg:p-6">
-            <UserList :users="filteredUsers" :isSuperAdmin="isSuperAdmin" @edit="editUser" @delete="deleteUser" />
+            <UserList :permissions="props.permissions" :users="filteredUsers" :isSuperAdmin="isSuperAdmin" @edit="editUser" @delete="deleteUser" />
           </CardContent>
         </Card>
 
         <!-- Roles Section -->
-        <Card class="w-full">
+        <Card class="w-full" v-if="permissionsNames.includes('roles.view')">
           <CardHeader class="p-2 md:p-4 lg:p-6 flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle class="text-xl font-semibold">
               <div class="flex items-center space-x-2">
@@ -238,6 +240,7 @@ const tenantsArray = computed(() => props.tenants.data);
               </div>
             </CardTitle>
             <Button
+              v-if="permissionsNames.includes('roles.create')"
               @click="openRoleModal"
               variant="default"
               size="sm"
@@ -248,7 +251,7 @@ const tenantsArray = computed(() => props.tenants.data);
             </Button>
           </CardHeader>
           <CardContent class="p-2 md:p-4 lg:p-6">
-            <RoleList :roles="roles" @edit="editRole" @delete="deleteRole" />
+            <RoleList :permissions="props.permissions" :roles="roles" @edit="editRole" @delete="deleteRole" />
           </CardContent>
         </Card>
 

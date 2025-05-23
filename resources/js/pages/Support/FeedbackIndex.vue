@@ -1,6 +1,6 @@
 <!-- FeedbackIndex.vue -->
 <template>
-    <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
+    <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug" :permissions="props.permissions">
       <Head title="User Feedback" />
   
       <div class="w-[95%] mx-auto p-6 space-y-8">

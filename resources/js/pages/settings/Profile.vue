@@ -45,10 +45,10 @@ const submit = () => {
 </script>
 
 <template>
-    <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="props.tenantSlug">
+    <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="props.tenantSlug" :permissions="props.permissions">
         <Head title="Profile settings" />
 
-        <SettingsLayout>
+        <SettingsLayout :permissions="props.permissions">
             <div class="flex flex-col space-y-6">
                 <HeadingSmall title="Profile information" description="Update your name and email address" />
 

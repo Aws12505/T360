@@ -6,7 +6,7 @@
           <tr class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
             <th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Name</th>
             <th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Email</th>
-            <th class="h-12 px-4 text-right align-middle font-medium text-muted-foreground">Actions</th>
+            <th class="h-12 px-4 text-right align-middle font-medium text-muted-foreground" v-if="permissionNames.includes('users.update')||permissionNames.includes('users.delete')">Actions</th>
           </tr>
         </thead>
         <tbody class="[&_tr:last-child]:border-0">
@@ -21,9 +21,10 @@
             <td class="p-4 align-middle">
               {{ user.email }}
             </td>
-            <td class="p-4 align-middle text-right">
+            <td class="p-4 align-middle text-right" v-if="permissionNames.includes('users.update')||permissionNames.includes('users.delete')">
               <div class="flex justify-end space-x-2">
                 <Button
+                  v-if="permissionNames.includes('users.update')"
                   @click="$emit('edit', user)"
                   variant="outline"
                   size="sm"
@@ -31,6 +32,7 @@
                   Edit
                 </Button>
                 <Button
+                  v-if="permissionNames.includes('users.delete')"
                   @click="$emit('delete', user)"
                   variant="destructive"
                   size="sm"
@@ -79,12 +81,16 @@
 import { Button } from '@/components/ui/button';
 import { Link } from '@inertiajs/vue3';
 import { router } from '@inertiajs/vue3'
+import { computed, defineProps } from 'vue';
 
 const props = defineProps({
   users: Object,
   isSuperAdmin: { type: Boolean, default: false },
+  permissions: Array,
 });
-
+const permissionNames = computed(() => {
+  return props.permissions.map(permission => permission.name);
+});
 // Function to handle pagination navigation using Inertia.
 const visitPage = (url) => {
   if (url) {

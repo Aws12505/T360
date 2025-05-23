@@ -1,8 +1,8 @@
 <template>
-  <AppLayout :breadcrumbs="props.breadcrumbItems" :tenantSlug="props.tenantSlug">
+  <AppLayout :breadcrumbs="props.breadcrumbItems" :tenantSlug="props.tenantSlug" :permissions="props.permissions">
     <Head title="Company" />
 
-    <SettingsLayout>
+    <SettingsLayout :permissions="props.permissions">
       <div class="space-y-6">
         <HeadingSmall 
           title="Company" 
@@ -90,7 +90,7 @@
             </div>
             
             <div class="flex items-center gap-4">
-              <Button type="submit" :disabled="form.processing">
+              <Button type="submit" :disabled="form.processing" v-if="permissionsNames.includes('tenant-settings.update')">
                 <span v-if="form.processing">Updating...</span>
                 <span v-else>Save Changes</span>
               </Button>
@@ -212,7 +212,7 @@ const props = defineProps({
   },
   permissions: Array,
 });
-
+const permissionNames = computed(() => props.permissions.map((permission) => permission.name));
 // Active tab state
 const activeTab = ref('company');
 

@@ -6,7 +6,7 @@
           <tr class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
             <th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Role Name</th>
             <th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Permissions</th>
-            <th class="h-12 px-4 text-right align-middle font-medium text-muted-foreground">Actions</th>
+            <th class="h-12 px-4 text-right align-middle font-medium text-muted-foreground" v-if="permissionsNames.includes('roles.update') || permissionsNames.includes('roles.delete')">Actions</th>
           </tr>
         </thead>
         <tbody class="[&_tr:last-child]:border-0">
@@ -63,9 +63,10 @@
                 </div>
               </div>
             </td>
-            <td class="p-4 align-middle text-right">
+            <td class="p-4 align-middle text-right" v-if="permissionsNames.includes('roles.update')||permissionsNames.includes('roles.delete')">
               <div class="flex justify-end space-x-2">
                 <Button
+                v-if="permissionsNames.includes('roles.update')"
                   @click="$emit('edit', role)"
                   variant="outline"
                   size="sm"
@@ -75,6 +76,7 @@
                   Edit
                 </Button>
                 <Button
+                v-if="permissionsNames.includes('roles.delete')"
                   @click="$emit('delete', role)"
                   variant="destructive"
                   size="sm"
@@ -114,11 +116,15 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { router } from '@inertiajs/vue3';
 import { Shield, Pencil as PencilIcon, Trash as TrashIcon, Folder as FolderIcon } from 'lucide-vue-next';
+import { computed, defineProps } from 'vue';
 
 const props = defineProps({
   roles: Object,
+  permissions: Array,
 });
-
+const permissionsNames = computed(() => {
+  return props.permissions.map(permission => permission.name);
+});
 // Track expanded roles
 const expandedRoles = ref([]);
 

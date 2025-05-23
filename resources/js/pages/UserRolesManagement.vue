@@ -185,7 +185,7 @@ const tenantsArray = computed(() => props.tenants.data);
   <Head title="Users Management" />
 
   <!-- Main layout with breadcrumbs passed to the AppLayout component -->
-  <AppLayout  :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
+  <AppLayout  :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug" :permissions="props.permissions">
     
     <div class="container w-full  md:max-w-2xl lg:max-w-3xl xl:max-w-6xl  lg:mx-auto m-0 p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6">
       <!-- Page header with title and description -->

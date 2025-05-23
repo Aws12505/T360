@@ -129,7 +129,7 @@ class SummariesService
 
         // Convert outstandingDate to Carbon instance if it's provided
         $outstandingDateCarbon = $outstandingDate ? Carbon::parse($outstandingDate) : null;
-
+        $permissions=Auth::user()->getAllPermissions();
         // Adjust dates for maintenance breakdown (weeks 16-24 instead of 17-25)
         $maintenanceStartDate = $startDate->copy()->subWeek();
         $maintenanceEndDate = $endDate->copy()->subWeek();
@@ -145,6 +145,7 @@ class SummariesService
             'dateFilter' => $dateFilter,
             'dateRange' => $dateRange,
             'driversOverallPerformance' => $driverOverAll,
+            'permissions' => $permissions,
             'milesDriven' => $this->getMilesDrivenSum($startDate, $endDate, $dateFilter),
         ];
     }

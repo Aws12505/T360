@@ -84,7 +84,16 @@ class RepairOrderService
         if (!is_null(Auth::user()->tenant_id)) {
             $query->where('tenant_id', Auth::user()->tenant_id);
         }
-        $openedComponent = $request->input('openedComponent','repairOrders');
+        if(Auth::user()->hasPermissionTo('repair-orders.view')){
+            $defaultComponent = 'repairOrders';
+        }
+        else if (Auth::user()->hasPermissionTo('miles-driven.view')){
+            $defaultComponent ='milesDriven';
+        }
+        else {
+            $defaultComponent ='trucks';
+        }
+        $openedComponent = $request->input('openedComponent',$defaultComponent);
         $repairOrders = $query->latest('ro_open_date')->paginate($perPage);
         $isSuperAdmin = is_null(Auth::user()->tenant_id);
         $tenantSlug = $isSuperAdmin ? null : Auth::user()->tenant->slug;

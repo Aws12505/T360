@@ -4,11 +4,22 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
+import { computed, defineProps } from 'vue';
 
 const page = usePage();
 const tenantSlug = page.props.tenantSlug as string | null;
 const isSuperAdmin = page.props.SuperAdmin as boolean;
-
+const props= defineProps<{
+    permissions: Array<{
+        id: number;
+        name: string;
+        guard_name: string;
+        created_at: string;
+        updated_at: string;
+        pivot: object;
+    }>;
+}>();
+const permissionsNames = computed(() => props.permissions?.map((permission) => permission.name) || []);
 // Only show tenant settings if user has a tenant and is not a SuperAdmin
 const showTenantSettings = tenantSlug && !isSuperAdmin;
 
@@ -26,21 +37,26 @@ const sidebarNavItems: NavItem[] = [
         href: '/settings/appearance',
     },
     // Add tenant settings only for tenant users (not SuperAdmin)
-    ...(showTenantSettings ? [{
+    ...(showTenantSettings && permissionsNames.value.includes('tenant-settings.view') ? [{
         title: 'Company',
         href: `/${tenantSlug}/settings/tenant`,
     }] : []),
+    ...(permissionsNames.value.includes('users.view') || permissionsNames.value.includes('roles.view') ? [
     {
         title: 'User Management',
         href: tenantSlug? route('users.roles.index', { tenantSlug: tenantSlug }) : route('admin.users.roles.index')
-    },
-    ...(showTenantSettings ? [{
+    }] : []),
+    ...(showTenantSettings && permissionsNames.value.includes('sms-coaching.view')? [{
         title: 'Safety Coaching Thresholds',
         href: route('sms-coaching.edit', { tenantSlug: tenantSlug }),
     }] : []),
 ];
 
 const currentPath = page.props.ziggy?.location ? new URL(page.props.ziggy.location).pathname : '';
+const isActive = (href: string) => {
+  // exact match OR anything deeper under this URL
+  return currentPath === href || currentPath.startsWith(href + '/');
+};
 </script>
 
 <template>
@@ -56,7 +72,7 @@ const currentPath = page.props.ziggy?.location ? new URL(page.props.ziggy.locati
                             v-for="item in sidebarNavItems"
                             :key="item.href"
                             variant="ghost"
-                            :class="['w-full justify-start', { 'bg-muted': currentPath === item.href }]"
+                            :class="['w-full justify-start', { 'bg-muted': isActive(item.href) }]"
                             as-child
                         >
                             <Link :href="item.href">

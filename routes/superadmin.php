@@ -17,10 +17,16 @@ use App\Http\Controllers\Web\Support\TicketController;
 use App\Http\Controllers\Web\Support\TicketResponseController;
 use App\Http\Controllers\Web\Support\FeedbackController;
 use App\Http\Controllers\Web\Support\FeedbackSubjectsController;
+use Illuminate\Support\Facades\Auth;
 
 Route::middleware(['auth', 'superAdmin'])->group(function () {
     // Dashboard & UI
-    Route::get('/dashboard', fn() => Inertia::render('Dashboard'))->name('admin.dashboard');
+    Route::get('/dashboard', function () {
+        $permissions = Auth::user()->getAllPermissions();
+        return Inertia::render('Dashboard',[
+            'permissions' => $permissions,
+        ]);
+    })->name('admin.dashboard');
     Route::get('/users-roles', [UserController::class, 'index'])->name('admin.users.roles.index');
 
     // Users

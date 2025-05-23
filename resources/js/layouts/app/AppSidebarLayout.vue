@@ -11,11 +11,13 @@ import { ref, onMounted, onUnmounted } from 'vue';
 interface Props {
     breadcrumbs?: BreadcrumbItemType[];
     tenantSlug?: string | null;
+    permissions?: Array<string>;
 }
 
 const props = withDefaults(defineProps<Props>(), {
     breadcrumbs: () => [],
     tenantSlug: null, 
+    permissions: [],
 });
 
 // Enhanced responsive handling with multiple breakpoints
@@ -48,7 +50,7 @@ onUnmounted(() => {
 
 <template>
     <AppShell variant="sidebar">
-        <AppSidebar :breadcrumbs="props.breadcrumbs" :tenantSlug="props.tenantSlug" />
+        <AppSidebar :breadcrumbs="props.breadcrumbs" :tenantSlug="props.tenantSlug" :permissions="props.permissions"/>
         <AppContent 
             variant="sidebar" 
             :class="{

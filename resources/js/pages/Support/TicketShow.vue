@@ -1,5 +1,5 @@
 <template>
-  <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug">
+  <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug" :permissions="props.permissions">
     <Head :title="`Ticket #${ticket.id}`" />
 
     <div class="w-[95%] max-w-7xl mx-auto p-6 space-y-6">
