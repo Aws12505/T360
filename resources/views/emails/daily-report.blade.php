@@ -286,7 +286,7 @@
           <tr>
             <td style="padding:24px;border-bottom:1px solid #eaeaea;">
               <p style="margin:0 0 16px;font-size:16px;color:#1a1a1a;">
-                If you'd like to review your complete performance data, including visuals and driver-level breakdowns, you can access your full report immediately through <a href="https://dashboard.trucking360solutions.com/login" style="color:#2563eb;text-decoration:underline;">Trucking 360 dashboard</a>.
+                If you'd like to review your complete performance data, including visuals and driver-level breakdowns, you can access your full report immediately through <a href="https://dashboard360.io/" style="color:#2563eb;text-decoration:underline;">Trucking 360 dashboard</a>.
               </p>
               <p style="margin:0 0 16px;font-size:16px;color:#1a1a1a;">
                 Consistency is key—let's continue building toward Fantastic+ performance!
