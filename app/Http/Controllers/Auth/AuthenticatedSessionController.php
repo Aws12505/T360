@@ -24,7 +24,7 @@ class AuthenticatedSessionController extends Controller
                 return redirect()->route('admin.dashboard');
             }
             else{
-                return redirect()->route('dashboard');
+                return redirect()->route('dashboard',['tenantSlug' => $user->tenant->slug]);
             }
         }
         return Inertia::render('auth/Login', [
