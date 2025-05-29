@@ -21,10 +21,10 @@ class AuthenticatedSessionController extends Controller
         if(Auth::check()){
             $user = Auth::user();
             if (is_null($user->tenant)) {
-                return redirect()->intended(route('admin.dashboard', absolute: false));
+                return redirect()->route('admin.dashboard');
             }
             else{
-                return redirect()->intended(route('dashboard', absolute: false));
+                return redirect()->route('dashboard');
             }
         }
         return Inertia::render('auth/Login', [
