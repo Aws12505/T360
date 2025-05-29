@@ -34,7 +34,7 @@
         <!-- Company Settings Tab Content -->
         <div v-if="activeTab === 'company'" class="space-y-6">
           <!-- Company Logo Preview Section -->
-          <div v-if="tenant.image_path" class="flex flex-col items-center space-y-3 p-4 border rounded-md bg-muted/50">
+          <div v-if="tenant?.image_path" class="flex flex-col items-center space-y-3 p-4 border rounded-md bg-muted/50">
             <div class="text-sm font-medium">Current Company Logo</div>
             <div class="w-32 h-32 rounded-md overflow-hidden border border-border flex items-center justify-center bg-white">
               <img 
@@ -90,7 +90,11 @@
             </div>
             
             <div class="flex items-center gap-4">
-              <Button type="submit" :disabled="form.processing" v-if="permissionsNames.includes('tenant-settings.update')">
+              <Button
+  type="submit"
+  :disabled="form.processing"
+  v-if="permissionNames && permissionNames.includes('tenant-settings.update')"
+>
                 <span v-if="form.processing">Updating...</span>
                 <span v-else>Save Changes</span>
               </Button>
@@ -212,8 +216,11 @@ const props = defineProps({
   },
   permissions: Array,
 });
-const permissionNames = computed(() => props.permissions.map((permission) => permission.name));
-// Active tab state
+const permissionNames = computed(() => {
+  return Array.isArray(props.permissions)
+    ? props.permissions.map((permission) => permission?.name).filter(Boolean)
+    : [];
+});// Active tab state
 const activeTab = ref('company');
 
 // Make breadcrumbItems reactive with computed property
