@@ -18,19 +18,9 @@ use Inertia\Inertia;
 use App\Http\Controllers\Web\Zoho\ZohoWebhookController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
 
-Route::get('/', function () {
-    // Safely get the authenticated user's tenant slug if available
-    $tenantSlug = null;
-    
-    if (Auth::check() && Auth::user()->tenant) {
-        $tenantSlug = Auth::user()->tenant->slug;
-    }
-    
-    return Inertia::render('Welcome', [
-        'tenantSlug' => $tenantSlug,
-    ]);
-})->name('home');
+Route::get('/', [AuthenticatedSessionController::class, 'create'])->name('home');
 
 
 Route::post('/zoho/webhook', [ZohoWebhookController::class, 'handleZohoWebhook'])
