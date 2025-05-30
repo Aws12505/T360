@@ -197,7 +197,7 @@
                                     <!-- Actions column -->
                                     <TableCell v-if="permissionNames.includes('drivers.delete')||permissionNames.includes('drivers.update')">
                                         <div class="flex space-x-2">
-                                            <Button @click="openEditModal(driver)" variant="warning" size="sm" v-if="permissionNames.includes('drivers.udpate')">
+                                            <Button @click="openEditModal(driver)" variant="warning" size="sm" v-if="permissionNames.includes('drivers.update')">
                                                 <Icon name="pencil" class="mr-1 h-4 w-4" />
                                                 Edit
                                             </Button>
@@ -256,87 +256,115 @@
             <!-- Modal -->
             <Dialog v-model:open="showModal">
                 <DialogContent class="sm:max-w-4xl max-w-[95vw] mx-auto p-2 md:p-4 lg:p-6">
-                    <DialogHeader class="space-y-1 md:space-y-2">
-                        <DialogTitle class="text-lg md:text-xl lg:text-2xl">{{ formTitle }}</DialogTitle>
-                        <DialogDescription class="text-sm md:text-base"> Fill in the details to {{ formAction.toLowerCase() }} a driver. </DialogDescription>
-                    </DialogHeader>
+    <DialogHeader class="space-y-1 md:space-y-2">
+        <DialogTitle class="text-lg md:text-xl lg:text-2xl">{{ formTitle }}</DialogTitle>
+        <DialogDescription class="text-sm md:text-base">
+            Fill in the details to {{ formAction.toLowerCase() }} a driver.
+        </DialogDescription>
+    </DialogHeader>
 
-                    <form @submit.prevent="submitForm" class="grid grid-cols-1 gap-2 md:gap-4 sm:grid-cols-2 mt-2 md:mt-4">
-                        <div v-if="SuperAdmin" class="col-span-2">
-                            <Label for="tenant" class="text-sm md:text-base">Company</Label>
-                            <div class="relative">
-                                <select
-                                    id="tenant"
-                                    v-model="form.tenant_id"
-                                    class="flex h-8 md:h-10 w-full appearance-none items-center rounded-md border border-input bg-background px-2 md:px-3 py-1 md:py-2 text-xs md:text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                >
-                                    <option value="">Select Company</option>
-                                    <option v-for="tenant in tenants" :key="tenant.id" :value="tenant.id">
-                                        {{ tenant.name }}
-                                    </option>
-                                </select>
-                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                                    <svg class="h-3 w-3 md:h-4 md:w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                        <path
-                                            fill-rule="evenodd"
-                                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                            clip-rule="evenodd"
-                                        />
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
+    <!-- SCROLLABLE WRAPPER ADDED HERE -->
+    <div class="max-h-[80vh] overflow-y-auto pr-2">
+        <form @submit.prevent="submitForm" class="grid grid-cols-1 gap-2 md:gap-4 sm:grid-cols-2 mt-2 md:mt-4">
 
-                        <div>
-                            <Label for="first_name" class="text-sm md:text-base">First Name</Label>
-                            <Input id="first_name" v-model="form.first_name" type="text" required class="h-8 md:h-10 text-xs md:text-sm px-2 md:px-3 py-1 md:py-2" />
-                        </div>
+            <!-- Company (SuperAdmin) -->
+            <div v-if="SuperAdmin" class="col-span-2">
+                <Label for="tenant" class="text-sm md:text-base">Company</Label>
+                <select id="tenant" v-model="form.tenant_id"
+                    class="flex h-8 md:h-10 w-full appearance-none items-center rounded-md border border-input bg-background px-2 md:px-3 py-1 md:py-2 text-xs md:text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                    <option value="">Select Company</option>
+                    <option v-for="tenant in tenants" :key="tenant.id" :value="tenant.id">
+                        {{ tenant.name }}
+                    </option>
+                </select>
+            </div>
 
-                        <div>
-                            <Label for="last_name" class="text-sm md:text-base">Last Name</Label>
-                            <Input id="last_name" v-model="form.last_name" type="text" required class="h-8 md:h-10 text-xs md:text-sm px-2 md:px-3 py-1 md:py-2" />
-                        </div>
+            <!-- First Name -->
+            <div>
+                <Label for="first_name" class="text-sm md:text-base">First Name</Label>
+                <Input id="first_name" v-model="form.first_name" type="text" required
+                    class="h-8 md:h-10 text-xs md:text-sm px-2 md:px-3 py-1 md:py-2" />
+            </div>
 
-                        <div class="sm:col-span-2">
-                            <Label for="email" class="text-sm md:text-base">Email Address</Label>
-                            <Input id="email" v-model="form.email" type="email" required class="h-8 md:h-10 text-xs md:text-sm px-2 md:px-3 py-1 md:py-2" />
-                        </div>
-                        <div class="sm:col-span-2">
-  <Label for="netradyne_user_name" class="text-sm md:text-base">
-    Netradyne User Name
-  </Label>
-  <Input
-    id="netradyne_user_name"
-    v-model="form.netradyne_user_name"
-    type="text"
-    required
-    class="h-8 md:h-10 text-xs md:text-sm px-2 md:px-3 py-1 md:py-2"
-  />
-</div>
-                        <div class="sm:col-span-2">
-                            <Label for="mobile_phone" class="text-sm md:text-base">Mobile Phone Number</Label>
-                            <Input
-  id="mobile_phone"
-  v-model="form.mobile_phone"
-  type="tel"
-  required
-  class="h-8 md:h-10 text-xs md:text-sm px-2 md:px-3 py-1 md:py-2"
-  @input="onPhoneInput"
-/>                        </div>
+            <!-- Last Name -->
+            <div>
+                <Label for="last_name" class="text-sm md:text-base">Last Name</Label>
+                <Input id="last_name" v-model="form.last_name" type="text" required
+                    class="h-8 md:h-10 text-xs md:text-sm px-2 md:px-3 py-1 md:py-2" />
+            </div>
 
-                        <div class="sm:col-span-2">
-                            <Label for="hiring_date" class="text-sm md:text-base">Hiring Date</Label>
-                            <Input id="hiring_date" v-model="form.hiring_date" type="date" required class="h-8 md:h-10 text-xs md:text-sm px-2 md:px-3 py-1 md:py-2" />
-                        </div>
+            <!-- Email -->
+            <div class="sm:col-span-2">
+                <Label for="email" class="text-sm md:text-base">Email Address</Label>
+                <Input id="email" v-model="form.email" type="email" required
+                    class="h-8 md:h-10 text-xs md:text-sm px-2 md:px-3 py-1 md:py-2" />
+            </div>
 
-                        <DialogFooter class="col-span-2 mt-2 md:mt-4 flex flex-col sm:flex-row gap-2 sm:gap-4 justify-end">
-                            <Button type="button" @click="closeModal" variant="outline" class="h-8 md:h-10 text-xs md:text-sm px-2 md:px-4 py-1 md:py-2"> Cancel </Button>
-                            <Button type="submit" variant="default" class="h-8 md:h-10 text-xs md:text-sm px-2 md:px-4 py-1 md:py-2">
-                                {{ formAction }}
-                            </Button>
-                        </DialogFooter>
-                    </form>
-                </DialogContent>
+            <!-- Password -->
+            <div class="sm:col-span-2">
+                <Label for="password" class="flex items-center">
+                    <span>Password</span>
+                    <span v-if="formAction === 'Create'" class="text-destructive ml-1">*</span>
+                </Label>
+                <div class="relative">
+                    <Input id="password" v-model="form.password" :type="showPassword ? 'text' : 'password'"
+                        placeholder="Enter password" class="w-full pr-10"
+                        :class="{ 'border-destructive': form.errors.password }" />
+                    <button type="button" @click="showPassword = !showPassword"
+                        class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        <Eye v-if="!showPassword" class="h-5 w-5" />
+                        <EyeOff v-else class="h-5 w-5" />
+                    </button>
+                </div>
+            </div>
+
+            <!-- Netradyne User Name -->
+            <div class="sm:col-span-2">
+                <Label for="netradyne_user_name" class="text-sm md:text-base">Netradyne User Name</Label>
+                <Input id="netradyne_user_name" v-model="form.netradyne_user_name" type="text" required
+                    class="h-8 md:h-10 text-xs md:text-sm px-2 md:px-3 py-1 md:py-2" />
+            </div>
+
+            <!-- Mobile Phone -->
+            <div class="sm:col-span-2">
+                <Label for="mobile_phone" class="text-sm md:text-base">Mobile Phone Number</Label>
+                <Input id="mobile_phone" v-model="form.mobile_phone" type="tel" required
+                    class="h-8 md:h-10 text-xs md:text-sm px-2 md:px-3 py-1 md:py-2" @input="onPhoneInput" />
+            </div>
+
+            <!-- Hiring Date -->
+            <div class="sm:col-span-2">
+                <Label for="hiring_date" class="text-sm md:text-base">Hiring Date</Label>
+                <Input id="hiring_date" v-model="form.hiring_date" type="date" required
+                    class="h-8 md:h-10 text-xs md:text-sm px-2 md:px-3 py-1 md:py-2" />
+            </div>
+
+            <!-- Driver Image -->
+            <div class="sm:col-span-2">
+                <Label for="image" class="text-sm md:text-base">Driver Image</Label>
+                <Input id="image" type="file" accept="image/*" @change="onImageChange"
+                    class="h-8 md:h-10 text-xs md:text-sm px-2 md:px-3 py-1 md:py-2" />
+
+                <!-- Image preview -->
+                <div v-if="imagePreview" class="mt-2">
+                    <img :src="imagePreview" alt="Image Preview" class="h-24 w-24 object-cover rounded-md" />
+                </div>
+            </div>
+
+            <!-- Footer buttons -->
+            <DialogFooter
+                class="col-span-2 mt-4 flex flex-col sm:flex-row gap-2 sm:gap-4 justify-end">
+                <Button type="button" @click="closeModal" variant="outline"
+                    class="h-8 md:h-10 text-xs md:text-sm px-2 md:px-4 py-1 md:py-2">Cancel</Button>
+                <Button type="submit" variant="default"
+                    class="h-8 md:h-10 text-xs md:text-sm px-2 md:px-4 py-1 md:py-2">
+                    {{ formAction }}
+                </Button>
+            </DialogFooter>
+
+        </form>
+    </div>
+</DialogContent>
             </Dialog>
 
             <!-- Delete Confirmation Dialog -->
@@ -403,7 +431,10 @@ import {
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
-
+import { 
+  Eye, 
+  EyeOff, 
+} from 'lucide-vue-next';
 // Remove or comment out the DataTable imports since we're not using them anymore
 // import {
 //   DataTable,
@@ -531,11 +562,14 @@ const form = useForm({
     hiring_date: '',
     netradyne_user_name: '',
     tenant_id: null,
+    password: '', // NEW
+    image: null, // NEW
 });
 
 const importForm = useForm({
     csv_file: null,
 });
+const showPassword = ref(false);
 
 const deleteForm = useForm({});
 
@@ -630,6 +664,7 @@ function openEditModal(item) {
     form.hiring_date = item.hiring_date;
     form.tenant_id = item.tenant_id;
     form.netradyne_user_name = item.netradyne_user_name;
+    form.password = item.password;
     formTitle.value = 'Edit Driver';
     formAction.value = 'Update';
     showModal.value = true;
@@ -648,26 +683,27 @@ function submitForm() {
         hiring_date: form.hiring_date,
         tenant_id: form.tenant_id,
         netradyne_user_name: form.netradyne_user_name,
+        password: form.password, // NEW
     };
 
     if (form.id) {
         form.put(props.SuperAdmin ? route('driver.update.admin', [form.id]) : route('driver.update', [props.tenantSlug, form.id]), {
-            data: payload,
-            onSuccess: () => {
-                successMessage.value = 'Driver updated.';
-                closeModal();
-            },
-            onError: () => alert('Error updating driver'),
-        });
+    forceFormData: true, // IMPORTANT
+    onSuccess: () => {
+        successMessage.value = 'Driver updated.';
+        closeModal();
+    },
+    onError: () => alert('Error updating driver'),
+});
     } else {
         form.post(props.SuperAdmin ? route('driver.store.admin') : route('driver.store', props.tenantSlug), {
-            data: payload,
-            onSuccess: () => {
-                successMessage.value = 'Driver created.';
-                closeModal();
-            },
-            onError: () => alert('Error creating driver'),
-        });
+    forceFormData: true, // IMPORTANT
+    onSuccess: () => {
+        successMessage.value = 'Driver created.';
+        closeModal();
+    },
+    onError: () => alert('Error creating driver'),
+});
     }
 }
 
@@ -855,4 +891,23 @@ onMounted(() => {
 const permissionNames = computed(() =>
       props.permissions.map(p => p.name)
     );
+
+    const imagePreview = ref(null);
+
+function onImageChange(e) {
+    const file = e.target.files[0];
+    if (file) {
+        form.image = file;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            imagePreview.value = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    } else {
+        form.image = null;
+        imagePreview.value = null;
+    }
+}
+
 </script>

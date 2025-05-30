@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\User;
+use App\Models\Driver;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,15 +20,20 @@ class AuthenticatedSessionController extends Controller
      */
     public function create(Request $request)
     {
-        if(Auth::check()){
-            $user = Auth::user();
+        if (Auth::guard('driver')->check()) {
+            return redirect()->route('driver.dashboard');
+        }
+
+        if (Auth::guard('web')->check()) {
+            $user = Auth::guard('web')->user();
+
             if (is_null($user->tenant)) {
                 return redirect()->route('admin.dashboard');
-            }
-            else{
-                return redirect()->route('dashboard',['tenantSlug' => $user->tenant->slug]);
+            } else {
+                return redirect()->route('dashboard', ['tenantSlug' => $user->tenant->slug]);
             }
         }
+
         return Inertia::render('auth/Login', [
             'canResetPassword' => Route::has('password.request'),
             'status' => $request->session()->get('status'),
@@ -38,13 +45,54 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
-        $request->authenticate();
+        $email = $request->email;
+        $password = $request->password;
+        $credentials = $request->only('email', 'password');
 
-        $request->session()->regenerate();
-        if(is_null(Auth::user()->tenant)){return redirect()->intended(route('admin.dashboard', absolute: false));}
+        // Auto-detect guard
+        $guard = 'web'; // default
 
-        $tenantSlug = Auth::user()->tenant->slug;
-        return redirect()->intended(route('dashboard',['tenantSlug' => $tenantSlug], absolute: false));
+        // First, check if it's a User
+        $user = User::where('email', $email)->first();
+
+        if ($user) {
+            $guard = 'web';
+        } else {
+            // If not found in users, check drivers
+            $driver = Driver::where('email', $email)->first();
+
+            if ($driver) {
+                $guard = 'driver';
+            } else {
+                // If not found in either → fail fast
+                return back()->withErrors([
+                    'email' => __('auth.failed'),
+                ]);
+            }
+        }
+        // Now attempt login with detected guard
+        if (Auth::guard($guard)->attempt($credentials, $request->boolean('remember'))) {
+            $request->session()->regenerate();
+
+            if ($guard === 'driver') {
+                return redirect()->route('driver.dashboard');
+            }
+            if ($guard === 'web') {
+                $user = Auth::guard('web')->user();
+
+                if (is_null($user->tenant)) {
+                    return redirect()->route('admin.dashboard');
+                }
+
+                $tenantSlug = $user->tenant->slug;
+                return redirect()->route('dashboard', ['tenantSlug' => $tenantSlug]);
+            }
+        }
+
+        // If login failed
+        return back()->withErrors([
+            'email' => __('auth.failed'),
+        ]);
     }
 
     /**
@@ -52,7 +100,13 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
-        Auth::guard('web')->logout();
+        if (Auth::guard('driver')->check()) {
+            Auth::guard('driver')->logout();
+        }
+
+        if (Auth::guard('web')->check()) {
+            Auth::guard('web')->logout();
+        }
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

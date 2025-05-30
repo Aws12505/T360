@@ -39,6 +39,10 @@ return [
         'web' => [
             'driver' => 'session',
             'provider' => 'users',
+        ],    
+        'driver' => [ // ADD THIS GUARD
+            'driver' => 'session',
+            'provider' => 'drivers',
         ],
     ],
 
@@ -64,7 +68,10 @@ return [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', App\Models\User::class),
         ],
-
+        'drivers' => [ // ADD THIS PROVIDER
+            'driver' => 'eloquent',
+            'model' => App\Models\Driver::class,
+         ],
         // 'users' => [
         //     'driver' => 'database',
         //     'table' => 'users',

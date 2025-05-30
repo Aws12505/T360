@@ -35,8 +35,8 @@ class DriverImportExportService
         $isSuperAdmin = Auth::user()->tenant_id === null;
 
         $expectedHeaders = $isSuperAdmin
-            ? ['tenant_name', 'first_name', 'last_name', 'email','netradyne_user_name', 'mobile_phone', 'hiring_date']
-            : ['first_name', 'last_name', 'email','netradyne_user_name', 'mobile_phone', 'hiring_date'];
+            ? ['tenant_name', 'first_name', 'last_name', 'email','password','netradyne_user_name', 'mobile_phone', 'hiring_date']
+            : ['first_name', 'last_name', 'email','password','netradyne_user_name', 'mobile_phone', 'hiring_date'];
 
         $headers = fgetcsv($handle, 0, ',');
         if ($headers === false) {
@@ -97,15 +97,23 @@ class DriverImportExportService
                 'email'        => 'required|email',
                 'mobile_phone' => 'required|string',
                 'hiring_date'  => 'required|date',
-                'netradyne_user_name' =>'required|string',
+                'netradyne_user_name' => 'required|string',
+                'password'     => 'nullable|string|min:8',
             ]);
-
+            
             if ($validator->fails()) {
                 $rowsSkipped++;
                 $currentRow++;
                 continue;
             }
-
+            
+            // Handle password
+            if (empty($data['password'])) {
+                $data['password'] = \Illuminate\Support\Facades\Hash::make($data['first_name'] . 'password');
+            } else {
+                $data['password'] = \Illuminate\Support\Facades\Hash::make($data['password']);
+            }
+            
             $driver = Driver::where('email', $data['email'])->first();
             if ($driver) {
                 $driver->update($data);
@@ -141,6 +149,7 @@ class DriverImportExportService
             'first_name',
             'last_name',
             'email',
+            'password',
             'netradyne_user_name',
             'mobile_phone',
             'hiring_date',
@@ -153,6 +162,7 @@ class DriverImportExportService
                 $driver->first_name,
                 $driver->last_name,
                 $driver->email,
+                $driver->password,
                 $driver->netradyne_user_name,
                 $driver->mobile_phone,
                 $driver->hiring_date,

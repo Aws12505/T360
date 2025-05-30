@@ -9,7 +9,7 @@ use App\Http\Requests\Driver\UpdateDriverRequest;
 use App\Services\Driver\DriverDataService;
 use App\Services\Driver\DriverImportExportService;
 use Inertia\Inertia;
-
+use Illuminate\Support\Facades\Auth;
 class DriverController extends Controller
 {
     protected DriverDataService $driverDataService;
@@ -117,5 +117,17 @@ class DriverController extends Controller
         $ids = $request->input('ids', []);
         $this->driverDataService->deleteMultipleDrivers($ids);
         return redirect()->back()->with('success', 'Drivers deleted successfully.');
+    }
+
+    public function indexProfile()
+    {
+        $driver = Auth::guard('driver')->user();
+        // Get data for the dashboard
+        $dashboardData = $this->driverDataService->getProfileData($driver);
+
+        // Return Inertia page
+        return Inertia::render('Driver/DriverProfile', [
+            'driverData' => $dashboardData,
+        ]);
     }
 }

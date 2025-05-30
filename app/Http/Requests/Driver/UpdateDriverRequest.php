@@ -23,6 +23,8 @@ class UpdateDriverRequest extends FormRequest
             'hiring_date'  => 'required|date',
             'tenant_id'    => 'required|exists:tenants,id',
             'netradyne_user_name' => 'required|string',
+            'password'     => 'nullable|string|min:8',
+            'image'        => 'nullable|image|mimes:jpg,jpeg,png|max:2048', // NEW
         ];
     }
 
