@@ -317,32 +317,35 @@ class SummariesService
      * @return float The total miles driven
      */
     public function getMilesDrivenSum($startDate, $endDate, $dateFilter = null): float
-    {
-        // Skip calculation for yesterday timeframe
-        if ($dateFilter === 'yesterday') {
-            return 0;
-        }
-        
-        // Ensure dates are Carbon instances
-        if (!($startDate instanceof Carbon)) {
-            $startDate = Carbon::parse($startDate);
-        }
-        
-        if (!($endDate instanceof Carbon)) {
-            $endDate = Carbon::parse($endDate);
-        }
-        
-        // Query to get sum of miles driven within the date range
-        $query = MilesDriven::whereBetween('week_start_date', [$startDate, $endDate])
-            ->orWhereBetween('week_end_date', [$startDate, $endDate])
-            ->selectRaw('SUM(miles) as total_miles');
-        
-        // Apply tenant filter if user is authenticated
-        $this->applyTenantFilter($query);
-        
-        // Get the result
-        $result = $query->first();
-        
-        return $result ? (float)$result->total_miles : 0;
+{
+    // Skip calculation for yesterday timeframe
+    if ($dateFilter === 'yesterday') {
+        return 0;
     }
+
+    // Ensure dates are Carbon instances
+    if (!($startDate instanceof Carbon)) {
+        $startDate = Carbon::parse($startDate);
+    }
+
+    if (!($endDate instanceof Carbon)) {
+        $endDate = Carbon::parse($endDate);
+    }
+
+    // Query to get sum of miles driven within the date range
+    $query = DB::table('miles_driven')
+        ->where(function ($q) use ($startDate, $endDate) {
+            $q->whereBetween('week_start_date', [$startDate, $endDate])
+              ->orWhereBetween('week_end_date', [$startDate, $endDate]);
+        })
+        ->selectRaw('SUM(miles) as total_miles');
+
+    // Apply tenant filter if user is authenticated
+    $this->applyTenantFilter($query);
+
+    // Get the result safely
+    $result = $query->first();
+
+    return $result ? (float) $result->total_miles : 0;
+}
 }

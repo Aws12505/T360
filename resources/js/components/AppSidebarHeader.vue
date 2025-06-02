@@ -31,11 +31,11 @@ const tenant = user?.tenant;
                     <Link :href="route('tenant.settings.edit', tenant.slug)" class="flex items-center gap-2 hover:opacity-90 transition-opacity">
                         <div class="h-8 w-8 flex items-center justify-center bg-white rounded-full shadow-sm border border-sidebar-border/50">
                             <img 
-                                v-if="tenant.image_path" 
-                                :src="`/storage/${tenant.image_path}`" 
-                                class="h-6 w-6 object-contain" 
-                                alt="Tenant logo" 
-                            />
+    v-if="tenant.image_path" 
+    :src="`/storage/${tenant.image_path}`" 
+    class="h-8 w-8 rounded-full object-cover aspect-square" 
+    alt="Tenant logo" 
+/>
                             <span v-else class="text-sm font-bold text-primary">{{ tenant.name.charAt(0) }}</span>
                         </div>
                         <span class="font-medium text-foreground text-sm">{{ tenant.name }}</span>
