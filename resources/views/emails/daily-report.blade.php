@@ -251,7 +251,7 @@
               <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-top:32px;">
                 <tr>
                   <td width="33.33%" style="background:#f9fafb;padding:12px;border-radius:6px;text-align:center;border:1px solid #eaeaea;margin-right:8px;">
-                    <strong style="display:block;margin-bottom:4px;color:#4b5563;">Average Driver Score</strong>
+                    <strong style="display:block;margin-bottom:4px;color:#4b5563;">Average GreenZone Score</strong>
                     <span style="font-size:18px;font-weight:600;">{{ round($safetyAggregate['average_driver_score'] ?? 0) }}</span>
                   </td>
                   <td width="33.33%" style="background:#f9fafb;padding:12px;border-radius:6px;text-align:center;border:1px solid #eaeaea;margin:0 8px;">
