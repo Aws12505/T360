@@ -1,0 +1,1 @@
+function n(r){if(!r)return"";const t=r.trim().split(" ");return t.length===0?"":t.length===1?t[0].charAt(0).toUpperCase():`${t[0].charAt(0)}${t[t.length-1].charAt(0)}`.toUpperCase()}function e(){return{getInitials:n}}export{e as u};
