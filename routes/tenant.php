@@ -180,7 +180,7 @@ Route::get('ontime/export', [DelaysController::class, 'export'])
     Route::post('drivers', [DriverController::class, 'store'])
          ->name('driver.store')
          ->middleware('permission:drivers.create');
-    Route::put('drivers/{driver}', [DriverController::class, 'update'])
+    Route::post('drivers/{driver}', [DriverController::class, 'update'])
          ->name('driver.update')
          ->middleware('permission:drivers.update');
     Route::delete('drivers/{driver}', [DriverController::class, 'destroy'])

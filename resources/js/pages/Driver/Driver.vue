@@ -435,12 +435,6 @@ import {
   Eye, 
   EyeOff, 
 } from 'lucide-vue-next';
-// Remove or comment out the DataTable imports since we're not using them anymore
-// import {
-//   DataTable,
-//   DataTableColumnHeader,
-//   DataTableViewOptions
-// } from '@/components/ui/data-table';
 
 // Import or create Select components
 
@@ -667,45 +661,76 @@ function openEditModal(item) {
     form.password = item.password;
     formTitle.value = 'Edit Driver';
     formAction.value = 'Update';
+     // Set imagePreview if there's an image
+    if (item.image) {
+        imagePreview.value = `/storage/${item.image}`;  // Show existing image in the modal
+    } else {
+        imagePreview.value = null;  // No image to preview
+    }
     showModal.value = true;
 }
 
 function closeModal() {
     showModal.value = false;
+    form.reset(); // Add this to clear form
+    imagePreview.value = null; // Clear image preview
 }
 
 function submitForm() {
-    const payload = {
-        first_name: form.first_name,
-        last_name: form.last_name,
-        email: form.email,
-        mobile_phone: form.mobile_phone,
-        hiring_date: form.hiring_date,
-        tenant_id: form.tenant_id,
-        netradyne_user_name: form.netradyne_user_name,
-        password: form.password, // NEW
-    };
-
-    if (form.id) {
-        form.put(props.SuperAdmin ? route('driver.update.admin', [form.id]) : route('driver.update', [props.tenantSlug, form.id]), {
-    forceFormData: true, // IMPORTANT
-    onSuccess: () => {
-        successMessage.value = 'Driver updated.';
-        closeModal();
-    },
-    onError: () => alert('Error updating driver'),
-});
-    } else {
-        form.post(props.SuperAdmin ? route('driver.store.admin') : route('driver.store', props.tenantSlug), {
-    forceFormData: true, // IMPORTANT
-    onSuccess: () => {
-        successMessage.value = 'Driver created.';
-        closeModal();
-    },
-    onError: () => alert('Error creating driver'),
-});
+    // Handle undefined password as null
+    if (form.password === undefined) {
+        form.password = null;
     }
+
+    // Create a FormData object to handle file uploads
+    const formData = new FormData();
+
+    // Append form data to the FormData object
+    Object.keys(form.data()).forEach((key) => {
+        if (key === 'image' && form.image instanceof File) {
+            formData.append('image', form.image); // Add image if it's a valid File object
+        } else if (form[key] !== undefined && form[key] !== null) {
+            formData.append(key, form[key]); // Append other form fields
+        }
+    });
+
+    // If it's an update, make sure to append the ID
+    if (form.id) {
+        formData.append('id', form.id);
+    }
+
+    const isCreate = formAction.value === 'Create';  // Check if the action is Create or Update
+    const routeName = isCreate
+        ? props.SuperAdmin
+            ? route('driver.store.admin')  // For super admin create route
+            : route('driver.store', props.tenantSlug)  // For tenant create route
+        : props.SuperAdmin
+            ? route('driver.update.admin', [form.id])  // For super admin update route
+            : route('driver.update', [props.tenantSlug, form.id]);  // For tenant update route
+
+    const method = isCreate ? 'post' : 'post';  // Set method based on create or update
+
+    // Submit the form
+    form[method](routeName, {
+        data: formData,  // Send FormData object
+        forceFormData: true,  // Ensure the form uses FormData for submission
+        onSuccess: () => {
+            successMessage.value = isCreate ? 'Driver created successfully.' : 'Driver updated successfully.';
+            closeModal();  // Close modal after successful submission
+        },
+        onError: (errors) => {
+            console.error('Form submission error:', errors);
+            if (errors && Object.keys(errors).length > 0) {
+                // Show the first error message
+                const firstError = Object.values(errors)[0];
+                errorMessage.value = firstError;
+            } else {
+                errorMessage.value = 'An error occurred. Please try again.';  // Default error message
+            }
+        },
+    });
 }
+
 
 function deleteEntry(id) {
     driverToDelete.value = id;

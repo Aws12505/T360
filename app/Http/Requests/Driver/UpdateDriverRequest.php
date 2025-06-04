@@ -4,6 +4,8 @@ namespace App\Http\Requests\Driver;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Validation\ValidationException;
 
 class UpdateDriverRequest extends FormRequest
 {
@@ -23,7 +25,7 @@ class UpdateDriverRequest extends FormRequest
             'hiring_date'  => 'required|date',
             'tenant_id'    => 'required|exists:tenants,id',
             'netradyne_user_name' => 'required|string',
-            'password'     => 'nullable|string|min:8',
+            'password'     => 'nullable|string',
             'image'        => 'nullable|image|mimes:jpg,jpeg,png|max:2048', // NEW
         ];
     }
@@ -34,4 +36,5 @@ class UpdateDriverRequest extends FormRequest
             $this->merge(['tenant_id' => Auth::user()->tenant_id]);
         }
     }
+
 }

@@ -123,6 +123,7 @@ class DriverController extends Controller
     {
         $driver = Auth::guard('driver')->user();
         // Get data for the dashboard
+        
         $dashboardData = $this->driverDataService->getProfileData($driver);
 
         // Return Inertia page

@@ -105,7 +105,7 @@ Route::middleware(['auth', 'superAdmin'])->group(function () {
     // Drivers
     Route::get    ('/drivers',          [DriverController::class, 'index'])->name('driver.index.admin');
     Route::post   ('/drivers',          [DriverController::class, 'store'])->name('driver.store.admin');
-    Route::put    ('/drivers/{driver}', [DriverController::class, 'updateAdmin'])->name('driver.update.admin');
+    Route::post    ('/drivers/{driver}', [DriverController::class, 'updateAdmin'])->name('driver.update.admin');
     Route::delete ('/drivers/{driver}', [DriverController::class, 'destroyAdmin'])->name('driver.destroy.admin');
     Route::delete ('/drivers-bulk',     [DriverController::class, 'destroyBulkAdmin'])->name('driver.destroyBulk.admin');
     Route::post   ('/drivers/import',   [DriverController::class, 'import'])->name('driver.import.admin');

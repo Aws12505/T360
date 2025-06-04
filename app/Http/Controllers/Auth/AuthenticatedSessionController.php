@@ -70,6 +70,11 @@ class AuthenticatedSessionController extends Controller
                 ]);
             }
         }
+if($guard==='driver'){
+     return back()->withErrors([
+                    'email' => __('auth.failed'),
+                ]);
+}
         // Now attempt login with detected guard
         if (Auth::guard($guard)->attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
@@ -77,6 +82,7 @@ class AuthenticatedSessionController extends Controller
             if ($guard === 'driver') {
                 return redirect()->route('driver.dashboard');
             }
+
             if ($guard === 'web') {
                 $user = Auth::guard('web')->user();
 
