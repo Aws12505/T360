@@ -20,15 +20,15 @@
       </Button>
     </div>
 
-    <!-- Table -->
-    <div class="overflow-x-auto max-h-80">
-      <Table class="w-full">
+        <!-- Table -->
+        <div class="overflow-x-auto max-h-80">
+      <Table class="w-full table-auto">
         <TableHeader>
           <TableRow
-            class="sticky top-0 z-10 border-b"
+            class="sticky top-0 z-10 border-b bg-background"
           >
             <TableHead
-              class="cursor-pointer"
+              class="cursor-pointer px-4 py-2 text-left"
               @click="sortBy('week_start_date')"
             >
               Week Start
@@ -50,7 +50,7 @@
             </TableHead>
 
             <TableHead
-              class="cursor-pointer"
+              class="cursor-pointer px-4 py-2 text-left"
               @click="sortBy('week_end_date')"
             >
               Week End
@@ -72,7 +72,7 @@
             </TableHead>
 
             <TableHead
-              class="cursor-pointer"
+              class="cursor-pointer px-4 py-2 text-left"
               @click="sortBy('miles')"
             >
               Miles
@@ -93,8 +93,12 @@
               </span>
             </TableHead>
 
-            <TableHead>Notes</TableHead>
-            <TableHead>Actions</TableHead>
+            <TableHead
+              v-if="permissionNames.includes('miles-driven.update')||permissionNames.includes('miles-driven.delete')"
+              class="text-center px-4 py-2"
+            >
+              Actions
+            </TableHead>
           </TableRow>
         </TableHeader>
 
@@ -102,31 +106,29 @@
           <TableRow
             v-for="item in paginatedEntries"
             :key="item.id"
+            class="border-b hover:bg-muted/20"
           >
-            <TableCell>
+            <TableCell class="px-4 py-3">
               {{ formatDate(item.week_start_date) }}
             </TableCell>
-            <TableCell>
+            <TableCell class="px-4 py-3">
               {{ formatDate(item.week_end_date) }}
             </TableCell>
-            <TableCell>
+            <TableCell class="px-4 py-3">
               {{ formatNumber(item.miles) }}
             </TableCell>
-            <TableCell>
-              {{ truncateText(item.notes, 30) }}
-            </TableCell>
-            <TableCell v-if="permissionNames.includes('miles-driven.update')||permissionNames.includes('miles-driven.delete')">
-              <div class="flex space-x-2">
+            <TableCell
+              v-if="permissionNames.includes('miles-driven.update')||permissionNames.includes('miles-driven.delete')"
+              class="text-center px-4 py-3"
+            >
+              <div class="flex justify-center space-x-2">
                 <Button
-                 v-if="permissionNames.includes('miles-driven.update')"
+                  v-if="permissionNames.includes('miles-driven.update')"
                   variant="outline"
                   size="sm"
                   @click="openModal(item)"
                 >
-                  <Icon
-                    name="pencil"
-                    class="mr-1 h-4 w-4"
-                  />
+                  <Icon name="pencil" class="mr-1 h-4 w-4" />
                   <span>Edit</span>
                 </Button>
                 <Button
@@ -135,10 +137,7 @@
                   size="sm"
                   @click="confirmDelete(item)"
                 >
-                  <Icon
-                    name="trash"
-                    class="mr-1 h-4 w-4"
-                  />
+                  <Icon name="trash" class="mr-1 h-4 w-4" />
                   <span>Delete</span>
                 </Button>
               </div>
@@ -161,9 +160,7 @@
       class="border-t mt-4 px-4 py-3 bg-muted/20"
       v-if="totalPages > 1"
     >
-      <div
-        class="flex flex-col sm:flex-row items-center justify-between gap-2"
-      >
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-2">
         <div class="text-sm text-muted-foreground">
           Showing {{ paginatedEntries.length }} of {{ milesEntries.length }} entries
         </div>
@@ -269,16 +266,6 @@
               min="0"
               max="999999.9999"
             />
-          </div>
-
-          <!-- Notes -->
-          <div>
-            <Label for="notes">Notes</Label>
-            <textarea
-              id="notes"
-              v-model="form.notes"
-              class="w-full h-24 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm"
-            ></textarea>
           </div>
 
           <DialogFooter class="mt-4">

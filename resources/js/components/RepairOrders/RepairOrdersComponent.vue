@@ -56,7 +56,7 @@
       </div>
     </div>
     <!-- Canceled QS Invoices Alert -->
-    <div v-if="hasCanceledQSInvoices && !SuperAdmin" class="mb-6">
+    <div v-if="hasCanceledQSInvoices && !SuperAdmin && permissionNames.includes('repair-orders.update')" class="mb-6">
                 <div class="rounded-md border-l-4 border-red-500 bg-red-50 p-4 shadow-sm dark:border-red-400 dark:bg-red-900/30">
                     <div class="flex items-center">
                         <div class="flex-shrink-0">
@@ -147,87 +147,89 @@
                     </div>
                 </div>
             </div>
-            <!-- Outstanding Invoices Filter -->
-    <div
-      v-if="!SuperAdmin"
-      class="mx-auto mb-6 max-w-[90vw] overflow-x-auto rounded-lg border bg-card p-4 shadow-sm md:max-w-[64vw] lg:max-w-full"
-    >
-      <h3 class="mb-4 text-lg font-semibold">Outstanding Invoices Filter</h3>
-      <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <div>
-          <Label for="min-invoice-amount">Minimum Invoice Amount ($)</Label>
-          <Input
-            id="min-invoice-amount"
-            v-model.number="minInvoiceAmount"
-            type="number"
-            min="0"
-            step="0.01"
-            placeholder="Enter minimum amount"
-            class="mt-1"
-          />
-        </div>
-        <div>
-          <Label for="outstanding-since">Outstanding Since</Label>
-          <Input
-            id="outstanding-since"
-            v-model="outstandingDate"
-            type="date"
-            class="mt-1"
-          />
-        </div>
-      </div>
+         <!-- Outstanding Invoices Filter -->
+<div
+  v-if="!SuperAdmin"
+  class="mx-auto mb-6 max-w-[90vw] overflow-x-auto rounded-lg border bg-card p-4 shadow-sm md:max-w-[64vw] lg:max-w-full"
+>
+  <h3 class="mb-4 text-lg font-semibold">Outstanding Invoices Filter</h3>
+  <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+    <div>
+      <Label for="min-invoice-amount">Minimum Invoice Amount ($)</Label>
+      <Input
+        id="min-invoice-amount"
+        v-model.number="minInvoiceAmount"
+        type="number"
+        min="0"
+        step="0.01"
+        placeholder="Enter minimum amount"
+        class="mt-1"
+      />
     </div>
+    <div>
+      <Label for="outstanding-since">Outstanding Since</Label>
+      <Input
+        id="outstanding-since"
+        v-model="outstandingDate"
+        type="date"
+        class="mt-1"
+      />
+    </div>
+  </div>
+</div>
 
-    <!-- Outstanding Invoices Section -->
-    <div
-      v-if="filteredOutstandingInvoices.length > 0"
-      class="mx-auto mb-6 max-w-[95vw] overflow-x-auto rounded-lg border bg-card shadow-sm md:max-w-[64vw] lg:max-w-full"
-    >
-      <div class="flex items-center justify-between border-b p-4">
-        <h3 class="text-lg font-semibold">Outstanding Invoices</h3>
-        <div class="flex items-start justify-between">
-          <div class="flex flex-col items-center space-y-1">
-            <Badge variant="outline" class="text-sm"> {{ filteredOutstandingInvoices.length }} invoices </Badge>
-            <Badge variant="outline" class="text-sm"> total: ${{ totalFilteredOutstanding.toFixed(2) }} </Badge>
-          </div>
-          <Button variant="ghost" size="sm" @click="showOutstandingInvoicesSection = !showOutstandingInvoicesSection" class="ml-4 mt-1">
-            {{ showOutstandingInvoicesSection ? 'Hide Invoices' : 'Show Invoices' }}
-            <Icon :name="showOutstandingInvoicesSection ? 'chevron-up' : 'chevron-down'" class="ml-2 h-4 w-4" />
-          </Button>
-        </div>
+<!-- Outstanding Invoices Section -->
+<div
+  v-if="!SuperAdmin && filteredOutstandingInvoices.length > 0"
+  class="mx-auto mb-6 max-w-[95vw] overflow-x-auto rounded-lg border bg-card shadow-sm md:max-w-[64vw] lg:max-w-full"
+>
+  <div class="flex items-center justify-between border-b p-4">
+    <h3 class="text-lg font-semibold">Outstanding Invoices</h3>
+    <div class="flex items-start justify-between">
+      <div class="flex flex-col items-center space-y-1">
+        <Badge variant="outline" class="text-sm"> {{ filteredOutstandingInvoices.length }} invoices </Badge>
+        <Badge variant="outline" class="text-sm"> total: ${{ totalFilteredOutstanding.toFixed(2) }} </Badge>
       </div>
-      <div v-if="showOutstandingInvoicesSection" class="mb-6 rounded-lg border bg-card shadow-sm">
-        <div class="overflow-x-auto">
-          <div class="max-h-60 overflow-y-auto sm:max-h-80 md:max-h-96">
-            <Table class="min-w-full">
-              <TableHeader>
-                <TableRow>
-                  <TableHead>RO Number</TableHead>
-                  <TableHead>Vendor</TableHead>
-                  <TableHead>Week</TableHead>
-                  <TableHead class="text-right">Amount</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow v-for="invoice in filteredOutstandingInvoices" :key="invoice.ro_number">
-                  <TableCell>{{ invoice.ro_number }}</TableCell>
-                  <TableCell>{{ invoice.vendor_name }}</TableCell>
-                  <TableCell>W{{ invoice.week_number }}/{{ invoice.year }}</TableCell>
-                  <TableCell class="text-right">{{ formatCurrency(invoice.invoice_amount) }}</TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </div>
-        </div>
+      <Button variant="ghost" size="sm" @click="showOutstandingInvoicesSection = !showOutstandingInvoicesSection" class="ml-4 mt-1">
+        {{ showOutstandingInvoicesSection ? 'Hide Invoices' : 'Show Invoices' }}
+        <Icon :name="showOutstandingInvoicesSection ? 'chevron-up' : 'chevron-down'" class="ml-2 h-4 w-4" />
+      </Button>
+    </div>
+  </div>
+  <div v-if="showOutstandingInvoicesSection" class="mb-6 rounded-lg border bg-card shadow-sm">
+    <div class="overflow-x-auto">
+      <div class="max-h-60 overflow-y-auto sm:max-h-80 md:max-h-96">
+        <Table class="min-w-full">
+          <TableHeader>
+            <TableRow>
+              <TableHead>RO Number</TableHead>
+              <TableHead>Vendor</TableHead>
+              <TableHead>Week</TableHead>
+              <TableHead class="text-right">Amount</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow v-for="invoice in filteredOutstandingInvoices" :key="invoice.ro_number">
+              <TableCell>{{ invoice.ro_number }}</TableCell>
+              <TableCell>{{ invoice.vendor_name }}</TableCell>
+              <TableCell>W{{ invoice.week_number }}/{{ invoice.year }}</TableCell>
+              <TableCell class="text-right">{{ formatCurrency(invoice.invoice_amount) }}</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
       </div>
     </div>
-    <div v-else-if="showOutstandingInvoicesSection" class="mb-6 rounded-lg border bg-card shadow-sm">
-      <div class="border-b p-4">
-        <h3 class="text-lg font-semibold">Outstanding Invoices</h3>
-      </div>
-      <div class="p-4 text-center text-muted-foreground">No outstanding invoices match the current criteria</div>
-    </div>
-
+  </div>
+</div>
+<div
+  v-if="!SuperAdmin && filteredOutstandingInvoices.length === 0"
+  class="mb-6 rounded-lg border bg-card shadow-sm"
+>
+  <div class="border-b p-4">
+    <h3 class="text-lg font-semibold">Outstanding Invoices</h3>
+  </div>
+  <div class="p-4 text-center text-muted-foreground">No outstanding invoices match the current criteria</div>
+</div>
     <!-- Filters Card -->
     <!-- Filters -->
     <Card class="shadow-sm border">
