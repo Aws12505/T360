@@ -301,12 +301,11 @@ const tenantsArray = computed(() => props.tenants.data);
       </Transition>
       
       <!-- Tenant Form Modal -->
-      <Transition name="fade">
-        <div v-if="showTenantModal" class="fixed inset-0 z-[100]">
+      <Transition name="fade" v-if="showTenantModal">
+        <div  class="fixed inset-0 z-[100]">
           <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="closeTenantModal"></div>
           <div class="absolute inset-0 flex items-center justify-center p-2 sm:p-4">
             <TenantForm
-              :tenants="tenants"
               :tenant="selectedTenant"
               @close="closeTenantModal"
               @saved="refreshData"

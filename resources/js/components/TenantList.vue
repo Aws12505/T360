@@ -2,46 +2,51 @@
   <div class="w-full overflow-x-auto">
     <div class="rounded-md border">
       <table class="w-full caption-bottom text-sm">
-        <thead class="[&_tr]:border-b">
-          <tr class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-            <th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Company Name</th>
-            <th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Slug</th>
-            <th class="h-12 px-4 text-right pr-16 align-middle font-medium text-muted-foreground">Actions</th>
-          </tr>
-        </thead>
-        <tbody class="[&_tr:last-child]:border-0">
-          <tr
-            v-for="tenant in normalizedTenants"
-            :key="tenant.id"
-            class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
+  <thead class="[&_tr]:border-b">
+    <tr class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+      <th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Company Name</th>
+      <th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Slug</th>
+      <th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Timezone</th>
+      <th class="h-12 px-4 text-right pr-16 align-middle font-medium text-muted-foreground">Actions</th>
+    </tr>
+  </thead>
+  <tbody class="[&_tr:last-child]:border-0">
+    <tr
+      v-for="tenant in normalizedTenants"
+      :key="tenant.id"
+      class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
+    >
+      <td class="p-4 align-middle font-medium">
+        {{ tenant.name }}
+      </td>
+      <td class="p-4 align-middle">
+        {{ tenant.slug }}
+      </td>
+      <td class="p-4 align-middle">
+               {{ getTzLabel(tenant.timezone) }}
+             </td>
+      <td class="p-4 align-middle text-right">
+        <div class="flex justify-end space-x-2">
+          <Button
+            @click="$emit('edit', tenant)"
+            variant="outline"
+            size="sm"
           >
-            <td class="p-4 align-middle font-medium">
-              {{ tenant.name }}
-            </td>
-            <td class="p-4 align-middle">
-              {{ tenant.slug }}
-            </td>
-            <td class="p-4 align-middle text-right">
-              <div class="flex justify-end space-x-2">
-                <Button
-                  @click="$emit('edit', tenant)"
-                  variant="outline"
-                  size="sm"
-                >
-                  Edit
-                </Button>
-                <Button
-                  @click="$emit('delete', tenant)"
-                  variant="destructive"
-                  size="sm"
-                >
-                  Delete
-                </Button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+            Edit
+          </Button>
+          <Button
+            @click="$emit('delete', tenant)"
+            variant="destructive"
+            size="sm"
+          >
+            Delete
+          </Button>
+        </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
     </div>
     
     <!-- Pagination -->
@@ -65,6 +70,7 @@
 <script setup>
 import { Button } from '@/components/ui/button';
 import { router } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
 const props = defineProps({
   tenants: {
@@ -72,12 +78,26 @@ const props = defineProps({
     default: () => ({ data: [], links: [] }),
   },
 });
+const tzLabels = {
+  'America/New_York': 'Eastern Time (ET)',
+  'America/Chicago': 'Central Time (CT)',
+  'America/Denver': 'Mountain Time (MT)',
+  'America/Los_Angeles': 'Pacific Time (PT)',
+  'America/Anchorage': 'Alaska Time (AKT)',
+  'Pacific/Honolulu': 'Hawaii Time (HAST)',
+  'America/Phoenix': 'Arizona Time (no DST)',
+  'America/Indiana/Indianapolis': 'Eastern Time (Indiana)',
+};
 
+// Helper to look up label or fall back to raw
+const getTzLabel = (tz) => tzLabels[tz] || tz;
+ 
 // Normalize tenants to an array (for paginated or non-paginated data)
-const normalizedTenants = Array.isArray(props.tenants)
-  ? props.tenants
-  : props.tenants.data || [];
-
+const normalizedTenants = computed(() => {
+  return Array.isArray(props.tenants)
+    ? props.tenants
+    : props.tenants.data || [];
+});
 // Function to navigate to a page while preserving state
 const visitPage = (url) => {
   if (url) {

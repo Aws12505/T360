@@ -1,7 +1,7 @@
 <template>
   <!-- Modal overlay -->
   <div class="fixed inset-0 z-50">
-    <!-- Add a semi-transparent background overlay -->
+    <!-- Semi-transparent background overlay -->
     <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
     <!-- Modal container -->
     <div class="absolute inset-0 flex items-center justify-center p-2 sm:p-4">
@@ -39,6 +39,20 @@
             />
             <InputError :message="form.errors.slug" />
           </div>
+          <!--timezone field-->
+          <div class="space-y-2">
+  <Label for="timezone">Timezone</Label>
+  <select
+    id="timezone"
+    v-model="form.timezone"
+    class="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+  >
+    <option v-for="(label, tz) in usTimezones" :key="tz" :value="tz">
+      {{ label }}
+    </option>
+  </select>
+  <InputError :message="form.errors.timezone" />
+</div>
           
           <!-- Action Buttons -->
           <div class="flex justify-end space-x-3 pt-4">
@@ -77,22 +91,39 @@ const props = defineProps({
 });
 const emit = defineEmits(['close', 'saved']);
 
+// US-focused timezone list
+const usTimezones = {
+  'America/New_York': 'Eastern Time (ET)',
+  'America/Chicago': 'Central Time (CT)',
+  'America/Denver': 'Mountain Time (MT)',
+  'America/Los_Angeles': 'Pacific Time (PT)',
+  'America/Anchorage': 'Alaska Time (AKT)',
+  'Pacific/Honolulu': 'Hawaii Time (HAST)',
+  'America/Phoenix': 'Arizona Time (no DST)',
+  'America/Indiana/Indianapolis': 'Eastern Time (Indiana)',
+};
+
 // Initialize form with tenant data if available
 const form = useForm({
   name: props.tenant ? props.tenant.name : '',
   slug: props.tenant ? props.tenant.slug : '',
+  timezone: props.tenant ? props.tenant.timezone : 'America/Indiana/Indianapolis',
 });
 
+// Watch for changes to tenant (edit mode)
 watch(() => props.tenant, (newVal) => {
   if (newVal) {
     form.name = newVal.name;
     form.slug = newVal.slug;
+    form.timezone = newVal.timezone;
   } else {
     form.name = '';
     form.slug = '';
+    form.timezone = 'America/Indiana/Indianapolis';
   }
 }, { immediate: true });
 
+// Submit form
 const submit = () => {
   if (props.tenant) {
     form.put(route('admin.tenants.update', props.tenant), {

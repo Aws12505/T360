@@ -33,7 +33,11 @@ class TenantService
             $uniqueCompanyName = $name . ' ' . $companyCount;
             $companyCount++;
         }
-        return Tenant::create(['name' => $uniqueCompanyName, 'slug' => $slug]);
+        return Tenant::create([
+            'name' => $uniqueCompanyName,
+            'slug' => $slug,
+            'timezone' => $data['timezone'] ?? 'America/Indiana/Indianapolis',
+        ]);
     }
 
     /**

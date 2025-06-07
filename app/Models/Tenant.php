@@ -25,7 +25,7 @@ class Tenant extends Model
      *
      * @var array<int, string>
      */
-    protected $fillable = ['name', 'slug'];
+    protected $fillable = ['name', 'slug', 'timezone'];
 
     /**
      * Get the users that belong to the tenant.

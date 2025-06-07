@@ -50,16 +50,31 @@
           
           <form @submit.prevent="updateTenant" class="space-y-6" enctype="multipart/form-data">
             <!-- Company Name -->
-            <div class="grid gap-2">
-              <Label for="name">Company Name</Label>
-              <Input 
-                id="name" 
-                v-model="form.name" 
-                placeholder="Enter company name"
-                class="mt-1 block w-full"
-              />
-              <p v-if="form.errors.name" class="text-sm text-destructive">{{ form.errors.name }}</p>
-            </div>
+<div class="grid gap-2">
+  <Label for="name">Company Name</Label>
+  <Input 
+    id="name" 
+    v-model="form.name" 
+    placeholder="Enter company name"
+    class="mt-1 block w-full"
+  />
+  <p v-if="form.errors.name" class="text-sm text-destructive">{{ form.errors.name }}</p>
+</div>
+
+<!-- Company Timezone -->
+<div class="grid gap-2">
+  <Label for="timezone">Company Timezone</Label>
+  <select
+    id="timezone"
+    v-model="form.timezone"
+    class="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+  >
+    <option v-for="(label, tz) in usTimezones" :key="tz" :value="tz">
+      {{ label }}
+    </option>
+  </select>
+  <p v-if="form.errors.timezone" class="text-sm text-destructive">{{ form.errors.timezone }}</p>
+</div>
             
             
             <!-- Company Logo -->
@@ -238,8 +253,19 @@ const imagePreview = ref<string | null>(null);
 const form = useForm({
   name: props.tenant.name,
   slug: props.tenant.slug,
+  timezone: props.tenant.timezone ?? 'America/Indiana/Indianapolis',
   image: null as File | null,
 });
+const usTimezones = {
+  'America/New_York': 'Eastern Time (ET)',
+  'America/Chicago': 'Central Time (CT)',
+  'America/Denver': 'Mountain Time (MT)',
+  'America/Los_Angeles': 'Pacific Time (PT)',
+  'America/Anchorage': 'Alaska Time (AKT)',
+  'Pacific/Honolulu': 'Hawaii Time (HAST)',
+  'America/Phoenix': 'Arizona Time (no DST)',
+  'America/Indiana/Indianapolis': 'Eastern Time (Indiana)',
+};
 
 // Handle image selection and preview
 const handleImageChange = (event: Event) => {

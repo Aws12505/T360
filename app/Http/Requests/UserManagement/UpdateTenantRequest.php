@@ -33,6 +33,7 @@ class UpdateTenantRequest extends FormRequest
             'name' => 'required|string|max:255|unique:tenants,name,' . $tenantId,
             'slug' => 'required|string|max:255|alpha_dash|unique:tenants,slug,' . $tenantId,
             'image' => 'nullable|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'timezone' => 'required|string|in:' . implode(',', timezone_identifiers_list()),
         ];
     }
 

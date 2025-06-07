@@ -23,6 +23,7 @@ class StoreTenantRequest extends FormRequest
     {
         return [
             'name' => 'required|string|max:255',
+            'timezone' => 'required|string|in:' . implode(',', timezone_identifiers_list()),
         ];
     }
 }

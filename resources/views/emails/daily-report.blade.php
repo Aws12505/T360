@@ -209,44 +209,6 @@
                 </tbody>
               </table>
 
-              <!-- Infractions -->
-              <h3 style="margin:20px 0 12px;font-size:16px;font-weight:600;color:#2c3e50;">Other Important Infractions</h3>
-              
-              @php
-                // Filter out driver_star and get non-zero infractions
-                $filteredInfractions = collect($safetyInfractions)
-                  ->filter(function ($value, $key) {
-                    return $key !== 'driver_star' && floatval($value) > 0;
-                  })
-                  ->sortByDesc(function ($value) {
-                    return floatval($value);
-                  })
-                  ->take(3);
-              @endphp
-              
-              @if($filteredInfractions->count() > 0)
-              <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="font-size:14px;">
-                <thead>
-                  <tr>
-                    <th align="left" style="padding:10px;border:1px solid #eaeaea;background:#f5f7fa;font-weight:600;color:#4b5563;">Infraction</th>
-                    <th align="left" style="padding:10px;border:1px solid #eaeaea;background:#f5f7fa;font-weight:600;color:#4b5563;">Count</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @foreach($filteredInfractions as $inf => $cnt)
-                    <tr style="background-color:{{ $loop->even ? '#f9fafb' : '#ffffff' }};">
-                      <td style="padding:10px;border:1px solid #eaeaea;">{{ ucwords(str_replace('_',' ',$inf)) }}</td>
-                      <td style="padding:10px;border:1px solid #eaeaea;font-weight:500;">{{ round($cnt) }}</td>
-                    </tr>
-                  @endforeach
-                </tbody>
-              </table>
-              @else
-              <p style="font-size:14px;color:#4b5563;text-align:center;padding:15px;background:#f9fafb;border-radius:6px;">
-                No other infractions recorded for this period.
-              </p>
-              @endif
-
               <!-- Safety summary -->
               <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-top:32px;">
                 <tr>

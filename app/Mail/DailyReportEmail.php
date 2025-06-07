@@ -29,7 +29,6 @@ class DailyReportEmail extends Mailable
     public    array  $performanceRolling;
     public    float  $mvtsPercent;
     public    array  $safetyAggregate;
-    public    array  $safetyInfractions;
     public    string $yesterdayOperationalExcellenceScore; // Add this line
     
     // T6W data
@@ -110,10 +109,7 @@ class DailyReportEmail extends Mailable
         // ─── SAFETY DATA - YESTERDAY ───────────────────────────────────────────────
         // Get aggregate safety data
         $yesterdaySafetyAggregate = $this->safetyDataService->getAggregateSafetyData($yesterdayStart, $yesterdayEnd);
-        
-        // Get infractions data
-        $yesterdaySafetyInfractions = $this->safetyDataService->getInfractionsData($yesterdayStart, $yesterdayEnd);
-        
+                
         // Check if safety data exists
         $hasSafetyData = $yesterdaySafetyAggregate && 
                          ($yesterdaySafetyAggregate->total_minutes_analyzed ?? 0) > 0;
@@ -196,7 +192,6 @@ class DailyReportEmail extends Mailable
         $this->performanceRolling = (array)$yesterdayPerformanceRolling;
         $this->mvtsPercent = round($yesterdayQsMVtS, 2);
         $this->safetyAggregate = (array)$yesterdaySafetyAggregate;
-        $this->safetyInfractions = (array)$yesterdaySafetyInfractions;
         $this->yesterdayOperationalExcellenceScore = $yesterdayOperationalExcellenceScore;
         
         // T6W data
