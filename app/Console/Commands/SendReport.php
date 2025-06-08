@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\DailyReportEmail;
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
 
 class SendReport extends Command
 {
@@ -16,24 +17,29 @@ class SendReport extends Command
 {
     $tenantId = $this->argument('tenantId');
 
-    $this->info("Running daily report for tenant ID: {$tenantId}");
+    $message = "Running daily report for tenant ID: {$tenantId}";
+    $this->info($message);
+    Log::channel('daily')->info($message);
 
-    // 1) Retrieve users for this tenant who have the 'receive_updates' permission
+    // Retrieve users
     $recipients = User::where('tenant_id', $tenantId)
         ->permission('receive_updates')
         ->get();
 
     if ($recipients->isEmpty()) {
-        $this->info('No users with receive_updates permission found for this tenant.');
+        $message = 'No users with receive_updates permission found for this tenant.';
+        $this->info($message);
+        Log::channel('daily')->info($message);
         return 0;
     }
 
-    // 2) Loop and send
     foreach ($recipients as $user) {
         Mail::to($user->email)
             ->send(new DailyReportEmail($tenantId, $user->name));
 
-        $this->info("Sent report to {$user->email}");
+        $message = "Sent report to {$user->email}";
+        $this->info($message);
+        Log::channel('daily')->info($message);
     }
 
     return 0;

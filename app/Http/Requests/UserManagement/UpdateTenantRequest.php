@@ -4,7 +4,7 @@ namespace App\Http\Requests\UserManagement;
 
 use Illuminate\Foundation\Http\FormRequest;
 use App\Models\Tenant;
-
+use Illuminate\Support\Facades\Auth;
 /**
  * Class UpdateTenantRequest
  *
@@ -29,6 +29,11 @@ class UpdateTenantRequest extends FormRequest
         $tenant = Tenant::where('slug', $tenantSlug)->first();
         $tenantId = $tenant ? $tenant->id : null;
 
+        // If user is superadmin (tenant_id is null), and $tenantId is null → fallback to {tenant} from route
+        if (Auth::user()?->tenant_id === null && $tenantId === null) {
+            $tenantId = $this->route('tenant');
+        }
+    
         return [
             'name' => 'required|string|max:255|unique:tenants,name,' . $tenantId,
             'slug' => 'required|string|max:255|alpha_dash|unique:tenants,slug,' . $tenantId,
@@ -36,6 +41,7 @@ class UpdateTenantRequest extends FormRequest
             'timezone' => 'required|string|in:' . implode(',', timezone_identifiers_list()),
         ];
     }
+    
 
     /**
      * Get custom messages for validator errors.
