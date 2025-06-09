@@ -14,7 +14,7 @@ Artisan::command('inspire', function () {
 $tenants = Tenant::all();
 
 foreach ($tenants as $tenant) {
-    Schedule::command('report:daily', ['tenantId' => $tenant->id])
-        ->dailyAt('6:00')
-        ->timezone($tenant->timezone ?? 'America/Indiana/Indianapolis');
+    Schedule::command('report:daily', [$tenant->id])
+    ->dailyAt('6:00')
+    ->timezone($tenant->timezone ?? 'America/Indiana/Indianapolis');
 }

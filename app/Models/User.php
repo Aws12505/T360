@@ -8,7 +8,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Spatie\Permission\Traits\HasRoles;
 use App\Models\Scopes\TenantScope;
 use Illuminate\Support\Facades\Auth;
-
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 /**
  * Class User
  *
@@ -105,4 +106,37 @@ class User extends Authenticatable
     {
         return !is_null($this->tenant_id);
     }
+
+    public function scopeWithPermissionForTenant(Builder $query, string $permissionName, int $tenantId): Builder
+{
+    return $query
+        ->where('users.tenant_id', $tenantId)
+        ->where(function ($query) use ($tenantId, $permissionName) {
+            // Direct permission
+            $query->whereExists(function ($sub) use ($permissionName) {
+                $sub->select(DB::raw(1))
+                    ->from('model_has_permissions')
+                    ->whereColumn('model_has_permissions.model_id', 'users.id')
+                    ->where('model_has_permissions.model_type', User::class)
+                    ->where('model_has_permissions.permission_id', function ($permissionSub) use ($permissionName) {
+                        $permissionSub->select('id')
+                            ->from('permissions')
+                            ->where('name', $permissionName)
+                            ->limit(1);
+                    });
+            })
+            // Role-based permission
+            ->orWhereExists(function ($sub) use ($tenantId, $permissionName) {
+                $sub->select(DB::raw(1))
+                    ->from('model_has_roles')
+                    ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
+                    ->join('role_has_permissions', 'roles.id', '=', 'role_has_permissions.role_id')
+                    ->join('permissions', 'role_has_permissions.permission_id', '=', 'permissions.id')
+                    ->whereColumn('model_has_roles.model_id', 'users.id')
+                    ->where('model_has_roles.model_type', User::class)
+                    ->where('roles.tenant_id', $tenantId)
+                    ->where('permissions.name', $permissionName);
+            });
+        });
+}
 }
