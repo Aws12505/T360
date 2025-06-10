@@ -188,7 +188,7 @@
                     <td style="padding:10px;border:1px solid #eaeaea;font-weight:500;">${{ number_format($t6wQsInvoiceAmount, 2) }}</td>
                   </tr>
                   <tr>
-                    <td style="padding:10px;border:1px solid #eaeaea;">Weekly MVtS</td>
+                    <td style="padding:10px;border:1px solid #eaeaea;">MVtS</td>
                     <td style="padding:10px;border:1px solid #eaeaea;font-weight:500;">{{ number_format($yesterdayMVtS, 1) }}%</td>
                     <td style="padding:10px;border:1px solid #eaeaea;font-weight:500;">{{ number_format($t6wMVtS, 1) }}%</td>
                   </tr>
