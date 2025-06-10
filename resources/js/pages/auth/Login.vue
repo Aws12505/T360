@@ -116,6 +116,17 @@ const submit = () => {
                     <LoaderCircle v-if="form.processing" class="h-4 w-4 animate-spin" />
                     Log in
                 </Button>
+                <p class="text-center text-sm text-gray-600 mt-4">
+    New Around Here? 
+    <a 
+        href="https://trucking360solutions.com/pricing" 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        class="text-blue-600 hover:underline"
+    >
+        Take a Look At What We Offer
+    </a>
+</p>
             </div>
         </form>
     </AuthBase>
