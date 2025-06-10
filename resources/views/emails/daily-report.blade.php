@@ -163,7 +163,46 @@
             </td>
           </tr>
           @endif
-
+          @if($dataAvailability['performance'])
+          <!-- Maintenance Preview -->
+          <tr>
+            <td style="padding:24px;border-bottom:1px solid #eaeaea;">
+              <h2 style="margin:0 0 16px;font-size:18px;font-weight:600;color:#2c3e50;">Maintenance Preview</h2>
+              <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="font-size:14px;">
+                <thead>
+                  <tr>
+                    <th align="left" style="padding:10px;border:1px solid #eaeaea;background:#f5f7fa;font-weight:600;color:#4b5563;">Metric</th>
+                    <th align="left" style="padding:10px;border:1px solid #eaeaea;background:#f5f7fa;font-weight:600;color:#4b5563;">Yesterday</th>
+                    <th align="left" style="padding:10px;border:1px solid #eaeaea;background:#f5f7fa;font-weight:600;color:#4b5563;">T6W Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr style="background-color:#f9fafb;">
+                    <td style="padding:10px;border:1px solid #eaeaea;">Work Orders Created</td>
+                    <td style="padding:10px;border:1px solid #eaeaea;font-weight:500;">{{ $yesterdayWorkOrders }}</td>
+                    <td style="padding:10px;border:1px solid #eaeaea;font-weight:500;">{{ $t6wWorkOrders }}</td>
+                  </tr>
+                  <tr style="background-color:#f9fafb;">
+                    <td style="padding:10px;border:1px solid #eaeaea;">Current Cost on QS</td>
+                    <td style="padding:10px;border:1px solid #eaeaea;font-weight:500;">${{ number_format($yesterdayQsInvoiceAmount, 2) }}</td>
+                    <td style="padding:10px;border:1px solid #eaeaea;font-weight:500;">${{ number_format($t6wQsInvoiceAmount, 2) }}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:10px;border:1px solid #eaeaea;">Weekly MVtS</td>
+                    <td style="padding:10px;border:1px solid #eaeaea;font-weight:500;">{{ number_format($yesterdayMVtS, 1) }}%</td>
+                    <td style="padding:10px;border:1px solid #eaeaea;font-weight:500;">{{ number_format($t6wMVtS, 1) }}%</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:10px;border:1px solid #eaeaea;">Missing Invoices</td>
+                    <td colspan="2" style="padding:10px;border:1px solid #eaeaea;font-weight:500;text-align:center;">
+                      {{ $missingInvoices }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </td>
+          </tr>
+          @endif
           <!-- Safety Alerts & Rates (if any) -->
           @if($dataAvailability['safety'])
           <tr>

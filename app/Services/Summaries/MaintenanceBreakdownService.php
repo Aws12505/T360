@@ -10,6 +10,12 @@ use App\Models\WoStatus;
 
 class MaintenanceBreakdownService
 {
+
+    protected ?int $email_tenant_id;
+
+public function __construct(?int $email_tenant_id = null) {
+    $this->email_tenant_id = $email_tenant_id;
+}
     /**
      * Get total repair orders count for the date range
      */
@@ -23,9 +29,8 @@ class MaintenanceBreakdownService
             })
             ->whereRaw('LOWER(wo_number) != ?', ['not expected']);
             
-        if (Auth::check() && Auth::user()->tenant_id !== null) {
-            $query->where('tenant_id', Auth::user()->tenant_id);
-        }
+        $this->applyTenantFilter($query);
+
         
         return $query->count();
     }
@@ -42,9 +47,7 @@ class MaintenanceBreakdownService
                 $query->where('wo_statuses.name', '!=', 'Canceled');
             })->whereRaw('LOWER(wo_number) != ?', ['not expected']);
             
-        if (Auth::check() && Auth::user()->tenant_id !== null) {
-            $query->where('tenant_id', Auth::user()->tenant_id);
-        }
+        $this->applyTenantFilter($query);
         
         return $query->sum('invoice_amount') ?? 0;
     }
@@ -62,9 +65,7 @@ class MaintenanceBreakdownService
                 $query->where('wo_statuses.name', '!=', 'Canceled');
             })->whereRaw('LOWER(wo_number) != ?', ['not expected']);
             
-        if (Auth::check() && Auth::user()->tenant_id !== null) {
-            $query->where('tenant_id', Auth::user()->tenant_id);
-        }
+        $this->applyTenantFilter($query);
         
         return $query->sum('invoice_amount') ?? 0;
     }
@@ -82,9 +83,7 @@ class MaintenanceBreakdownService
                 $query->where('wo_statuses.name', '!=', 'Canceled');
             })->whereRaw('LOWER(wo_number) != ?', ['not expected']);
             
-        if (Auth::check() && Auth::user()->tenant_id !== null) {
-            $query->where('tenant_id', Auth::user()->tenant_id);
-        }
+        $this->applyTenantFilter($query);
         
         return $query->count();
     }
@@ -97,9 +96,8 @@ class MaintenanceBreakdownService
         $query = DB::table('miles_driven')
             ->whereBetween('week_start_date', [$startDate, $endDate]);
             
-        if (Auth::check() && Auth::user()->tenant_id !== null) {
-            $query->where('tenant_id', Auth::user()->tenant_id);
-        }
+        $this->applyTenantFilter($query);
+
         
         return $query->sum('miles') ?? 0;
     }
@@ -347,6 +345,19 @@ class MaintenanceBreakdownService
         return $formattedResults->toArray();
     }
 
+    /**
+     * Apply tenant filter to query if user is authenticated
+     */
+    public function applyTenantFilter($query)
+    {
+        if ($this->email_tenant_id !== null) {
+            $query->where('tenant_id', $this->email_tenant_id);
+            return;
+        }
+        if (Auth::check() && Auth::user()->tenant_id !== null) {
+            $query->where('tenant_id', Auth::user()->tenant_id);
+        }
+    }
     /**
      * Get maintenance breakdown data for the specified date range.
      */

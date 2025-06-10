@@ -40,7 +40,14 @@ class DailyReportEmail extends Mailable
     public    array  $performanceRatings;
     public    string $operationalExcellenceScore;
     public    string $overallSafetyRating;
-    
+    public int $yesterdayWorkOrders;
+public float $yesterdayQsInvoiceAmount;
+public float $yesterdayMVtS;
+
+public int $t6wWorkOrders;
+public int $missingInvoices;
+public float $t6wQsInvoiceAmount;
+public float $t6wMVtS;
     // Track data availability
     public    array  $dataAvailability;
 
@@ -60,13 +67,14 @@ class DailyReportEmail extends Mailable
         $this->tenantId = $tenantId;
         $this->userName = $userName;
         
-        $this->safetyDataService = $safetyDataService ?? new SafetyDataService();
+        $this->safetyDataService = $safetyDataService ?? new SafetyDataService($tenantId);
         $this->performanceCalculationsService = $performanceCalculationsService ?? new PerformanceCalculationsService();
-        $this->maintenanceBreakdownService = $maintenanceBreakdownService ?? new MaintenanceBreakdownService();
+        $this->maintenanceBreakdownService = $maintenanceBreakdownService ?? new MaintenanceBreakdownService($tenantId);
         // Fix: Pass required dependencies to PerformanceDataService
         $this->performanceDataService = $performanceDataService ?? new PerformanceDataService(
             $this->performanceCalculationsService,
-            $this->maintenanceBreakdownService
+            $this->maintenanceBreakdownService,
+            $tenantId
         );
         
         // Initialize data availability tracking
@@ -105,7 +113,6 @@ class DailyReportEmail extends Mailable
     protected function collectData(Carbon $yesterdayStart, Carbon $yesterdayEnd, Carbon $t6wStart, Carbon $t6wEnd): void
     {
         $rule = PerformanceMetricRule::first();
-        
         // ─── SAFETY DATA - YESTERDAY ───────────────────────────────────────────────
         // Get aggregate safety data
         $yesterdaySafetyAggregate = $this->safetyDataService->getAggregateSafetyData($yesterdayStart, $yesterdayEnd);
@@ -120,7 +127,7 @@ class DailyReportEmail extends Mailable
         $t6wSafetyAggregate = $this->safetyDataService->getAggregateSafetyData($t6wStart, $t6wEnd);
         
         // Get infractions data for T6W (not needed for the email template)
-        $t6wSafetyInfractions = $this->safetyDataService->getInfractionsData($t6wStart, $t6wEnd);
+        // $t6wSafetyInfractions = $this->safetyDataService->getInfractionsData($t6wStart, $t6wEnd);
         
         // Calculate safety rates and ratings for T6W
         $totalHours = ($t6wSafetyAggregate->total_minutes_analyzed ?? 0) / 60;
@@ -203,6 +210,17 @@ class DailyReportEmail extends Mailable
         $this->performanceRatings = $performanceRatings;
         $this->operationalExcellenceScore = $operationalExcellenceScore;
         $this->overallSafetyRating = $overallSafetyRating;
+
+        // ─── MAINTENANCE DATA - YESTERDAY ─────────────────────────────────────
+$this->yesterdayWorkOrders = $this->maintenanceBreakdownService->getTotalRepairOrders($yesterdayStart, $yesterdayEnd);
+$this->missingInvoices = $this->maintenanceBreakdownService->getMissingInvoicesCount();
+$this->yesterdayQsInvoiceAmount = $yesterdayQsInvoiceAmount;
+$this->yesterdayMVtS = $yesterdayQsMVtS;
+
+// ─── MAINTENANCE DATA - T6W ───────────────────────────────────────────
+$this->t6wWorkOrders = $this->maintenanceBreakdownService->getTotalRepairOrders($t6wStart, $t6wEnd);
+$this->t6wQsInvoiceAmount = $t6wQsInvoiceAmount;
+$this->t6wMVtS = $t6wQsMVtS;
     }
 
     private function calculateOperationalExcellenceScore(array $ratings): string

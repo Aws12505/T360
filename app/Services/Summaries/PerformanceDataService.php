@@ -12,13 +12,17 @@ class PerformanceDataService
 {
     protected PerformanceCalculationsService $performanceCalculationsService;
     protected MaintenanceBreakdownService $maintenanceBreakdownService;
+    protected ?int $email_tenant_id;
+
 
     public function __construct(
         PerformanceCalculationsService $performanceCalculationsService,
-        MaintenanceBreakdownService $maintenanceBreakdownService
+        MaintenanceBreakdownService $maintenanceBreakdownService,
+        ?int $email_tenant_id = null
     ) {
         $this->performanceCalculationsService = $performanceCalculationsService;
         $this->maintenanceBreakdownService = $maintenanceBreakdownService;
+        $this->email_tenant_id = $email_tenant_id;
     }
 
     /**
@@ -80,6 +84,10 @@ class PerformanceDataService
      */
     public function applyTenantFilter($query)
     {
+        if ($this->email_tenant_id !== null) {
+            $query->where('tenant_id', $this->email_tenant_id);
+            return;
+        }
         if (Auth::check() && Auth::user()->tenant_id !== null) {
             $query->where('tenant_id', Auth::user()->tenant_id);
         }
