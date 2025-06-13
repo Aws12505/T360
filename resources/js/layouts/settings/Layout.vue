@@ -46,9 +46,15 @@ const sidebarNavItems: NavItem[] = [
         title: 'User Management',
         href: tenantSlug? route('users.roles.index', { tenantSlug: tenantSlug }) : route('admin.users.roles.index')
     }] : []),
-    ...(showTenantSettings && permissionsNames.value.includes('sms-coaching.view')? [{
-        title: 'Safety Coaching Thresholds',
-        href: route('sms-coaching.edit', { tenantSlug: tenantSlug }),
+    ...(showTenantSettings ? [
+    {
+        title: 'SMS Coaching Thresholds',
+        href: route('thresholds.edit', { tenantSlug: tenantSlug })
+    }] : []),
+    ...(showTenantSettings ? [
+    {
+        title: 'SMS Coaching Templates',
+        href: route('sms-coaching-templates.index', { tenantSlug: tenantSlug })
     }] : []),
 ];
 

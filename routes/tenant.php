@@ -3,7 +3,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\Truck\TruckController;
 use App\Http\Controllers\Web\On_Time\DelaysController;
 use App\Http\Controllers\Web\Safety\SafetyDataController;
-use App\Http\Controllers\Web\Safety\SafetyThresholdController;
 use App\Http\Controllers\Web\UserManagement\UserController;
 use App\Http\Controllers\Web\Acceptance\RejectionsController;
 use App\Http\Controllers\Web\Performance\SummariesController;
@@ -16,6 +15,8 @@ use App\Http\Controllers\Settings\TenantSettingsController;
 use App\Http\Controllers\Web\Support\TicketController;
 use App\Http\Controllers\Web\Support\FeedbackController;
 use App\Http\Controllers\Web\Support\TicketResponseController;
+use App\Http\Controllers\Web\SMSCoaching\SMSScoresThresholdsController;
+use App\Http\Controllers\Web\SMSCoaching\SMSCoachingTemplatesController;  
 
 Route::middleware(['auth', 'tenant'])
      ->prefix('{tenantSlug}')
@@ -263,14 +264,10 @@ Route::get('acceptance/export', [RejectionsController::class, 'export'])
     Route::post('support/responses', [TicketResponseController::class, 'store'])
          ->name('support.responses.store');
 
-    // SMS Coaching (Safety Thresholds)
-    Route::get('sms-coaching', [SafetyThresholdController::class, 'edit'])
-         ->name('sms-coaching.edit')
-         ->middleware('permission:sms-coaching.view');
-    Route::post('sms-coaching', [SafetyThresholdController::class, 'update'])
-         ->name('sms-coaching.update')
-         ->middleware('permission:sms-coaching.update');
-    Route::delete('sms-coaching/{id}', [SafetyThresholdController::class, 'destroy'])
-         ->name('sms-coaching.destroy')
-         ->middleware('permission:sms-coaching.delete');
+     //SMS Coaching
+     Route::get('/sms-thresholds', [SMSScoresThresholdsController::class, 'edit'])
+         ->name('thresholds.edit');
+     Route::post('/sms-thresholds', [SMSScoresThresholdsController::class, 'update'])
+         ->name('thresholds.update');    
+     Route::resource('sms-coaching-templates', SMSCoachingTemplatesController::class);
 });
