@@ -269,5 +269,7 @@ Route::get('acceptance/export', [RejectionsController::class, 'export'])
          ->name('thresholds.edit');
      Route::post('/sms-thresholds', [SMSScoresThresholdsController::class, 'update'])
          ->name('thresholds.update');    
-     Route::resource('sms-coaching-templates', SMSCoachingTemplatesController::class);
-});
+         Route::resource('sms-coaching-templates', SMSCoachingTemplatesController::class)
+         ->parameters(['sms-coaching-templates' => 'id'])
+         ->scoped(['id' => 'id']);
+     });

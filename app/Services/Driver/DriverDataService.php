@@ -14,10 +14,12 @@ use Illuminate\Support\Facades\DB;
 class DriverDataService
 {
     protected $filteringService;
-
-    public function __construct(FilteringService $filteringService)
+/** @var int|null Tenant override (e.g. from CLI) */
+protected ?int $overrideTenantId;
+    public function __construct(FilteringService $filteringService, ?int $overrideTenantId = null)
     {
         $this->filteringService = $filteringService;
+        $this->overrideTenantId   = $overrideTenantId;
     }
 
     /**
@@ -357,6 +359,98 @@ public function getProfileData(Driver $driver): array
     ];
 }
 
+// app/Services/Driver/DriverDataService.php
+
+public function getDriversOverallPerformanceCoaching(): array
+{
+    $driverQuery = DB::table('drivers')
+        ->select([
+            'drivers.id',
+            DB::raw("CONCAT(drivers.first_name, ' ', drivers.last_name) AS driver_name"),
+            // existing safety & penalty aggregates...
+            DB::raw("(
+                SELECT SUM(sd.driver_score)
+                FROM safety_data AS sd
+                WHERE sd.tenant_id = drivers.tenant_id
+                  AND (sd.driver_name = CONCAT(drivers.first_name, ' ', drivers.last_name)
+                       OR sd.user_name = drivers.netradyne_user_name)
+            ) AS avg_safety_score"),
+            DB::raw("(
+                SELECT SUM(rj.penalty)
+                FROM rejections AS rj
+                WHERE rj.tenant_id = drivers.tenant_id
+                  AND rj.driver_controllable = 1
+                  AND rj.driver_name = CONCAT(drivers.first_name, ' ', drivers.last_name)
+            ) AS sum_rejection_penalties"),
+            DB::raw("(
+                SELECT SUM(dl.penalty)
+                FROM delays AS dl
+                WHERE dl.tenant_id = drivers.tenant_id
+                  AND dl.driver_controllable = 1
+                  AND dl.driver_name = CONCAT(drivers.first_name, ' ', drivers.last_name)
+            ) AS sum_delay_penalties"),
+            // NEW: total severe alerts
+            DB::raw("(
+                SELECT 
+                    COALESCE(SUM(
+                        sd.traffic_light_violation
+                        + sd.speeding_violations
+                        + sd.following_distance
+                        + sd.driver_distraction
+                        + sd.sign_violations
+                    ), 0)
+                FROM safety_data AS sd
+                WHERE sd.tenant_id = drivers.tenant_id
+                  AND (
+                      sd.driver_name = CONCAT(drivers.first_name, ' ', drivers.last_name)
+                      OR sd.user_name  = drivers.netradyne_user_name
+                  )
+            ) AS severe_alerts"),
+        ]);
+
+
+    $this->applyTenantFilter($driverQuery);
+    $rows = $driverQuery->get();
+
+    $tenantId = $this->overrideTenantId;
+
+    $totalRej = DB::table('rejections')
+        ->where('driver_controllable', true)
+        ->where('tenant_id', $tenantId)
+        ->sum('penalty');
+
+    $totalDel = DB::table('delays')
+        ->where('driver_controllable', true)
+        ->where('tenant_id', $tenantId)
+        ->sum('penalty');
+
+    $out = [];
+    foreach ($rows as $r) {
+        $rej = (float) ($r->sum_rejection_penalties ?? 0);
+        $del = (float) ($r->sum_delay_penalties ?? 0);
+        $saf = (float) ($r->avg_safety_score ?? 0);
+        $sev = (int)   ($r->severe_alerts ?? 0);
+
+        // percentage scores
+        $accScore = $totalRej > 0
+            ? 100.0 - ($rej * 100.0 / $totalRej)
+            : 100.0;
+        $otScore  = $totalDel > 0
+            ? 100.0 - ($del * 100.0 / $totalDel)
+            : 100.0;
+
+        $out[] = [
+            'driver_name'        => $r->driver_name,
+            'acceptance_score'   => round($accScore, 2),
+            'on_time_score'      => round($otScore, 2),
+            'safety_score'       => round($saf, 2),
+            'severe_alerts'      => $sev,
+        ];
+    }
+
+    // sort by overall if you like...
+    return ['drivers' => $out];
+}
 
     /**
      * Get infractions — no date filtering
@@ -391,12 +485,20 @@ public function getProfileData(Driver $driver): array
             'distraction' => (int) ($result->driver_distraction ?? 0),
         ];
     }
-
+    public function forTenant(int $tenantId): self
+    {
+        $this->overrideTenantId = $tenantId;
+        return $this;
+    }
     /**
      * Helper to apply tenant filtering — you already have this method
      */
-    private function applyTenantFilter($query)
+    protected function applyTenantFilter($query): void
     {
-            $query->where('tenant_id', Auth::guard('driver')->user()->tenant_id);
+        if ($this->overrideTenantId !== null) {
+            $query->where('tenant_id', $this->overrideTenantId);
+        } elseif (Auth::check() && Auth::user()->tenant_id !== null) {
+            $query->where('tenant_id', Auth::user()->tenant_id);
+        }
     }
 }

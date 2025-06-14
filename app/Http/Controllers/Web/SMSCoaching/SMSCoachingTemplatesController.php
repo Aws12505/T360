@@ -3,12 +3,13 @@
 namespace App\Http\Controllers\Web\SMSCoaching;
 
 use App\Http\Requests\SMSCoaching\SMSCoachingTemplateRequest;
-use App\Models\SMSCoachingTemplates;
 use App\Services\SMSCoaching\SMSCoachingTemplatesService;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\RedirectResponse;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class SMSCoachingTemplatesController extends Controller
 {
@@ -19,45 +20,65 @@ class SMSCoachingTemplatesController extends Controller
         $this->service = $service;
     }
 
-    public function index(): Response
+    public function index(string $tenantSlug): Response
     {
-        return Inertia::render('SMSCoachingTemplates/Index', $this->service->list());
+        return Inertia::render('SMSCoachingTemplates/Index', 
+            $this->service->list()
+           );
     }
 
-    public function show($id): Response
-     {
-        $template = $this->service->getById($id);
-        return Inertia::render('SMSCoachingTemplates/Show', compact('template'));
-    }
-
-    public function create(): Response
+    public function show(string $tenantSlug, $id): Response
     {
-        return Inertia::render('SMSCoachingTemplates/Create', $this->service->creating());
+        return Inertia::render('SMSCoachingTemplates/Show', $this->service->showing((int)$id));
     }
 
-    public function store(SMSCoachingTemplateRequest $request): RedirectResponse
+    public function create(string $tenantSlug): Response
+    {
+        return Inertia::render('SMSCoachingTemplates/Create', 
+            $this->service->creating());
+    }
+
+    public function store(string $tenantSlug, SMSCoachingTemplateRequest $request): RedirectResponse
     {
         $this->service->create($request->validated());
-        return redirect()->route('sms-coaching-templates.index')->with('success', 'Template created.');
+        
+        return redirect()
+            ->route('sms-coaching-templates.index', $tenantSlug)
+            ->with('success', 'Template created successfully.');
     }
 
-    public function edit($id): Response
+    public function edit(string $tenantSlug, $id): Response
     {
-        $template = $this->service->getById($id);
-        return Inertia::render('SMSCoachingTemplates/Edit', compact('template'));
+        return Inertia::render('SMSCoachingTemplates/Edit', $this->service->editing((int)$id));
     }
 
-    public function update(SMSCoachingTemplateRequest $request, $id): RedirectResponse
+    public function update(string $tenantSlug, SMSCoachingTemplateRequest $request, $id): RedirectResponse
     {
-        $template = $this->service->getById($id);
+        $template = $this->service->getById((int)$id);
+        
+        if (!$template) {
+            throw new NotFoundHttpException('Template not found');
+        }
+
         $this->service->update($template, $request->validated());
-        return redirect()->route('sms-coaching-templates.index')->with('success', 'Template updated.');
+        
+        return redirect()
+            ->route('sms-coaching-templates.index', $tenantSlug)
+            ->with('success', 'Template updated successfully.');
     }
 
-    public function destroy($id): RedirectResponse
+    public function destroy(string $tenantSlug, $id): RedirectResponse
     {
-        $template = $this->service->getById($id);
+        $template = $this->service->getById((int)$id);
+        
+        if (!$template) {
+            throw new NotFoundHttpException('Template not found');
+        }
+
         $this->service->delete($template);
-        return redirect()->route('sms-coaching-templates.index')->with('success', 'Template deleted.');
+        
+        return redirect()
+            ->route('sms-coaching-templates.index', $tenantSlug)
+            ->with('success', 'Template deleted successfully.');
     }
 }

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('s_m_s_coaching_templates', function (Blueprint $table) {
             $table->id();
-            $table->string('coaching_message', 150); // string with 150 char limit
+            $table->string('coaching_message', 400); 
 
             // Enum fields: 'good', 'bad', 'minor_improvement'
             $table->enum('acceptance', ['good', 'bad', 'minor_improvement']);

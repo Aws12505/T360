@@ -12,7 +12,7 @@ class SMSCoachingTemplatesService
     {
         $tenantSlug = Auth::user()->tenant->slug;
         $permissions = Auth::user()->getAllPermissions();
-        $templates = SMSCoachingTemplates::all();
+        $templates = SMSCoachingTemplates::paginate(5);
         
         return [
             'templates' => $templates,
@@ -26,6 +26,16 @@ class SMSCoachingTemplatesService
         return SMSCoachingTemplates::create($data);
     }
 
+    public function editing(int $id){
+        $template = SMSCoachingTemplates::findOrFail($id);
+        $tenantSlug = Auth::user()->tenant->slug;
+        $permissions = Auth::user()->getAllPermissions();
+        return [
+            'template' => $template,
+            'tenantSlug' => $tenantSlug,
+            'permissions' => $permissions,
+        ];
+    }
     public function creating(){
         $tenantSlug = Auth::user()->tenant->slug;
         $permissions = Auth::user()->getAllPermissions();
@@ -35,7 +45,16 @@ class SMSCoachingTemplatesService
             'permissions' => $permissions,
         ]; 
     }
-
+    public function showing(int $id){
+        $template = SMSCoachingTemplates::findOrFail($id);
+        $tenantSlug = Auth::user()->tenant->slug;
+        $permissions = Auth::user()->getAllPermissions();
+        return [
+            'template' => $template,
+            'tenantSlug' => $tenantSlug,
+            'permissions' => $permissions,
+        ];
+    }
     public function update(SMSCoachingTemplates $template, array $data): SMSCoachingTemplates
     {
         $template->update($data);

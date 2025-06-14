@@ -27,7 +27,6 @@
     ontime: '',
     greenzone: '',
     severe_alerts: '',
-    tenant_id: '',
   });
   
   const submit = () => {
