@@ -164,7 +164,15 @@
                                             </div>
                                         </div>
                                     </TableHead>
-                                    <TableHead v-if="permissionNames.includes('drivers.update') || permissionNames.includes('drivers.delete')">Actions</TableHead>
+                                    <TableHead
+                    v-if="
+                      permissionNames.includes('drivers.view') ||
+                      permissionNames.includes('drivers.update') ||
+                      permissionNames.includes('drivers.delete')
+                    "
+                  >
+                    Actions
+                  </TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -195,18 +203,46 @@
                                         </template>
                                     </TableCell>
                                     <!-- Actions column -->
-                                    <TableCell v-if="permissionNames.includes('drivers.delete')||permissionNames.includes('drivers.update')">
-                                        <div class="flex space-x-2">
-                                            <Button @click="openEditModal(driver)" variant="warning" size="sm" v-if="permissionNames.includes('drivers.update')">
-                                                <Icon name="pencil" class="mr-1 h-4 w-4" />
-                                                Edit
-                                            </Button>
-                                            <Button @click="deleteEntry(driver.id)" variant="destructive" size="sm" v-if="permissionNames.includes('drivers.delete')">
-                                                <Icon name="trash" class="mr-1 h-4 w-4" />
-                                                Delete
-                                            </Button>
-                                        </div>
-                                    </TableCell>
+                                    <TableCell
+  v-if="permissionNames.includes('drivers.view') ||
+        permissionNames.includes('drivers.update') ||
+        permissionNames.includes('drivers.delete')"
+>
+  <div class="flex space-x-2">
+    <!-- VIEW BUTTON -->
+    <Link
+  v-if="permissionNames.includes('drivers.view')"
+  :href=" tenantSlug
+    ? route('driver.show',   [tenantSlug, driver.id])
+    : route('driver.show.admin', driver.id)"
+  class="flex items-center gap-1"
+>
+  <Button variant="default" size="sm" class="flex items-center gap-1">
+    <Eye class="h-4 w-4" />
+    <span>View</span>
+  </Button>
+</Link>
+
+    <Button
+                        @click="openEditModal(driver)"
+                        variant="warning"
+                        size="sm"
+                        v-if="permissionNames.includes('drivers.update')"
+                      >
+                        <Icon name="pencil" class="mr-1 h-4 w-4" />
+                        Edit
+                      </Button>
+                      <Button
+                        @click="deleteEntry(driver.id)"
+                        variant="destructive"
+                        size="sm"
+                        v-if="permissionNames.includes('drivers.delete')"
+                      >
+                        <Icon name="trash" class="mr-1 h-4 w-4" />
+                        Delete
+                      </Button>
+  </div>
+</TableCell>
                                 </TableRow>
                             </TableBody>
                         </Table>
@@ -429,7 +465,7 @@ import {
     TableRow,
 } from '@/components/ui';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, router, useForm } from '@inertiajs/vue3';
+import { Head, router, useForm, Link } from '@inertiajs/vue3';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { 
   Eye, 
@@ -451,7 +487,10 @@ const activeTab = ref(props.dateFilter || 'full');
 
 const perPage = ref(props.perPage || 10);
 // UI state
-
+const viewUrl = driver => tenantSlug
+  ? route('driver.show',   [tenantSlug, driver.id])
+  : route('driver.show.admin', driver.id);
+  
 const selectedDrivers = ref([]);
 const showDeleteSelectedModal = ref(false);
 const errorMessage = ref('');

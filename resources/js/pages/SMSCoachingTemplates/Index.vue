@@ -34,6 +34,7 @@
           <Link 
             :href="route('sms-coaching-templates.create', { tenantSlug })" 
             class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium shadow-sm transition-all h-10"
+            v-if="permissionNames && permissionNames.includes('sms-coaching-templates.create')"
           >
             <Plus class="h-7.5 w-7.5" />
             <span class="whitespace-nowrap">New Template</span>
@@ -52,7 +53,9 @@
                     <TableHead class="hidden sm:table-cell">On-Time</TableHead>
                     <TableHead class="hidden md:table-cell">Green Zone</TableHead>
                     <TableHead class="hidden md:table-cell">Severe Alerts</TableHead>
-                    <TableHead class="text-right min-w-[120px]">Actions</TableHead>
+                    <TableHead class="text-right min-w-[120px]" 
+                    v-if="permissionNames && (permissionNames.includes('sms-coaching-templates.update')||permissionNames.includes('sms-coaching-templates.delete')||permissionNames.includes('sms-coaching-templates.view'))"
+                    >Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -86,9 +89,12 @@
                         {{ formatOption(template.severe_alerts) }}
                       </Badge>
                     </TableCell>
-                    <TableCell class="py-3">
+                    <TableCell class="py-3" 
+                    v-if="permissionNames && (permissionNames.includes('sms-coaching-templates.update')||permissionNames.includes('sms-coaching-templates.delete')||permissionNames.includes('sms-coaching-templates.view'))"
+                    >
                       <div class="flex justify-end space-x-3">
                         <Link
+                          v-if="permissionNames && permissionNames.includes('sms-coaching-templates.view')"
                           :href="route('sms-coaching-templates.show', { tenantSlug, id: template.id })"
                           class="inline-flex items-center justify-center p-1 rounded-lg text-primary hover:bg-primary/10 transition-colors"
                           title="View Details"
@@ -96,6 +102,7 @@
                           <Eye class="h-7.5 w-7.5" />
                         </Link>
                         <Link
+                          v-if="permissionNames && permissionNames.includes('sms-coaching-templates.update')"
                           :href="route('sms-coaching-templates.edit', { tenantSlug, id: template.id })"
                           class="inline-flex items-center justify-center p-1 rounded-lg text-primary hover:bg-primary/10 transition-colors"
                           title="Edit Template"
@@ -103,6 +110,7 @@
                           <Pencil class="h-7.5 w-7.5" />
                         </Link>
                         <button
+                          v-if="permissionNames && permissionNames.includes('sms-coaching-templates.delete')"
                           @click="openDeleteDialog(template)"
                           class="inline-flex items-center justify-center p-1 rounded-lg text-destructive hover:bg-destructive/10 transition-colors"
                           title="Delete Template"
@@ -125,6 +133,7 @@
                           </p>
                         </div>
                         <Link 
+                        v-if="permissionNames && permissionNames.includes('sms-coaching-templates.create')"
                           :href="route('sms-coaching-templates.create', { tenantSlug })" 
                           class="inline-flex items-center gap-2 px-4 py-2.5 text-sm rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 h-10"
                         >
@@ -276,6 +285,12 @@ const stripAndFormat = (message) => {
     return `<${placeholderMap[match] || match}>`;
   });
 };
+
+const permissionNames = computed(() => {
+  return Array.isArray(props.permissions)
+    ? props.permissions.map((permission) => permission?.name).filter(Boolean)
+    : [];
+});// Active tab state
 </script>
 
 <style scoped>

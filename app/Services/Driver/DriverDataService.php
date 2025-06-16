@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class DriverDataService
 {
@@ -359,96 +360,131 @@ public function getProfileData(Driver $driver): array
     ];
 }
 
-// app/Services/Driver/DriverDataService.php
-
-public function getDriversOverallPerformanceCoaching(): array
+/**
+ * Return each driver’s performance metrics and phone within the given date range,
+ * but only include those with a nonzero average greenzone (safety) score.
+ *
+ * Metrics:
+ *  - acceptance_score : percentage out of 100 (100 = perfect acceptance)
+ *  - on_time_score    : percentage out of 100 (100 = perfect timeliness)
+ *  - safety_score     : average “greenzone” score (from safety_data → driver_score), rounded to 2 decimals
+ *  - severe_alerts    : total count of severe alerts (sum of violations)
+ *
+ * @param  Carbon  $startDate  Inclusive start date of the window
+ * @param  Carbon  $endDate    Inclusive end date of the window
+ * @return array{drivers: array<int, array{
+ *     driver_name: string,
+ *     mobile_phone: string|null,
+ *     acceptance_score: float,
+ *     on_time_score: float,
+ *     safety_score: float,
+ *     severe_alerts: int
+ * }>}
+ */
+public function getDriversOverallPerformanceCoaching(Carbon $startDate, Carbon $endDate): array
 {
-    $driverQuery = DB::table('drivers')
-        ->select([
-            'drivers.id',
-            DB::raw("CONCAT(drivers.first_name, ' ', drivers.last_name) AS driver_name"),
-            // existing safety & penalty aggregates...
-            DB::raw("(
-                SELECT SUM(sd.driver_score)
-                FROM safety_data AS sd
-                WHERE sd.tenant_id = drivers.tenant_id
-                  AND (sd.driver_name = CONCAT(drivers.first_name, ' ', drivers.last_name)
-                       OR sd.user_name = drivers.netradyne_user_name)
-            ) AS avg_safety_score"),
-            DB::raw("(
-                SELECT SUM(rj.penalty)
-                FROM rejections AS rj
-                WHERE rj.tenant_id = drivers.tenant_id
-                  AND rj.driver_controllable = 1
-                  AND rj.driver_name = CONCAT(drivers.first_name, ' ', drivers.last_name)
-            ) AS sum_rejection_penalties"),
-            DB::raw("(
-                SELECT SUM(dl.penalty)
-                FROM delays AS dl
-                WHERE dl.tenant_id = drivers.tenant_id
-                  AND dl.driver_controllable = 1
-                  AND dl.driver_name = CONCAT(drivers.first_name, ' ', drivers.last_name)
-            ) AS sum_delay_penalties"),
-            // NEW: total severe alerts
-            DB::raw("(
-                SELECT 
-                    COALESCE(SUM(
-                        sd.traffic_light_violation
-                        + sd.speeding_violations
-                        + sd.following_distance
-                        + sd.driver_distraction
-                        + sd.sign_violations
-                    ), 0)
-                FROM safety_data AS sd
-                WHERE sd.tenant_id = drivers.tenant_id
-                  AND (
-                      sd.driver_name = CONCAT(drivers.first_name, ' ', drivers.last_name)
-                      OR sd.user_name  = drivers.netradyne_user_name
-                  )
-            ) AS severe_alerts"),
-        ]);
+    $tid  = $this->overrideTenantId;
+    $from = $startDate->toDateString();
+    $to   = $endDate->toDateString();
 
-
-    $this->applyTenantFilter($driverQuery);
-    $rows = $driverQuery->get();
-
-    $tenantId = $this->overrideTenantId;
-
+    // 1) Sum total penalties for acceptance & on-time across all drivers
     $totalRej = DB::table('rejections')
+        ->where('tenant_id', $tid)
         ->where('driver_controllable', true)
-        ->where('tenant_id', $tenantId)
+        ->whereBetween('date', [$from, $to])
         ->sum('penalty');
 
     $totalDel = DB::table('delays')
+        ->where('tenant_id', $tid)
         ->where('driver_controllable', true)
-        ->where('tenant_id', $tenantId)
+        ->whereBetween('date', [$from, $to])
         ->sum('penalty');
 
+    // 2) Build driver‐level aggregates with three LEFT JOIN subqueries
+    $rows = DB::table('drivers')
+        ->where('drivers.tenant_id', $tid)
+
+        // rejection penalties per driver
+        ->leftJoin(DB::raw("
+            (
+              SELECT driver_name, SUM(penalty) AS rejection_penalty
+              FROM rejections
+              WHERE tenant_id = {$tid}
+                AND driver_controllable = 1
+                AND date BETWEEN '{$from}' AND '{$to}'
+              GROUP BY driver_name
+            ) rej
+        "), DB::raw("CONCAT(drivers.first_name,' ',drivers.last_name)"), '=', 'rej.driver_name')
+
+        // delay penalties per driver
+        ->leftJoin(DB::raw("
+            (
+              SELECT driver_name, SUM(penalty) AS delay_penalty
+              FROM delays
+              WHERE tenant_id = {$tid}
+                AND driver_controllable = 1
+                AND date BETWEEN '{$from}' AND '{$to}'
+              GROUP BY driver_name
+            ) del
+        "), DB::raw("CONCAT(drivers.first_name,' ',drivers.last_name)"), '=', 'del.driver_name')
+
+        // safety score (average) and severe alerts (sum) per driver
+        ->leftJoin(DB::raw("
+            (
+              SELECT
+                sd.driver_name AS name,
+                sd.user_name   AS uname,
+                ROUND(AVG(sd.driver_score), 2) AS safety_score,
+                COALESCE(SUM(
+                    sd.traffic_light_violation
+                  + sd.speeding_violations
+                  + sd.following_distance
+                  + sd.driver_distraction
+                  + sd.sign_violations
+                ), 0) AS severe_alerts
+              FROM safety_data sd
+              WHERE sd.tenant_id = {$tid}
+                AND sd.date BETWEEN '{$from}' AND '{$to}'
+              GROUP BY sd.driver_name, sd.user_name
+            ) safe
+        "), function($join) {
+            $join->on(DB::raw("CONCAT(drivers.first_name,' ',drivers.last_name)"), '=', 'safe.name')
+                 ->orOn('drivers.netradyne_user_name', '=', 'safe.uname');
+        })
+
+        ->select([
+            DB::raw("CONCAT(drivers.first_name,' ',drivers.last_name) AS driver_name"),
+            'drivers.mobile_phone',
+            DB::raw("COALESCE(rej.rejection_penalty, 0) AS sum_rejection_penalties"),
+            DB::raw("COALESCE(del.delay_penalty,     0) AS sum_delay_penalties"),
+            DB::raw("COALESCE(safe.safety_score,    0) AS safety_score"),
+            DB::raw("COALESCE(safe.severe_alerts,   0) AS severe_alerts"),
+        ])
+        ->get()
+        // 3) Filter out any driver whose average safety_score is zero or null
+        ->filter(fn($r) => $r->safety_score > 0);
+
+    // 4) Calculate percentage scores and assemble output
     $out = [];
     foreach ($rows as $r) {
-        $rej = (float) ($r->sum_rejection_penalties ?? 0);
-        $del = (float) ($r->sum_delay_penalties ?? 0);
-        $saf = (float) ($r->avg_safety_score ?? 0);
-        $sev = (int)   ($r->severe_alerts ?? 0);
-
-        // percentage scores
-        $accScore = $totalRej > 0
-            ? 100.0 - ($rej * 100.0 / $totalRej)
+        $accPct = $totalRej > 0
+            ? 100.0 - ($r->sum_rejection_penalties * 100.0 / $totalRej)
             : 100.0;
-        $otScore  = $totalDel > 0
-            ? 100.0 - ($del * 100.0 / $totalDel)
+
+        $otPct  = $totalDel > 0
+            ? 100.0 - ($r->sum_delay_penalties      * 100.0 / $totalDel)
             : 100.0;
 
         $out[] = [
-            'driver_name'        => $r->driver_name,
-            'acceptance_score'   => round($accScore, 2),
-            'on_time_score'      => round($otScore, 2),
-            'safety_score'       => round($saf, 2),
-            'severe_alerts'      => $sev,
+            'driver_name'      => $r->driver_name,
+            'mobile_phone'     => $r->mobile_phone,
+            'acceptance_score' => round($accPct, 2),
+            'on_time_score'    => round($otPct,   2),
+            'safety_score'     => (float) $r->safety_score,
+            'severe_alerts'    => (int)   $r->severe_alerts,
         ];
     }
 
-    // sort by overall if you like...
     return ['drivers' => $out];
 }
 

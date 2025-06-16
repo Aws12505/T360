@@ -179,4 +179,6 @@ Route::middleware(['auth', 'superAdmin'])->group(function () {
     Route::post   ('/support/responses',            [TicketResponseController::class, 'store'])->name('support.responses.store.admin');
     Route::delete ('/support-bulk',                 [TicketController::class, 'destroyBulkAdmin'])->name('support.destroyBulk.admin');
 
+    Route::get('/drivers/{driver}', [DriverController::class, 'showAdmin'])
+     ->name('driver.show.admin');
 });

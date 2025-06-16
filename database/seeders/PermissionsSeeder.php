@@ -106,10 +106,16 @@ class PermissionsSeeder extends Seeder
             'support-tickets.delete',
             'support-responses.create',
 
-            // SMS Coaching (Safety Thresholds)
-            'sms-coaching.view',
-            'sms-coaching.update',
-            'sms-coaching.delete',
+            // SMS Coaching (Thresholds)
+            'sms-coaching-thresholds.view',
+            'sms-coaching-thresholds.update',
+
+            //SMS Coaching (Templates)
+           'sms-coaching-templates.view',
+           'sms-coaching-templates.create',
+           'sms-coaching-templates.update',
+           'sms-coaching-templates.delete',
+            
         ];
 
         // Create each permission if it doesn't exist.

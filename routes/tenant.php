@@ -266,10 +266,49 @@ Route::get('acceptance/export', [RejectionsController::class, 'export'])
 
      //SMS Coaching
      Route::get('/sms-thresholds', [SMSScoresThresholdsController::class, 'edit'])
-         ->name('thresholds.edit');
+         ->name('thresholds.edit')->middleware('permission:sms-coaching-thresholds.view');
      Route::post('/sms-thresholds', [SMSScoresThresholdsController::class, 'update'])
-         ->name('thresholds.update');    
-         Route::resource('sms-coaching-templates', SMSCoachingTemplatesController::class)
-         ->parameters(['sms-coaching-templates' => 'id'])
-         ->scoped(['id' => 'id']);
-     });
+         ->name('thresholds.update')->middleware('permission:sms-coaching-thresholds.update');
+         
+     //SMS Coaching Templates
+     Route::get('sms-coaching-templates', [SMSCoachingTemplatesController::class, 'index'])
+     ->name('sms-coaching-templates.index')
+     ->middleware('permission:sms-coaching-templates.view');
+
+// Show “Create” form (static, before {id})
+Route::get('sms-coaching-templates/create', [SMSCoachingTemplatesController::class, 'create'])
+     ->name('sms-coaching-templates.create')
+     ->middleware('permission:sms-coaching-templates.create');
+
+// Store new template
+Route::post('sms-coaching-templates', [SMSCoachingTemplatesController::class, 'store'])
+     ->name('sms-coaching-templates.store')
+     ->middleware('permission:sms-coaching-templates.create');
+
+// Show a single template (only numeric IDs)
+Route::get('sms-coaching-templates/{id}', [SMSCoachingTemplatesController::class, 'show'])
+     ->whereNumber('id')
+     ->name('sms-coaching-templates.show')
+     ->middleware('permission:sms-coaching-templates.view');
+
+// Edit form
+Route::get('sms-coaching-templates/{id}/edit', [SMSCoachingTemplatesController::class, 'edit'])
+     ->whereNumber('id')
+     ->name('sms-coaching-templates.edit')
+     ->middleware('permission:sms-coaching-templates.update');
+
+// Update (PUT/PATCH)
+Route::match(['put','patch'], 'sms-coaching-templates/{id}', [SMSCoachingTemplatesController::class, 'update'])
+     ->whereNumber('id')
+     ->name('sms-coaching-templates.update')
+     ->middleware('permission:sms-coaching-templates.update');
+
+// Delete
+Route::delete('sms-coaching-templates/{id}', [SMSCoachingTemplatesController::class, 'destroy'])
+     ->whereNumber('id')
+     ->name('sms-coaching-templates.destroy')
+     ->middleware('permission:sms-coaching-templates.delete');
+     
+     Route::get('/drivers/{driver}', [DriverController::class, 'show'])
+         ->name('driver.show')->middleware('permission:drivers.view');
+});

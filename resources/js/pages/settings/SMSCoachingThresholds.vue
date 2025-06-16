@@ -35,7 +35,7 @@
               </div>
             </template>
   
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-4" v-if="permissionNames && permissionNames.includes('sms-coaching-thresholds.update')">
               <Button type="submit" :disabled="form.processing">
                 <span v-if="form.processing">Saving...</span>
                 <span v-else>Save Changes</span>
@@ -145,5 +145,11 @@
       preserveScroll: true,
     })
   }
+
+  const permissionNames = computed(() => {
+  return Array.isArray(props.permissions)
+    ? props.permissions.map((permission) => permission?.name).filter(Boolean)
+    : [];
+});// Active tab state
   </script>
   

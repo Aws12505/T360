@@ -10,6 +10,7 @@ use App\Services\Driver\DriverDataService;
 use App\Services\Driver\DriverImportExportService;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Driver;
 class DriverController extends Controller
 {
     protected DriverDataService $driverDataService;
@@ -129,6 +130,43 @@ class DriverController extends Controller
         // Return Inertia page
         return Inertia::render('Driver/DriverProfile', [
             'driverData' => $dashboardData,
+        ]);
+    }
+
+     /**
+     * Tenant: show a single driver's profile.
+     */
+    public function show(Request $request, string $tenantSlug, int $id)
+    {
+        $driver = Driver::with('tenant')->findOrFail($id);
+
+        // enforce tenant boundary
+        if (Auth::user()->tenant_id && Auth::user()->tenant->slug !== $tenantSlug) {
+            abort(403);
+        }
+
+        $profile = $this->driverDataService->getProfileData($driver);
+
+        return Inertia::render('Driver/Show', [
+            // matches props in Show.vue
+            'driver'     => $profile,
+            'tenantSlug' => Auth::user()->tenant_id ? $tenantSlug : null,
+            'permissions'=> Auth::user()->getAllPermissions(),
+        ]);
+    }
+
+    /**
+     * Admin: show any driver's profile.
+     */
+    public function showAdmin(Request $request, int $id)
+    {
+        $driver  = Driver::findOrFail($id);
+        $profile = $this->driverDataService->getProfileData($driver);
+
+        return Inertia::render('Driver/Show', [
+            'driver'     => $profile,
+            'tenantSlug' => null,
+            'permissions'=> Auth::user()->getAllPermissions(),
         ]);
     }
 }

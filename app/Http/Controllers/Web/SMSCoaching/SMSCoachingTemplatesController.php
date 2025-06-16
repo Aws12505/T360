@@ -35,7 +35,8 @@ class SMSCoachingTemplatesController extends Controller
     public function create(string $tenantSlug): Response
     {
         return Inertia::render('SMSCoachingTemplates/Create', 
-            $this->service->creating());
+            $this->service->creating()
+        );
     }
 
     public function store(string $tenantSlug, SMSCoachingTemplateRequest $request): RedirectResponse

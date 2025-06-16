@@ -41,7 +41,7 @@ const form = useForm({
 const submit = () => {
   form.put(route('sms-coaching-templates.update', {
     tenantSlug: props.tenantSlug,
-    sms_coaching_template: props.template.id
+    id: props.template.id
   }), {
     preserveScroll: true,
     onSuccess: () => {

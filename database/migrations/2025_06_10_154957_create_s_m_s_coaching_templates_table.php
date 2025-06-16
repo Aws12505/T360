@@ -21,7 +21,7 @@ return new class extends Migration
             $table->enum('greenzone', ['good', 'bad', 'minor_improvement']);
             $table->enum('severe_alerts', ['good', 'bad', 'minor_improvement']);
 
-            $table->foreignId('tenant_id')->unique()->constrained()->onDelete('cascade')->comment('Tenant associated with the miles driven record');
+            $table->foreignId('tenant_id')->constrained()->onDelete('cascade')->comment('Tenant associated with the miles driven record');
 
             $table->timestamps();
             $table->unique(

@@ -395,7 +395,7 @@ watch(() => props.user, (newVal) => {
     form.name = '';
     form.email = '';
     form.password = '';
-    form.tenant_id = props.tenants.length ? props.tenants[0].id : null;
+    form.tenant_id = null;
     form.roles = [];
     form.user_permissions = [];
   }
