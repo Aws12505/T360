@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useForm } from '@inertiajs/vue3'
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 // Import ShadCN UI components
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -18,11 +18,11 @@ import { Loader2 } from 'lucide-vue-next'
  * - 'saved': When the form is successfully submitted.
  * - 'cancel': When the form is cancelled.
  */
-const props = defineProps({
-  entry: {
-    type: Object,
-    default: () => ({}),
-  },
+ const props = defineProps({
+  entry:      { type: Object, default: () => ({}) },
+  tenants:    { type: Array,  default: () => [] },
+  metrics:    { type: Object, default: () => ({}) },
+  TenantMetricsRules: { type: Array, default: () => [] },
 })
 const emit = defineEmits(['saved', 'cancel'])
 
@@ -52,7 +52,8 @@ const operators = [
 // Initialize form with default values using Inertia's useForm helper.
 const form = useForm({
   safety_bonus_eligible_levels: props.entry.safety_bonus_eligible_levels ?? [],
-  mvts_divisor: props.entry.mvts_divisor ?? 0.135,
+  mvts_tenant_id: props.entry.mvts_tenant_id ?? (props.tenants[0]?.id || null),
+  mvts_divisor:   props.entry.mvts_divisor ?? 0.135,
   ...Object.fromEntries(
     metrics.flatMap(metric =>
       levels.flatMap(level => [
@@ -94,6 +95,20 @@ const getOperatorLabel = (value) => {
   const op = operators.find(op => op.value === value)
   return op ? op.label : 'Select operator'
 }
+
+const currentMvtsConfig = computed(() => {
+  const tid = form.mvts_tenant_id
+  if (!Array.isArray(props.TenantMetricsRules) || !tid) {
+    return props.metrics
+  }
+  return props.TenantMetricsRules.find(r => r.tenant_id === tid) || props.metrics
+})
+
+watch(currentMvtsConfig, (cfg) => {
+  if (cfg?.mvts_divisor != null) {
+    form.mvts_divisor = cfg.mvts_divisor
+  }
+})
 </script>
 
 <template>
@@ -188,29 +203,47 @@ const getOperatorLabel = (value) => {
       </CardContent>
     </Card>
 
-    <!-- MVtS Configuration Section -->
     <Card class="shadow-sm">
-      <CardHeader>
-        <CardTitle>MVtS Configuration</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div class="space-y-2">
-          <Label for="mvts-divisor">MVtS Divisor</Label>
-          <Input
-            id="mvts-divisor"
-            v-model="form.mvts_divisor"
-            type="number"
-            step="0.001"
-            min="0.001"
-            class="w-full md:w-1/3"
-          />
-          <p class="text-sm text-muted-foreground">
-            This value is used to calculate the Maintenance Variance to Standard (MVtS) metric.
-            Default value is 0.135.
-          </p>
-        </div>
-      </CardContent>
-    </Card>
+  <CardHeader>
+    <CardTitle>MVtS Configuration</CardTitle>
+  </CardHeader>
+  <CardContent>
+    <!-- Tenant Selector -->
+    <div class="space-y-2 mb-4" v-if="tenants?.length">
+      <Label for="mvts-tenant">Tenant</Label>
+      <select
+        id="mvts-tenant"
+        v-model="form.mvts_tenant_id"
+        class="w-full p-2 rounded-md border border-input bg-background text-sm ring-offset-background
+               file:border-0 file:bg-transparent file:text-sm file:font-medium
+               placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2
+               focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed
+               disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+      >
+        <option v-for="tenant in tenants" :key="tenant.id" :value="tenant.id">
+          {{ tenant.name }}
+        </option>
+      </select>
+    </div>
+
+    <!-- MVTS Divisor Input -->
+    <div class="space-y-2">
+      <Label for="mvts-divisor">MVtS Divisor</Label>
+      <Input
+        id="mvts-divisor"
+        v-model="form.mvts_divisor"
+        type="number"
+        step="0.001"
+        min="0.001"
+        class="w-full md:w-1/3"
+      />
+      <p class="text-sm text-muted-foreground">
+        This value is used to calculate the Maintenance Variance to Standard (MVtS) metric.
+        Default value is 0.135.
+      </p>
+    </div>
+  </CardContent>
+</Card>
 
     <!-- Action Buttons -->
     <div class="flex justify-end space-x-3">

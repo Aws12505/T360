@@ -163,14 +163,23 @@ public float $t6wMVtS;
         // Get QS invoice amount and total miles for MVtS calculation
         $yesterdayQsInvoiceAmount = $this->maintenanceBreakdownService->getQSInvoiceAmount($yesterdayStart, $yesterdayEnd);
         $yesterdayTotalMiles = $this->maintenanceBreakdownService->getTotalMiles($yesterdayStart, $yesterdayEnd);
-        $yesterdayQsMVtS = $this->maintenanceBreakdownService->calculateQSMVtS($yesterdayQsInvoiceAmount, $yesterdayTotalMiles) * 100;
+        $yesterdayQsMVtS = $this->maintenanceBreakdownService->calculateQSMVtS($yesterdayQsInvoiceAmount, $yesterdayTotalMiles,$this->tenantId) * 100;
         
         // ─── MVtS CALCULATION - T6W ───────────────────────────────────────────────────
         // Get QS invoice amount and total miles for T6W MVtS calculation
         $t6wQsInvoiceAmount = $this->maintenanceBreakdownService->getQSInvoiceAmount($t6wStart, $t6wEnd);
         $t6wTotalMiles = $this->maintenanceBreakdownService->getTotalMiles($t6wStart, $t6wEnd);
-        $t6wQsMVtS = $this->maintenanceBreakdownService->calculateQSMVtS($t6wQsInvoiceAmount, $t6wTotalMiles) * 100;
+        $t6wQsMVtS = $this->maintenanceBreakdownService->calculateQSMVtS($t6wQsInvoiceAmount, $t6wTotalMiles,$this->tenantId) * 100;
         
+//make the vcr preventable divided by total miles
+if (!is_null($yesterdayTotalMiles)&&$yesterdayTotalMiles > 0) {
+    $yesterdayPerformanceRolling->sum_vcr_preventable = $yesterdayPerformanceRolling->sum_vcr_preventable / $yesterdayTotalMiles;
+}
+if (!is_null($t6wTotalMiles)&&$t6wTotalMiles > 0) {
+    $t6wPerformanceRolling->sum_vcr_preventable = $t6wPerformanceRolling->sum_vcr_preventable / $t6wTotalMiles;
+}
+
+
         // ─── PERFORMANCE RATINGS - T6W ────────────────────────────────────────────────
         $performanceRatings = $this->performanceDataService->calculateRatings(
             $t6wPerformanceMain, 

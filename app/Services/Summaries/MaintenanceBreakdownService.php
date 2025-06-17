@@ -5,7 +5,7 @@ namespace App\Services\Summaries;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use App\Models\PerformanceMetricRule;
+use App\Models\TenantMetricsRule;
 use App\Models\WoStatus;
 
 class MaintenanceBreakdownService
@@ -31,7 +31,7 @@ public function __construct(?int $email_tenant_id = null) {
             
         $this->applyTenantFilter($query);
 
-        
+
         return $query->count();
     }
 
@@ -159,18 +159,20 @@ public function __construct(?int $email_tenant_id = null) {
     /**
      * Calculate QS MVtS value
      */
-    public function calculateQSMVtS(float $qsInvoiceAmount, float $totalMiles): float
-    {
-        if ($totalMiles <= 0) {
-            return 0;
-        }
-
-        $performanceMetrics = PerformanceMetricRule::first();
-        $mvtsDivisor = ($performanceMetrics && !empty($performanceMetrics->mvts_divisor)) 
-            ? $performanceMetrics->mvts_divisor 
-            : 0.135;
-        return ($qsInvoiceAmount / $totalMiles) / $mvtsDivisor;
+    public function calculateQSMVtS(float $qsInvoiceAmount, float $totalMiles, int $tenantId): float
+{
+    if ($totalMiles <= 0) {
+        return 0.0;
     }
+
+    // Try to fetch this tenant’s rule
+    $rule = TenantMetricsRule::where('tenant_id', $tenantId)->first();
+
+    // Use the divisor from the rule if present, otherwise default to 0.135
+    $mvtsDivisor = $rule->mvts_divisor ?? 0.135;
+    // Calculate and return
+    return ($qsInvoiceAmount / $totalMiles) / $mvtsDivisor;
+}
 
     /**
      * Calculate CPM metrics
@@ -372,7 +374,7 @@ public function __construct(?int $email_tenant_id = null) {
         $workOrdersByTruck = $this->getWorkOrdersByTruck($startDate, $endDate);
         
         $cpmMetrics = $this->calculateCPMMetrics($totalInvoiceAmount, $qsInvoiceAmount, $totalMiles);
-        $qsMVtS = $this->calculateQSMVtS($qsInvoiceAmount, $totalMiles);
+        $qsMVtS = $this->calculateQSMVtS($qsInvoiceAmount, $totalMiles, Auth::user()->tenant_id);
         
         // Get outstanding invoices data
         $outstandingInvoices = $this->getOutstandingInvoices($minInvoiceAmount, $outstandingDate);

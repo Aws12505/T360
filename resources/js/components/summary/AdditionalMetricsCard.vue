@@ -9,7 +9,7 @@
         <div class="text-sm text-muted-foreground mb-1">Count</div>
         <div class="flex items-center justify-between gap-3 mb-3">
           <div class="text-3xl font-bold" :class="getScoreColorClass(performanceRatings.vcr_preventable)">
-            {{ formatNumber(performanceData.vcr_preventable) }}
+            {{ formatNumberVCR(performanceData.vcr_preventable) }}
           </div>
           <Badge :variant="getRatingVariant(performanceRatings.vcr_preventable)" class="text-xs">
             {{ formatRating(performanceRatings.vcr_preventable) }}
@@ -69,6 +69,21 @@ const formatNumber = (value) => {
   return Math.round(parseFloat(value)).toString();
 };
 
+const formatNumberVCR = (value: string | number | null | undefined): string => {
+  if (value === undefined || value === null) {
+    return '0'
+  }
+
+  const num = parseFloat(value as any)
+  if (isNaN(num)) {
+    return '0'
+  }
+
+  // Round to exactly 2 decimal places, then drop any trailing ".0", ".00", or "x0"
+  return num
+    .toFixed(2)        // e.g. "3.00", "3.40", "3.46"
+    .replace(/\.?0+$/, '')  // strip off ".00" → "", ".40" → ".4", leave "46"
+}
 // Format rating for display
 const formatRating = (rating) => {
   if (!rating) return 'Not Available';

@@ -139,18 +139,20 @@ class PerformanceDataService
     /**
      * Get complete performance data for the specified date range
      */
-    public function getPerformanceData($startDate, $endDate, string $label = ''): array
+    public function getPerformanceData($startDate, $endDate, string $label = '',$milesDriven): array
     {
         $rule = PerformanceMetricRule::first();
         
         $mainData = $this->getMainPerformanceData($startDate, $endDate);
         $rollingData = $this->getRollingPerformanceData();
         $lastUpdated = $this->getLatestUpdateTimestamp();
-        
+        if(!is_null($milesDriven) && $milesDriven > 0){
+        $rollingData->sum_vcr_preventable = $rollingData->sum_vcr_preventable/$milesDriven;
+        }
         // Get QS invoice amount and total miles for MVtS calculation
         $qsInvoiceAmount = $this->maintenanceBreakdownService->getQSInvoiceAmount($startDate, $endDate);
         $totalMiles = $this->maintenanceBreakdownService->getTotalMiles($startDate, $endDate);
-        $qsMVtS = $this->maintenanceBreakdownService->calculateQSMVtS($qsInvoiceAmount, $totalMiles) * 100;
+        $qsMVtS = $this->maintenanceBreakdownService->calculateQSMVtS($qsInvoiceAmount, $totalMiles,Auth::user()->tenant_id) * 100;
         $ratings = $this->calculateRatings($mainData, $rollingData, ['qs_MVtS' => $qsMVtS], $rule);
 
         return [

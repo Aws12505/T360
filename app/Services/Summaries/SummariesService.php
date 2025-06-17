@@ -117,12 +117,12 @@ class SummariesService
         ];
 
         // Fetch data
+        $milesDriven = $this->getMilesDrivenSum($startDate, $endDate, $dateFilter);
         $summaries = [
-            'performance' => $this->performanceDataService->getPerformanceData($startDate, $endDate, $label),
+            'performance' => $this->performanceDataService->getPerformanceData($startDate, $endDate, $label,$milesDriven),
             'safety' => $this->safetyDataService->getSafetyData($startDate, $endDate),
             'date_range' => $dateRange
         ];
-
         $isSuperAdmin = Auth::check() && is_null(Auth::user()->tenant_id);
         $tenantSlug = $isSuperAdmin ? null : (Auth::check() ? Auth::user()->tenant->slug : null);
         $tenants = $isSuperAdmin ? Tenant::all() : [];
@@ -131,8 +131,14 @@ class SummariesService
         $outstandingDateCarbon = $outstandingDate ? Carbon::parse($outstandingDate) : null;
         $permissions=Auth::user()->getAllPermissions();
         // Adjust dates for maintenance breakdown (weeks 16-24 instead of 17-25)
-        $maintenanceStartDate = $startDate->copy()->subWeek();
+        if($dateFilter == 't6w'){
+            $maintenanceStartDate = $startDate->copy()->subWeek();
         $maintenanceEndDate = $endDate->copy()->subWeek();
+        }
+        else {
+            $maintenanceStartDate = $startDate->copy();
+            $maintenanceEndDate = $endDate->copy();
+        }
         $driverOverAll = $this->getDriversOverallPerformance($startDate, $endDate);
         return [
             'summaries' => $summaries,
@@ -146,7 +152,7 @@ class SummariesService
             'dateRange' => $dateRange,
             'driversOverallPerformance' => $driverOverAll,
             'permissions' => $permissions,
-            'milesDriven' => $this->getMilesDrivenSum($startDate, $endDate, $dateFilter),
+            'milesDriven' => $milesDriven,
         ];
     }
 

@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Web\Performance;
 
 use App\Http\Controllers\Controller;
+use App\Models\TenantMetricsRule;
 use Illuminate\Http\Request;
 use App\Services\Performance\PerformanceMetricRuleService;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Tenant;
 
 /**
  * Class PerformanceMetricRuleController
@@ -39,8 +41,10 @@ class PerformanceMetricRuleController extends Controller
     public function editGlobal()
     {
         $metrics = $this->performanceMetricRuleService->getGlobalMetrics();
+        $TenantMetricsRules = TenantMetricsRule::all();
+        $tenants = Tenant::all();
         $permissions = Auth::user()->getAllPermissions();
-        return Inertia::render('PerformanceRules/Admin', ['permissions' => $permissions,'metrics' => $metrics]);
+        return Inertia::render('PerformanceRules/Admin', ['permissions' => $permissions,'metrics' => $metrics, 'TenantMetricsRules' => $TenantMetricsRules,'tenants' => $tenants]);
     }
 
     /**

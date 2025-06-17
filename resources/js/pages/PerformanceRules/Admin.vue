@@ -17,12 +17,17 @@ import {
  */
 const props = defineProps({
   metrics: Object,
-  tenantSlug: {
-    type: String,
-    default: null,
-  },
   permissions: {
-    Array, default: [],
+  type: Array,
+   default: () => []
+  },
+  TenantMetricsRules: {
+   type: Array,
+   default: () => []
+  },
+  tenants: {
+   type: Array,
+   default: () => []
   }
 })
 const { tenantSlug } = props
@@ -112,6 +117,17 @@ function closeEditor() {
   showForm.value = false
   editing.value = {}
 }
+
+// Safe tenant handling
+const selectedTenantId = ref(props.tenants?.[0]?.id || null)
+
+// Computed MVTS config with fallback
+const currentMvtsConfig = computed(() => {
+  if (!Array.isArray(props.TenantMetricsRules) || !selectedTenantId.value) {
+    return props.metrics || {}
+  }
+  return props.TenantMetricsRules.find(rule => rule.tenant_id === selectedTenantId.value) || props.metrics || {}
+})
 </script>
 
 <template>
@@ -134,8 +150,14 @@ function closeEditor() {
 
       <!-- Show the metrics form modal if editing -->
       <div v-if="showForm">
-        <EntryForm :entry="editing" @saved="closeEditor" @cancel="closeEditor" />
-      </div>
+        <EntryForm
+  :entry="editing"
+  :tenants="tenants"
+  :metrics="metrics"
+  :TenantMetricsRules="TenantMetricsRules"
+  @saved="closeEditor"
+  @cancel="closeEditor"
+/>      </div>
 
       <!-- Display metrics as cards when not editing -->
       <div v-else-if="props.metrics" class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -203,25 +225,37 @@ function closeEditor() {
           </CardContent>
         </Card>
 
-        <!-- Safety Bonus Eligibility Card -->
         <Card class="col-span-1 md:col-span-2">
-          <CardHeader>
-            <CardTitle>
-              MVtS Configuration
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div class="flex flex-col">
-              <div class="flex items-center justify-between">
-                <span class="font-medium">MVtS Divisor:</span>
-                <span>{{ props.metrics?.mvts_divisor || '0.135' }}</span>
-              </div>
-              <p class="text-sm text-muted-foreground mt-2">
-                This value is used to calculate the Maintenance Variance to Standard (MVtS) metric.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+  <CardHeader class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <CardTitle>MVtS Configuration</CardTitle>
+    <!-- Tenant Selector -->
+    <select
+      v-if="tenants?.length"
+      v-model="selectedTenantId"
+      class="p-2 rounded-md border border-input bg-background text-sm ring-offset-background
+             file:border-0 file:bg-transparent file:text-sm file:font-medium
+             placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2
+             focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed
+             disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-white
+             max-w-[200px]"
+    >
+      <option v-for="tenant in tenants" :key="tenant.id" :value="tenant.id">
+        {{ tenant.name }}
+      </option>
+    </select>
+  </CardHeader>
+  <CardContent>
+    <div class="flex flex-col space-y-2">
+      <div class="flex items-center justify-between">
+        <span class="font-medium text-foreground">MVtS Divisor:</span>
+        <span class="text-muted-foreground">{{ currentMvtsConfig?.mvts_divisor || '0.135' }}</span>
+      </div>
+      <p class="text-sm text-muted-foreground">
+        This value is used to calculate the Maintenance Variance to Standard (MVtS) metric.
+      </p>
+    </div>
+  </CardContent>
+</Card>
         
         <Card 
           v-if="displayMetrics.safety_bonus_eligible_levels.length" 

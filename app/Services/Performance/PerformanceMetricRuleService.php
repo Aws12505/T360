@@ -3,6 +3,7 @@
 namespace App\Services\Performance;
 
 use App\Models\PerformanceMetricRule;
+use App\Models\TenantMetricsRule;
 class PerformanceMetricRuleService
 {
     /**
@@ -24,6 +25,10 @@ class PerformanceMetricRuleService
     public function updateGlobalMetrics(array $data)
     {
         PerformanceMetricRule::updateOrCreate(['id' => PerformanceMetricRule::first()?->id ?? 1], $data);
+        TenantMetricsRule::updateOrCreate(
+            ['tenant_id'   => $data['mvts_tenant_id']],        // unique key
+            ['mvts_divisor' => $data['mvts_divisor']]
+        );
     }
 
     /**
@@ -66,8 +71,10 @@ class PerformanceMetricRuleService
         $rules['safety_bonus_eligible_levels'] = ['nullable', 'array'];
         $rules['safety_bonus_eligible_levels.*'] = ['in:fantastic_plus,fantastic,good,fair,poor'];
         
-        // Add MVtS divisor validation rule
-        $rules['mvts_divisor'] = ['required', 'numeric', 'min:0.001'];
+        // Tenant selector must exist in tenants table
+        $rules['mvts_tenant_id'] = ['required', 'integer', 'exists:tenants,id'];
+        // Divisor must be a positive numeric (at least 0.001)
+        $rules['mvts_divisor']   = ['required', 'numeric', 'min:0.001'];
         
         return $rules;
     }

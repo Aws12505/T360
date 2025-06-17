@@ -6,7 +6,27 @@
   <title>Performance Report — {{ $reportDate }}</title>
 </head>
 <body style="margin:0;padding:0;background-color:#f9fafb;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;color:#1a1a1a;line-height:1.5;">
-
+  @php
+if (! function_exists('format_number_vcr')) {
+    /**
+     * Format a VCR-P value so that:
+     *  - it’s always rounded to 2 decimal places,
+     *  - then any trailing “0”s (and a trailing “.”) are stripped off.
+     *
+     *   3.456 → “3.46”
+     *   3.40  → “3.4”
+     *   3.00  → “3”
+     */
+    function format_number_vcr($value)
+    {
+        $num = $value === null ? 0 : (float) $value;
+        // two decimals, always
+        $s = number_format($num, 2, '.', '');
+        // strip off trailing zeros and then a trailing dot
+        return rtrim(rtrim($s, '0'), '.');
+    }
+}
+@endphp
   <!-- Outer wrapper -->
   <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
     <tr>
@@ -121,8 +141,8 @@
                      round($t6wPerformanceRolling['sum_open_boc'] ?? 0), 
                      ucfirst($performanceRatings['open_boc'] ?? 'N/A')],
                     ['VCR-P', 
-                     round($performanceRolling['sum_vcr_preventable'] ?? 0), 
-                     round($t6wPerformanceRolling['sum_vcr_preventable'] ?? 0), 
+                     format_number_vcr($performanceRolling['sum_vcr_preventable'] ?? 0), 
+                     format_number_vcr($t6wPerformanceRolling['sum_vcr_preventable'] ?? 0), 
                      ucfirst($performanceRatings['vcr_preventable'] ?? 'N/A')],
                     ['VMCR-P', 
                      round($performanceRolling['sum_vmcr_p'] ?? 0), 
