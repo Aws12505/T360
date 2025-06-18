@@ -14,12 +14,6 @@ class SMSCoachingTemplateRequest extends FormRequest
         return Auth::check();
     }
 
-    protected function prepareForValidation(): void
-    {
-        if ($user = Auth::user()) {
-            $this->merge([ 'tenant_id' => $user->tenant_id ]);
-        }
-    }
 
     public function rules(): array
     {
@@ -38,6 +32,7 @@ class SMSCoachingTemplateRequest extends FormRequest
 
         return [
             'coaching_message' => ['bail','required','string','max:400'],
+            'tenant_id' => 'required|exists:tenants,id',
 
             'acceptance' => [
                 'bail','required',"in:{$optString}",
@@ -75,5 +70,12 @@ class SMSCoachingTemplateRequest extends FormRequest
             'severe_alerts.required' => 'Choose a severe-alerts rating.',
             'severe_alerts.in'       => 'Invalid severe-alerts rating.',
         ];
+    }
+    protected function prepareForValidation()
+    {
+        // If the authenticated user is not a SuperAdmin, always use the user's tenant_id.
+        if (!is_null(Auth::user()->tenant_id)) { 
+            $this->merge(['tenant_id' => Auth::user()->tenant_id]); 
+        }
     }
 }

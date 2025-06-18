@@ -148,24 +148,19 @@
             </div>
             
             <!-- Enhanced Pagination -->
-            <div v-if="templates.meta && templates.data.length > 0" class="bg-muted/20 px-4 py-3 border-t flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div class="text-sm text-muted-foreground">
-                Showing <span class="font-medium">{{ templates.meta.from }}</span> to 
-                <span class="font-medium">{{ templates.meta.to }}</span> of 
-                <span class="font-medium">{{ templates.meta.total }}</span> templates
-              </div>
+            <div v-if="templates.data.length > 0" class="bg-muted/20 px-4 py-3 border-t flex flex-col sm:flex-row items-center justify-between gap-4">
               <div class="flex space-x-2">
                 <Link
-                  v-if="templates.links.prev"
-                  :href="templates.links.prev"
+                  v-if="templates.prev_page_url"
+                  :href="templates.prev_page_url"
                   class="px-4 py-2 rounded-md text-sm font-medium text-foreground/80 hover:bg-muted/50 transition-colors border border-border h-10"
                   preserve-scroll
                 >
                   &larr; Previous
                 </Link>
                 <Link
-                  v-if="templates.links.next"
-                  :href="templates.links.next"
+                  v-if="templates.next_page_url"
+                  :href="templates.next_page_url"
                   class="px-4 py-2 rounded-md text-sm font-medium text-foreground/80 hover:bg-muted/50 transition-colors border border-border h-10"
                   preserve-scroll
                 >
