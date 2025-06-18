@@ -34,18 +34,13 @@ class SendDriverCoaching extends Command
             return self::FAILURE;
         }
 
-        // $now       = Carbon::now();
-        // $weekStart = $now->copy()->startOfWeek(Carbon::SUNDAY);
-        // $weekEnd   = $now->copy()->endOfWeek(Carbon::SATURDAY);
-        // if ($now->dayOfWeek === Carbon::SUNDAY) {
-        //      $weekStart->subWeek();
-        //      $weekEnd  ->subWeek();
-        // }
-
-        // for testing, fix your window here; in prod revert to Carbon logic
-        $weekStart = Carbon::parse('2023-07-10');
-        $weekEnd   = Carbon::now();
-        // ───────────────────────────────────────────────────────────────
+        $now       = Carbon::now();
+        $weekStart = $now->copy()->startOfWeek(Carbon::SUNDAY);
+        $weekEnd   = $now->copy()->endOfWeek(Carbon::SATURDAY);
+        if ($now->dayOfWeek === Carbon::SUNDAY) {
+             $weekStart->subWeek();
+             $weekEnd  ->subWeek();
+        }
 
 
         $driverResult = $this->driverService
