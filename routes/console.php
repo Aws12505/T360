@@ -2,7 +2,6 @@
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
-use App\Console\Commands\SendReport;
 use Illuminate\Support\Facades\Schedule;
 use App\Models\Tenant;
 
@@ -17,4 +16,8 @@ foreach ($tenants as $tenant) {
     Schedule::command('report:daily', [$tenant->id])
     ->dailyAt('6:00')
     ->timezone($tenant->timezone ?? 'America/Indiana/Indianapolis');
+
+    // Schedule::command('coaching:send', [$tenant->id])
+    //     ->weeklyOn(6, '6:00')
+    //     ->timezone($tenant->timezone ?? 'America/Indiana/Indianapolis');
 }

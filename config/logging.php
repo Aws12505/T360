@@ -127,6 +127,13 @@ return [
             'path' => storage_path('logs/laravel.log'),
         ],
 
+        'coaching' => [
+        'driver' => 'daily',                          // or 'single' if you prefer one file
+        'path'   => storage_path('logs/coaching.log'),
+        'level'  => 'debug',
+        'days'   => 14,                               // keep 14 days of logs
+        ],
+
     ],
 
 ];

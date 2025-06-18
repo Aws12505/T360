@@ -198,6 +198,11 @@
                                         <template v-if="col === 'hiring_date'">
                                             {{ formatDate(driver[col]) }}
                                         </template>
+                                        <template v-else-if="col === 'mobile_phone'">
+        <div class="whitespace-nowrap min-w-[70px]">
+            {{ driver[col] }}
+        </div>
+    </template>
                                         <template v-else>
                                             {{ driver[col] }}
                                         </template>

@@ -8,6 +8,8 @@ use App\Models\SMSScoresThresholds;
 use App\Models\SMSCoachingTemplates;
 use App\Services\Driver\DriverDataService;
 use App\Services\Summaries\PerformanceDataService;
+use App\Services\TwilioService;
+use Illuminate\Support\Facades\Log;
 
 class SendDriverCoaching extends Command
 {
@@ -16,32 +18,35 @@ class SendDriverCoaching extends Command
 
     public function __construct(
         protected DriverDataService      $driverService,
-        protected PerformanceDataService $perfService
+        protected PerformanceDataService $perfService,
+        protected TwilioService          $twilioService
     ) {
         parent::__construct();
     }
 
     public function handle(): int
     {
-        $tenantId   = (int)$this->argument('tenantId');
+        $tenantId   = (int) $this->argument('tenantId');
         $thresholds = SMSScoresThresholds::where('tenant_id', $tenantId)->first();
+
         if (! $thresholds) {
-            $this->error("No thresholds for tenant {$tenantId}");
+            $this->error("No thresholds found for tenant {$tenantId}.");
             return self::FAILURE;
         }
-        // compute this week (Sun→Sat), roll back if today is Sunday
+
         // $now       = Carbon::now();
         // $weekStart = $now->copy()->startOfWeek(Carbon::SUNDAY);
         // $weekEnd   = $now->copy()->endOfWeek(Carbon::SATURDAY);
         // if ($now->dayOfWeek === Carbon::SUNDAY) {
-        //     $weekStart->subWeek();
-        //     $weekEnd  ->subWeek();
+        //      $weekStart->subWeek();
+        //      $weekEnd  ->subWeek();
         // }
-        // ───────────────────────────────────────────────────────────────
+
         // for testing, fix your window here; in prod revert to Carbon logic
         $weekStart = Carbon::parse('2023-07-10');
         $weekEnd   = Carbon::now();
         // ───────────────────────────────────────────────────────────────
+
 
         $driverResult = $this->driverService
             ->forTenant($tenantId)
@@ -49,7 +54,7 @@ class SendDriverCoaching extends Command
 
         $drivers = $driverResult['drivers'] ?? [];
         if (empty($drivers)) {
-            $this->info("No drivers for tenant {$tenantId}");
+            $this->info("No drivers to coach for tenant {$tenantId} this week.");
             return self::SUCCESS;
         }
 
@@ -69,11 +74,13 @@ class SendDriverCoaching extends Command
         $compOT    = round($mainPerf->average_on_time   ?? 0, 2);
         $compGreen = round(collect($drivers)->avg('safety_score') ?? 0, 2);
 
+        // Use dedicated coaching log channel
+        $coachLog = Log::channel('coaching');
+
         foreach ($drivers as $d) {
             $name  = $d['driver_name'];
             $phone = $d['mobile_phone'];
 
-            // determine categories
             $cats = [
                 'acceptance'    => $this->categorize(
                     $d['acceptance_score'],
@@ -101,9 +108,21 @@ class SendDriverCoaching extends Command
             $templ = $templateMap->get($key);
 
             if (! $templ) {
-                $this->warn("{$name}: no template for ".json_encode($cats));
+                $this->warn("{$name}: no coaching template for " . json_encode($cats));
                 continue;
             }
+
+            // Log ratings & template into coaching.log
+            $coachLog->info('Driver coaching data', [
+                'driver'   => $name,
+                'ratings'  => [
+                    'acceptance'    => "{$cats['acceptance']} ({$d['acceptance_score']}%)",
+                    'on_time'       => "{$cats['ontime']} ({$d['on_time_score']}%)",
+                    'greenzone'     => "{$cats['greenzone']} ({$d['safety_score']})",
+                    'severe_alerts' => "{$cats['severe_alerts']} ({$d['severe_alerts']})",
+                ],
+                'template' => $templ->coaching_message,
+            ]);
 
             $body = $this->fillTemplate(
                 $templ->coaching_message,
@@ -111,20 +130,28 @@ class SendDriverCoaching extends Command
                 compact('compAcc','compOT','compGreen')
             );
 
-            // ─── NEW: print categories + raw scores ───────────────────────
-            $this->info("Ratings & Scores:");
-            $this->info("  acceptance    = {$cats['acceptance']} ({$d['acceptance_score']}%)");
-            $this->info("  on-time       = {$cats['ontime']} ({$d['on_time_score']}%)");
-            $this->info("  green-zone    = {$cats['greenzone']} ({$d['safety_score']})");
-            $this->info("  severe_alerts = {$cats['severe_alerts']} ({$d['severe_alerts']})");
-            // ───────────────────────────────────────────────────────────────
+            // Format US phone to E.164
+            $digits = preg_replace('/\D+/', '', $phone);
+            $to     = '+1' . $digits;
 
-            $this->info("----");
-            $this->info("To:   {$phone} ({$name})");
-            $this->info("Body: {$body}");
+            try {
+                $sms = $this->twilioService->sendSms($to, $body);
+
+                // Log full Twilio response payload into coaching.log
+                $coachLog->debug('Twilio SMS payload', $sms->toArray());
+
+                $this->info("→ Sent SMS to {$to} (SID: {$sms->sid})");
+            } catch (\Throwable $e) {
+                Log::error("Failed to send SMS to {$to}: " . $e->getMessage(), [
+                    'exception' => $e,
+                ]);
+                $this->error("✖ Failed to send SMS to {$to}");
+            }
+
+            $this->info(str_repeat('─', 40));
         }
 
-        $this->info('Done sending coaching SMS');
+        $this->info('Done sending coaching SMS.');
         return self::SUCCESS;
     }
 
