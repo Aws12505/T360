@@ -115,22 +115,6 @@ class SummariesService
             'endWeekNumber'   => $endWeekNumber,
             'year'            => $year,
         ];
-
-        // Fetch data
-        $milesDriven = $this->getMilesDrivenSum($startDate, $endDate, $dateFilter);
-        $summaries = [
-            'performance' => $this->performanceDataService->getPerformanceData($startDate, $endDate, $label,$milesDriven),
-            'safety' => $this->safetyDataService->getSafetyData($startDate, $endDate),
-            'date_range' => $dateRange
-        ];
-        $isSuperAdmin = Auth::check() && is_null(Auth::user()->tenant_id);
-        $tenantSlug = $isSuperAdmin ? null : (Auth::check() ? Auth::user()->tenant->slug : null);
-        $tenants = $isSuperAdmin ? Tenant::all() : [];
-
-        // Convert outstandingDate to Carbon instance if it's provided
-        $outstandingDateCarbon = $outstandingDate ? Carbon::parse($outstandingDate) : null;
-        $permissions=Auth::user()->getAllPermissions();
-        // Adjust dates for maintenance breakdown (weeks 16-24 instead of 17-25)
         if($dateFilter == 't6w'){
             $maintenanceStartDate = $startDate->copy()->subWeek();
         $maintenanceEndDate = $endDate->copy()->subWeek();
@@ -139,6 +123,23 @@ class SummariesService
             $maintenanceStartDate = $startDate->copy();
             $maintenanceEndDate = $endDate->copy();
         }
+        // Fetch data
+        $outstandingDateCarbon = $outstandingDate ? Carbon::parse($outstandingDate) : null;
+        $maintenaceBreakdown=$this->maintenanceBreakdownService->getMaintenanceBreakdown($maintenanceStartDate, $maintenanceEndDate, $minInvoiceAmount, $outstandingDateCarbon);
+        $milesDriven = $this->getMilesDrivenSum($startDate, $endDate, $dateFilter);
+        $summaries = [
+            'performance' => $this->performanceDataService->getPerformanceData($startDate, $endDate, $label,$milesDriven,$maintenaceBreakdown['qs_MVtS']*100),
+            'safety' => $this->safetyDataService->getSafetyData($startDate, $endDate),
+            'date_range' => $dateRange
+        ];
+        $isSuperAdmin = Auth::check() && is_null(Auth::user()->tenant_id);
+        $tenantSlug = $isSuperAdmin ? null : (Auth::check() ? Auth::user()->tenant->slug : null);
+        $tenants = $isSuperAdmin ? Tenant::all() : [];
+
+        // Convert outstandingDate to Carbon instance if it's provided
+        $permissions=Auth::user()->getAllPermissions();
+        // Adjust dates for maintenance breakdown (weeks 16-24 instead of 17-25)
+        
         $driverOverAll = $this->getDriversOverallPerformance($startDate, $endDate);
         return [
             'summaries' => $summaries,
@@ -147,7 +148,7 @@ class SummariesService
             'tenants' => $tenants,
             'delayBreakdowns' => $this->delayBreakdownService->getDelayBreakdown($startDate, $endDate),
             'rejectionBreakdowns' => $this->rejectionBreakdownService->getRejectionBreakdown($startDate, $endDate),
-            'maintenanceBreakdowns' => $this->maintenanceBreakdownService->getMaintenanceBreakdown($maintenanceStartDate, $maintenanceEndDate, $minInvoiceAmount, $outstandingDateCarbon),
+            'maintenanceBreakdowns' => $maintenaceBreakdown,
             'dateFilter' => $dateFilter,
             'dateRange' => $dateRange,
             'driversOverallPerformance' => $driverOverAll,

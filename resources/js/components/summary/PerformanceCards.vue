@@ -66,7 +66,7 @@
       <div class="text-sm mb-2 space-y-2">
         <div class="flex justify-between">
           <span>Cost per mile</span>
-          <span>${{ formatCurrency(maintenanceBreakdowns.cpm) }}</span>
+          <span>${{ formatCurrency(maintenanceBreakdowns.qs_cpm) }}</span>
         </div>
         <div class="flex justify-between">
           <span>Num of WOs</span>

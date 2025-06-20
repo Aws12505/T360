@@ -31,7 +31,6 @@ public function __construct(?int $email_tenant_id = null) {
             
         $this->applyTenantFilter($query);
 
-
         return $query->count();
     }
 
@@ -61,9 +60,7 @@ public function __construct(?int $email_tenant_id = null) {
             ->where('on_qs', 'yes')
             ->whereBetween('qs_invoice_date', [$startDate, $endDate])
             ->leftJoin('wo_statuses', 'repair_orders.wo_status_id', '=', 'wo_statuses.id')
-            ->where(function($query) {
-                $query->where('wo_statuses.name', '!=', 'Canceled');
-            })->whereRaw('LOWER(wo_number) != ?', ['not expected']);
+            ->whereRaw('LOWER(wo_number) != ?', ['not expected']);
             
         $this->applyTenantFilter($query);
         
@@ -91,15 +88,38 @@ public function __construct(?int $email_tenant_id = null) {
     /**
      * Get total miles driven for the date range
      */
-    public function getTotalMiles(Carbon $startDate, Carbon $endDate): float
+    public function getTotalMiles(Carbon $startDate, Carbon $endDate,$dateFilter = null): float
     {
-        $query = DB::table('miles_driven')
-            ->whereBetween('week_start_date', [$startDate, $endDate]);
-            
-        $this->applyTenantFilter($query);
-
         
-        return $query->sum('miles') ?? 0;
+    // Skip calculation for yesterday timeframe
+    if ($dateFilter === 'yesterday') {
+        return 0;
+    }
+
+    // Ensure dates are Carbon instances
+    if (!($startDate instanceof Carbon)) {
+        $startDate = Carbon::parse($startDate);
+    }
+
+    if (!($endDate instanceof Carbon)) {
+        $endDate = Carbon::parse($endDate);
+    }
+
+    // Query to get sum of miles driven within the date range
+    $query = DB::table('miles_driven')
+        ->where(function ($q) use ($startDate, $endDate) {
+            $q->whereBetween('week_start_date', [$startDate, $endDate])
+              ->orWhereBetween('week_end_date', [$startDate, $endDate]);
+        })
+        ->selectRaw('SUM(miles) as total_miles');
+
+    // Apply tenant filter if user is authenticated
+    $this->applyTenantFilter($query);
+
+    // Get the result safely
+    $result = $query->first();
+
+    return $result ? (float) $result->total_miles : 0;
     }
 
     /**
@@ -372,7 +392,6 @@ public function __construct(?int $email_tenant_id = null) {
         $totalMiles = $this->getTotalMiles($startDate, $endDate);
         $areasOfConcern = $this->getAreasOfConcern($startDate, $endDate);
         $workOrdersByTruck = $this->getWorkOrdersByTruck($startDate, $endDate);
-        
         $cpmMetrics = $this->calculateCPMMetrics($totalInvoiceAmount, $qsInvoiceAmount, $totalMiles);
         $qsMVtS = $this->calculateQSMVtS($qsInvoiceAmount, $totalMiles, Auth::user()->tenant_id);
         
