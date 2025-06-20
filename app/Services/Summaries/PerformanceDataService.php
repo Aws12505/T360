@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\PerformanceMetricRule;
 use App\Services\Performance\PerformanceCalculationsService;
-
+use App\Services\Summaries\SummariesService;
 class PerformanceDataService
 {
     protected PerformanceCalculationsService $performanceCalculationsService;
@@ -18,7 +18,7 @@ class PerformanceDataService
     public function __construct(
         PerformanceCalculationsService $performanceCalculationsService,
         MaintenanceBreakdownService $maintenanceBreakdownService,
-        ?int $email_tenant_id = null
+        ?int $email_tenant_id = null,
     ) {
         $this->performanceCalculationsService = $performanceCalculationsService;
         $this->maintenanceBreakdownService = $maintenanceBreakdownService;
@@ -48,8 +48,18 @@ class PerformanceDataService
      */
     public function getRollingPerformanceData()
     {
-        $rollingStart = Carbon::now()->subWeeks(6)->startOfWeek();
-        $rollingEnd = Carbon::now();
+        $now = Carbon::now();
+        $isSunday = $now->dayOfWeek === 0;
+        $rollingStart = $now->copy()->modify('last sunday');
+                if ($isSunday) {
+                    $rollingStart->subWeek();
+                }
+                $rollingStart->subWeeks(5)->startOfDay();
+                $rollingEnd = $now->copy()->modify('this saturday');
+                if ($isSunday) {
+                    $rollingEnd->subWeek();
+                }
+                $rollingEnd->endOfDay();
 
         $query = DB::table('performances')
             ->selectRaw("
@@ -139,13 +149,40 @@ class PerformanceDataService
     /**
      * Get complete performance data for the specified date range
      */
-    public function getPerformanceData($startDate, $endDate, string $label = '',$milesDriven,$passedQSMVtS): array
+    public function getPerformanceData($startDate, $endDate, string $label = '',$passedQSMVtS): array
     {
         $rule = PerformanceMetricRule::first();
         
         $mainData = $this->getMainPerformanceData($startDate, $endDate);
         $rollingData = $this->getRollingPerformanceData();
         $lastUpdated = $this->getLatestUpdateTimestamp();
+        $rollingOGVCRP = $rollingData->sum_vcr_preventable;
+        $now = Carbon::now();
+        $isSunday = $now->dayOfWeek === 0;
+        $rollingStart = $now->copy()->modify('last sunday');
+                if ($isSunday) {
+                    $rollingStart->subWeek();
+                }
+                $rollingStart->subWeeks(5)->startOfDay();
+                $rollingEnd = $now->copy()->modify('this saturday');
+                if ($isSunday) {
+                    $rollingEnd->subWeek();
+                }
+                $rollingEnd->endOfDay();
+        
+                $query = DB::table('miles_driven')
+                ->where(function ($q) use ($rollingStart, $rollingEnd) {
+                    $q->whereBetween('week_start_date', [$rollingStart, $rollingEnd])
+                      ->orWhereBetween('week_end_date', [$rollingStart, $rollingEnd]);
+                })
+                ->selectRaw('SUM(miles) as total_miles');
+        
+            // Apply tenant filter if user is authenticated
+            $this->applyTenantFilter($query);
+        
+            // Get the result safely
+            $milesDriven = $query->first()->total_miles;
+
         if(!is_null($milesDriven) && $milesDriven > 0){
         $rollingData->sum_vcr_preventable = $rollingData->sum_vcr_preventable/$milesDriven;
         }
@@ -163,9 +200,10 @@ class PerformanceDataService
                 'average_on_time' => $mainData->average_on_time ?? 0,
                 'average_maintenance_variance_to_spend' => $qsMVtS ?? 0,
                 'open_boc' => $rollingData->sum_open_boc ?? 0,
-                'vcr_preventable' => $rollingData->sum_vcr_preventable ?? 0,
+                'vcr_preventable' => $rollingOGVCRP ?? 0,
                 'vmcr_p' => $rollingData->sum_vmcr_p ?? 0,
                 'meets_safety_bonus_criteria' => $mainData->meets_safety_bonus_criteria ?? 0,
+                'vcr_preventable_per_mile' => $rollingData->sum_vcr_preventable?? 0,
             ],
             'ratings' => $ratings,
         ];
