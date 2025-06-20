@@ -128,7 +128,7 @@ class SummariesService
         $maintenaceBreakdown=$this->maintenanceBreakdownService->getMaintenanceBreakdown($maintenanceStartDate, $maintenanceEndDate, $minInvoiceAmount, $outstandingDateCarbon);
         $milesDriven = $this->getMilesDrivenSum($startDate, $endDate, $dateFilter);
         $summaries = [
-            'performance' => $this->performanceDataService->getPerformanceData($startDate, $endDate, $label,$milesDriven,$maintenaceBreakdown['qs_MVtS']*100),
+            'performance' => $this->performanceDataService->getPerformanceData($startDate, $endDate, $label,$maintenaceBreakdown['qs_MVtS']*100),
             'safety' => $this->safetyDataService->getSafetyData($startDate, $endDate),
             'date_range' => $dateRange
         ];
