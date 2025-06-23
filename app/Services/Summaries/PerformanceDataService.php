@@ -184,7 +184,7 @@ class PerformanceDataService
             $milesDriven = $query->first()->total_miles;
 
         if(!is_null($milesDriven) && $milesDriven > 0){
-        $rollingData->sum_vcr_preventable = $rollingData->sum_vcr_preventable/$milesDriven;
+        $rollingData->sum_vcr_preventable = $rollingData->sum_vcr_preventable/$milesDriven *1000000;
         }
         // Get QS invoice amount and total miles for MVtS calculation
         $qsMVtS = $passedQSMVtS;
