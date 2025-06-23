@@ -1,6 +1,6 @@
 <template>
   <div class="bg-card rounded-lg border shadow-sm p-6 mb-6">
-    <h3 class="text-xl font-semibold mb-4">Additional Performance Metrics</h3>
+    <h3 class="text-xl font-semibold mb-4">Additional Performance Metrics For T6W</h3>
     
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <!-- VCR Preventable -->
