@@ -120,12 +120,12 @@ class DriverController extends Controller
         return redirect()->back()->with('success', 'Drivers deleted successfully.');
     }
 
-    public function indexProfile()
+    public function indexProfile(Request $request)
     {
         $driver = Auth::guard('driver')->user();
         // Get data for the dashboard
-        
-        $dashboardData = $this->driverDataService->getProfileData($driver);
+        $dateFilter = $request->input('dateFilter', 'full');
+        $dashboardData = $this->driverDataService->getProfileData($driver,$dateFilter);
 
         // Return Inertia page
         return Inertia::render('Driver/DriverProfile', [
@@ -144,14 +144,15 @@ class DriverController extends Controller
         if (Auth::user()->tenant_id && Auth::user()->tenant->slug !== $tenantSlug) {
             abort(403);
         }
-
-        $profile = $this->driverDataService->getProfileData($driver);
-
+$dateFilter = $request->input('dateFilter', 'full');
+        // Get data for the dashboard
+        $profile = $this->driverDataService->getProfileData($driver, $dateFilter);
         return Inertia::render('Driver/Show', [
             // matches props in Show.vue
             'driver'     => $profile,
             'tenantSlug' => Auth::user()->tenant_id ? $tenantSlug : null,
             'permissions'=> Auth::user()->getAllPermissions(),
+            'driverID' => $id,
         ]);
     }
 
@@ -161,12 +162,13 @@ class DriverController extends Controller
     public function showAdmin(Request $request, int $id)
     {
         $driver  = Driver::findOrFail($id);
-        $profile = $this->driverDataService->getProfileData($driver);
-
+        $dateFilter = $request->input('dateFilter', 'full');
+        $profile = $this->driverDataService->getProfileData($driver,$dateFilter);
         return Inertia::render('Driver/Show', [
             'driver'     => $profile,
             'tenantSlug' => null,
             'permissions'=> Auth::user()->getAllPermissions(),
+            'driverID' => $id,
         ]);
     }
 }

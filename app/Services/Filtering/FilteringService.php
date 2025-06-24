@@ -102,6 +102,12 @@ class FilteringService
                              ->whereDate($dateColumn, '<=', $endDate);
                 
             case 'full':
+                $dateRange = [
+                    'label' => 'All Time'
+                ];
+                // No filtering, return all records
+                return $query;
+
             default:
                 $dateRange = [
                     'label' => 'All Time'

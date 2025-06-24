@@ -77,6 +77,7 @@ class PermissionsSeeder extends Seeder
             'drivers.delete',
             'drivers.import',
             'drivers.export',
+            'drivers.profile.view',
 
             // Acceptance / Rejections
             'acceptance.view',

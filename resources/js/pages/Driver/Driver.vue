@@ -209,14 +209,14 @@
                                     </TableCell>
                                     <!-- Actions column -->
                                     <TableCell
-  v-if="permissionNames.includes('drivers.view') ||
+  v-if="permissionNames.includes('drivers.profile.view') ||
         permissionNames.includes('drivers.update') ||
         permissionNames.includes('drivers.delete')"
 >
   <div class="flex space-x-2">
     <!-- VIEW BUTTON -->
     <Link
-  v-if="permissionNames.includes('drivers.view')"
+  v-if="permissionNames.includes('drivers.profile.view')"
   :href=" tenantSlug
     ? route('driver.show',   [tenantSlug, driver.id])
     : route('driver.show.admin', driver.id)"

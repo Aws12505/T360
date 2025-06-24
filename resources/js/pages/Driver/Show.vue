@@ -5,7 +5,7 @@
       :permissions="permissions"
     >
       <Head title="Driver Profile" />
-      <DriverProfile :driver="driver" :tenantSlug="tenantSlug" />
+      <DriverProfile :driver="driver" :tenantSlug="tenantSlug" :driverID="driverID"/>
     </AppLayout>
   </template>
   
@@ -19,6 +19,7 @@
     driver: Object,
     tenantSlug: String,
     permissions: Array,
+    driverID: Number,
   })
   
   const breadcrumbs = computed(() => [

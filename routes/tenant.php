@@ -310,5 +310,5 @@ Route::delete('sms-coaching-templates/{id}', [SMSCoachingTemplatesController::cl
      ->middleware('permission:sms-coaching-templates.delete');
      
      Route::get('/drivers/{driver}', [DriverController::class, 'show'])
-         ->name('driver.show')->middleware('permission:drivers.view');
+         ->name('driver.show')->middleware('permission:drivers.profile.view');
 });
