@@ -15,7 +15,7 @@
               : 'text-neutral-500 hover:bg-neutral-200/60 hover:text-black dark:text-neutral-400 dark:hover:bg-neutral-700/60',
           ]"
         >
-          <Icon :name="name" class="-ml-1 h-4 w-4" />
+          <component :is="name" class="-ml-1 h-4 w-4" />
         </button>
 
         <!-- Logout -->
@@ -23,11 +23,7 @@
           @click="logout"
           class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background text-destructive hover:bg-destructive/10 h-9 px-3"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-            <polyline points="16 17 21 12 16 7"></polyline>
-            <line x1="21" y1="12" x2="9" y2="12"></line>
-          </svg>
+          <LogOut class="mr-2 h-4 w-4" />
           Logout
         </button>
       </div>
@@ -41,18 +37,10 @@
           <p class="text-muted-foreground mt-1">Detailed performance metrics</p>
         </div>
         <div class="flex items-center border rounded-full px-3 py-1 text-sm mt-2 md:mt-0">
-          <svg xmlns="http://www.w3.org/2000/svg" class="mr-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-            <line x1="16" y1="2" x2="16" y2="6" />
-            <line x1="8" y1="2" x2="8" y2="6" />
-            <line x1="3" y1="10" x2="21" y2="10" />
-          </svg>
+          <CalendarDays class="mr-1 h-4 w-4" />
           Last updated: {{ formattedLastUpdated }}
         </div>
-        <DateFilter
-          v-if="driverData"
-          :driverData="driverData"
-        />
+        <DateFilter v-if="driverData" :driverData="driverData" />
       </div>
 
       <!-- Profile Card -->
@@ -81,11 +69,11 @@
             <div class="text-center mt-6 space-y-2">
               <h2 class="text-xl font-bold">{{ driver.name }}</h2>
               <div class="flex items-center justify-center text-muted-foreground">
-                <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor"><path d="M22 16.92v3a2..." /></svg>
+                <Phone class="mr-2 h-4 w-4" />
                 +1 {{ driver.phone }}
               </div>
               <div class="flex items-center justify-center text-muted-foreground">
-                <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor"><path d="M4 4h16c1.1..." /></svg>
+                <Mail class="mr-2 h-4 w-4" />
                 {{ driver.email }}
               </div>
               <div class="pt-4">
@@ -102,7 +90,7 @@
               <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="bg-primary/10 border border-primary/20 rounded-lg p-4">
                   <div class="flex items-center">
-                    <svg class="mr-2 h-5 w-5 text-primary" fill="none" stroke="currentColor"><polygon points="12 2..." /></svg>
+                    <Gauge class="mr-2 h-5 w-5 text-primary" />
                     <h3 class="font-semibold text-primary">Overall Score</h3>
                   </div>
                   <div class="text-2xl font-bold mt-2 text-primary">{{ driver.overall_score }}</div>
@@ -110,7 +98,7 @@
 
                 <div class="bg-success/10 border border-success/20 rounded-lg p-4">
                   <div class="flex items-center">
-                    <svg class="mr-2 h-5 w-5 text-success" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <Clock class="mr-2 h-5 w-5 text-success" />
                     <h3 class="font-semibold text-success">On-Time Score</h3>
                   </div>
                   <div class="text-2xl font-bold mt-2 text-success" :class="getPerformanceScoreColorClass(driver.on_time_score)">
@@ -120,7 +108,7 @@
 
                 <div class="bg-warning/10 border border-warning/20 rounded-lg p-4">
                   <div class="flex items-center">
-                    <svg class="mr-2 h-5 w-5 text-warning" fill="none" stroke="currentColor"><path d="..." /></svg>
+                    <ThumbsUp class="mr-2 h-5 w-5 text-warning" />
                     <h3 class="font-semibold text-warning">Acceptance Score</h3>
                   </div>
                   <div class="text-2xl font-bold mt-2 text-warning" :class="getPerformanceScoreColorClass(driver.acceptance_score)">
@@ -133,7 +121,7 @@
               <div class="bg-success/10 border border-success/20 rounded-lg p-4">
                 <div class="flex justify-between items-center">
                   <h3 class="font-semibold text-success flex items-center">
-                    <svg class="mr-2 h-5 w-5" fill="none" stroke="currentColor"><path d="..." /></svg>
+                    <ShieldCheck class="mr-2 h-5 w-5" />
                     Green Zone Score
                   </h3>
                   <div class="text-2xl font-bold text-success" :class="getSafetyScoreColorClass(driver.greenZoneScore)">
@@ -150,7 +138,7 @@
                 <div class="border rounded-lg p-4">
                   <div class="flex items-center justify-between">
                     <div class="flex items-center">
-                      <svg class="mr-2 h-5 w-5 text-blue-500" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                      <Timer class="mr-2 h-5 w-5 text-blue-500" />
                       <div>
                         <h3 class="font-semibold">Minutes Analyzed</h3>
                         <p class="text-sm text-muted-foreground">Total driving time analyzed</p>
@@ -163,7 +151,7 @@
                 <div class="border rounded-lg p-4">
                   <div class="flex items-center justify-between">
                     <div class="flex items-center">
-                      <svg class="mr-2 h-5 w-5 text-indigo-500" fill="none" stroke="currentColor"><path d="..." /></svg>
+                      <Route class="mr-2 h-5 w-5 text-indigo-500" />
                       <div>
                         <h3 class="font-semibold"># of Trips</h3>
                         <p class="text-sm text-muted-foreground">Completed trips</p>
@@ -178,7 +166,7 @@
               <div class="border rounded-lg">
                 <div class="border-b p-4">
                   <h3 class="font-semibold flex items-center">
-                    <svg class="mr-2 h-5 w-5 text-destructive" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                    <AlertTriangle class="mr-2 h-5 w-5 text-destructive" />
                     Safety Alerts
                   </h3>
                 </div>
@@ -186,7 +174,7 @@
                   <div v-for="(value, key) in driver.infractions" :key="key" class="flex justify-between items-center py-2 border-b border-muted/20 last:border-0">
                     <div class="flex items-center">
                       <div class="bg-destructive/10 text-destructive rounded-full w-8 h-8 flex items-center justify-center mr-3">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor"><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                        <AlertTriangle class="h-4 w-4" />
                       </div>
                       <span>{{ formatInfractionLabel(key) }}</span>
                     </div>
@@ -214,8 +202,10 @@ import { computed } from 'vue'
 import { Head, router } from '@inertiajs/vue3'
 import { useInitials } from '@/composables/useInitials'
 import { useAppearance } from '@/composables/useAppearance'
-import Icon from '@/Components/Icon.vue'
 import DateFilter from '@/components/DateFilterSwitcherPage.vue'
+
+// Lucide icons (manually imported)
+import { Sun, Moon, Phone, Mail, CalendarDays, Clock, Gauge, ShieldCheck, Timer, Route, LogOut, AlertTriangle, ThumbsUp } from 'lucide-vue-next'
 
 const props = defineProps({
   driverData: Object,
@@ -226,8 +216,8 @@ const { getInitials } = useInitials()
 const { appearance, updateAppearance } = useAppearance()
 
 const tabs = [
-  { value: 'light', name: 'sun' },
-  { value: 'dark', name: 'moon' },
+  { value: 'light', name: Sun },
+  { value: 'dark', name: Moon },
 ]
 
 function formatHireDate(dateString) {
