@@ -14,7 +14,7 @@ $tenants = Tenant::all();
 
 foreach ($tenants as $tenant) {
     Schedule::command('report:daily', [$tenant->id])
-    ->dailyAt('6:00')
+    ->dailyAt('8:00')
     ->timezone($tenant->timezone ?? 'America/Indiana/Indianapolis');
 
     // Schedule::command('coaching:send', [$tenant->id])
