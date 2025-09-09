@@ -59,7 +59,8 @@ const safetyMetricsList = [
   'speeding_violation',
   'sign_violation',
   'traffic_light_violation',
-  'following_distance'
+  'following_distance',
+  'roadside_parking'
 ]
 const safetyTiers = ['gold', 'silver', 'not_eligible']
 
