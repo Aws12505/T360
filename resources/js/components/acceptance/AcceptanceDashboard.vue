@@ -115,6 +115,7 @@ const metrics = computed(() => {
     // Transform the categories data into the format expected by TotalLateStops component
     return [
       { title: 'Total Rejected Stops', value: props.metricsData.totalRejections || 0 },
+      { title: 'Rejected In Advance', value: props.metricsData.advancedRejectionCount || 0},
       { title: 'Rejected +6 Hours Before Start Time', value: props.metricsData.moreThan6Count || 0 },
       { title: 'Rejected 0-6 Hours Before Start Time', value: props.metricsData.within6Count || 0 },
       { title: 'Rejected After Start Time', value: props.metricsData.afterStartCount || 0 },
