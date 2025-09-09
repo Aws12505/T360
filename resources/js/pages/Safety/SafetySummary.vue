@@ -262,7 +262,8 @@ const doughnutChartData = computed(() => [
   Math.round(props.data.alerts?.speeding || 0), 
   Math.round(props.data.alerts?.signViolation || 0), 
   Math.round(props.data.alerts?.trafficLightViolation || 0), 
-  Math.round(props.data.alerts?.followingDistance || 0)
+  Math.round(props.data.alerts?.followingDistance || 0),
+  Math.round(props.data.alerts?.roadsideParking || 0)
 ]);
 
 const doughnutChartLabels = computed(() => [
@@ -270,7 +271,8 @@ const doughnutChartLabels = computed(() => [
   "Speeding", 
   "Sign Violations", 
   "Traffic Light Violations", 
-  "Following Distance"
+  "Following Distance",
+  "Roadside Parking"
 ]);
 
 // Chart initialization function

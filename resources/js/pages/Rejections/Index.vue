@@ -235,8 +235,9 @@
                                     class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                 >
                                     <option value="">All Categories</option>
-                                    <option value="more_than_6">More than 6 hours</option>
-                                    <option value="within_6">Within 6 hours</option>
+                                    <option value="advanced_rejection">Advanced Rejection</option>
+                                    <option value="more_than_24">More than 24 hours</option>
+                                    <option value="within_24">Within 24 hours</option>
                                     <option value="after_start">After start time</option>
                                 </select>
                             </div>
@@ -1056,17 +1057,23 @@ const acceptanceMetrics = computed(() => {
     if (type) {
         return {
             totalRejections: categoryData[`total_${type}_rejections`] || 0,
-            moreThan6Count: categoryData[`more_than_6_${type}_count`] || 0,
-            within6Count: categoryData[`within_6_${type}_count`] || 0,
+            // moreThan6Count: categoryData[`more_than_6_${type}_count`] || 0,
+            // within6Count: categoryData[`within_6_${type}_count`] || 0,
             afterStartCount: categoryData[`after_start_${type}_count`] || 0,
+            moreThan24Count: categoryData[`more_than_24_${type}_count`] || 0,
+            within24Count: categoryData[`within_24_${type}_count`] || 0,
+            advancedRejectionCount: categoryData[`advanced_rejection_${type}_count`] || 0,
             by_category: true,
         };
     } else {
         return {
             totalRejections: categoryData.total_rejections || 0,
-            moreThan6Count: categoryData.more_than_6_count || 0,
-            within6Count: categoryData.within_6_count || 0,
+            // moreThan6Count: categoryData.more_than_6_count || 0,
+            // within6Count: categoryData.within_6_count || 0,
             afterStartCount: categoryData.after_start_count || 0,
+            moreThan24Count: categoryData.more_than_24_count || 0,
+            within24Count: categoryData.within_24_count || 0,
+            advancedRejectionCount: categoryData.advanced_rejection_count || 0,
             by_category: true,
         };
     }
@@ -1281,6 +1288,9 @@ function getRejectionCategoryLabel(category) {
         more_than_6: 'More than 6 hrs',
         within_6: 'Within 6 hrs',
         after_start: 'After start',
+        more_than_24: 'More than 24 hrs',
+        within_24: 'Within 24 hrs',
+        advanced_rejection: 'Advanced Rejection',
     };
 
     return labels[category] || category;

@@ -108,7 +108,8 @@ const chartData = computed(() => {
     (props.safetyData.speeding_violations || 0) +
     (props.safetyData.following_distance || 0) +
     (props.safetyData.driver_distraction || 0) +
-    (props.safetyData.sign_violations || 0);
+    (props.safetyData.sign_violations || 0) +
+    (props.safetyData.roadside_parking || 0);
   
   if (totalViolations === 0) {
     return [
@@ -136,6 +137,10 @@ const chartData = computed(() => {
     { 
       label: 'Sign Violations', 
       value: totalViolations > 0 ? Math.round((props.safetyData.sign_violations || 0) / totalViolations * 100 * 10) / 10 : 0 
+    },
+    { 
+      label: 'Roadside Parking', 
+      value: totalViolations > 0 ? Math.round((props.safetyData.roadside_parking || 0) / totalViolations * 100 * 10) / 10 : 0 
     }
   ].filter(item => item.value > 0);
 });
@@ -146,6 +151,7 @@ const chartColors = [
   '#3b82f6', // Medium blue
   '#60a5fa', // Light blue
   '#93c5fd', // Very light blue
-  '#bfdbfe'  // Extremely light blue
+  '#bfdbfe',  // Extremely light blue
+  '#e5e7eb',  // Light gray
 ];
 </script>

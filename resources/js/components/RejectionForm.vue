@@ -61,8 +61,9 @@
             v-model="form.rejection_category" 
             class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
           >
-            <option value="more_than_6">More than 6 hrs</option>
-            <option value="within_6">Within 6 hrs</option>
+            <option value="advanced_rejection">Advanced Rejection</option>
+            <option value="more_than_24">More than 24 hrs</option>
+            <option value="within_24">Within 24 hrs</option>
             <option value="after_start">After start</option>
           </select>
           <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
@@ -156,7 +157,7 @@ const form = useForm({
   date: props.rejection?.date || '',
   driver_name: props.rejection?.driver_name || '',
   rejection_type: props.rejection?.rejection_type || 'block',
-  rejection_category: props.rejection?.rejection_category || 'more_than_6',
+  rejection_category: props.rejection?.rejection_category || 'more_than_24',
   reason_code_id: props.rejection?.reason_code_id || null,
   disputed: props.rejection && props.rejection.disputed !== null
     ? (parseInt(props.rejection.disputed) === 1)

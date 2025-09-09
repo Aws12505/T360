@@ -484,6 +484,7 @@ public function getDriversOverallPerformanceCoaching(Carbon $startDate, Carbon $
                   + sd.following_distance
                   + sd.driver_distraction
                   + sd.sign_violations
+                  + sd.roadside_parking
                 ), 0) AS severe_alerts
               FROM safety_data sd
               WHERE sd.tenant_id = {$tid}
@@ -545,7 +546,8 @@ public function getDriversOverallPerformanceCoaching(Carbon $startDate, Carbon $
                 SUM(speeding_violations) AS speeding_violations,
                 SUM(following_distance) AS following_distance,
                 SUM(driver_distraction) AS driver_distraction,
-                SUM(sign_violations) AS sign_violations
+                SUM(sign_violations) AS sign_violations,
+                SUM(roadside_parking) AS roadside_parking
             ")
             ->where(function($query) use ($driverName, $netradyneUserName) {
                 $query->where('user_name', $netradyneUserName)
@@ -562,6 +564,7 @@ public function getDriversOverallPerformanceCoaching(Carbon $startDate, Carbon $
             'sign' => (int) ($result->sign_violations ?? 0),
             'light' => (int) ($result->traffic_light_violation ?? 0),
             'following' => (int) ($result->following_distance ?? 0),
+            'roadside_parking' => (int) ($result->roadside_parking ?? 0),
         ];
     }
     public function forTenant(int $tenantId): self

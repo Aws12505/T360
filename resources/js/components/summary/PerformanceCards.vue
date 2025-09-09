@@ -141,6 +141,15 @@
           </div>
         </div>
 
+
+        <div class="flex justify-between items-center">
+          <span>Roadside Parking</span>
+          <div class="flex items-center gap-2">
+            <span class="w-12 text-right">{{ formatDecimal(safetyData.roadside_parking) }}</span>
+            <span class="w-16 text-right">{{ formatRate(safetyData.rates?.roadside_parking) }}</span>
+          </div>
+        </div>
+
 <!-- Following Distance (unchanged name) -->
 <div class="flex justify-between items-center">
   <span>Following Distance</span>
@@ -334,7 +343,8 @@ const overallSafetyRating = computed(() => {
     'speeding_violations',
     'following_distance',
     'driver_distraction',
-    'sign_violations'
+    'sign_violations',
+    'roadside_parking',
   ];
 
   // Find the best rating

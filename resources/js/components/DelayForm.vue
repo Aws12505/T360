@@ -61,8 +61,9 @@
             v-model="form.delay_category" 
             class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
           >
-            <option value="1_120">1–120 min</option>
-            <option value="121_600">121–600 min</option>
+            <option value="1_60">1–60 min</option>
+            <option value="61_240">61–240 min</option>
+            <option value='241_600'>241–600 min</option>
             <option value="601_plus">601+ min</option>
           </select>
           <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
@@ -155,7 +156,7 @@ const form = useForm({
   date: props.delay?.date || '',
   driver_name: props.delay?.driver_name || '',
   delay_type: props.delay?.delay_type || 'origin',
-  delay_category: props.delay?.delay_category || '1_120',
+  delay_category: props.delay?.delay_category || '1_60',
   delay_code_id: props.delay?.delay_code_id || null,
   disputed: props.delay && props.delay.disputed !== null
     ? (parseInt(props.delay.disputed) === 1)

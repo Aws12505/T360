@@ -190,6 +190,9 @@ if ($request->has('driverControllable')) {
             'more_than_6' => 1,
             'within_6'    => 4,
             'after_start' => 8,
+            'within_24'   => 4,
+            'more_than_24' => 1,
+            'advanced_rejection' => 0.8,
         };
         Rejection::create($data);
     }
@@ -209,6 +212,9 @@ if ($request->has('driverControllable')) {
             'more_than_6' => 1,
             'within_6'    => 4,
             'after_start' => 8,
+            'within_24'   => 4,
+            'more_than_24' => 1,
+            'advanced_rejection' => 0.8,
         };
         $rejection = Rejection::findOrFail($id);
         $rejection->update($data);

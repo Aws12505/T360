@@ -25,6 +25,7 @@ public function __construct(?int $email_tenant_id = null) {
                 SUM(traffic_light_violation) AS traffic_light_violation,
                 SUM(speeding_violations) AS speeding_violations,
                 SUM(following_distance) AS following_distance,
+                SUM(roadside_parking) AS roadside_parking,
                 SUM(driver_distraction) AS driver_distraction,
                 SUM(sign_violations) AS sign_violations,
                 SUM(minutes_analyzed) AS total_minutes_analyzed,
@@ -47,6 +48,7 @@ public function __construct(?int $email_tenant_id = null) {
             'following_distance' => $totalHours > 0 ? ($safetyData->following_distance ?? 0) / $totalHours * 1000 : 0,
             'driver_distraction' => $totalHours > 0 ? ($safetyData->driver_distraction ?? 0) / $totalHours * 1000 : 0,
             'sign_violations' => $totalHours > 0 ? ($safetyData->sign_violations ?? 0) / $totalHours * 1000 : 0,
+            'roadside_parking' => $totalHours > 0 ? ($safetyData->roadside_parking ?? 0) / $totalHours * 1000 : 0,
         ];
     }
 
@@ -130,6 +132,7 @@ public function __construct(?int $email_tenant_id = null) {
             'following_distance' => $this->getSafetyRating($rates['following_distance'], $rules, 'following_distance'),
             'driver_distraction' => $this->getSafetyRating($rates['driver_distraction'], $rules, 'driver_distraction'),
             'sign_violations' => $this->getSafetyRating($rates['sign_violations'], $rules, 'sign_violation'),
+            'roadside_parking' => $this->getSafetyRating($rates['roadside_parking'], $rules, 'roadside_parking'),
         ];
     }
 
@@ -152,6 +155,7 @@ public function __construct(?int $email_tenant_id = null) {
             'traffic_light_violation' => $safetyData->traffic_light_violation ?? 0,
             'speeding_violations' => $safetyData->speeding_violations ?? 0,
             'following_distance' => $safetyData->following_distance ?? 0,
+            'roadside_parking' => $safetyData->roadside_parking ?? 0,
             'driver_distraction' => $safetyData->driver_distraction ?? 0,
             'sign_violations' => $safetyData->sign_violations ?? 0,
             'average_driver_score' => $safetyData->average_driver_score ?? 0,
@@ -241,7 +245,6 @@ public function __construct(?int $email_tenant_id = null) {
                 SUM(weaving) AS weaving,
                 SUM(collision_warning) AS collision_warning,
                 SUM(backing) AS backing,
-                SUM(roadside_parking) AS roadside_parking,
                 SUM(high_g) AS high_g
             ")
             ->whereBetween('date', [$startDate, $endDate]);
@@ -404,7 +407,8 @@ public function __construct(?int $email_tenant_id = null) {
                 'speeding' => $aggregateSafetyData->speeding_violations ?? 0,
                 'signViolation' => $aggregateSafetyData->sign_violations ?? 0,
                 'trafficLightViolation' => $aggregateSafetyData->traffic_light_violation ?? 0,
-                'followingDistance' => $aggregateSafetyData->following_distance ?? 0
+                'followingDistance' => $aggregateSafetyData->following_distance ?? 0,
+                'roadsideParking' => $aggregateSafetyData->roadside_parking ?? 0,
             ],
             'infractions' => [
                 'driverStar' => $infractionsData->driver_star ?? 0,
@@ -419,7 +423,7 @@ public function __construct(?int $email_tenant_id = null) {
                 'weaving' => $infractionsData->weaving ?? 0,
                 'collisionWarning' => $infractionsData->collision_warning ?? 0,
                 'backing' => $infractionsData->backing ?? 0,
-                'roadsideParking' => $infractionsData->roadside_parking ?? 0,
+                // 'roadsideParking' => $infractionsData->roadside_parking ?? 0,
                 'highG' => $infractionsData->high_g ?? 0
             ],
             'lineChartData' => $lineChartData

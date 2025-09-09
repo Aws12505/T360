@@ -19,7 +19,7 @@ class UpdateDelayRequest extends FormRequest
             'date' => 'required|date',
             'driver_name' => 'required|string',
             'delay_type' => 'required|in:origin,destination',
-            'delay_category' => 'required|in:1_120,121_600,601_plus',
+            'delay_category' => 'required|in:1_120,121_600,601_plus,1_60,61_240,241_600',
             'delay_code_id' => [
                 'required',
                 Rule::exists('delay_codes', 'id')->whereNull('deleted_at'),

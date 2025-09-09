@@ -138,6 +138,14 @@ class PerformanceMetricRule extends Model
         'following_distance_not_eligible',
         'following_distance_not_eligible_operator',
         
+        // Following Distance
+        'roadside_parking_gold',
+        'roadside_parking_gold_operator',
+        'roadside_parking_silver',
+        'roadside_parking_silver_operator',
+        'roadside_parking_not_eligible',
+        'roadside_parking_not_eligible_operator',
+
         // VMCR-P
         'vmcr_p_fantastic_plus',
         'vmcr_p_fantastic_plus_operator',

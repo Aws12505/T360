@@ -196,7 +196,10 @@ if ($request->has('controllable')) {
         $data['penalty'] = match ($data['delay_category']) {
             '1_120'    => 1,
             '121_600'  => 2,
-            '601_plus' => 4,
+            '601_plus' => 8,
+            '1_60'     => 1,
+            '61_240'   => 2,
+            '241_600'  => 4,
         };
         Delay::create($data);
     }
@@ -215,7 +218,10 @@ if ($request->has('controllable')) {
         $data['penalty'] = match ($data['delay_category']) {
             '1_120'    => 1,
             '121_600'  => 2,
-            '601_plus' => 4,
+            '601_plus' => 8,
+            '1_60'     => 1,
+            '61_240'   => 2,
+            '241_600'  => 4,
         };
         $delay = Delay::findOrFail($id);
         $delay->update($data);

@@ -123,6 +123,9 @@ class RejectionImportExportService
                 'more_than_6' => 1,
                 'within_6'    => 4,
                 'after_start' => 8,
+                'within_24'   => 4,
+                'more_than_24' => 1,
+                'advanced_rejection' => 0.8,
             };
 
             // Validate the row data.
@@ -131,7 +134,7 @@ class RejectionImportExportService
                 'date' => 'required|date',
                 'rejection_type' => 'required|in:block,load',
                 'driver_name' => 'required|string',
-                'rejection_category' => 'required|in:more_than_6,within_6,after_start',
+                'rejection_category' => 'required|in:more_than_6,within_6,after_start,within_24,more_than_24,advanced_rejection',
                 'reason_code_id' => 'required|exists:rejection_reason_codes,id',
                 'disputed' => 'required|boolean',
                 'driver_controllable' => 'nullable|boolean',

@@ -122,7 +122,10 @@ $validatortt=0;
             $data['penalty'] = match ($data['delay_category']) {
                 '1_120' => 1,
                 '121_600' => 2,
-                '601_plus' => 3,
+                '601_plus' => 8,
+                '1_60' => 1,
+                '61_240' => 2,
+                '241_600' => 4,
                 default => 0,
             };
 
@@ -132,7 +135,7 @@ $validatortt=0;
                 'date' => 'required|date',
                 'delay_type' => 'required|in:origin,destination',
                 'driver_name' => 'required|string',
-                'delay_category' => 'required|in:1_120,121_600,601_plus',
+                'delay_category' => 'required|in:1_120,121_600,601_plus,1_60,61_240,241_600',
                 'delay_code_id' => 'required|exists:delay_codes,id',
                 'disputed' => 'required|boolean',
                 'driver_controllable' => 'nullable|boolean',

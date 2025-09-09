@@ -115,8 +115,9 @@ const metrics = computed(() => {
         // Transform the categories data into the format expected by TotalLateStops component
         return [
             { title: 'Total Delayed Stops', value: props.metricsData.totalDelays },
-            { title: 'Delayed for 1-120 Minutes', value: props.metricsData.between1_120Count },
-            { title: 'Delayed for 121-600 Minutes', value: props.metricsData.between121_600Count },
+            { title: 'Delayed for 1-60 Minutes', value: props.metricsData.between1_60Count },
+            { title: 'Delayed for 61-240 Minutes', value: props.metricsData.between61_240Count },
+            { title: 'Delayed for 241-600 Minutes', value: props.metricsData.between241_600Count },
             { title: 'Delayed for +601 Minutes', value: props.metricsData.moreThan601Count },
         ];
     }

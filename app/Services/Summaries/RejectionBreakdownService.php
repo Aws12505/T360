@@ -64,9 +64,21 @@ class RejectionBreakdownService
                 SUM(CASE WHEN rejection_category = 'more_than_6' THEN 1 ELSE 0 END) as more_than_6_count,
                 SUM(CASE WHEN rejection_category = 'within_6' THEN 1 ELSE 0 END) as within_6_count,
                 SUM(CASE WHEN rejection_category = 'after_start' THEN 1 ELSE 0 END) as after_start_count,
+                SUM(CASE WHEN rejection_category = 'within_24' THEN 1 ELSE 0 END) as within_24_count,
+                SUM(CASE WHEN rejection_category = 'more_than_24' THEN 1 ELSE 0 END) as more_than_24_count,
+                SUM(CASE WHEN rejection_category = 'advanced_rejection' THEN 1 ELSE 0 END) as advanced_rejection_count,
                 
                 SUM(CASE WHEN rejection_category = 'more_than_6' AND rejection_type = 'block' THEN 1 ELSE 0 END) as more_than_6_block_count,
                 SUM(CASE WHEN rejection_category = 'more_than_6' AND rejection_type = 'load' THEN 1 ELSE 0 END) as more_than_6_load_count,
+
+                SUM(CASE WHEN rejection_category = 'within_24' AND rejection_type = 'block' THEN 1 ELSE 0 END) as within_24_block_count,
+                SUM(CASE WHEN rejection_category = 'within_24' AND rejection_type = 'load' THEN 1 ELSE 0 END) as within_24_load_count,
+
+                SUM(CASE WHEN rejection_category = 'more_than_24' AND rejection_type = 'block' THEN 1 ELSE 0 END) as more_than_24_block_count,
+                SUM(CASE WHEN rejection_category = 'more_than_24' AND rejection_type = 'load' THEN 1 ELSE 0 END) as more_than_24_load_count,
+                
+                SUM(CASE WHEN rejection_category = 'advanced_rejection' AND rejection_type = 'block' THEN 1 ELSE 0 END) as advanced_rejection_block_count,
+                SUM(CASE WHEN rejection_category = 'advanced_rejection' AND rejection_type = 'load' THEN 1 ELSE 0 END) as advanced_rejection_load_count,
                 
                 SUM(CASE WHEN rejection_category = 'within_6' AND rejection_type = 'block' THEN 1 ELSE 0 END) as within_6_block_count,
                 SUM(CASE WHEN rejection_category = 'within_6' AND rejection_type = 'load' THEN 1 ELSE 0 END) as within_6_load_count,

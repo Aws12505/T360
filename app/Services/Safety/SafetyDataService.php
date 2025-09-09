@@ -160,7 +160,8 @@ class SafetyDataService
                 'speeding' => 0,
                 'signViolation' => 0,
                 'trafficLightViolation' => 0,
-                'followingDistance' => 0
+                'followingDistance' => 0,
+                'roadsideParking' => 0,
             ],
             'infractions' => [
                 'driverStar' => 0,
@@ -175,7 +176,6 @@ class SafetyDataService
                 'weaving' => 0,
                 'collisionWarning' => 0,
                 'backing' => 0,
-                'roadsideParking' => 0,
                 'highG' => 0
             ]
         ];

@@ -221,8 +221,9 @@
                                         class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                                     >
                                         <option value="">All Categories</option>
-                                        <option value="1_120">1-120 mins</option>
-                                        <option value="121_600">121-600 mins</option>
+                                        <option value="1_60">1-60 mins</option>
+                                        <option value="61_240">61-240 mins</option>
+                                        <option value="241_600">241-600 mins</option>
                                         <option value="601_plus">601+ mins</option>
                                     </select>
                                 </div>
@@ -1001,6 +1002,12 @@ function formatDelayCategory(category) {
             return '121-600 mins';
         case '601_plus':
             return '601+ mins';
+        case '1_60':
+            return '1-60 mins';
+        case '61_240':
+            return '61-240 mins';
+        case '241_600':
+            return '241-600 mins';
         default:
             return category;
     }
@@ -1104,9 +1111,12 @@ const ontimeMetrics = computed(() => {
     const type = props.filters.delayType;
     if (type) {
         return {
-            between1_120Count: categoryData[`category_1_120_${type}_count`] || '0',
-            between121_600Count: categoryData[`category_121_600_${type}_count`] || '0',
+            // between1_120Count: categoryData[`category_1_120_${type}_count`] || '0',
+            // between121_600Count: categoryData[`category_121_600_${type}_count`] || '0',
             moreThan601Count: categoryData[`category_601_plus_${type}_count`] || '0',
+            between1_60Count: categoryData[`category_1_60_${type}_count`] || '0',
+            between61_240Count: categoryData[`category_61_240_${type}_count`] || '0',
+            between241_600Count: categoryData[`category_241_600_${type}_count`] || '0',
             totalDelays: categoryData[`total_${type}_delays`] || '0',
             by_category: true,
         };
@@ -1115,6 +1125,9 @@ const ontimeMetrics = computed(() => {
             between1_120Count: categoryData.category_1_120_count || '0',
             between121_600Count: categoryData.category_121_600_count || '0',
             moreThan601Count: categoryData.category_601_plus_count || '0',
+            between1_60Count: categoryData.category_1_60_count || '0',
+            between61_240Count: categoryData.category_61_240_count || '0',
+            between241_600Count: categoryData.category_241_600_count || '0',
             totalDelays: categoryData.total_delays || '0',
             by_category: true,
         };

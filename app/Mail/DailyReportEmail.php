@@ -287,7 +287,8 @@ $this->t6wMVtS = $t6wQsMVtS;
             'speeding_violations',
             'following_distance',
             'driver_distraction',
-            'sign_violations'
+            'sign_violations',
+            'roadside_parking'
         ];
 
         // Find the best rating
