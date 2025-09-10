@@ -47,7 +47,8 @@ class PerformanceMetricRuleService
             'speeding_violation', 
             'sign_violation', 
             'traffic_light_violation', 
-            'following_distance'
+            'following_distance',
+            'roadside_parking',
         ];
         
         $rules = [];
