@@ -142,14 +142,6 @@
         </div>
 
 
-        <div class="flex justify-between items-center">
-          <span>Roadside Parking</span>
-          <div class="flex items-center gap-2">
-            <span class="w-12 text-right">{{ formatDecimal(safetyData.roadside_parking) }}</span>
-            <span class="w-16 text-right">{{ formatRate(safetyData.rates?.roadside_parking) }}</span>
-          </div>
-        </div>
-
 <!-- Following Distance (unchanged name) -->
 <div class="flex justify-between items-center">
   <span>Following Distance</span>
@@ -158,6 +150,16 @@
     <span class="w-16 text-right">{{ formatRate(safetyData.rates?.following_distance) }}</span>
   </div>
 </div>
+
+
+<div class="flex justify-between items-center">
+          <span>Roadside Parking</span>
+          <div class="flex items-center gap-2">
+            <span class="w-12 text-right">{{ formatDecimal(safetyData.roadside_parking) }}</span>
+            <span class="w-16 text-right">{{ formatRate(safetyData.rates?.roadside_parking) }}</span>
+          </div>
+        </div>
+        
 </div>
 
 <div class="text-sm text-muted-foreground mt-3">

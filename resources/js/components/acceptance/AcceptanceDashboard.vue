@@ -116,8 +116,8 @@ const metrics = computed(() => {
     return [
       { title: 'Total Rejected Stops', value: props.metricsData.totalRejections || 0 },
       { title: 'Rejected In Advance', value: props.metricsData.advancedRejectionCount || 0},
-      { title: 'Rejected +6 Hours Before Start Time', value: props.metricsData.moreThan6Count || 0 },
-      { title: 'Rejected 0-6 Hours Before Start Time', value: props.metricsData.within6Count || 0 },
+      { title: 'Rejected +24 Hours Before Start Time', value: props.metricsData.moreThan24Count || 0 },
+      { title: 'Rejected Within 24 Hours Before Start Time', value: props.metricsData.within24Count || 0 },
       { title: 'Rejected After Start Time', value: props.metricsData.afterStartCount || 0 },
     ];
   }
