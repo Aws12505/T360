@@ -1189,6 +1189,7 @@
       'workOrdersByTruck',
       'workOrderByAreasOfConcern',
       'openedComponent',
+      'dateRange',
      ],
     }
   )

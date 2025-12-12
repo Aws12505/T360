@@ -56,7 +56,7 @@
       <div class="flex items-center justify-between gap-3 mb-4">
         <div class="text-4xl font-bold"
           :class="getScoreColorClass(performanceRatings.average_maintenance_variance_to_spend)">
-          {{ formatPercentage(performanceData.average_maintenance_variance_to_spend) }}
+          {{ formatPercentage(performanceData.average_maintenance_variance_to_spend,1) }}
         </div>
         <Badge :variant="getRatingVariant(performanceRatings.average_maintenance_variance_to_spend)" class="text-xs">
           {{ formatRating(performanceRatings.average_maintenance_variance_to_spend) }}
@@ -214,10 +214,13 @@ const topRejections = computed(() => {
 });
 
 // Format percentage for display
-const formatPercentage = (value) => {
-  if (value === undefined || value === null) return '0%';
-  // Don't multiply by 100 since values are already percentages
-  return `${Math.round(parseFloat(value))}%`;
+const formatPercentage = (value, decimals = 0) => {
+  if (value === undefined || value === null || value === '') return '0%';
+
+  const num = Number(value);
+  if (!Number.isFinite(num)) return '0%';
+
+  return `${num.toFixed(decimals)}%`;
 };
 
 // Format decimal for display
