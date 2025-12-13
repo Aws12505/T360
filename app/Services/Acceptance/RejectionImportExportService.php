@@ -14,6 +14,48 @@ use Illuminate\Support\Str;
 class RejectionImportExportService
 {
     /**
+     * Validate rejection category based on rejection type
+     *
+     * @param string $type
+     * @param string $category
+     * @return bool
+     */
+    private function validateRejectionCategory($type, $category)
+    {
+        $blockCategories = ['after_start', 'within_24', 'more_than_24', 'advanced_rejection'];
+        $loadCategories = ['after_start', 'within_6', 'more_than_6'];
+        
+        if ($type === 'block') {
+            return in_array($category, $blockCategories);
+        }
+        
+        if ($type === 'load') {
+            return in_array($category, $loadCategories);
+        }
+        
+        return false;
+    }
+
+    /**
+     * Get validation rules for rejection category based on rejection type
+     *
+     * @param string $type
+     * @return string
+     */
+    private function getRejectionCategoryValidationRule($type)
+    {
+        if ($type === 'block') {
+            return 'required|in:after_start,within_24,more_than_24,advanced_rejection';
+        }
+        
+        if ($type === 'load') {
+            return 'required|in:after_start,within_6,more_than_6';
+        }
+        
+        return 'required|in:after_start,within_6,more_than_6,within_24,more_than_24,advanced_rejection';
+    }
+
+    /**
      * Import rejection records.
      *
      * @param \Illuminate\Http\Request $request
@@ -70,7 +112,6 @@ class RejectionImportExportService
             try {
                 $data['date'] = Carbon::createFromFormat('m/d/Y', $data['date'])->format('Y-m-d');
             } catch (\Exception $e) {
-                
                 $rowsSkipped++;
                 continue;
             }
@@ -94,6 +135,12 @@ class RejectionImportExportService
 
             // Clean the data: replace empty strings with null.
             $data = collect($data)->map(fn($val) => $val === '' ? null : $val)->toArray();
+
+            // Validate rejection category based on rejection type BEFORE further processing
+            if (!$this->validateRejectionCategory($data['rejection_type'], $data['rejection_category'])) {
+                $rowsSkipped++;
+                continue;
+            }
 
             // Set tenant_id: for non-SuperAdmin, use the authenticated user's tenant_id.
             if (!$isSuperAdmin) {
@@ -128,21 +175,20 @@ class RejectionImportExportService
                 'advanced_rejection' => 0.8,
             };
 
-            // Validate the row data.
+            // Validate the row data with dynamic rejection_category validation.
             $validator = Validator::make($data, [
                 'tenant_id' => 'required|exists:tenants,id',
                 'date' => 'required|date',
                 'rejection_type' => 'required|in:block,load',
                 'driver_name' => 'required|string',
-                'rejection_category' => 'required|in:more_than_6,within_6,after_start,within_24,more_than_24,advanced_rejection',
+                'rejection_category' => $this->getRejectionCategoryValidationRule($data['rejection_type']),
                 'reason_code_id' => 'required|exists:rejection_reason_codes,id',
                 'disputed' => 'required|boolean',
                 'driver_controllable' => 'nullable|boolean',
-                'penalty' => 'required|integer',
+                'penalty' => 'required|numeric',
             ]);
 
             if ($validator->fails()) {
-              
                 $rowsSkipped++;
                 continue;
             }
@@ -154,7 +200,6 @@ class RejectionImportExportService
         }
         fclose($handle);
         
-              
         // Return a redirect response with a success message.
         return redirect()->back()->with('success', "$rowsImported rows imported. $rowsSkipped skipped.");
     }

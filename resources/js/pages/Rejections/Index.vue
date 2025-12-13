@@ -142,7 +142,6 @@
                                 <div v-if="filters.search" class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
                                     Search: {{ filters.search }}
                                 </div>
-
                                 <div
                                     v-if="filters.rejectionType"
                                     class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold"
@@ -235,9 +234,17 @@
                                     class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                 >
                                     <option value="">All Categories</option>
-                                    <option value="advanced_rejection">Advanced Rejection</option>
-                                    <option value="more_than_24">More than 24 hours</option>
-                                    <option value="within_24">Within 24 hours</option>
+                                    <!-- Dynamic options based on rejection type -->
+                                    <template v-if="!filters.rejectionType || filters.rejectionType === 'block'">
+                                        <option value="advanced_rejection">Advanced Rejection</option>
+                                        <option value="more_than_24">More than 24 hours</option>
+                                        <option value="within_24">Within 24 hours</option>
+                                    </template>
+                                    <template v-if="!filters.rejectionType || filters.rejectionType === 'load'">
+                                        <option value="more_than_6">More than 6 hours</option>
+                                        <option value="within_6">Within 6 hours</option>
+                                    </template>
+                                    <!-- Common category for both -->
                                     <option value="after_start">After start time</option>
                                 </select>
                             </div>
@@ -285,180 +292,182 @@
                 </CardContent>
             </Card>
 
-                <!-- Acceptance Dashboard -->
-                <AcceptanceDashboard
-                    v-if="!isSuperAdmin"
-                    :metricsData="acceptanceMetrics || {}"
-                    :driversData="bottomDrivers || []"
-                    :chartData="acceptanceChartData || {}"
-                    :averageAcceptance="average_acceptance || null"
-                    :currentDateFilter="props.dateRange?.label || ''"
-                    :currentFilters="filters || {}"
-                />
-                <!-- Rejections Table -->
-                <!-- responsive here -->
-                <Card class="mx-auto max-w-[95vw] overflow-x-auto md:max-w-[64vw] lg:max-w-full">
-                    <CardContent class="p-0">
-                        <div class="overflow-x-auto">
-                            <Table class="relative h-[500px] overflow-auto">
-                                <TableHeader>
-                                    <TableRow class="sticky top-0 z-10 border-b bg-background hover:bg-background">
-                                        <!-- Add checkbox column for selecting all -->
-                                        <TableHead class="w-[50px]" v-if="permissionNames.includes('acceptance.delete')">
-                                            <div class="flex items-center justify-center">
-                                                <input
-                                                    type="checkbox"
-                                                    @change="toggleSelectAll"
-                                                    :checked="isAllSelected"
-                                                    class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                                                />
-                                            </div>
-                                        </TableHead>
-                                        <TableHead v-if="isSuperAdmin">Company Name</TableHead>
-                                        <TableHead v-for="col in tableColumns" :key="col" class="cursor-pointer" @click="sortBy(col)">
-                                            <div class="flex items-center">
-                                                <div v-if="col == 'rejection_category'">Rejection From Start</div>
-                                                <div v-else>
-                                                    {{
-                                                        col
-                                                            .replace(/_/g, ' ')
-                                                            .split(' ')
-                                                            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                                                            .join(' ')
-                                                    }}
-                                                </div>
-                                                <div v-if="sortColumn === col" class="ml-2">
-                                                    <svg
-                                                        v-if="sortDirection === 'asc'"
-                                                        class="h-4 w-4"
-                                                        viewBox="0 0 24 24"
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        stroke-width="2"
-                                                    >
-                                                        <path d="M8 15l4-4 4 4" />
-                                                    </svg>
-                                                    <svg
-                                                        v-else
-                                                        class="h-4 w-4"
-                                                        viewBox="0 0 24 24"
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        stroke-width="2"
-                                                    >
-                                                        <path d="M16 9l-4 4-4-4" />
-                                                    </svg>
-                                                </div>
-                                                <div v-else class="ml-2 opacity-50">
-                                                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                        <path d="M8 10l4-4 4 4" />
-                                                        <path d="M16 14l-4 4-4-4" />
-                                                    </svg>
-                                                </div>
-                                            </div>
-                                        </TableHead>
-                                        <TableHead v-if="permissionNames.includes('acceptance.update') || permissionNames.includes('acceptance.delete')">Actions</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    <TableRow v-if="filteredRejections.length === 0">
-                                        <TableCell
-                                            :colspan="isSuperAdmin ? tableColumns.length + 3 : tableColumns.length + 2"
-                                            class="py-8 text-center text-primary font-medium"
-                                        >
-                                            No rejections found matching your criteria
-                                        </TableCell>
-                                    </TableRow>
-                                    <TableRow v-for="rejection in filteredRejections" :key="rejection.id" class="hover:bg-muted/50">
-                                        <!-- Add checkbox for selecting individual row -->
-                                        <TableCell class="text-center" v-if="permissionNames.includes('acceptance.delete')">
+            <!-- Acceptance Dashboard -->
+            <AcceptanceDashboard
+                v-if="!isSuperAdmin"
+                :metricsData="acceptanceMetrics || {}"
+                :driversData="bottomDrivers || []"
+                :chartData="acceptanceChartData || {}"
+                :averageAcceptance="average_acceptance || null"
+                :currentDateFilter="props.dateRange?.label || ''"
+                :currentFilters="filters || {}"
+            />
+
+            <!-- Rejections Table -->
+            <!-- responsive here -->
+            <Card class="mx-auto max-w-[95vw] overflow-x-auto md:max-w-[64vw] lg:max-w-full">
+                <CardContent class="p-0">
+                    <div class="overflow-x-auto">
+                        <Table class="relative h-[500px] overflow-auto">
+                            <TableHeader>
+                                <TableRow class="sticky top-0 z-10 border-b bg-background hover:bg-background">
+                                    <!-- Add checkbox column for selecting all -->
+                                    <TableHead class="w-[50px]" v-if="permissionNames.includes('acceptance.delete')">
+                                        <div class="flex items-center justify-center">
                                             <input
                                                 type="checkbox"
-                                                :value="rejection.id"
-                                                v-model="selectedRejections"
+                                                @change="toggleSelectAll"
+                                                :checked="isAllSelected"
                                                 class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                                             />
-                                        </TableCell>
-                                        <TableCell v-if="isSuperAdmin">{{ rejection.tenant?.name || '—' }}</TableCell>
-                                        <TableCell v-for="col in tableColumns" :key="col" class="whitespace-nowrap">
-                                            <template v-if="col === 'date'">
-                                                {{ formatDate(rejection[col]) }}
-                                            </template>
-                                            <template v-else-if="col === 'rejection_type'">
-                                                <span class="capitalize">{{ rejection[col] }}</span>
-                                            </template>
-                                            <template v-else-if="col === 'reason_code'">
-                                                {{ rejection.reason_code?.reason_code || '—' }}
-                                                <span v-if="rejection.reason_code?.deleted_at" class="ml-1 text-xs text-red-500">(Deleted)</span>
-                                            </template>
-                                            <template v-else-if="col === 'disputed'">
-                                                {{ rejection[col] ? 'Yes' : 'No' }}
-                                            </template>
-                                            <template v-else-if="col === 'driver_controllable'">
-                                                {{ rejection[col] === null ? 'N/A' : rejection[col] ? 'Yes' : 'No' }}
-                                            </template>
-                                            <template v-else-if="col === 'rejection_category'">
-                                                {{ getRejectionCategoryLabel(rejection[col]) }}
-                                            </template>
-                                            <template v-else>
-                                                {{ rejection[col] }}
-                                            </template>
-                                        </TableCell>
-                                        <TableCell v-if="permissionNames.includes('acceptance.delete')||permissionNames.includes('acceptance.update')">
-                                            <div class="flex space-x-2">
-                                                <Button size="sm" @click="openForm(rejection)" variant="warning" v-if="permissionNames.includes('acceptance.update')">
-                                                    <Icon name="pencil" class="mr-1 h-4 w-4" />
-                                                    Edit
-                                                </Button>
-                                                <Button size="sm" variant="destructive" @click="deleteRejection(rejection.id)" v-if="permissionNames.includes('acceptance.delete')">
-                                                    <Icon name="trash" class="mr-1 h-4 w-4" />
-                                                    Delete
-                                                </Button>
+                                        </div>
+                                    </TableHead>
+                                    <TableHead v-if="isSuperAdmin">Company Name</TableHead>
+                                    <TableHead v-for="col in tableColumns" :key="col" class="cursor-pointer" @click="sortBy(col)">
+                                        <div class="flex items-center">
+                                            <div v-if="col == 'rejection_category'">Rejection From Start</div>
+                                            <div v-else>
+                                                {{
+                                                    col
+                                                        .replace(/_/g, ' ')
+                                                        .split(' ')
+                                                        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                                                        .join(' ')
+                                                }}
                                             </div>
-                                        </TableCell>
-                                    </TableRow>
-                                </TableBody>
-                            </Table>
-                        </div>
-
-                        <!-- paginate -->
-                        <!-- responsive here -->
-                        <div class="border-t bg-muted/20 px-4 py-3" v-if="rejections.links">
-                            <!-- responsive here -->
-                            <div class="flex flex-col items-center justify-between gap-2 sm:flex-row">
-                                <div class="flex items-center gap-4 text-sm text-muted-foreground">
-                                    <span>Showing {{ filteredRejections.length }} of {{ rejections.data.length }} entries</span>
-                                    <!-- responsive here -->
-                                    <div class="flex w-full flex-col items-center gap-2 sm:w-auto sm:flex-row sm:gap-4">
-                                        <span class="text-sm">Show:</span>
-                                        <select
-                                            v-model="perPage"
-                                            @change="changePerPage"
-                                            class="h-8 rounded-md border border-input bg-background px-2 py-1 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                                        >
-                                            <option v-for="size in [10, 25, 50, 100]" :key="size" :value="size">{{ size }}</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <!-- responsive here -->
-                                <div class="flex flex-wrap">
-                                    <Button
-                                        v-for="link in rejections.links"
-                                        :key="link.label"
-                                        @click="visitPage(link.url)"
-                                        :disabled="!link.url"
-                                        variant="ghost"
-                                        size="sm"
-                                        class="mx-1"
-                                        :class="{ 'border-primary bg-primary/10 text-primary': link.active }"
+                                            <div v-if="sortColumn === col" class="ml-2">
+                                                <svg
+                                                    v-if="sortDirection === 'asc'"
+                                                    class="h-4 w-4"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    stroke-width="2"
+                                                >
+                                                    <path d="M8 15l4-4 4 4" />
+                                                </svg>
+                                                <svg
+                                                    v-else
+                                                    class="h-4 w-4"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    stroke-width="2"
+                                                >
+                                                    <path d="M16 9l-4 4-4-4" />
+                                                </svg>
+                                            </div>
+                                            <div v-else class="ml-2 opacity-50">
+                                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M8 10l4-4 4 4" />
+                                                    <path d="M16 14l-4 4-4-4" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </TableHead>
+                                    <TableHead v-if="permissionNames.includes('acceptance.update') || permissionNames.includes('acceptance.delete')">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                <TableRow v-if="filteredRejections.length === 0">
+                                    <TableCell
+                                        :colspan="isSuperAdmin ? tableColumns.length + 3 : tableColumns.length + 2"
+                                        class="py-8 text-center text-primary font-medium"
                                     >
-                                        <span v-html="link.label"></span>
-                                    </Button>
+                                        No rejections found matching your criteria
+                                    </TableCell>
+                                </TableRow>
+                                <TableRow v-for="rejection in filteredRejections" :key="rejection.id" class="hover:bg-muted/50">
+                                    <!-- Add checkbox for selecting individual row -->
+                                    <TableCell class="text-center" v-if="permissionNames.includes('acceptance.delete')">
+                                        <input
+                                            type="checkbox"
+                                            :value="rejection.id"
+                                            v-model="selectedRejections"
+                                            class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                        />
+                                    </TableCell>
+                                    <TableCell v-if="isSuperAdmin">{{ rejection.tenant?.name || '—' }}</TableCell>
+                                    <TableCell v-for="col in tableColumns" :key="col" class="whitespace-nowrap">
+                                        <template v-if="col === 'date'">
+                                            {{ formatDate(rejection[col]) }}
+                                        </template>
+                                        <template v-else-if="col === 'rejection_type'">
+                                            <span class="capitalize">{{ rejection[col] }}</span>
+                                        </template>
+                                        <template v-else-if="col === 'reason_code'">
+                                            {{ rejection.reason_code?.reason_code || '—' }}
+                                            <span v-if="rejection.reason_code?.deleted_at" class="ml-1 text-xs text-red-500">(Deleted)</span>
+                                        </template>
+                                        <template v-else-if="col === 'disputed'">
+                                            {{ rejection[col] ? 'Yes' : 'No' }}
+                                        </template>
+                                        <template v-else-if="col === 'driver_controllable'">
+                                            {{ rejection[col] === null ? 'N/A' : rejection[col] ? 'Yes' : 'No' }}
+                                        </template>
+                                        <template v-else-if="col === 'rejection_category'">
+                                            {{ getRejectionCategoryLabel(rejection[col]) }}
+                                        </template>
+                                        <template v-else>
+                                            {{ rejection[col] }}
+                                        </template>
+                                    </TableCell>
+                                    <TableCell v-if="permissionNames.includes('acceptance.delete')||permissionNames.includes('acceptance.update')">
+                                        <div class="flex space-x-2">
+                                            <Button size="sm" @click="openForm(rejection)" variant="warning" v-if="permissionNames.includes('acceptance.update')">
+                                                <Icon name="pencil" class="mr-1 h-4 w-4" />
+                                                Edit
+                                            </Button>
+                                            <Button size="sm" variant="destructive" @click="confirmDeleteRejection(rejection.id)" v-if="permissionNames.includes('acceptance.delete')">
+    <Icon name="trash" class="mr-1 h-4 w-4" />
+    Delete
+</Button>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            </TableBody>
+                        </Table>
+                    </div>
+
+                    <!-- paginate -->
+                    <!-- responsive here -->
+                    <div class="border-t bg-muted/20 px-4 py-3" v-if="rejections.links">
+                        <!-- responsive here -->
+                        <div class="flex flex-col items-center justify-between gap-2 sm:flex-row">
+                            <div class="flex items-center gap-4 text-sm text-muted-foreground">
+                                <span>Showing {{ filteredRejections.length }} of {{ rejections.data.length }} entries</span>
+                                <!-- responsive here -->
+                                <div class="flex w-full flex-col items-center gap-2 sm:w-auto sm:flex-row sm:gap-4">
+                                    <span class="text-sm">Show:</span>
+                                    <select
+                                        v-model="perPage"
+                                        @change="changePerPage"
+                                        class="h-8 rounded-md border border-input bg-background px-2 py-1 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                                    >
+                                        <option v-for="size in [10, 25, 50, 100]" :key="size" :value="size">{{ size }}</option>
+                                    </select>
                                 </div>
                             </div>
+                            <!-- responsive here -->
+                            <div class="flex flex-wrap">
+                                <Button
+                                    v-for="link in rejections.links"
+                                    :key="link.label"
+                                    @click="visitPage(link.url)"
+                                    :disabled="!link.url"
+                                    variant="ghost"
+                                    size="sm"
+                                    class="mx-1"
+                                    :class="{ 'border-primary bg-primary/10 text-primary': link.active }"
+                                >
+                                    <span v-html="link.label"></span>
+                                </Button>
+                            </div>
                         </div>
-                    </CardContent>
-                </Card>
+                    </div>
+                </CardContent>
+            </Card>
+
             <!-- Rejection Form Modal -->
             <Dialog v-model:open="formModal">
                 <DialogContent class="max-w-[95vw] sm:max-w-[90vw] md:max-w-4xl">
@@ -654,6 +663,31 @@
                 </DialogContent>
             </Dialog>
         </div>
+
+        <!-- Delete Rejection Confirmation Dialog -->
+<Dialog v-model:open="showDeleteModal">
+    <DialogContent class="max-w-[95vw] sm:max-w-md">
+        <DialogHeader class="px-4 sm:px-6">
+            <DialogTitle class="text-lg sm:text-xl">Confirm Deletion</DialogTitle>
+            <DialogDescription class="text-xs sm:text-sm">
+                Are you sure you want to delete this rejection record? This action cannot be undone.
+            </DialogDescription>
+        </DialogHeader>
+        <DialogFooter class="px-4 sm:px-6">
+            <Button type="button" @click="showDeleteModal = false" variant="outline" class="h-9 px-4 py-1 text-xs sm:h-10 sm:text-sm">
+                Cancel
+            </Button>
+            <Button
+                type="button"
+                @click="deleteRejection(rejectionToDelete)"
+                variant="destructive"
+                class="h-9 px-4 py-1 text-xs sm:h-10 sm:text-sm"
+            >
+                Delete
+            </Button>
+        </DialogFooter>
+    </DialogContent>
+</Dialog>
     </AppLayout>
 </template>
 
@@ -738,6 +772,7 @@ const props = defineProps({
     },
     permissions: Array,
 });
+
 const weekNumberText = computed(() => {
     // For yesterday and current-week, show single week
     if ((activeTab.value === 'yesterday' || activeTab.value === 'current-week') && props.weekNumber && props.year) {
@@ -776,7 +811,8 @@ const selectedRejections = ref([]);
 const showDeleteSelectedModal = ref(false);
 const exportForm = ref(null);
 const showFilters = ref(false); // Add this line to control filter visibility
-
+const showDeleteModal = ref(false);
+const rejectionToDelete = ref(null);
 // Code management state
 const showCodeForm = ref(false);
 const editingCode = ref(null);
@@ -803,8 +839,26 @@ const sortColumn = ref('date');
 const sortDirection = ref('desc');
 
 // Filtering state
-
 const filters = ref({ ...props.filters });
+
+// Add a watcher to clear invalid category selection when type changes
+watch(() => filters.value.rejectionType, (newType, oldType) => {
+    // Only clear if type actually changed
+    if (newType !== oldType && filters.value.rejectionCategory) {
+        const blockCategories = ['advanced_rejection', 'more_than_24', 'within_24', 'after_start'];
+        const loadCategories = ['more_than_6', 'within_6', 'after_start'];
+        
+        // If switching to block type and current category is not valid for block
+        if (newType === 'block' && !blockCategories.includes(filters.value.rejectionCategory)) {
+            filters.value.rejectionCategory = '';
+        }
+        
+        // If switching to load type and current category is not valid for load
+        if (newType === 'load' && !loadCategories.includes(filters.value.rejectionCategory)) {
+            filters.value.rejectionCategory = '';
+        }
+    }
+});
 
 // Computed property for filtered and sorted rejections
 const filteredRejections = computed(() => {
@@ -971,10 +1025,12 @@ const deleteCode = (id) => {
     });
 };
 
-// Function to delete a rejection using Inertia form helper
-const deleteRejection = (id) => {
-    if (!confirm('Are you sure you want to delete this rejection?')) return;
+const confirmDeleteRejection = (id) => {
+    rejectionToDelete.value = id;
+    showDeleteModal.value = true;
+};
 
+const deleteRejection = (id) => {
     const form = useForm({});
     const routeName = props.isSuperAdmin ? 'acceptance.destroy.admin' : 'acceptance.destroy';
     const routeParams = props.isSuperAdmin ? { rejection: id } : { tenantSlug: props.tenantSlug, rejection: id };
@@ -983,6 +1039,7 @@ const deleteRejection = (id) => {
         preserveScroll: true,
         onSuccess: () => {
             successMessage.value = 'Rejection deleted successfully.';
+            showDeleteModal.value = false;
         },
     });
 };
@@ -1026,8 +1083,6 @@ function changePerPage() {
     });
 }
 
-// Remove this duplicate function declaration
-
 // Format date string from YYYY-MM-DD to m/d/Y
 function formatDate(dateStr) {
     if (!dateStr) return '';
@@ -1057,23 +1112,23 @@ const acceptanceMetrics = computed(() => {
     if (type) {
         return {
             totalRejections: categoryData[`total_${type}_rejections`] || 0,
-            // moreThan6Count: categoryData[`more_than_6_${type}_count`] || 0,
-            // within6Count: categoryData[`within_6_${type}_count`] || 0,
             afterStartCount: categoryData[`after_start_${type}_count`] || 0,
             moreThan24Count: categoryData[`more_than_24_${type}_count`] || 0,
             within24Count: categoryData[`within_24_${type}_count`] || 0,
             advancedRejectionCount: categoryData[`advanced_rejection_${type}_count`] || 0,
+            moreThan6Count: categoryData[`more_than_6_${type}_count`] || 0,
+            within6Count: categoryData[`within_6_${type}_count`] || 0,
             by_category: true,
         };
     } else {
         return {
             totalRejections: categoryData.total_rejections || 0,
-            // moreThan6Count: categoryData.more_than_6_count || 0,
-            // within6Count: categoryData.within_6_count || 0,
             afterStartCount: categoryData.after_start_count || 0,
             moreThan24Count: categoryData.more_than_24_count || 0,
             within24Count: categoryData.within_24_count || 0,
             advancedRejectionCount: categoryData.advanced_rejection_count || 0,
+            moreThan6Count: categoryData.more_than_6_count || 0,
+            within6Count: categoryData.within_6_count || 0,
             by_category: true,
         };
     }
@@ -1222,6 +1277,7 @@ function exportCSV() {
         exportForm.value.submit();
     }
 }
+
 // Computed property for export URL
 const exportUrl = computed(() => {
     return props.tenantSlug ? route('acceptance.export', { tenantSlug: props.tenantSlug }) : route('acceptance.export.admin');
@@ -1259,6 +1315,7 @@ onMounted(() => {
         document.removeEventListener('click', handleClickOutside);
     });
 });
+
 // Add these to your script section
 const hasActiveFilters = computed(() => {
     return (
@@ -1295,7 +1352,6 @@ function getRejectionCategoryLabel(category) {
 
     return labels[category] || category;
 }
-const permissionNames = computed(() =>
-      props.permissions.map(p => p.name)
-    );
+
+const permissionNames = computed(() => props.permissions.map((p) => p.name));
 </script>

@@ -1,79 +1,78 @@
 <template>
-  <!-- Modal overlay -->
-  <div class="fixed inset-0 z-50">
-    <!-- Semi-transparent background overlay -->
-    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
-    <!-- Modal container -->
-    <div class="absolute inset-0 flex items-center justify-center p-2 sm:p-4">
-      <div class="bg-background p-6 rounded-lg shadow-xl w-full max-w-md overflow-y-auto max-h-[90vh] animate-in fade-in zoom-in-95 duration-200 border border-border">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-2xl font-bold text-foreground">
-            {{ tenant ? 'Edit Company' : 'Create Company' }}
-          </h2>
-          <Button variant="ghost" size="icon" @click="() => emit('close')">
-            <X class="h-5 w-5" />
-          </Button>
-        </div>
-        
-        <form @submit.prevent="submit" class="space-y-4">
-          <!-- Name Field -->
-          <div class="space-y-2">
-            <Label for="name">Company Name</Label>
-            <Input
-              id="name"
-              v-model="form.name"
-              placeholder="Enter company name"
-              class="w-full"
-            />
-            <InputError :message="form.errors.name" />
-          </div>
-          
-          <!-- Slug Field (only for editing) -->
-          <div v-if="tenant" class="space-y-2">
-            <Label for="slug">Slug</Label>
-            <Input
-              id="slug"
-              v-model="form.slug"
-              placeholder="Enter company slug"
-              class="w-full"
-            />
-            <InputError :message="form.errors.slug" />
-          </div>
-          <!--timezone field-->
-          <div class="space-y-2">
-  <Label for="timezone">Timezone</Label>
-  <select
-    id="timezone"
-    v-model="form.timezone"
-    class="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-  >
-    <option v-for="(label, tz) in usTimezones" :key="tz" :value="tz">
-      {{ label }}
-    </option>
-  </select>
-  <InputError :message="form.errors.timezone" />
-</div>
-          
-          <!-- Action Buttons -->
-          <div class="flex justify-end space-x-3 pt-4">
-            <Button
-              type="button"
-              @click="() => emit('close')"
-              variant="outline"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              :disabled="form.processing"
-            >
-              <Loader2 v-if="form.processing" class="mr-2 h-4 w-4 animate-spin" />
-              {{ form.processing ? 'Saving...' : 'Save' }}
-            </Button>
-          </div>
-        </form>
+  <div>
+    <DialogHeader>
+      <DialogTitle class="text-xl sm:text-2xl font-bold">
+        {{ tenant ? 'Edit Company' : 'Create Company' }}
+      </DialogTitle>
+    </DialogHeader>
+    
+    <form @submit.prevent="submit" class="space-y-4 mt-4">
+      <!-- Name Field -->
+      <div class="space-y-2">
+        <Label for="name" class="flex items-center">
+          <span>Company Name</span>
+          <span class="text-destructive ml-1">*</span>
+        </Label>
+        <Input
+          id="name"
+          v-model="form.name"
+          placeholder="Enter company name"
+          class="w-full"
+          :class="{ 'border-destructive': form.errors.name }"
+        />
+        <InputError :message="form.errors.name" />
       </div>
-    </div>
+      
+      <!-- Slug Field (only for editing) -->
+      <div v-if="tenant" class="space-y-2">
+        <Label for="slug">Slug</Label>
+        <Input
+          id="slug"
+          v-model="form.slug"
+          placeholder="Enter company slug"
+          class="w-full"
+          :class="{ 'border-destructive': form.errors.slug }"
+        />
+        <InputError :message="form.errors.slug" />
+      </div>
+      
+      <!-- Timezone field -->
+      <div class="space-y-2">
+        <Label for="timezone" class="flex items-center">
+          <span>Timezone</span>
+          <span class="text-destructive ml-1">*</span>
+        </Label>
+        <select
+          id="timezone"
+          v-model="form.timezone"
+          class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          :class="{ 'border-destructive': form.errors.timezone }"
+        >
+          <option v-for="(label, tz) in usTimezones" :key="tz" :value="tz">
+            {{ label }}
+          </option>
+        </select>
+        <InputError :message="form.errors.timezone" />
+      </div>
+      
+      <!-- Action Buttons -->
+      <DialogFooter class="mt-6">
+        <Button
+          type="button"
+          @click="() => emit('close')"
+          variant="outline"
+        >
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          :disabled="form.processing"
+        >
+          <Loader2 v-if="form.processing" class="mr-2 h-4 w-4 animate-spin" />
+          {{ form.processing ? 'Saving...' : 'Save' }}
+        </Button>
+      </DialogFooter>
+    </form>
   </div>
 </template>
 
@@ -84,7 +83,9 @@ import { useForm } from '@inertiajs/vue3';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import InputError from '@/components/InputError.vue';
+import { Loader2, X } from 'lucide-vue-next';
 
 const props = defineProps({
   tenant: { type: Object, default: null },

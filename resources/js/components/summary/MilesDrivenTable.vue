@@ -277,6 +277,35 @@
         </form>
       </DialogContent>
     </Dialog>
+    <!-- Delete Confirmation Dialog -->
+<Dialog v-model:open="showDeleteModal">
+  <DialogContent class="max-w-[95vw] sm:max-w-md">
+    <DialogHeader class="px-4 sm:px-6">
+      <DialogTitle class="text-lg sm:text-xl">Confirm Deletion</DialogTitle>
+      <DialogDescription class="text-xs sm:text-sm">
+        Are you sure you want to delete this miles driven record? This action cannot be undone.
+      </DialogDescription>
+    </DialogHeader>
+    <DialogFooter class="px-4 sm:px-6">
+      <Button 
+        type="button" 
+        @click="showDeleteModal = false" 
+        variant="outline" 
+        class="h-9 px-4 py-1 text-xs sm:h-10 sm:text-sm"
+      >
+        Cancel
+      </Button>
+      <Button 
+        type="button" 
+        @click="deleteRecord" 
+        variant="destructive" 
+        class="h-9 px-4 py-1 text-xs sm:h-10 sm:text-sm"
+      >
+        Delete
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
   </div>
 </template>
 
@@ -320,7 +349,7 @@ const sortDirection = ref<'asc' | 'desc'>('desc')
 // pagination state
 const currentPage = ref(1)
 const itemsPerPage = ref(10)
-
+const showDeleteModal = ref(false)
 // form
 const form = useForm({
   id: null,
@@ -462,9 +491,12 @@ function submitForm() {
 const toDelete = ref(null)
 function confirmDelete(item) {
   toDelete.value = item
-  if (confirm('Really delete this record?')) deleteRecord()
+  showDeleteModal.value = true
 }
+
 function deleteRecord() {
+  if (!toDelete.value) return
+  
   const name = 'miles_driven.destroy'
   const params = { tenantSlug: props.tenantSlug, milesDriven: toDelete.value.id }
 
@@ -473,7 +505,8 @@ function deleteRecord() {
     {
       preserveScroll: true,
       onSuccess: () => {
-        // modal already closed via confirmDelete
+        showDeleteModal.value = false
+        toDelete.value = null
       },
     }
   )

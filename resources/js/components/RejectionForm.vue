@@ -53,7 +53,7 @@
         </div>
       </div>
       
-      <!-- Rejection Category Field -->
+      <!-- Rejection Category Field - Now Dynamic -->
       <div>
         <Label>Rejection Category</Label>
         <div class="relative">
@@ -61,10 +61,13 @@
             v-model="form.rejection_category" 
             class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
           >
-            <option value="advanced_rejection">Advanced Rejection</option>
-            <option value="more_than_24">More than 24 hrs</option>
-            <option value="within_24">Within 24 hrs</option>
-            <option value="after_start">After start</option>
+            <option 
+              v-for="category in availableCategories" 
+              :key="category.value" 
+              :value="category.value"
+            >
+              {{ category.label }}
+            </option>
           </select>
           <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
             <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -133,7 +136,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 // Import UI components from correct folders
 import Input from '@/components/ui/input/Input.vue';
@@ -165,6 +168,35 @@ const form = useForm({
   driver_controllable: props.rejection && props.rejection.driver_controllable !== null
     ? (parseInt(props.rejection.driver_controllable) === 1)
     : null,
+});
+
+// Computed property for available categories based on rejection type
+const availableCategories = computed(() => {
+  if (form.rejection_type === 'block') {
+    return [
+      { value: 'advanced_rejection', label: 'Advanced Rejection' },
+      { value: 'more_than_24', label: 'More than 24 hrs' },
+      { value: 'within_24', label: 'Within 24 hrs' },
+      { value: 'after_start', label: 'After start' },
+    ];
+  } else if (form.rejection_type === 'load') {
+    return [
+      { value: 'more_than_6', label: 'More than 6 hrs' },
+      { value: 'within_6', label: 'Within 6 hrs' },
+      { value: 'after_start', label: 'After start' },
+    ];
+  }
+  return [];
+});
+
+// Watch for changes in rejection_type and update category if needed
+watch(() => form.rejection_type, (newType) => {
+  const validCategories = availableCategories.value.map(cat => cat.value);
+  
+  // If current category is not valid for new type, reset to first available
+  if (!validCategories.includes(form.rejection_category)) {
+    form.rejection_category = validCategories[0] || '';
+  }
 });
 
 // Watch for changes in the rejection prop and update the form accordingly.

@@ -231,10 +231,10 @@
                                                     <Icon name="pencil" class="mr-1 h-4 w-4" />
                                                     Edit
                                                 </Button>
-                                                <Button @click="deleteEntry(item.id)" variant="destructive" size="sm" v-if="permissionNames.includes('safety-data.delete')">
-                                                    <Icon name="trash" class="mr-1 h-4 w-4" />
-                                                    Delete
-                                                </Button>
+                                                <Button @click="confirmDelete(item.id)" variant="destructive" size="sm" v-if="permissionNames.includes('safety-data.delete')">
+    <Icon name="trash" class="mr-1 h-4 w-4" />
+    Delete
+</Button>
                                             </div>
                                         </TableCell>
                                     </TableRow>
@@ -417,6 +417,30 @@
                 <form ref="exportForm" method="GET" class="hidden" />
             </div>
         </div>
+        <!-- Delete Single Entry Confirmation Dialog -->
+<Dialog v-model:open="showDeleteModal">
+    <DialogContent class="max-w-[95vw] sm:max-w-md">
+        <DialogHeader class="px-4 sm:px-6">
+            <DialogTitle class="text-lg sm:text-xl">Confirm Deletion</DialogTitle>
+            <DialogDescription class="text-xs sm:text-sm">
+                Are you sure you want to delete this safety record? This action cannot be undone.
+            </DialogDescription>
+        </DialogHeader>
+        <DialogFooter class="px-4 sm:px-6">
+            <Button type="button" @click="showDeleteModal = false" variant="outline" class="h-9 px-4 py-1 text-xs sm:h-10 sm:text-sm">
+                Cancel
+            </Button>
+            <Button
+                type="button"
+                @click="deleteEntry(entryToDelete)"
+                variant="destructive"
+                class="h-9 px-4 py-1 text-xs sm:h-10 sm:text-sm"
+            >
+                Delete
+            </Button>
+        </DialogFooter>
+    </DialogContent>
+</Dialog>
     </AppLayout>
 </template>
 
@@ -498,7 +522,8 @@ const perPage = ref(10);
 const selectedEntries = ref([]);
 const showDeleteSelectedModal = ref(false);
 const freezeColumns = ref(false); // Changed to false by default
-
+const showDeleteModal = ref(false);
+const entryToDelete = ref(null);
 // Define breadcrumbs for the layout
 const breadcrumbs = [
     {
@@ -672,11 +697,18 @@ function submitForm() {
 }
 
 // Delete an entry after confirmation.
+function confirmDelete(id) {
+    entryToDelete.value = id;
+    showDeleteModal.value = true;
+}
+
 function deleteEntry(id) {
-    if (!confirm('Are you sure?')) return;
     const routeName = props.SuperAdmin ? route('safety.destroy.admin', [id]) : route('safety.destroy', [props.tenantSlug, id]);
     deleteForm.delete(routeName, {
-        onSuccess: () => (successMessage.value = 'Entry deleted.'),
+        onSuccess: () => {
+            successMessage.value = 'Entry deleted.';
+            showDeleteModal.value = false;
+        },
     });
 }
 

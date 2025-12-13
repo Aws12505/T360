@@ -19,7 +19,7 @@
             <!-- responsive here -->
             <div class="mb-2 flex flex-col items-center justify-between px-2 sm:flex-row md:mb-4 lg:mb-6">
                 <!-- responsive here -->
-                <h1 class="text-lg font-bold md:text-xl lg:text-2xl">On-Time Management</h1>
+                <h1 class="text-lg font-bold text-gray-800 dark:text-gray-200 md:text-xl lg:text-2xl">On-Time Management</h1>
                 <div class="flex flex-wrap gap-3 ml-3">
                     <!-- responsive here -->
                     <Button class="px-2 py-0 md:px-4 md:py-2" @click="openForm()" variant="default" v-if="permissionNames.includes('delays.create')">

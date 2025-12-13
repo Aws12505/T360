@@ -11,6 +11,7 @@
       />
     </div>
 
+
     <!-- Bottom Section -->
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-2 md:gap-4 lg:gap-6">
       <BottomDrivers 
@@ -73,6 +74,7 @@
   </div>
 </template>
 
+
 <script setup>
 import { ref, computed } from 'vue';
 import TotalLateStops from './TotalLateStops.vue';
@@ -80,6 +82,7 @@ import BottomDrivers from './BottomDrivers.vue';
 import LineChart from './LineChart.vue';
 import { Badge } from '@/components/ui/badge';
 import  Icon  from '@/components/Icon.vue';
+
 
 // Props to receive data from parent component
 const props = defineProps({
@@ -109,20 +112,52 @@ const props = defineProps({
   }
 });
 
+
 // Computed properties to use either provided data or default data
 const metrics = computed(() => {
-  if (props.metricsData) {
-    // Transform the categories data into the format expected by TotalLateStops component
+  if (!props.metricsData || !props.metricsData.totalRejections) {
+    return [];
+  }
+
+  const type = props.currentFilters?.rejectionType;
+  
+  // When NO rejection type is selected - show all categories
+  if (!type || type === '') {
     return [
       { title: 'Total Rejected Stops', value: props.metricsData.totalRejections || 0 },
-      { title: 'Rejected In Advance', value: props.metricsData.advancedRejectionCount || 0},
+      { title: 'Rejected In Advance', value: props.metricsData.advancedRejectionCount || 0 },
+      { title: 'Rejected +24 Hours Before Start Time', value: props.metricsData.moreThan24Count || 0 },
+      { title: 'Rejected Within 24 Hours Before Start Time', value: props.metricsData.within24Count || 0 },
+      { title: 'Rejected +6 Hours Before Start Time', value: props.metricsData.moreThan6Count || 0 },
+      { title: 'Rejected Within 6 Hours Before Start Time', value: props.metricsData.within6Count || 0 },
+      { title: 'Rejected After Start Time', value: props.metricsData.afterStartCount || 0 },
+    ];
+  }
+  
+  // When BLOCK type is selected
+  if (type === 'block') {
+    return [
+      { title: 'Total Block Rejections', value: props.metricsData.totalRejections || 0 },
+      { title: 'Rejected In Advance', value: props.metricsData.advancedRejectionCount || 0 },
       { title: 'Rejected +24 Hours Before Start Time', value: props.metricsData.moreThan24Count || 0 },
       { title: 'Rejected Within 24 Hours Before Start Time', value: props.metricsData.within24Count || 0 },
       { title: 'Rejected After Start Time', value: props.metricsData.afterStartCount || 0 },
     ];
   }
+  
+  // When LOAD type is selected
+  if (type === 'load') {
+    return [
+      { title: 'Total Load Rejections', value: props.metricsData.totalRejections || 0 },
+      { title: 'Rejected +6 Hours Before Start Time', value: props.metricsData.moreThan6Count || 0 },
+      { title: 'Rejected Within 6 Hours Before Start Time', value: props.metricsData.within6Count || 0 },
+      { title: 'Rejected After Start Time', value: props.metricsData.afterStartCount || 0 },
+    ];
+  }
+  
   return [];
 });
+
 
 const bottomDrivers = computed(() => {
   if (props.driversData && props.driversData.length) {
@@ -131,6 +166,7 @@ const bottomDrivers = computed(() => {
   return [];
 });
 
+
 const lineChartData = computed(() => {
   if (props.chartData && Object.keys(props.chartData).length) {
     return props.chartData;
@@ -138,15 +174,18 @@ const lineChartData = computed(() => {
   return {};
 });
 
+
 // Add a computed property for totalRejections
 const totalRejections = computed(() => {
   return props.metricsData?.totalRejections || 0;
 });
 
+
 // Add a computed property for rejectionType
 const rejectionType = computed(() => {
   return props.currentFilters?.rejectionType || null;
 });
+
 
 // Check if there's enough data for the chart (more than 1 data point)
 const hasEnoughChartData = computed(() => {
@@ -156,10 +195,12 @@ const hasEnoughChartData = computed(() => {
   return props.chartData.labels.length > 1;
 });
 
+
 // Check if there's at least some data (at least 1 data point)
 const hasSomeData = computed(() => {
   return props.chartData?.datasets?.[0]?.data?.length > 0;
 });
+
 
 // Get yesterday's score from the chart data
 const yesterdayScore = computed(() => {
@@ -168,6 +209,7 @@ const yesterdayScore = computed(() => {
   }
   return 0;
 });
+
 
 // Determine the rating based on the score
 const acceptanceRating = computed(() => {
@@ -180,15 +222,18 @@ const acceptanceRating = computed(() => {
   return 'poor';
 });
 
+
 // Format percentage for display
 const formatPercentage = (value) => {
   if (value === undefined || value === null) return '0%';
   return `${Math.round(parseFloat(value))}%`;
 };
 
+
 // Format rating for display
 const formatRating = (rating) => {
   if (!rating) return 'Not Available';
+
 
   switch (rating) {
     case 'fantastic_plus':
@@ -206,9 +251,11 @@ const formatRating = (rating) => {
   }
 };
 
+
 // Get badge variant based on rating
 const getRatingVariant = (rating) => {
   if (!rating) return 'outline';
+
 
   switch (rating) {
     case 'fantastic_plus':
@@ -225,6 +272,7 @@ const getRatingVariant = (rating) => {
       return 'outline';
   }
 };
+
 
 // Get score color class based on rating
 const getScoreColorClass = (rating) => {
@@ -246,9 +294,11 @@ const getScoreColorClass = (rating) => {
   }
 };
 
+
 // Get description based on rating
 const getScoreDescription = (rating) => {
   if (!rating) return '';
+
 
   switch (rating) {
     case 'fantastic_plus':
