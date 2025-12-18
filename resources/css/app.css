@@ -34,11 +34,12 @@ html {
         --border: 0 0% 92.8%;
         --input: 0 0% 89.8%;
         --ring: 235 51% 37%;
-        --chart-1: 235 51% 37%;
-        --chart-2: 0 80% 56%;
-        --chart-3: 197 37% 24%;
-        --chart-4: 43 74% 66%;
-        --chart-5: 27 87% 67%;
+    --chart-1: 212 95% 18%; /* darkest blue-teal */
+    --chart-2: 230 78% 26%; /* rich blue */
+    --chart-3: 240 85% 34%; /* vibrant lighter blue */
+    --chart-4: 245 60% 42%; /* muted indigo-blue */
+    --chart-5: 235 90% 50%; /* soft sky-blue */
+    --chart-6: 220 65% 46%; /* steel-blue (contrasts 4 & 5) */
         --radius: 0.5rem;
         --sidebar-background: 234 52% 37%;
         --sidebar-foreground: 210 70% 35%;
@@ -89,12 +90,12 @@ html {
   --ring: 235 55% 68%;
 
   /* Charts aligned with theme */
-  --chart-1: 235 55% 68%;
-  --chart-2: 0 84% 62%;
-  --chart-3: 197 45% 55%;
-  --chart-4: 43 80% 60%;
-  --chart-5: 280 65% 70%;
-
+    --chart-1: 212 90% 40%; /* still dark and rich */
+    --chart-2: 230 78% 36%; /* rich blue, visible on dark bg */
+    --chart-3: 240 85% 30%; /* light pops but not pastel */
+    --chart-4: 245 60% 26%; /* muted indigo */
+    --chart-5: 235 90% 22%; /* contrast against others */
+    --chart-6: 220 65% 32%; /* differentiated steel-blue */ 
   /* Sidebar: a bit deeper than main surface for hierarchy */
   --sidebar-background: 228 20% 9%;
   --sidebar-foreground: 0 0% 96%;

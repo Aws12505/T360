@@ -174,6 +174,8 @@ class SafetyDataService
                 'cameraObstruction' => 0,
                 'driverDrowsiness' => 0,
                 'weaving' => 0,
+                'swerve' => 0,
+                'laneConduct' => 0,
                 'collisionWarning' => 0,
                 'backing' => 0,
                 'highG' => 0

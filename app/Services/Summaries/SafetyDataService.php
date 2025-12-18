@@ -243,6 +243,8 @@ public function __construct(?int $email_tenant_id = null) {
                 SUM(camera_obstruction) AS camera_obstruction,
                 SUM(driver_drowsiness) AS driver_drowsiness,
                 SUM(weaving) AS weaving,
+                SUM(swerve) AS swerve,
+                SUM(lane_conduct) AS lane_conduct,
                 SUM(collision_warning) AS collision_warning,
                 SUM(backing) AS backing,
                 SUM(high_g) AS high_g
@@ -421,9 +423,10 @@ public function __construct(?int $email_tenant_id = null) {
                 'cameraObstruction' => $infractionsData->camera_obstruction ?? 0,
                 'driverDrowsiness' => $infractionsData->driver_drowsiness ?? 0,
                 'weaving' => $infractionsData->weaving ?? 0,
+                'swerve' => $infractionsData->swerve ?? 0,
+                'laneConduct' => $infractionsData->lane_conduct ?? 0,
                 'collisionWarning' => $infractionsData->collision_warning ?? 0,
                 'backing' => $infractionsData->backing ?? 0,
-                // 'roadsideParking' => $infractionsData->roadside_parking ?? 0,
                 'highG' => $infractionsData->high_g ?? 0
             ],
             'lineChartData' => $lineChartData

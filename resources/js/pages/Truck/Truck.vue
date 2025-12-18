@@ -942,7 +942,7 @@
   </AppLayout>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import Icon from "@/components/Icon.vue";
 import {
   Alert,
@@ -1019,7 +1019,7 @@ const truckToDelete = ref(null);
 const pageProps = usePage();
 
 const showImportModal = ref(false);
-const importValidationResults = (ref < any) | (null > null);
+const importValidationResults = ref(null);
 const isValidating = ref(false);
 const isImporting = ref(false);
 // Sorting state
@@ -1386,84 +1386,91 @@ onMounted(() => {
 });
 
 function validateImportFile(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0]
-  if (!file) return
+  const file = (e.target as HTMLInputElement).files?.[0];
+  if (!file) return;
 
-  isValidating.value = true
+  isValidating.value = true;
 
-  const formData = new FormData()
-  formData.append('file', file)
+  const formData = new FormData();
+  formData.append("file", file);
 
   const endpoint = props.SuperAdmin
-    ? route('truck.validateImport.admin')
-    : route('truck.validateImport', { tenantSlug: props.tenantSlug })
+    ? route("truck.validateImport.admin")
+    : route("truck.validateImport", { tenantSlug: props.tenantSlug });
 
   router.post(endpoint, formData, {
     forceFormData: true,
     preserveScroll: true,
     onFinish: () => {
-      isValidating.value = false
-      ;(e.target as HTMLInputElement).value = ''
+      isValidating.value = false;
+      (e.target as HTMLInputElement).value = "";
     },
     onError: () => {
-      isValidating.value = false
-      errorMessage.value = 'Failed to validate CSV file'
-      ;(e.target as HTMLInputElement).value = ''
+      isValidating.value = false;
+      errorMessage.value = "Failed to validate CSV file";
+      (e.target as HTMLInputElement).value = "";
     },
-  })
+  });
 }
 
 function confirmImport() {
-  if (!importValidationResults.value) return
-  if (importValidationResults.value.header_error) return
-  if ((importValidationResults.value.summary?.invalid ?? 0) > 0) return
+  if (!importValidationResults.value) return;
+  if (importValidationResults.value.header_error) return;
+  if ((importValidationResults.value.summary?.invalid ?? 0) > 0) return;
 
-  isImporting.value = true
+  isImporting.value = true;
 
   const endpoint = props.SuperAdmin
-    ? route('truck.confirmImport.admin')
-    : route('truck.confirmImport', { tenantSlug: props.tenantSlug })
+    ? route("truck.confirmImport.admin")
+    : route("truck.confirmImport", { tenantSlug: props.tenantSlug });
 
-  router.post(endpoint, {}, {
-    preserveScroll: true,
-    onSuccess: () => {
-      successMessage.value = `Successfully imported ${importValidationResults.value.summary?.valid ?? 0} rows`
-      closeImportModal()
-    },
-    onError: () => {
-      errorMessage.value = 'Import failed'
-    },
-    onFinish: () => {
-      isImporting.value = false
-    },
-  })
+  router.post(
+    endpoint,
+    {},
+    {
+      preserveScroll: true,
+      onSuccess: () => {
+        successMessage.value = `Successfully imported ${
+          importValidationResults.value.summary?.valid ?? 0
+        } rows`;
+        closeImportModal();
+      },
+      onError: () => {
+        errorMessage.value = "Import failed";
+      },
+      onFinish: () => {
+        isImporting.value = false;
+      },
+    }
+  );
 }
 
 function downloadErrorReport() {
   const endpoint = props.SuperAdmin
-    ? route('truck.downloadErrorReport.admin')
-    : route('truck.downloadErrorReport', { tenantSlug: props.tenantSlug })
+    ? route("truck.downloadErrorReport.admin")
+    : route("truck.downloadErrorReport", { tenantSlug: props.tenantSlug });
 
-  window.location.href = endpoint
+  window.location.href = endpoint;
 }
 
 function closeImportModal() {
-  showImportModal.value = false
-  importValidationResults.value = null
-  isValidating.value = false
-  isImporting.value = false
+  showImportModal.value = false;
+  importValidationResults.value = null;
+  isValidating.value = false;
+  isImporting.value = false;
 }
 watch(
   () => (pageProps.props as any).flash?.importValidation,
   (payload: any) => {
-    if (!payload) return
+    if (!payload) return;
     if (payload.results) {
-      importValidationResults.value = payload.results
-      if (payload.header_error) importValidationResults.value.header_error = payload.header_error
-      showImportModal.value = true
+      importValidationResults.value = payload.results;
+      if (payload.header_error)
+        importValidationResults.value.header_error = payload.header_error;
+      showImportModal.value = true;
     }
-    if (payload.message) errorMessage.value = payload.message
+    if (payload.message) errorMessage.value = payload.message;
   },
   { immediate: true }
-)
+);
 </script>
