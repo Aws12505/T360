@@ -36,3 +36,29 @@ import { Badge } from './badge';
 export {
   Badge,
 };
+
+export { default as Checkbox } from "./checkbox/Checkbox.vue";
+
+export { default as Tooltip } from './tooltip/Tooltip.vue';
+export { default as TooltipContent } from './tooltip/TooltipContent.vue';
+export { default as TooltipProvider } from './tooltip/TooltipProvider.vue';
+export { default as TooltipTrigger } from './tooltip/TooltipTrigger.vue';
+
+export { default as ScrollArea } from './scroll-area/ScrollBar.vue';
+export { default as Textarea } from "./textarea/Textarea.vue"
+export { default as Separator } from './separator/Separator.vue';
+
+export { default as AlertDialog } from "./alert-dialog/AlertDialog.vue"
+export { default as AlertDialogAction } from "./alert-dialog/AlertDialogAction.vue"
+export { default as AlertDialogCancel } from "./alert-dialog/AlertDialogCancel.vue"
+export { default as AlertDialogContent } from "./alert-dialog/AlertDialogContent.vue"
+export { default as AlertDialogDescription } from "./alert-dialog/AlertDialogDescription.vue"
+export { default as AlertDialogFooter } from "./alert-dialog/AlertDialogFooter.vue"
+export { default as AlertDialogHeader } from "./alert-dialog/AlertDialogHeader.vue"
+export { default as AlertDialogTitle } from "./alert-dialog/AlertDialogTitle.vue"
+export { default as AlertDialogTrigger } from "./alert-dialog/AlertDialogTrigger.vue"
+
+export { default as Tabs } from "./tabs/Tabs.vue"
+export { default as TabsContent } from "./tabs/TabsContent.vue"
+export { default as TabsList } from "./tabs/TabsList.vue"
+export { default as TabsTrigger } from "./tabs/TabsTrigger.vue"

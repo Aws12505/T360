@@ -22,9 +22,17 @@ Route::controller(PerformanceController::class)
     Route::delete('-bulk', 'destroyBulk')
          ->name('destroyBulk')
          ->middleware('permission:performance.delete');
-    Route::post('/import', 'import')
-         ->name('import')
-         ->middleware('permission:performance.import');
+    Route::post('/validate-import', 'validateImport')
+    ->name('validateImport')
+    ->middleware('permission:performance.import');
+
+Route::post('/confirm-import', 'confirmImport')
+    ->name('confirmImport')
+    ->middleware('permission:performance.import');
+
+Route::get('/download-error-report', 'downloadErrorReport')
+    ->name('downloadErrorReport')
+    ->middleware('permission:performance.import');
     Route::get('/export', 'export')
          ->name('export')
          ->middleware('permission:performance.export');

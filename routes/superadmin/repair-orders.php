@@ -7,36 +7,41 @@ Route::controller(RepairOrderController::class)->group(function () {
     // Repair orders
     Route::get('/asset-maintenance', 'index')->name('repair_orders.index.admin');
     
-    Route::prefix('repair-orders')->group(function () {
-        Route::post('/', 'store')->name('repair_orders.store.admin');
-        Route::put('{repair_order}', 'updateAdmin')->name('repair_orders.update.admin');
-        Route::delete('{repair_order}', 'destroyAdmin')->name('repair_orders.destroy.admin');
-        Route::delete('-bulk', 'destroyBulkAdmin')->name('repair_orders.destroyBulk.admin');
-        Route::post('/import', 'import')->name('repair_orders.import.admin');
-        Route::get('/export', 'export')->name('repair_orders.export.admin');
+    Route::prefix('repair-orders')->name('repair_orders.')->group(function () {
+        Route::post('/', 'store')->name('store.admin');
+        Route::put('{repair_order}', 'updateAdmin')->name('update.admin');
+        Route::delete('{repair_order}', 'destroyAdmin')->name('destroy.admin');
+        Route::delete('-bulk', 'destroyBulkAdmin')->name('destroyBulk.admin');
+        
+        // Import routes
+        Route::post('/validate-import', 'validateImport')->name('validateImport.admin');
+        Route::post('/confirm-import', 'confirmImport')->name('confirmImport.admin');
+        Route::get('/download-error-report', 'downloadErrorReport')->name('downloadErrorReport.admin');
+        
+        Route::get('/export', 'export')->name('export.admin');
     });
     
     // Areas of concern
-    Route::prefix('areas-of-concern')->group(function () {
-        Route::post('/', 'storeAreaOfConcern')->name('area_of_concerns.store.admin');
-        Route::delete('{id}', 'destroyAreaOfConcern')->name('area_of_concerns.destroy.admin');
-        Route::post('{id}/restore', 'restoreAreaOfConcern')->name('area_of_concerns.restore.admin');
-        Route::delete('{id}/force', 'forceDeleteAreaOfConcern')->name('area_of_concerns.forceDelete.admin');
+    Route::prefix('areas-of-concern')->name('area_of_concerns.')->group(function () {
+        Route::post('/', 'storeAreaOfConcern')->name('store.admin');
+        Route::delete('{id}', 'destroyAreaOfConcern')->name('destroy.admin');
+        Route::post('{id}/restore', 'restoreAreaOfConcern')->name('restore.admin');
+        Route::delete('{id}/force', 'forceDeleteAreaOfConcern')->name('forceDelete.admin');
     });
     
     // Vendors
-    Route::prefix('vendors')->group(function () {
-        Route::post('/', 'storeVendor')->name('vendors.store.admin');
-        Route::delete('{id}', 'destroyVendor')->name('vendors.destroy.admin');
-        Route::post('{id}/restore', 'restoreVendor')->name('vendors.restore.admin');
-        Route::delete('{id}/force', 'forceDeleteVendor')->name('vendors.forceDelete.admin');
+    Route::prefix('vendors')->name('vendors.')->group(function () {
+        Route::post('/', 'storeVendor')->name('store.admin');
+        Route::delete('{id}', 'destroyVendor')->name('destroy.admin');
+        Route::post('{id}/restore', 'restoreVendor')->name('restore.admin');
+        Route::delete('{id}/force', 'forceDeleteVendor')->name('forceDelete.admin');
     });
     
     // WO statuses
-    Route::prefix('wo-statuses')->group(function () {
-        Route::post('/', 'storeWoStatus')->name('wo_statuses.store.admin');
-        Route::delete('{id}', 'destroyWoStatus')->name('wo_statuses.destroy.admin');
-        Route::post('{id}/restore', 'restoreWoStatus')->name('wo_statuses.restore.admin');
-        Route::delete('{id}/force', 'forceDeleteWoStatus')->name('wo_statuses.forceDelete.admin');
+    Route::prefix('wo-statuses')->name('wo_statuses.')->group(function () {
+        Route::post('/', 'storeWoStatus')->name('store.admin');
+        Route::delete('{id}', 'destroyWoStatus')->name('destroy.admin');
+        Route::post('{id}/restore', 'restoreWoStatus')->name('restore.admin');
+        Route::delete('{id}/force', 'forceDeleteWoStatus')->name('forceDelete.admin');
     });
 });

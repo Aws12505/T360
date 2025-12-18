@@ -4,14 +4,14 @@ namespace App\Http\Controllers\Web\Acceptance;
 
 use App\Http\Controllers\Controller;
 use App\Services\Acceptance\RejectionReasonCodesService;
-use App\Services\Acceptance\RejectionImportExportService;
+use App\Services\Acceptance\{RejectionImportExportService, RejectionImportValidationService};
 use Illuminate\Http\Request;
 use App\Http\Requests\Acceptance\StoreRejectionRequest;
 use App\Http\Requests\Acceptance\UpdateRejectionRequest;
 use App\Services\Acceptance\RejectionService;
 use Inertia\Inertia;
 use App\Http\Requests\Acceptance\StoreRejectionReasonCode;
-
+use Illuminate\Support\Facades\Storage;
 /**
  * Class RejectionsController
  *
@@ -26,6 +26,7 @@ class RejectionsController extends Controller
     protected RejectionService $rejectionService;
     protected RejectionReasonCodesService $rejectionReasonCodesService;
     protected RejectionImportExportService $rejectionImportExportService;
+    protected RejectionImportValidationService $rejectionImportValidationService;
 
     /**
      * Constructor.
@@ -33,16 +34,19 @@ class RejectionsController extends Controller
      * @param RejectionService $rejectionService Service for rejection processing.
      * @param RejectionReasonCodesService $rejectionReasonCodesService
      * @param RejectionImportExportService $rejectionImportExportService
+     * @param RejectionImportValidationService $rejectionImportValidationService
      */
     public function __construct(
         RejectionService $rejectionService, 
         RejectionReasonCodesService $rejectionReasonCodesService,
-        RejectionImportExportService $rejectionImportExportService
+        RejectionImportExportService $rejectionImportExportService,
+        RejectionImportValidationService $rejectionImportValidationService
     )
     {
         $this->rejectionService = $rejectionService;
         $this->rejectionReasonCodesService = $rejectionReasonCodesService;
         $this->rejectionImportExportService = $rejectionImportExportService;
+        $this->rejectionImportValidationService = $rejectionImportValidationService;
     }
 
     /**
@@ -202,21 +206,100 @@ public function storeCode(StoreRejectionReasonCode $request)
         return redirect()->back()->with('success', 'Rejections deleted successfully.');
     }
 
-    /**
-     * Import rejections from CSV file.
-     */
-    public function import(Request $request, $tenantSlug = null)
-    {
-        return $this->rejectionImportExportService->importRejections($request);
-    }
+    public function validateImport(Request $request, $tenantSlug = null)
+{
+    $request->validate([
+        'file' => 'required|file|mimes:csv,txt|max:10240',
+    ]);
 
-    /**
-     * Import rejections from CSV file for admin.
-     */
-    public function importAdmin(Request $request)
-    {
-        return $this->rejectionImportExportService->importRejections($request);
+    try {
+        $results = $this->rejectionImportValidationService
+            ->validateRejectionsCsv($request->file('file'));
+
+        if (isset($results['header_error'])) {
+            session()->forget('acceptance_import_validation_results');
+            session()->forget('acceptance_import_file_path');
+
+            return back()->with('importValidation', [
+                'success' => false,
+                'header_error' => $results['header_error'],
+                'results' => $results,
+            ]);
+        }
+
+        session(['acceptance_import_validation_results' => $results]);
+
+        if (($results['summary']['invalid'] ?? 0) === 0) {
+            $path = $request->file('file')->store('temp-imports');
+            session(['acceptance_import_file_path' => $path]);
+        } else {
+            session()->forget('acceptance_import_file_path');
+        }
+
+        return back()->with('importValidation', [
+            'success' => true,
+            'results' => $results,
+        ]);
+    } catch (\Exception $e) {
+        session()->forget('acceptance_import_validation_results');
+        session()->forget('acceptance_import_file_path');
+
+        return back()->with('importValidation', [
+            'success' => false,
+            'message' => $e->getMessage(),
+        ]);
     }
+}
+public function confirmImport(Request $request, $tenantSlug = null)
+{
+    try {
+        $filePath = session('acceptance_import_file_path');
+
+        if (!$filePath || !Storage::exists($filePath)) {
+            return back()->with('error', 'Import session expired. Please upload the file again.');
+        }
+
+        $storedFile = Storage::path($filePath);
+
+        $file = new \Illuminate\Http\UploadedFile(
+            $storedFile,
+            basename($filePath),
+            mime_content_type($storedFile),
+            null,
+            true
+        );
+
+        $importRequest = new Request();
+        $importRequest->files->set('csv_file', $file);
+
+        $this->rejectionImportExportService->importRejections($importRequest);
+
+        Storage::delete($filePath);
+        session()->forget(['acceptance_import_file_path', 'acceptance_import_validation_results']);
+
+        return back()->with('success', 'Rejections imported successfully.');
+    } catch (\Exception $e) {
+        return back()->with('error', 'Import failed: ' . $e->getMessage());
+    }
+}
+public function downloadErrorReport(Request $request, $tenantSlug = null)
+{
+    try {
+        $results = session('acceptance_import_validation_results');
+
+        if (!$results || empty($results['invalid'])) {
+            return back()->with('error', 'No validation errors to download.');
+        }
+
+        $filePath = $this->rejectionImportValidationService
+            ->generateErrorReport($results['invalid']);
+
+        return response()->download($filePath)->deleteFileAfterSend(true);
+    } catch (\Exception $e) {
+        return back()->with('error', 'Failed to generate error report: ' . $e->getMessage());
+    }
+}
+
 
     /**
      * Export rejections to CSV file.

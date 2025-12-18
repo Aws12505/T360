@@ -22,6 +22,13 @@ Route::controller(PerformanceController::class)
     Route::put('{performance}', 'adminUpdate')->name('performance.update.admin');
     Route::delete('{performance}', 'adminDestroy')->name('performance.destroy.admin');
     Route::delete('-bulk', 'destroyBulkAdmin')->name('performance.destroyBulk.admin');
-    Route::post('/import', 'import')->name('performance.import.admin');
+    Route::post('/validate-import', 'validateImport')
+    ->name('performance.validateImport.admin');
+
+Route::post('/confirm-import', 'confirmImport')
+    ->name('performance.confirmImport.admin');
+
+Route::get('/download-error-report', 'downloadErrorReport')
+    ->name('performance.downloadErrorReport.admin');
     Route::get('/export', 'export')->name('performance.export.admin');
 });

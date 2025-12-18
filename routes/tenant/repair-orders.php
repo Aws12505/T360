@@ -21,9 +21,18 @@ Route::controller(RepairOrderController::class)->group(function () {
         Route::delete('-bulk', 'destroyBulk')
              ->name('destroyBulk')
              ->middleware('permission:repair-orders.delete');
-        Route::post('/import', 'import')
-             ->name('import')
+        
+        // Import routes
+        Route::post('/validate-import', 'validateImport')
+             ->name('validateImport')
              ->middleware('permission:repair-orders.import');
+        Route::post('/confirm-import', 'confirmImport')
+             ->name('confirmImport')
+             ->middleware('permission:repair-orders.import');
+        Route::get('/download-error-report', 'downloadErrorReport')
+             ->name('downloadErrorReport')
+             ->middleware('permission:repair-orders.import');
+        
         Route::get('/export', 'export')
              ->name('export')
              ->middleware('permission:repair-orders.export');

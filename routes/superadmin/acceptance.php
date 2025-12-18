@@ -5,13 +5,23 @@ use App\Http\Controllers\Web\Acceptance\RejectionsController;
 
 Route::controller(RejectionsController::class)->group(function () {
     // Acceptance / Rejections
-    Route::prefix('acceptance')->group(function () {
+        Route::prefix('acceptance')->group(function () {
         Route::get('/', 'index')->name('acceptance.index.admin');
         Route::post('/', 'store')->name('acceptance.store.admin');
         Route::put('{rejection}', 'updateAdmin')->name('acceptance.update.admin');
         Route::delete('{rejection}', 'destroyAdmin')->name('acceptance.destroy.admin');
         Route::delete('-bulk', 'destroyBulkAdmin')->name('acceptance.destroyBulk.admin');
-        Route::post('/import', 'importAdmin')->name('acceptance.import.admin');
+
+        // NEW: Performance-style import flow (admin)
+        Route::post('/validate-import', 'validateImport')
+            ->name('acceptance.validateImport.admin');
+
+        Route::post('/confirm-import', 'confirmImport')
+            ->name('acceptance.confirmImport.admin');
+
+        Route::get('/download-error-report', 'downloadErrorReport')
+            ->name('acceptance.downloadErrorReport.admin');
+
         Route::get('/export', 'exportAdmin')->name('acceptance.export.admin');
     });
     
