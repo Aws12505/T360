@@ -53,48 +53,72 @@ html {
     }
 
     .dark {
-        /* Background remains the same */
-        --background: 220 16% 12%;
-        --foreground: 0 0% 98%;
-        /* Updated card background to #191c23 (dark slate) */
-        --card: 220 16% 12%;
-        --card-foreground: 0 0% 98%;
-        /* Updated popover background to match card */
-        --popover: 220 16% 12%;
-        --popover-foreground: 0 0% 98%;
-        
-        /* Rest of the dark mode variables remain unchanged */
-        --primary: 235 51% 60%;
-        --primary-foreground: 0 0% 9%;
-        
-        /* Updated secondary color for dark mode */
-        --secondary: 0 80% 60%;
-        --secondary-foreground: 0 0% 98%;
-        
-        --muted: 0 0% 6.9%;
-        --muted-foreground: 0 0% 63.9%;
-        --accent: 235 51% 20%;
-        --accent-foreground: 0 0% 98%;
-        --destructive: 0 84% 60%;
-        --destructive-foreground: 0 0% 98%;
-        --border: 0 0% 14.9%;
-        --input: 0 0% 14.9%;
-        --ring: 235 51% 60%;
-        --chart-1: 235 51% 60%;
-        --chart-2: 0 80% 60%;
-        --chart-3: 30 80% 55%;
-        --chart-4: 280 65% 60%;
-        --chart-5: 340 75% 55%;
-        /* Updated sidebar background to match the darker theme */
-        --sidebar-background: 222 47% 15%;
-        --sidebar-foreground: 235 51% 95.9%;
-        --sidebar-primary: 235 51% 60%;
-        --sidebar-primary-foreground: 0 0% 100%;
-        --sidebar-accent: 235 51% 15.9%;
-        --sidebar-accent-foreground: 235 51% 95.9%;
-        --sidebar-border: 235 51% 15.9%;
-        --sidebar-ring: 235 51% 60%;
-    }
+  /* Neutral dark foundation (less gray, more “ink”) */
+  --background: 228 18% 10%;
+  --foreground: 0 0% 96%;
+
+  /* Surfaces */
+  --card: 228 18% 14%;
+  --card-foreground: 0 0% 96%;
+  --popover: 228 18% 14%;
+  --popover-foreground: 0 0% 96%;
+
+  /* Brand colors tuned for dark mode (same hues, brighter L for visibility) */
+  --primary: 235 55% 68%;
+  --primary-foreground: 228 18% 10%;
+
+  --secondary: 0 84% 62%;
+  --secondary-foreground: 0 0% 98%;
+
+  /* Subtle UI tokens */
+  --muted: 228 16% 18%;
+  --muted-foreground: 220 10% 72%;
+
+  /* Accent surfaces (tinted blue instead of flat gray) */
+  --accent: 235 35% 20%;
+  --accent-foreground: 0 0% 98%;
+
+  --destructive: 0 84% 58%;
+  --destructive-foreground: 0 0% 98%;
+
+  /* Borders / inputs: slightly lighter than surfaces for clean separation */
+  --border: 228 14% 22%;
+  --input: 228 14% 22%;
+
+  /* Focus ring uses brand blue */
+  --ring: 235 55% 68%;
+
+  /* Charts aligned with theme */
+  --chart-1: 235 55% 68%;
+  --chart-2: 0 84% 62%;
+  --chart-3: 197 45% 55%;
+  --chart-4: 43 80% 60%;
+  --chart-5: 280 65% 70%;
+
+  /* Sidebar: a bit deeper than main surface for hierarchy */
+  --sidebar-background: 228 20% 9%;
+  --sidebar-foreground: 0 0% 96%;
+
+  --sidebar-primary: 235 55% 68%;
+  --sidebar-primary-foreground: 228 18% 10%;
+
+  /* Sidebar hover/active states: gentle blue tint */
+  --sidebar-accent: 235 30% 18%;
+  --sidebar-accent-foreground: 0 0% 96%;
+
+  --sidebar-border: 228 14% 20%;
+  --sidebar-ring: 235 55% 68%;
+
+  /* ✅ Missing from your original (added back, matched to new theme) */
+  /* Keep “popover” aligned with surfaces, already set above */
+  /* Keep “card” aligned with surfaces, already set above */
+
+  /* These exist in your original and are already covered by the new theme:
+     --border, --input, --ring, --destructive, etc. */
+
+  /* Extra custom var you mentioned */
+  --fixing-sidebar-foreground: 0 0% 100%;
+}
 }
 
 @layer base {
