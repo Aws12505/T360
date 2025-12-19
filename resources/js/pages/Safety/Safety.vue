@@ -428,180 +428,6 @@
           </CardContent>
         </Card>
 
-        <!-- Modal for creating/editing an entry -->
-        <Dialog v-model:open="showModal">
-          <DialogContent class="w-[90vw] sm:max-w-lg md:max-w-2xl lg:max-w-4xl">
-            <DialogHeader>
-              <DialogTitle>{{ formTitle }}</DialogTitle>
-              <DialogDescription>
-                Fill in the details to {{ formAction.toLowerCase() }} an entry.
-              </DialogDescription>
-            </DialogHeader>
-
-            <form
-              @submit.prevent="submitForm"
-              class="grid max-h-[70vh] gap-6 overflow-y-auto p-1"
-            >
-              <!-- Tenant dropdown for SuperAdmin users -->
-              <div v-if="SuperAdmin" class="col-span-full">
-                <Label for="tenant">Company Name</Label>
-                <div class="relative">
-                  <select
-                    id="tenant"
-                    v-model="form.tenant_id"
-                    class="flex h-10 w-full appearance-none items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    <option disabled value="">Select Company</option>
-                    <option v-for="tenant in tenants" :key="tenant.id" :value="tenant.id">
-                      {{ tenant.name }}
-                    </option>
-                  </select>
-                  <div
-                    class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700"
-                  >
-                    <svg
-                      class="h-4 w-4 opacity-50"
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fill-rule="evenodd"
-                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                        clip-rule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Date field (important, so keep it separate at the top) -->
-              <div class="col-span-full">
-                <Label for="date" class="font-medium">Date</Label>
-                <Input
-                  id="date"
-                  v-model="form.date"
-                  type="date"
-                  required
-                  class="w-full"
-                />
-              </div>
-
-              <!-- Group fields into sections for better organization -->
-              <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
-                <!-- Driver Information Section -->
-                <div class="col-span-full mb-2">
-                  <h3 class="text-md border-b pb-1 font-semibold">Driver Information</h3>
-                </div>
-
-                <div
-                  v-for="col in [
-                    'driver_name',
-                    'user_name',
-                    'group',
-                    'group_hierarchy',
-                    'vehicle_type',
-                  ]"
-                  :key="col"
-                  class="space-y-1"
-                >
-                  <Label :for="col" class="capitalize">{{
-                    col.replace(/_/g, " ")
-                  }}</Label>
-                  <Input
-                    :id="col"
-                    v-model="form[col]"
-                    :type="getInputType(col)"
-                    :step="getStep(col)"
-                    :min="getMin(col)"
-                  />
-                </div>
-
-                <!-- Performance Metrics Section -->
-                <div class="col-span-full mb-2 mt-4">
-                  <h3 class="text-md border-b pb-1 font-semibold">Performance Metrics</h3>
-                </div>
-
-                <div
-                  v-for="col in [
-                    'minutes_analyzed',
-                    'green_minutes_percent',
-                    'overspeeding_percent',
-                    'driver_score',
-                    'safety_normalisation_factor',
-                  ]"
-                  :key="col"
-                  class="space-y-1"
-                >
-                  <Label :for="col" class="capitalize">{{
-                    col.replace(/_/g, " ")
-                  }}</Label>
-                  <Input
-                    :id="col"
-                    v-model="form[col]"
-                    :type="getInputType(col)"
-                    :step="getStep(col)"
-                    :min="getMin(col)"
-                  />
-                </div>
-
-                <!-- Events Section -->
-                <div class="col-span-full mb-2 mt-4">
-                  <h3 class="text-md border-b pb-1 font-semibold">Events & Violations</h3>
-                </div>
-
-                <!-- Remaining fields in a grid -->
-                <div
-                  v-for="col in formColumns.filter(
-                    (c) =>
-                      ![
-                        'driver_name',
-                        'user_name',
-                        'group',
-                        'group_hierarchy',
-                        'vehicle_type',
-                        'minutes_analyzed',
-                        'green_minutes_percent',
-                        'overspeeding_percent',
-                        'driver_score',
-                        'safety_normalisation_factor',
-                        'date',
-                      ].includes(c)
-                  )"
-                  :key="col"
-                  class="space-y-1"
-                >
-                  <Label :for="col" class="text-sm capitalize">{{
-                    col.replace(/_/g, " ")
-                  }}</Label>
-                  <Input
-                    :id="col"
-                    v-model="form[col]"
-                    :type="getInputType(col)"
-                    :step="getStep(col)"
-                    :min="getMin(col)"
-                  />
-                </div>
-              </div>
-
-              <DialogFooter
-                class="mt-6 flex-col space-y-2 border-t pt-4 sm:flex-row sm:justify-end sm:space-x-2 sm:space-y-0"
-              >
-                <Button
-                  type="button"
-                  @click="closeModal"
-                  variant="outline"
-                  class="w-full sm:w-auto"
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" variant="default" class="w-full sm:w-auto">
-                  {{ formAction }}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
         <!-- Delete Selected Entries Confirmation Dialog -->
         <Dialog v-model:open="showDeleteSelectedModal">
           <DialogContent>
@@ -662,6 +488,171 @@
             Delete
           </Button>
         </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
+    <!-- Modal for creating/editing an entry -->
+    <Dialog v-model:open="showModal">
+      <DialogContent class="w-[90vw] sm:max-w-lg md:max-w-2xl lg:max-w-4xl">
+        <DialogHeader>
+          <DialogTitle>{{ formTitle }}</DialogTitle>
+          <DialogDescription>
+            Fill in the details to {{ formAction.toLowerCase() }} an entry.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form
+          @submit.prevent="submitForm"
+          class="grid max-h-[70vh] gap-6 overflow-y-auto p-1"
+        >
+          <!-- Tenant dropdown for SuperAdmin users -->
+          <div v-if="SuperAdmin" class="col-span-full">
+            <Label for="tenant">Company Name</Label>
+            <div class="relative">
+              <select
+                id="tenant"
+                v-model="form.tenant_id"
+                class="flex h-10 w-full appearance-none items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option disabled value="">Select Company</option>
+                <option v-for="tenant in tenants" :key="tenant.id" :value="tenant.id">
+                  {{ tenant.name }}
+                </option>
+              </select>
+              <div
+                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700"
+              >
+                <svg
+                  class="h-4 w-4 opacity-50"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Date field (important, so keep it separate at the top) -->
+          <div class="col-span-full">
+            <Label for="date" class="font-medium">Date</Label>
+            <Input id="date" v-model="form.date" type="date" required class="w-full" />
+          </div>
+
+          <!-- Group fields into sections for better organization -->
+          <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
+            <!-- Driver Information Section -->
+            <div class="col-span-full mb-2">
+              <h3 class="text-md border-b pb-1 font-semibold">Driver Information</h3>
+            </div>
+
+            <div
+              v-for="col in [
+                'driver_name',
+                'user_name',
+                'group',
+                'group_hierarchy',
+                'vehicle_type',
+              ]"
+              :key="col"
+              class="space-y-1"
+            >
+              <Label :for="col" class="capitalize">{{ col.replace(/_/g, " ") }}</Label>
+              <Input
+                :id="col"
+                v-model="form[col]"
+                :type="getInputType(col)"
+                :step="getStep(col)"
+                :min="getMin(col)"
+              />
+            </div>
+
+            <!-- Performance Metrics Section -->
+            <div class="col-span-full mb-2 mt-4">
+              <h3 class="text-md border-b pb-1 font-semibold">Performance Metrics</h3>
+            </div>
+
+            <div
+              v-for="col in [
+                'minutes_analyzed',
+                'green_minutes_percent',
+                'overspeeding_percent',
+                'driver_score',
+                'safety_normalisation_factor',
+              ]"
+              :key="col"
+              class="space-y-1"
+            >
+              <Label :for="col" class="capitalize">{{ col.replace(/_/g, " ") }}</Label>
+              <Input
+                :id="col"
+                v-model="form[col]"
+                :type="getInputType(col)"
+                :step="getStep(col)"
+                :min="getMin(col)"
+              />
+            </div>
+
+            <!-- Events Section -->
+            <div class="col-span-full mb-2 mt-4">
+              <h3 class="text-md border-b pb-1 font-semibold">Events & Violations</h3>
+            </div>
+
+            <!-- Remaining fields in a grid -->
+            <div
+              v-for="col in formColumns.filter(
+                (c) =>
+                  ![
+                    'driver_name',
+                    'user_name',
+                    'group',
+                    'group_hierarchy',
+                    'vehicle_type',
+                    'minutes_analyzed',
+                    'green_minutes_percent',
+                    'overspeeding_percent',
+                    'driver_score',
+                    'safety_normalisation_factor',
+                    'date',
+                  ].includes(c)
+              )"
+              :key="col"
+              class="space-y-1"
+            >
+              <Label :for="col" class="text-sm capitalize">{{
+                col.replace(/_/g, " ")
+              }}</Label>
+              <Input
+                :id="col"
+                v-model="form[col]"
+                :type="getInputType(col)"
+                :step="getStep(col)"
+                :min="getMin(col)"
+              />
+            </div>
+          </div>
+
+          <DialogFooter
+            class="mt-6 flex-col space-y-2 border-t pt-4 sm:flex-row sm:justify-end sm:space-x-2 sm:space-y-0"
+          >
+            <Button
+              type="button"
+              @click="closeModal"
+              variant="outline"
+              class="w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
+            <Button type="submit" variant="default" class="w-full sm:w-auto">
+              {{ formAction }}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   </AppLayout>
