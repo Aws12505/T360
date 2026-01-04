@@ -22,100 +22,146 @@ class ImportValidationService
     /**
      * Validate CSV file without importing
      */
-    public function validateRepairOrdersCsv($file): array
-    {
-        $handle = fopen($file->getRealPath(), 'r');
-        if (!$handle) {
-            throw new \Exception('Unable to open CSV file.');
-        }
+public function validateRepairOrdersCsv($file, string $importType = 'template', ?int $tenantId = null): array
+{
+    $handle = fopen($file->getRealPath(), 'r');
+    if (!$handle) throw new \Exception('Unable to open CSV file.');
 
-        $user = Auth::user();
-        $isSuperAdmin = $user && $user->tenant_id === null;
-
+    $user = Auth::user();
+    $isSuperAdmin = $user && $user->tenant_id === null;
+    // -------------------------
+    // 1) Expected headers
+    // -------------------------
+    if ($importType === 'template') {
         $expectedHeaders = $isSuperAdmin
             ? [
-                'tenant_name', 'ro_number', 'ro_open_date', 'ro_close_date',
-                'truckid', 'repairs_made', 'vendor', 'wo_number', 'wo_status',
-                'invoice', 'invoice_amount', 'invoice_received', 'on_qs',
-                'qs_invoice_date', 'disputed', 'dispute_outcome', 'area_of_concerns'
-            ]
+                'tenant_name','ro_number','ro_open_date','ro_close_date',
+                'truckid','repairs_made','vendor','wo_number','wo_status',
+                'invoice','invoice_amount','invoice_received','on_qs',
+                'qs_invoice_date','disputed','dispute_outcome','area_of_concerns'
+              ]
             : [
-                'ro_number', 'ro_open_date', 'ro_close_date',
-                'truckid', 'repairs_made', 'vendor', 'wo_number', 'wo_status',
-                'invoice', 'invoice_amount', 'invoice_received', 'on_qs',
-                'qs_invoice_date', 'disputed', 'dispute_outcome', 'area_of_concerns'
-            ];
-
-        $headerRow = fgetcsv($handle, 0, ',');
-
-        if ($headerRow === false) {
-            fclose($handle);
-            return [
-                'headers' => $expectedHeaders,
-                'valid' => [],
-                'invalid' => [],
-                'summary' => ['total' => 0, 'valid' => 0, 'invalid' => 0],
-                'header_error' => 'CSV file appears to be empty or unreadable.',
-            ];
-        }
-
-        // Normalize headers (trim + lowercase) to avoid tiny format mistakes
-        $normalizedHeaderRow = array_map(fn ($h) => strtolower(trim((string) $h)), $headerRow);
-        $normalizedExpected = array_map(fn ($h) => strtolower(trim((string) $h)), $expectedHeaders);
-
-        // Validate headers (count + exact match)
-        if (count($normalizedHeaderRow) !== count($normalizedExpected)) {
-            fclose($handle);
-            return [
-                'headers' => $expectedHeaders,
-                'valid' => [],
-                'invalid' => [],
-                'summary' => ['total' => 0, 'valid' => 0, 'invalid' => 0],
-                'header_error' => 'CSV headers do not match expected format. Expected ' .
-                    count($expectedHeaders) . ' columns, got ' . count($headerRow) . ' columns.',
-            ];
-        }
-
-        if ($normalizedHeaderRow !== $normalizedExpected) {
-            fclose($handle);
-            return [
-                'headers' => $expectedHeaders,
-                'valid' => [],
-                'invalid' => [],
-                'summary' => ['total' => 0, 'valid' => 0, 'invalid' => 0],
-                'header_error' => 'CSV headers do not match expected format. Please download the template and try again.',
-            ];
-        }
-
-        // Store headers in results for frontend display
-        $this->results['headers'] = $expectedHeaders;
-
-        $rowNumber = 1; // header is row 1
-
-        while (($row = fgetcsv($handle, 0, ',')) !== false) {
-            $rowNumber++;
-            $this->results['summary']['total']++;
-
-            $validationResult = $this->validateRow($row, $expectedHeaders, $rowNumber, $isSuperAdmin);
-
-            if ($validationResult['isValid']) {
-                $this->results['valid'][] = $validationResult;
-                $this->results['summary']['valid']++;
-            } else {
-                $this->results['invalid'][] = $validationResult;
-                $this->results['summary']['invalid']++;
-            }
-        }
-
-        fclose($handle);
-
-        return $this->results;
+                'ro_number','ro_open_date','ro_close_date',
+                'truckid','repairs_made','vendor','wo_number','wo_status',
+                'invoice','invoice_amount','invoice_received','on_qs',
+                'qs_invoice_date','disputed','dispute_outcome','area_of_concerns'
+              ];
+    } else {
+        // QuickSight export headers (exact match, normalized)
+        $expectedHeaders = [
+            'Work Order #',
+            'Vendor',
+            'WO start date',
+            'WO end date',
+            'Asset ID',
+            'Asset age (days)',
+            'Fuel type',
+            'Invoice #',
+            'Invoice date',
+            'Processing Timestamp',
+            'Invoice report week',
+            'Dispute/Review status',
+            'Dispute/Review determination',
+            'Dispute outcome',
+            'Invoice amount',
+            'Invoice revised amount',
+            'Exemption Reason',
+            'Invoice revised amount post exemptions',
+            'T6W indicator',
+            'Allowance time period',
+        ];
     }
+
+    $headerRow = fgetcsv($handle, 0, ',');
+    if ($headerRow === false) {
+        fclose($handle);
+        return [
+            'headers' => $expectedHeaders,
+            'valid' => [],
+            'invalid' => [],
+            'summary' => ['total' => 0, 'valid' => 0, 'invalid' => 0],
+            'header_error' => 'CSV file appears to be empty or unreadable.',
+        ];
+    }
+
+$normalizedHeaderRow = array_map(function ($h) {
+    $h = (string) $h;
+
+    // Remove UTF-8 BOM if present (usually only on first header)
+    $h = preg_replace('/^\xEF\xBB\xBF/', '', $h);
+
+    // Trim whitespace
+    $h = trim($h);
+
+    // Remove wrapping quotes if present
+    $h = trim($h, "\"'");
+
+    // Lowercase for comparison
+    return strtolower($h);
+}, $headerRow);
+
+$normalizedExpected = array_map(function ($h) {
+    $h = (string) $h;
+    $h = trim($h);
+    $h = trim($h, "\"'");
+    return strtolower($h);
+}, $expectedHeaders);    if (count($normalizedHeaderRow) !== count($normalizedExpected)) {
+        fclose($handle);
+        return [
+            'headers' => $expectedHeaders,
+            'valid' => [],
+            'invalid' => [],
+            'summary' => ['total' => 0, 'valid' => 0, 'invalid' => 0],
+            'header_error' => 'CSV headers do not match expected format. Expected ' .
+                count($expectedHeaders) . ' columns, got ' . count($headerRow) . ' columns.',
+        ];
+    }
+
+    if ($normalizedHeaderRow !== $normalizedExpected) {
+        fclose($handle);
+        return [
+            'headers' => $expectedHeaders,
+            'valid' => [],
+            'invalid' => [],
+            'summary' => ['total' => 0, 'valid' => 0, 'invalid' => 0],
+            'header_error' => 'CSV headers do not match expected format.',
+        ];
+    }
+
+    $this->results = [
+        'headers' => $expectedHeaders,
+        'valid' => [],
+        'invalid' => [],
+        'summary' => ['total' => 0, 'valid' => 0, 'invalid' => 0],
+    ];
+
+    $rowNumber = 1;
+
+    while (($row = fgetcsv($handle, 0, ',')) !== false) {
+        $rowNumber++;
+        $this->results['summary']['total']++;
+
+        $validationResult = $importType === 'template'
+            ? $this->validateRowTemplate($row, $expectedHeaders, $rowNumber, $isSuperAdmin)
+            : $this->validateRowQuickSight($row, $expectedHeaders, $rowNumber, $isSuperAdmin, $tenantId);
+
+        if ($validationResult['isValid']) {
+            $this->results['valid'][] = $validationResult;
+            $this->results['summary']['valid']++;
+        } else {
+            $this->results['invalid'][] = $validationResult;
+            $this->results['summary']['invalid']++;
+        }
+    }
+
+    fclose($handle);
+    return $this->results;
+}
 
     /**
      * Validate a single row
      */
-    protected function validateRow(array $row, array $expectedHeaders, int $rowNumber, bool $isSuperAdmin): array
+    protected function validateRowTemplate(array $row, array $expectedHeaders, int $rowNumber, bool $isSuperAdmin): array
     {
         $errors = [];
         $warnings = [];
@@ -193,9 +239,7 @@ class ImportValidationService
         }
 
         // Validate WO Status
-        if (empty($data['wo_status'])) {
-            $errors[] = 'WO Status is required';
-        } else {
+        if (!empty($data['wo_status'])) {
             $woStatus = WoStatus::where('name', $data['wo_status'])->first();
             if (!$woStatus) {
                 $errors[] = "WO Status not found: {$data['wo_status']}";
@@ -267,6 +311,116 @@ class ImportValidationService
             'preview' => $this->getRowPreview($rowData, $isSuperAdmin),
         ];
     }
+protected function validateRowQuickSight(
+    array $row,
+    array $expectedHeaders,
+    int $rowNumber,
+    bool $isSuperAdmin,
+    ?int $tenantId
+): array {
+    $errors = [];
+    $warnings = [];
+
+    if (count($row) !== count($expectedHeaders)) {
+        return [
+            'rowNumber' => $rowNumber,
+            'isValid' => false,
+            'errors' => ['Column count mismatch.'],
+            'warnings' => [],
+            'data' => $row,
+            'preview' => [
+                ['key' => 'col1', 'label' => 'Column 1', 'value' => (string)($row[0] ?? '')],
+            ],
+        ];
+    }
+
+    $qs = array_combine($expectedHeaders, $row);
+
+    // Map QS -> internal template-like structure
+    // Requirements you said:
+    // 1st col RO# => ro_number
+    // 2nd vendor => vendor
+    // 3rd start => ro_open_date
+    // 4th end => ro_close_date
+    // 5th asset id => truckid
+    // 9th invoice date => qs_invoice_date
+    // 15th invoice amount => invoice_amount
+
+    $data = [
+        'ro_number'        => trim((string)($qs['Work Order #'] ?? '')),
+        'vendor'           => trim((string)($qs['Vendor'] ?? '')),
+        'ro_open_date'     => trim((string)($qs['WO start date'] ?? '')),
+        'ro_close_date'    => trim((string)($qs['WO end date'] ?? '')),
+        'truckid'          => trim((string)($qs['Asset ID'] ?? '')),
+        'invoice'          => trim((string)($qs['Invoice #'] ?? '')),
+        'qs_invoice_date'  => trim((string)($qs['Invoice date'] ?? '')),
+        'invoice_amount'   => trim((string)($qs['Invoice amount'] ?? '')),
+
+        // fill missing required fields
+        'on_qs'            => 'yes',
+        'disputed'         => 'no',
+        'invoice_received' => !empty($qs['Invoice #']) ? 'yes' : 'no',
+
+        // optional fields we don't have
+        'repairs_made'     => '',
+        'wo_number'        => '',
+        'wo_status'        => '',
+        'dispute_outcome'  => '',
+        'area_of_concerns' => '',
+    ];
+
+    // If SuperAdmin QuickSight import: use provided tenant_id (required)
+    if ($isSuperAdmin) {
+        if (!$tenantId) $errors[] = 'Tenant is required for QuickSight import.';
+    }
+
+    // Date formats: QuickSight might be m/d/Y, Y-m-d, or timestamps.
+    // We'll support both m/d/Y and Y-m-d quickly.
+    $data['ro_open_date'] = $this->parseDateFlex($data['ro_open_date'], 'RO Open Date', $errors);
+    $data['ro_close_date'] = $this->parseDateFlexNullable($data['ro_close_date'], 'RO Close Date', $errors);
+    $data['qs_invoice_date'] = $this->parseDateFlexNullable($data['qs_invoice_date'], 'Invoice Date', $errors);
+
+    // Required: ro_number, truckid, vendor, ro_open_date
+    if ($data['ro_number'] === '') $errors[] = 'RO Number is required';
+    if ($data['truckid'] === '') $errors[] = 'Truck ID is required';
+    if ($data['vendor'] === '') $errors[] = 'Vendor is required';
+    if (empty($data['ro_open_date'])) $errors[] = 'RO Open Date is required';
+
+    // Validate truck exists
+    if ($data['truckid'] !== '') {
+        $truck = \App\Models\Truck::where('truckid', $data['truckid'])->first();
+        if (!$truck) $errors[] = "Truck not found: {$data['truckid']}";
+    }
+
+    // Validate vendor exists
+    if ($data['vendor'] !== '') {
+        $vendor = \App\Models\Vendor::where('vendor_name', $data['vendor'])->first();
+        if (!$vendor) $errors[] = "Vendor not found: {$data['vendor']}";
+        elseif (method_exists($vendor, 'trashed') && $vendor->trashed()) $errors[] = "Vendor is deleted: {$data['vendor']}";
+    }
+
+    // invoice_amount numeric if present
+    if ($data['invoice_amount'] !== '' && !is_numeric($data['invoice_amount'])) {
+        $errors[] = "Invoice Amount must be numeric: {$data['invoice_amount']}";
+    }
+
+    // Preview (show key fields)
+    $preview = [
+        ['key' => 'ro_number', 'label' => 'RO#', 'value' => $data['ro_number']],
+        ['key' => 'truckid', 'label' => 'Truck', 'value' => $data['truckid']],
+        ['key' => 'vendor', 'label' => 'Vendor', 'value' => $data['vendor']],
+        ['key' => 'ro_open_date', 'label' => 'Open Date', 'value' => (string)($qs['WO start date'] ?? '')],
+    ];
+
+    return [
+        'rowNumber' => $rowNumber,
+        'isValid' => empty($errors),
+        'errors' => $errors,
+        'warnings' => $warnings,
+        'data' => $data,     // IMPORTANT: store mapped data so import step can reuse if you want
+        'preview' => $preview,
+    ];
+}
 
     /**
      * Return structured preview fields with labels so the UI can show:
@@ -349,5 +503,36 @@ class ImportValidationService
         fclose($file);
         return $filePath;
     }
+
+        protected function parseDateFlex(string $val, string $label, array &$errors): ?string
+{
+    $val = trim($val);
+    if ($val === '') return null;
+
+    try {
+        // try m/d/Y
+        return Carbon::createFromFormat('m/d/Y', $val)->format('Y-m-d');
+    } catch (\Exception $e) {}
+
+    try {
+        // try Y-m-d
+        return Carbon::createFromFormat('Y-m-d', $val)->format('Y-m-d');
+    } catch (\Exception $e) {}
+
+    // try Carbon parse (timestamps)
+    try {
+        return Carbon::parse($val)->format('Y-m-d');
+    } catch (\Exception $e) {
+        $errors[] = "{$label} format invalid: {$val}";
+        return null;
+    }
+}
+
+protected function parseDateFlexNullable(string $val, string $label, array &$errors): ?string
+{
+    $val = trim($val);
+    if ($val === '') return null;
+    return $this->parseDateFlex($val, $label, $errors);
+}
 }
     

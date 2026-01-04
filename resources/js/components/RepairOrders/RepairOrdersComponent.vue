@@ -1012,17 +1012,18 @@
                   <Icon name="activity" class="h-4 w-4 text-muted-foreground" />
                   WO Status
                 </Label>
+
                 <div class="relative">
                   <select
                     v-model="form.wo_status_id"
-                    required
                     class="flex h-9 w-full appearance-none rounded-md border bg-background px-3 py-1 text-sm"
                   >
-                    <option disabled value="">Select</option>
+                    <option :value="null">— None —</option>
                     <option v-for="s in woStatuses" :key="s.id" :value="s.id">
                       {{ s.name }}
                     </option>
                   </select>
+
                   <div
                     class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700"
                   >
@@ -1580,7 +1581,7 @@
           </DialogTitle>
         </div>
         <DialogDescription class="text-xs sm:text-sm mt-1 text-muted-foreground">
-          Upload a CSV file to import repair orders. The file will be validated before
+          Choose an import format, then upload a CSV. The file will be validated before
           import.
         </DialogDescription>
       </DialogHeader>
@@ -1589,6 +1590,109 @@
         <!-- Step 1: File Upload -->
         <div v-if="!importValidationResults">
           <div class="space-y-4">
+            <!-- NEW: Import type selector -->
+            <div class="rounded-lg border p-4 bg-muted/10 space-y-3">
+              <div class="flex items-center gap-2">
+                <Icon name="sliders" class="h-4 w-4 text-muted-foreground" />
+                <div class="text-sm font-semibold">Import format</div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <label
+                  class="flex items-start gap-3 rounded-md border p-3 cursor-pointer hover:bg-muted/20 transition-colors"
+                  :class="importType === 'template' ? 'border-primary bg-primary/5' : ''"
+                >
+                  <input
+                    type="radio"
+                    class="mt-1"
+                    value="template"
+                    v-model="importType"
+                    :disabled="isValidating"
+                  />
+                  <div class="space-y-1">
+                    <div class="text-sm font-medium">Template Import</div>
+                    <div class="text-xs text-muted-foreground">
+                      Uses the standard Repair Orders CSV template (download below).
+                    </div>
+                  </div>
+                </label>
+
+                <label
+                  class="flex items-start gap-3 rounded-md border p-3 cursor-pointer hover:bg-muted/20 transition-colors"
+                  :class="
+                    importType === 'quicksight' ? 'border-primary bg-primary/5' : ''
+                  "
+                >
+                  <input
+                    type="radio"
+                    class="mt-1"
+                    value="quicksight"
+                    v-model="importType"
+                    :disabled="isValidating"
+                  />
+                  <div class="space-y-1">
+                    <div class="text-sm font-medium">QuickSight CSV Import</div>
+                    <div class="text-xs text-muted-foreground">
+                      Upload a QuickSight-exported CSV and we’ll map columns
+                      automatically.
+                    </div>
+                  </div>
+                </label>
+              </div>
+
+              <!-- NEW: tenant select for SuperAdmin + quicksight -->
+              <div v-if="isAdmin && importType === 'quicksight'" class="pt-2 border-t">
+                <Label class="flex items-center gap-1.5 mb-2 text-sm font-medium">
+                  <Icon name="building" class="h-4 w-4 text-muted-foreground" />
+                  Company (required for QuickSight import)
+                </Label>
+
+                <div class="relative">
+                  <select
+                    v-model="importTenantId"
+                    class="flex h-10 w-full appearance-none items-center rounded-md border bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                    :disabled="isValidating"
+                  >
+                    <option value="">Select a company</option>
+                    <option v-for="t in tenants" :key="t.id" :value="t.id">
+                      {{ t.name }}
+                    </option>
+                  </select>
+                  <div
+                    class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700"
+                  >
+                    <svg
+                      class="h-4 w-4 opacity-50"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                </div>
+
+                <Alert
+                  v-if="isAdmin && importType === 'quicksight' && !importTenantId"
+                  variant="destructive"
+                  class="mt-3"
+                >
+                  <AlertTitle class="flex items-center gap-2">
+                    <Icon name="alert_circle" class="h-5 w-5" />
+                    Required
+                  </AlertTitle>
+                  <AlertDescription>
+                    Please select a company before validating a QuickSight CSV.
+                  </AlertDescription>
+                </Alert>
+              </div>
+            </div>
+
+            <!-- Upload box -->
             <div
               class="flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-8 bg-muted/20"
             >
@@ -1605,13 +1709,20 @@
                   class="hidden"
                   @change="validateImportFile"
                   accept=".csv"
-                  :disabled="isValidating"
+                  :disabled="
+                    isValidating ||
+                    (isAdmin && importType === 'quicksight' && !importTenantId)
+                  "
                 />
               </label>
               <p class="text-xs text-muted-foreground mt-2">or drag and drop</p>
             </div>
 
-            <div class="flex items-center gap-2 text-sm text-muted-foreground">
+            <!-- Template download only for template import -->
+            <div
+              v-if="importType === 'template'"
+              class="flex items-center gap-2 text-sm text-muted-foreground"
+            >
               <Icon name="info" class="h-4 w-4" />
               <a :href="templateUrl" download class="text-primary hover:underline">
                 Download CSV Template
@@ -1627,8 +1738,23 @@
           </div>
         </div>
 
-        <!-- Step 2: Validation Results -->
+        <!-- Step 2: Validation Results (unchanged except we show import type badge) -->
         <div v-else class="space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <Badge variant="outline" class="text-xs">
+                {{ importType === "template" ? "Template Import" : "QuickSight Import" }}
+              </Badge>
+              <Badge
+                v-if="isAdmin && importType === 'quicksight' && importTenantId"
+                variant="outline"
+                class="text-xs"
+              >
+                Tenant ID: {{ importTenantId }}
+              </Badge>
+            </div>
+          </div>
+
           <!-- Detected/Expected Headers -->
           <div
             v-if="importValidationResults.headers?.length"
@@ -1731,7 +1857,6 @@
                     >
                       <TableCell class="font-medium">{{ row.rowNumber }}</TableCell>
 
-                      <!-- Preview with labels -->
                       <TableCell class="text-sm text-muted-foreground">
                         <div class="flex flex-wrap gap-x-3 gap-y-1">
                           <span
@@ -1747,7 +1872,6 @@
                         </div>
                       </TableCell>
 
-                      <!-- Errors -->
                       <TableCell>
                         <div class="space-y-1">
                           <div
@@ -1761,7 +1885,6 @@
                         </div>
                       </TableCell>
 
-                      <!-- Warnings (hidden if none exist anywhere) -->
                       <TableCell v-if="hasWarnings">
                         <div class="space-y-1">
                           <div
@@ -1898,6 +2021,8 @@ import {
   TableHead,
   TableBody,
   TableCell,
+  // NEW: Badge is used in the import modal
+  Badge,
 } from "@/components/ui";
 import { usePage } from "@inertiajs/vue3";
 
@@ -1912,26 +2037,11 @@ const props = defineProps({
   dateRange: { type: Object, default: null },
   dateFilter: { type: String, default: "yesterday" },
   woStatuses: { type: Array, default: () => [] },
-  weekNumber: {
-    type: Number,
-    default: null,
-  },
-  startWeekNumber: {
-    type: Number,
-    default: null,
-  },
-  endWeekNumber: {
-    type: Number,
-    default: null,
-  },
-  year: {
-    type: Number,
-    default: null,
-  },
-  canceledQSInvoices: {
-    type: Array,
-    default: () => [],
-  },
+  weekNumber: { type: Number, default: null },
+  startWeekNumber: { type: Number, default: null },
+  endWeekNumber: { type: Number, default: null },
+  year: { type: Number, default: null },
+  canceledQSInvoices: { type: Array, default: () => [] },
   outstandingInvoices: { type: Array, default: () => [] },
   workOrdersByTruck: { type: Array, default: () => [] },
   workOrderByAreasOfConcern: { type: Array, default: () => [] },
@@ -1946,7 +2056,7 @@ const props = defineProps({
   perPage: { type: Number, default: 10 },
   openedComponent: { type: String, default: "trucks" },
   permissions: { type: Array, default: () => [] },
-  importValidation: { type: Object, default: null }, // ADD THIS
+  importValidation: { type: Object, default: null },
 });
 
 // State
@@ -1965,9 +2075,15 @@ const showAreasModal = ref(false);
 const showVendorsModal = ref(false);
 const showStatusModal = ref(false);
 const showImportModal = ref(false);
-const importValidationResults = ref(null);
+
+const importValidationResults = ref<any>(null);
 const isValidating = ref(false);
 const isImporting = ref(false);
+
+// NEW: import type + tenant selection for QS
+const importType = ref<"template" | "quicksight">("template");
+const importTenantId = ref<string | number>("");
+
 const formAction = ref<"Create" | "Update">("Create");
 const form = useForm({
   id: null,
@@ -1989,6 +2105,7 @@ const form = useForm({
   repairs_made: "",
   area_of_concerns: [],
 });
+
 const areaForm = useForm({ concern: "" });
 const vendorForm = useForm({ vendor_name: "" });
 const statusForm = useForm({ name: "" });
@@ -1996,11 +2113,13 @@ const statusForm = useForm({ name: "" });
 // Computed
 const isAdmin = computed(() => props.SuperAdmin);
 const hasData = computed(() => props.repairOrders.data.length > 0);
+
 const allSelected = computed(
   () =>
     hasData.value &&
-    props.repairOrders.data.every((o) => selectedIds.value.includes(o.id))
+    props.repairOrders.data.every((o: any) => selectedIds.value.includes(o.id))
 );
+
 const dateOptions = [
   { label: "Yesterday", value: "yesterday" },
   { label: "WTD", value: "current-week" },
@@ -2008,22 +2127,23 @@ const dateOptions = [
   { label: "Quarterly", value: "quarterly" },
 ];
 
+const templateUrl = "/storage/upload-data-temps/Repair Orders Template.csv";
+
 // Helpers
-const formatDate = (dateStr) => {
+const formatDate = (dateStr: string) => {
   if (!dateStr) return "";
   const parts = dateStr.split("-");
   if (parts.length !== 3) return dateStr;
   const [year, month, day] = parts;
   return `${Number(month)}/${Number(day)}/${year}`;
 };
+
 function formatCurrency(a: any) {
   return a
     ? new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(a)
     : "$0.00";
 }
-const templateUrl = "/storage/upload-data-temps/Repair Orders Template.csv";
 
-// Actions
 function selectDate(val: string) {
   filter.value.dateFilter = val;
   applyFilters();
@@ -2047,6 +2167,7 @@ function applyFilters() {
     dateFilter: filter.value.dateFilter,
     openedComponent: "repairOrders",
   };
+
   router.visit(route(routeName, params), {
     only: [
       "repairOrders",
@@ -2064,63 +2185,53 @@ function applyFilters() {
     ],
   });
 }
+
 function resetFilters() {
   filter.value = { ...filter.value, search: "", vendor_id: "", status_id: "" };
   applyFilters();
 }
+
 const sortState = ref({ column: "ro_number", direction: "asc" });
+
 function sort(col: string) {
   if (sortState.value.column === col)
     sortState.value.direction = sortState.value.direction === "asc" ? "desc" : "asc";
-  else {
-    sortState.value = { column: col, direction: "asc" };
-  }
+  else sortState.value = { column: col, direction: "asc" };
+
   applyFilters();
 }
+
 function changePerPage() {
   applyFilters();
 }
-function go(url?: string) {
-  if (url) {
-    // Add perPage parameter to the URL
-    const urlObj = new URL(url);
-    const baseUrl = urlObj.origin + urlObj.pathname;
 
-    router.get(
-      baseUrl,
-      {
-        ...filter.value,
-        perPage: localPerPage.value,
-        dateFilter: filter.value.dateFilter,
-        openedComponent: "repairOrders",
-        page: urlObj.searchParams.get("page") || 1,
-      },
-      { preserveScroll: true }
-    );
-  }
+function go(url?: string) {
+  if (!url) return;
+
+  const urlObj = new URL(url);
+  const baseUrl = urlObj.origin + urlObj.pathname;
+
+  router.get(
+    baseUrl,
+    {
+      ...filter.value,
+      perPage: localPerPage.value,
+      dateFilter: filter.value.dateFilter,
+      openedComponent: "repairOrders",
+      page: urlObj.searchParams.get("page") || 1,
+    },
+    { preserveScroll: true }
+  );
 }
+
 function toggleAll(e: Event) {
   const chk = (e.target as HTMLInputElement).checked;
-  selectedIds.value = chk ? props.repairOrders.data.map((o) => o.id) : [];
+  selectedIds.value = chk ? props.repairOrders.data.map((o: any) => o.id) : [];
 }
+
 const page = usePage();
 
-// CSV
-function importCsv(evt: any) {
-  const file = evt.target.files[0];
-  if (!file) return;
-  const f = new FormData();
-  f.append("file", file);
-  const r = props.tenantSlug
-    ? route("repair_orders.import", { tenantSlug: props.tenantSlug })
-    : route("repair_orders.import.admin");
-  router.post(r, f, {
-    onSuccess: () => {
-      successMessage.value = "Imported";
-      evt.target.value = null;
-    },
-  });
-}
+// CSV Export
 function exportCsv() {
   if (!hasData.value) {
     errorMessage.value = "No data";
@@ -2131,7 +2242,17 @@ function exportCsv() {
     : route("repair_orders.export.admin");
 }
 
-// Create/Edit handlers
+// NEW: open import modal resets import state
+function openImportModal() {
+  showImportModal.value = true;
+  importValidationResults.value = null;
+  isValidating.value = false;
+  isImporting.value = false;
+  importType.value = "template";
+  importTenantId.value = "";
+}
+
+// Create/Edit handlers (unchanged)
 function openCreateModal() {
   form.reset();
   formAction.value = "Create";
@@ -2139,9 +2260,7 @@ function openCreateModal() {
 }
 function openEdit(o: any) {
   form.reset();
-  form.reset();
 
-  // Set all form fields from the order object
   form.id = o.id;
   form.tenant_id = o.tenant_id;
   form.ro_number = o.ro_number;
@@ -2149,11 +2268,10 @@ function openEdit(o: any) {
   form.ro_close_date = o.ro_close_date || "";
   form.truck_id = o.truck_id;
   form.vendor_id = o.vendor_id;
-  form.wo_number = o.wo_number;
-  form.wo_status_id = o.wo_status_id;
+  form.wo_number = o.wo_number ?? "";
+  form.wo_status_id = o.wo_status_id ?? null;
   form.invoice = o.invoice || "";
   form.invoice_amount = o.invoice_amount || "";
-  // Handle boolean values that might come as 0/1 or true/false
   form.invoice_received = Boolean(o.invoice_received);
   form.on_qs = o.on_qs || "no";
   form.qs_invoice_date = o.qs_invoice_date || "";
@@ -2161,20 +2279,24 @@ function openEdit(o: any) {
   form.dispute_outcome = o.dispute_outcome || "";
   form.repairs_made = o.repairs_made || "";
 
-  // Handle areas of concern with better error checking - use areas_of_concern (snake_case)
   form.area_of_concerns = [];
   if (o.areas_of_concern && Array.isArray(o.areas_of_concern)) {
-    // Extract just the IDs from the areas_of_concern relationship
-    form.area_of_concerns = o.areas_of_concern.map((area) => area.id);
+    form.area_of_concerns = o.areas_of_concern.map((area: any) => area.id);
   }
+
   formAction.value = "Update";
   showModal.value = true;
 }
+
 function closeModal() {
   form.reset();
   showModal.value = false;
 }
+
 function submitForm() {
+  if (form.wo_status_id === ("" as any)) form.wo_status_id = null;
+  if (form.wo_number === (null as any)) form.wo_number = "";
+
   const endpoint =
     formAction.value === "Update"
       ? props.tenantSlug
@@ -2183,6 +2305,7 @@ function submitForm() {
       : props.tenantSlug
       ? route("repair_orders.store", { tenantSlug: props.tenantSlug })
       : route("repair_orders.store.admin");
+
   form[formAction.value === "Update" ? "put" : "post"](endpoint, {
     onSuccess: () => {
       successMessage.value = `${formAction.value}d!`;
@@ -2191,7 +2314,7 @@ function submitForm() {
   });
 }
 
-// Delete handlers
+// Delete handlers (unchanged)
 let deleteId: number | null = null;
 function deleteOne(id: number) {
   deleteId = id;
@@ -2225,7 +2348,7 @@ function deleteBulk() {
   });
 }
 
-// Areas handlers
+// Areas/Vendors/Statuses handlers (unchanged)
 function openAreasModal() {
   areaForm.reset();
   showAreasModal.value = true;
@@ -2242,7 +2365,6 @@ function restoreArea(id: number) {
   router.post(route("area_of_concerns.restore.admin", id));
 }
 
-// Vendors handlers
 function openVendorsModal() {
   vendorForm.reset();
   showVendorsModal.value = true;
@@ -2257,7 +2379,6 @@ function restoreVendor(id: number) {
   router.post(route("vendors.restore.admin", id));
 }
 
-// Status handlers
 function openStatusModal() {
   statusForm.reset();
   showStatusModal.value = true;
@@ -2273,27 +2394,30 @@ function deleteStatus(id: number) {
 function restoreStatus(id: number) {
   router.post(route("wo_statuses.restore.admin", id));
 }
-const hasCanceledQSInvoices = computed(() => {
-  return props.canceledQSInvoices.length > 0;
-});
+
+// Other computed/utility (unchanged)
+const hasCanceledQSInvoices = computed(() => props.canceledQSInvoices.length > 0);
 const showCanceledQSInvoicesDialog = ref(false);
-// Map areas for display
+
 const areasMap = computed(() =>
-  Object.fromEntries(props.areasOfConcern.map((a) => [a.id, a.concern]))
+  Object.fromEntries((props.areasOfConcern as any[]).map((a: any) => [a.id, a.concern]))
 );
 const availableAreas = computed(() =>
-  props.areasOfConcern.filter((a) => !form.area_of_concerns.includes(a.id))
+  (props.areasOfConcern as any[]).filter(
+    (a: any) => !form.area_of_concerns.includes(a.id)
+  )
 );
+
 function addArea(e: any) {
   const id = Number(e.target.value);
   if (id && !form.area_of_concerns.includes(id)) form.area_of_concerns.push(id);
   e.target.value = "";
 }
 function removeArea(id: number) {
-  form.area_of_concerns = form.area_of_concerns.filter((x) => x !== id);
+  form.area_of_concerns = form.area_of_concerns.filter((x: number) => x !== id);
 }
+
 const weekNumberText = computed(() => {
-  // For yesterday and current-week, show single week
   if (
     (props.dateFilter === "yesterday" || props.dateFilter === "current-week") &&
     props.weekNumber &&
@@ -2301,8 +2425,6 @@ const weekNumberText = computed(() => {
   ) {
     return `Week ${props.weekNumber}, ${props.year}`;
   }
-
-  // For 6w and quarterly, show start-end week range if available
   if (
     (props.dateFilter === "6w" || props.dateFilter === "quarterly") &&
     props.startWeekNumber &&
@@ -2311,9 +2433,9 @@ const weekNumberText = computed(() => {
   ) {
     return `Weeks ${props.startWeekNumber}-${props.endWeekNumber}, ${props.year}`;
   }
-
   return "";
 });
+
 // Click outside
 onMounted(() => {
   const h = (e: Event) => {
@@ -2327,79 +2449,80 @@ onMounted(() => {
 // Clear flash
 setTimeout(() => (successMessage.value = ""), 5000);
 
-// Get top 5 areas of concern
-const topAreasOfConcern = computed(() => {
-  const areas = props.workOrderByAreasOfConcern || [];
-  return areas.slice(0, 5);
-});
-const totalOutstanding = computed(() => {
-  return props.outstandingInvoices.reduce((sum, inv) => {
-    const amt = Number(inv.invoice_amount) || 0;
-    return sum + amt;
-  }, 0);
-});
-// Get top 5 trucks by work orders
-const topWorkOrdersByTruck = computed(() => {
-  const trucks = props.workOrdersByTruck || [];
-  return trucks.slice(0, 5);
-});
+// Top panels (unchanged)
+const topAreasOfConcern = computed(() =>
+  (props.workOrderByAreasOfConcern || []).slice(0, 5)
+);
+const topWorkOrdersByTruck = computed(() => (props.workOrdersByTruck || []).slice(0, 5));
+
 const minInvoiceAmount = ref<number | null>(null);
 const outstandingDate = ref<string | null>(null);
 const showOutstandingInvoicesSection = ref(false);
 
-// Add this function to handle the filter application
 const filteredOutstandingInvoices = computed(() => {
-  return props.outstandingInvoices.filter((inv) => {
+  return (props.outstandingInvoices as any[]).filter((inv: any) => {
     const meetsAmount =
       minInvoiceAmount.value != null
         ? Number(inv.invoice_amount) >= minInvoiceAmount.value
         : true;
+
     const meetsDate = outstandingDate.value
       ? new Date(inv.qs_invoice_date) > new Date(outstandingDate.value)
       : true;
+
     return meetsAmount && meetsDate;
   });
 });
 
 const totalFilteredOutstanding = computed(() => {
   return filteredOutstandingInvoices.value.reduce(
-    (sum, inv) => sum + Number(inv.invoice_amount || 0),
+    (sum: number, inv: any) => sum + Number(inv.invoice_amount || 0),
     0
   );
 });
-const permissionNames = computed(() => props.permissions.map((p) => p.name));
+
+const permissionNames = computed(() =>
+  (props.permissions as any[]).map((p: any) => p.name)
+);
 
 const activeFilterBadges = computed(() => {
   const badges: string[] = [];
+  if (filter.value.search) badges.push(`Search: "${filter.value.search}"`);
 
-  // Search filter badge
-  if (filter.value.search) {
-    badges.push(`Search: "${filter.value.search}"`);
-  }
+  const selectedVendor = (props.vendors as any[]).find(
+    (v: any) => v.id == filter.value.vendor_id
+  );
+  if (selectedVendor) badges.push(`Vendor: ${selectedVendor.vendor_name}`);
 
-  // Vendor filter badge
-  const selectedVendor = props.vendors.find((v) => v.id == filter.value.vendor_id);
-  if (selectedVendor) {
-    badges.push(`Vendor: ${selectedVendor.vendor_name}`);
-  }
-
-  // Status filter badge
-  const selectedStatus = props.woStatuses.find((s) => s.id == filter.value.status_id);
-  if (selectedStatus) {
-    badges.push(`Status: ${selectedStatus.name}`);
-  }
+  const selectedStatus = (props.woStatuses as any[]).find(
+    (s: any) => s.id == filter.value.status_id
+  );
+  if (selectedStatus) badges.push(`Status: ${selectedStatus.name}`);
 
   return badges;
 });
 
+// UPDATED: include importType + tenant_id in validation request
 function validateImportFile(event: Event) {
   const target = event.target as HTMLInputElement;
   const file = target.files?.[0];
   if (!file) return;
 
+  // Require tenant when SuperAdmin + QS
+  if (isAdmin.value && importType.value === "quicksight" && !importTenantId.value) {
+    errorMessage.value = "Please select a company before validating a QuickSight CSV.";
+    target.value = "";
+    return;
+  }
+
   isValidating.value = true;
+
   const formData = new FormData();
   formData.append("file", file);
+  formData.append("importType", importType.value);
+  if (isAdmin.value && importType.value === "quicksight") {
+    formData.append("tenant_id", String(importTenantId.value));
+  }
 
   const endpoint = props.tenantSlug
     ? route("repair_orders.validateImport", { tenantSlug: props.tenantSlug })
@@ -2408,13 +2531,12 @@ function validateImportFile(event: Event) {
   router.post(endpoint, formData, {
     forceFormData: true,
     preserveScroll: true,
-    only: ["flash"], // THIS IS KEY - tell Inertia to fetch only this prop
+    only: ["flash"],
     onBefore: () => {
       isValidating.value = true;
     },
     onSuccess: () => {
       isValidating.value = false;
-      // The importValidation prop will be updated automatically
     },
     onError: () => {
       isValidating.value = false;
@@ -2422,15 +2544,17 @@ function validateImportFile(event: Event) {
     },
   });
 
-  // Reset input
   target.value = "";
 }
 
+// UPDATED: include importType + tenant_id in confirm request
 function confirmImport() {
-  if (
-    !importValidationResults.value ||
-    importValidationResults.value.summary.invalid > 0
-  ) {
+  if (!importValidationResults.value || importValidationResults.value.summary.invalid > 0)
+    return;
+
+  // Require tenant when SuperAdmin + QS
+  if (isAdmin.value && importType.value === "quicksight" && !importTenantId.value) {
+    errorMessage.value = "Please select a company before importing a QuickSight CSV.";
     return;
   }
 
@@ -2442,7 +2566,12 @@ function confirmImport() {
 
   router.post(
     endpoint,
-    {},
+    {
+      importType: importType.value,
+      ...(isAdmin.value && importType.value === "quicksight"
+        ? { tenant_id: importTenantId.value }
+        : {}),
+    },
     {
       preserveScroll: true,
       onSuccess: () => {
@@ -2471,14 +2600,16 @@ function closeImportModal() {
   importValidationResults.value = null;
   isValidating.value = false;
   isImporting.value = false;
+  importType.value = "template";
+  importTenantId.value = "";
 }
 
+// Watch flash validation payload (unchanged behavior)
 watch(
-  () => page.props.flash?.importValidation,
+  () => (page.props as any).flash?.importValidation,
   (payload: any) => {
     if (!payload) return;
 
-    // payload could be { success, results } or { success:false, header_error, results }
     if (payload.results) {
       importValidationResults.value = payload.results;
       if (payload.header_error) {

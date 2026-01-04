@@ -21,8 +21,8 @@ class CreateRepairOrdersTable extends Migration
             // Vendor: foreign key referencing vendors table
             $table->unsignedBigInteger('vendor_id')->comment('Vendor ID');
             $table->foreign('vendor_id')->references('id')->on('vendors')->onDelete('cascade');
-            $table->string('wo_number')->comment('WO#');
-            $table->foreignId('wo_status_id')->constrained('wo_statuses')->comment('WO Status ID');
+            $table->string('wo_number')->nullable()->comment('WO#');
+            $table->foreignId('wo_status_id')->nullable()->constrained('wo_statuses')->comment('WO Status ID');
             $table->string('invoice')->nullable()->comment('Invoice number with dashes');
             $table->decimal('invoice_amount', 15, 2)->nullable()->comment('Invoice Amount');
             $table->boolean('invoice_received')->comment('Did we receive the invoice?');

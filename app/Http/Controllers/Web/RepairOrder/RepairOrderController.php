@@ -48,11 +48,11 @@ class RepairOrderController extends Controller
         return Inertia::render('AssetMaintenance', $data);
     }
 
-    public function index2(Request $request)
-    {
-        $data = $this->repairOrderService->getIndexData();
-        return Inertia::render('RepairOrders/Index', $data);
-    }
+    // public function index2(Request $request)
+    // {
+    //     $data = $this->repairOrderService->getIndexData();
+    //     return Inertia::render('RepairOrders/Index', $data);
+    // }
 
     public function store(StoreRepairOrderRequest $request)
     {
@@ -90,25 +90,46 @@ class RepairOrderController extends Controller
 public function validateImport(Request $request)
 {
     $request->validate([
+        'importType' => 'required|in:template,quicksight',
         'file' => 'required|file|mimes:csv,txt|max:10240',
+
+        // If SuperAdmin and importing QuickSight, we need a tenant target
+        'tenant_id' => 'nullable|integer|exists:tenants,id',
     ]);
 
     try {
-        $results = $this->importValidationService->validateRepairOrdersCsv($request->file('file'));
+        $importType = $request->input('importType');
 
-        // Header error
+        // SuperAdmin + QuickSight needs tenant_id (because QS export doesn't include tenant_name)
+        $user = Auth::user();
+        $isSuperAdmin = $user && $user->tenant_id === null;
+        if ($isSuperAdmin && $importType === 'quicksight' && !$request->filled('tenant_id')) {
+            return back()->with('importValidation', [
+                'success' => false,
+                'message' => 'Tenant is required for QuickSight import as SuperAdmin.',
+            ]);
+        }
+
+        $results = $this->importValidationService->validateRepairOrdersCsv(
+            $request->file('file'),
+            $importType,
+            $request->input('tenant_id')
+        );
+
         if (isset($results['header_error'])) {
             return back()->with('importValidation', [
                 'success' => false,
                 'header_error' => $results['header_error'],
-                'results' => $results, // includes expected headers
+                'results' => $results,
             ]);
         }
 
-        // Store validation results in session for next step
-        session(['import_validation_results' => $results]);
+        session([
+            'import_validation_results' => $results,
+            'import_type' => $importType,
+            'import_tenant_id' => $request->input('tenant_id'),
+        ]);
 
-        // Store file temporarily if validation passes
         if (($results['summary']['invalid'] ?? 0) === 0) {
             $path = $request->file('file')->store('temp-imports');
             session(['import_file_path' => $path]);
@@ -126,6 +147,7 @@ public function validateImport(Request $request)
     }
 }
 
+
 /**
  * Step 2: Confirm and execute the import
  */
@@ -133,6 +155,8 @@ public function confirmImport(Request $request)
 {
     try {
         $filePath = session('import_file_path');
+        $importType = session('import_type', 'template');
+        $tenantId = session('import_tenant_id');
 
         if (!$filePath || !Storage::exists($filePath)) {
             return back()->with('error', 'Import session expired. Please upload the file again.');
@@ -143,20 +167,26 @@ public function confirmImport(Request $request)
         $file = new \Illuminate\Http\UploadedFile(
             $storedFile,
             basename($filePath),
-            mime_content_type($storedFile),
+            mime_content_type($storedFile) ?: 'text/csv',
             null,
             true
         );
 
         $importRequest = new Request();
         $importRequest->files->set('file', $file);
+        $importRequest->merge([
+            'importType' => $importType,
+            'tenant_id'  => $tenantId,
+        ]);
 
-        $this->repairOrderImportExportService->importRepairOrders($importRequest);
+        // IMPORTANT: return the actual response from the service
+        $response = $this->repairOrderImportExportService->importRepairOrders($importRequest);
 
+        // Cleanup AFTER running import
         Storage::delete($filePath);
-        session()->forget(['import_file_path', 'import_validation_results']);
+        session()->forget(['import_file_path', 'import_validation_results', 'import_type', 'import_tenant_id']);
 
-        return back()->with('success', 'Repair Orders imported successfully.');
+        return $response;
     } catch (\Exception $e) {
         return back()->with('error', 'Import failed: ' . $e->getMessage());
     }

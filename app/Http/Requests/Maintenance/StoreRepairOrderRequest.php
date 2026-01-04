@@ -24,8 +24,8 @@ class StoreRepairOrderRequest extends FormRequest
             'area_of_concerns.*'  => 'exists:area_of_concerns,id',
             'repairs_made'        => 'nullable|string',
             'vendor_id'           => 'required|exists:vendors,id',
-            'wo_number'           => 'string', 
-            'wo_status_id'        => 'required|exists:wo_statuses,id', // Changed from enum validation to foreign key
+            'wo_number'           => 'nullable|string', 
+            'wo_status_id'        => 'nullable|exists:wo_statuses,id', // Changed from enum validation to foreign key
             'invoice'             => 'nullable|string', 
             'invoice_amount'      => 'nullable|numeric',
             'invoice_received'    => 'required|boolean',
