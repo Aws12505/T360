@@ -38,6 +38,7 @@
           Repair Orders
         </h1>
       </div>
+
       <div class="flex flex-wrap gap-3">
         <Button
           @click="openCreateModal"
@@ -47,6 +48,7 @@
         >
           <Icon name="plus" class="mr-1 h-4 w-4 md:mr-2" /> Create New
         </Button>
+
         <Button
           v-if="selectedIds.length && permissionNames.includes('repair-orders.delete')"
           @click="confirmBulkDelete"
@@ -57,6 +59,7 @@
             selectedIds.length
           }})
         </Button>
+
         <Button
           v-if="isAdmin"
           @click="openAreasModal"
@@ -65,6 +68,7 @@
         >
           <Icon name="settings" class="mr-1 h-4 w-4 md:mr-2" /> Areas
         </Button>
+
         <Button
           v-if="isAdmin"
           @click="openVendorsModal"
@@ -73,6 +77,7 @@
         >
           <Icon name="settings" class="mr-1 h-4 w-4 md:mr-2" /> Vendors
         </Button>
+
         <Button
           v-if="isAdmin"
           @click="openStatusModal"
@@ -81,8 +86,10 @@
         >
           <Icon name="settings" class="mr-1 h-4 w-4 md:mr-2" /> Statuses
         </Button>
+
+        <!-- ✅ UPDATED: use openImportModal so state + file input reset works -->
         <Button
-          @click="showImportModal = true"
+          @click="openImportModal"
           v-if="permissionNames.includes('repair-orders.import')"
           variant="secondary"
           class="px-2 py-0 md:px-4 md:py-2 shadow-sm hover:shadow transition-all"
@@ -101,6 +108,7 @@
         </Button>
       </div>
     </div>
+
     <!-- Canceled QS Invoices Alert -->
     <div
       v-if="
@@ -142,6 +150,7 @@
         </div>
       </div>
     </div>
+
     <!-- Date Filter Tabs -->
     <Card class="shadow-sm border bg-card">
       <CardContent class="p-3 md:p-4">
@@ -175,6 +184,7 @@
         </div>
       </CardContent>
     </Card>
+
     <div
       class="mx-auto mb-6 grid max-w-[95vw] grid-cols-1 gap-4 md:max-w-[64vw] md:grid-cols-2 lg:max-w-full"
       v-if="(dateFilter === 'quarterly' || dateFilter === '6w') && !SuperAdmin"
@@ -208,7 +218,7 @@
         </div>
       </div>
 
-      <!--  Panel: Work Orders by Truck -->
+      <!-- Panel: Work Orders by Truck -->
       <div class="rounded-lg border bg-card shadow-sm">
         <div class="border-b p-4">
           <h3 class="text-lg font-semibold">Top 5 Frequently Repaired Tractors</h3>
@@ -237,6 +247,7 @@
         </div>
       </div>
     </div>
+
     <!-- Outstanding Invoices Filter -->
     <div
       v-if="!SuperAdmin"
@@ -331,6 +342,7 @@
         </div>
       </div>
     </div>
+
     <div
       v-if="!SuperAdmin && filteredOutstandingInvoices.length === 0"
       class="mb-6 rounded-lg border bg-card shadow-sm"
@@ -342,13 +354,13 @@
         No outstanding invoices match the current criteria
       </div>
     </div>
+
     <!-- Filters Card -->
     <Card class="shadow-sm border">
       <CardHeader class="p-2 md:p-4 lg:p-6 border-b">
         <div class="flex justify-between items-center">
           <div class="flex items-center gap-2">
             <CardTitle class="text-lg md:text-xl lg:text-2xl">Filters</CardTitle>
-            <!-- Display active filters -->
             <div
               v-if="!showFilters && activeFilterBadges.length"
               class="ml-4 flex flex-wrap gap-2"
@@ -376,7 +388,6 @@
         </div>
       </CardHeader>
 
-      <!-- Filters content, shown/hidden based on showFilters state -->
       <Transition
         enter-active-class="transition-all duration-300 ease-out"
         leave-active-class="transition-all duration-200 ease-in"
@@ -486,7 +497,6 @@
     </Card>
 
     <!-- Table -->
-    <!-- Data Table -->
     <template v-if="hasData">
       <Card
         class="mx-auto max-w-[95vw] md:max-w-[64vw] lg:max-w-full overflow-x-auto shadow-sm border"
@@ -511,6 +521,7 @@
                       />
                     </div>
                   </TableHead>
+
                   <TableHead
                     @click="sort('ro_number')"
                     class="cursor-pointer font-semibold"
@@ -520,7 +531,9 @@
                       <SortIndicator column="ro_number" :sortState="sortState" />
                     </div>
                   </TableHead>
+
                   <TableHead v-if="isAdmin" class="font-semibold">Company</TableHead>
+
                   <TableHead
                     @click="sort('ro_open_date')"
                     class="cursor-pointer font-semibold"
@@ -530,6 +543,7 @@
                       <SortIndicator column="ro_open_date" :sortState="sortState" />
                     </div>
                   </TableHead>
+
                   <TableHead
                     @click="sort('ro_close_date')"
                     class="cursor-pointer font-semibold"
@@ -539,6 +553,7 @@
                       <SortIndicator column="ro_close_date" :sortState="sortState" />
                     </div>
                   </TableHead>
+
                   <TableHead class="font-semibold">Truck</TableHead>
                   <TableHead class="font-semibold">Vendor</TableHead>
                   <TableHead class="font-semibold">Areas of Concern</TableHead>
@@ -560,6 +575,7 @@
                   >
                 </TableRow>
               </TableHeader>
+
               <TableBody>
                 <TableRow v-if="!repairOrders.data.length">
                   <TableCell :colspan="isAdmin ? 16 : 15" class="py-8 text-center">
@@ -574,6 +590,7 @@
                     </div>
                   </TableCell>
                 </TableRow>
+
                 <TableRow
                   v-for="o in repairOrders.data"
                   :key="o.id"
@@ -587,24 +604,31 @@
                       class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-1 focus:ring-primary"
                     />
                   </TableCell>
+
                   <TableCell class="whitespace-nowrap font-medium">{{
                     o.ro_number
                   }}</TableCell>
+
                   <TableCell v-if="isAdmin" class="whitespace-nowrap">{{
                     o.tenant?.name || "—"
                   }}</TableCell>
+
                   <TableCell class="whitespace-nowrap">{{
                     formatDate(o.ro_open_date)
                   }}</TableCell>
+
                   <TableCell class="whitespace-nowrap">{{
                     o.ro_close_date ? formatDate(o.ro_close_date) : "N/A"
                   }}</TableCell>
+
                   <TableCell class="whitespace-nowrap">{{
                     o.truck?.truckid || "—"
                   }}</TableCell>
+
                   <TableCell class="whitespace-nowrap">{{
                     o.vendor?.vendor_name || "—"
                   }}</TableCell>
+
                   <TableCell class="whitespace-nowrap">
                     <span v-if="o.areas_of_concern?.length">
                       <span v-for="(area, idx) in o.areas_of_concern" :key="area.id">
@@ -614,28 +638,37 @@
                     </span>
                     <span v-else>—</span>
                   </TableCell>
+
                   <TableCell class="whitespace-nowrap">{{
                     o.wo_number || "—"
                   }}</TableCell>
+
                   <TableCell class="whitespace-nowrap">{{
                     o.wo_status?.name || "—"
                   }}</TableCell>
+
                   <TableCell class="whitespace-nowrap">{{ o.invoice || "—" }}</TableCell>
+
                   <TableCell class="whitespace-nowrap">{{
                     formatCurrency(o.invoice_amount)
                   }}</TableCell>
+
                   <TableCell class="whitespace-nowrap">{{
                     o.invoice_received ? "Yes" : "No"
                   }}</TableCell>
+
                   <TableCell class="whitespace-nowrap">{{
                     o.on_qs ? o.on_qs.charAt(0).toUpperCase() + o.on_qs.slice(1) : "No"
                   }}</TableCell>
+
                   <TableCell class="whitespace-nowrap">{{
                     o.qs_invoice_date ? formatDate(o.qs_invoice_date) : "N/A"
                   }}</TableCell>
+
                   <TableCell class="whitespace-nowrap">{{
                     o.disputed ? "Yes" : "No"
                   }}</TableCell>
+
                   <TableCell
                     v-if="
                       permissionNames.includes('repair-orders.update') ||
@@ -668,6 +701,7 @@
             </Table>
           </div>
         </CardContent>
+
         <!-- Pagination -->
         <div
           class="border-t bg-muted/20 px-4 py-3 flex flex-col sm:flex-row justify-between items-center gap-2"
@@ -709,6 +743,7 @@
               </div>
             </div>
           </div>
+
           <div class="flex space-x-1">
             <Button
               size="sm"
@@ -719,6 +754,7 @@
             >
               <Icon name="chevron-left" class="h-4 w-4" /> Prev
             </Button>
+
             <Button
               v-for="link in repairOrders.links.slice(1, -1)"
               :key="link.label"
@@ -732,6 +768,7 @@
             >
               <span v-html="link.label"></span>
             </Button>
+
             <Button
               size="sm"
               variant="ghost"
@@ -1000,6 +1037,7 @@
                   </div>
                 </div>
               </div>
+
               <div>
                 <Label class="flex items-center gap-1.5 mb-1 text-sm font-medium">
                   <Icon name="file-text" class="h-4 w-4 text-muted-foreground" />
@@ -1007,6 +1045,7 @@
                 </Label>
                 <Input v-model="form.wo_number" class="h-9 w-full" />
               </div>
+
               <div>
                 <Label class="flex items-center gap-1.5 mb-1 text-sm font-medium">
                   <Icon name="activity" class="h-4 w-4 text-muted-foreground" />
@@ -1042,6 +1081,7 @@
                   </div>
                 </div>
               </div>
+
               <div>
                 <Label class="flex items-center gap-1.5 mb-1 text-sm font-medium">
                   <Icon name="check-square" class="h-4 w-4 text-muted-foreground" />
@@ -1237,7 +1277,6 @@
         </DialogHeader>
 
         <div class="space-y-4 sm:space-y-6">
-          <!-- Add new area of concern form -->
           <form @submit.prevent="submitArea" class="space-y-3 sm:space-y-4">
             <div class="space-y-1 sm:space-y-2">
               <Label for="concern">Area of Concern</Label>
@@ -1252,7 +1291,6 @@
             <Button type="submit" class="w-full">Add Area of Concern</Button>
           </form>
 
-          <!-- List of existing areas of concern with fixed height and scrolling -->
           <div class="rounded-md border">
             <div class="max-h-[40vh] overflow-y-auto sm:max-h-[300px]">
               <Table>
@@ -1324,7 +1362,6 @@
         </DialogHeader>
 
         <div class="space-y-4 sm:space-y-6">
-          <!-- Add new vendor form -->
           <form @submit.prevent="submitVendor" class="space-y-3 sm:space-y-4">
             <div class="space-y-1 sm:space-y-2">
               <Label for="vendor_name">Vendor Name</Label>
@@ -1339,7 +1376,6 @@
             <Button type="submit" class="w-full">Add Vendor</Button>
           </form>
 
-          <!-- List of existing vendors -->
           <div class="overflow-hidden rounded-md border">
             <div class="max-h-[40vh] overflow-y-auto sm:max-h-[300px]">
               <Table>
@@ -1419,7 +1455,6 @@
         </DialogHeader>
 
         <div class="space-y-4 sm:space-y-6">
-          <!-- Add new WO status form -->
           <form @submit.prevent="submitStatus" class="space-y-3 sm:space-y-4">
             <div class="space-y-1 sm:space-y-2">
               <Label for="status_name">Status Name</Label>
@@ -1434,7 +1469,6 @@
             <Button type="submit" class="w-full">Add Work Order Status</Button>
           </form>
 
-          <!-- List of existing WO statuses -->
           <div class="overflow-hidden rounded-md border">
             <div class="max-h-[40vh] overflow-y-auto sm:max-h-[300px]">
               <Table>
@@ -1502,6 +1536,7 @@
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
     <!-- Dialog for Canceled QS Invoices -->
     <Dialog v-model:open="showCanceledQSInvoicesDialog">
       <DialogContent
@@ -1568,7 +1603,7 @@
     </Dialog>
   </div>
 
-  <!-- Import Validation Modal -->
+  <!-- ✅ UPDATED Import Validation Modal (mimics your template modal behavior + copy) -->
   <Dialog v-model:open="showImportModal">
     <DialogContent
       class="max-w-[95vw] sm:max-w-[90vw] md:max-w-5xl max-h-[90vh] overflow-hidden flex flex-col"
@@ -1590,7 +1625,7 @@
         <!-- Step 1: File Upload -->
         <div v-if="!importValidationResults">
           <div class="space-y-4">
-            <!-- NEW: Import type selector -->
+            <!-- Import type selector -->
             <div class="rounded-lg border p-4 bg-muted/10 space-y-3">
               <div class="flex items-center gap-2">
                 <Icon name="sliders" class="h-4 w-4 text-muted-foreground" />
@@ -1640,7 +1675,7 @@
                 </label>
               </div>
 
-              <!-- NEW: tenant select for SuperAdmin + quicksight -->
+              <!-- tenant select for SuperAdmin + quicksight -->
               <div v-if="isAdmin && importType === 'quicksight'" class="pt-2 border-t">
                 <Label class="flex items-center gap-1.5 mb-2 text-sm font-medium">
                   <Icon name="building" class="h-4 w-4 text-muted-foreground" />
@@ -1692,30 +1727,54 @@
               </div>
             </div>
 
-            <!-- Upload box -->
+            <!-- ✅ Dropzone (matches your working template modal) -->
             <div
-              class="flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-8 bg-muted/20"
+              class="flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-8 bg-muted/20 transition-colors"
+              :class="{
+                'border-primary bg-primary/5': isDragging,
+                'opacity-60 pointer-events-none': isValidating,
+              }"
+              @dragenter.prevent="onDragEnter"
+              @dragover.prevent="onDragOver"
+              @dragleave.prevent="onDragLeave"
+              @drop.prevent="onDrop"
             >
               <Icon
                 name="file-spreadsheet"
                 class="h-12 w-12 text-muted-foreground mb-3"
               />
-              <label class="cursor-pointer">
+
+              <div class="text-center">
+                <div class="text-sm font-medium">
+                  <span class="text-primary">Drag & drop</span> your CSV here
+                </div>
+                <p class="text-xs text-muted-foreground mt-1">or</p>
+              </div>
+
+              <label class="cursor-pointer mt-3">
                 <span class="text-sm font-medium text-primary hover:underline">
                   Choose CSV file
                 </span>
+
+                <!-- ✅ FIX: use ref + shared handler, and accept like template -->
                 <input
+                  ref="importFileInput"
                   type="file"
                   class="hidden"
-                  @change="validateImportFile"
-                  accept=".csv"
+                  @change="onImportInputChange"
+                  accept=".csv,text/csv"
                   :disabled="
                     isValidating ||
                     (isAdmin && importType === 'quicksight' && !importTenantId)
                   "
                 />
               </label>
-              <p class="text-xs text-muted-foreground mt-2">or drag and drop</p>
+
+              <p class="text-xs text-muted-foreground mt-2">CSV only</p>
+
+              <div v-if="isDragging" class="mt-3 text-xs text-primary font-medium">
+                Drop file to validate
+              </div>
             </div>
 
             <!-- Template download only for template import -->
@@ -1738,7 +1797,7 @@
           </div>
         </div>
 
-        <!-- Step 2: Validation Results (unchanged except we show import type badge) -->
+        <!-- Step 2: Validation Results -->
         <div v-else class="space-y-4">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
@@ -1755,7 +1814,6 @@
             </div>
           </div>
 
-          <!-- Detected/Expected Headers -->
           <div
             v-if="importValidationResults.headers?.length"
             class="rounded-lg border p-3"
@@ -1777,7 +1835,6 @@
             </div>
           </div>
 
-          <!-- Summary Cards -->
           <div class="grid grid-cols-3 gap-4">
             <Card class="border-2">
               <CardContent class="p-4 text-center">
@@ -1807,7 +1864,6 @@
             </Card>
           </div>
 
-          <!-- Header Error -->
           <Alert v-if="importValidationResults.header_error" variant="destructive">
             <AlertTitle class="flex items-center gap-2">
               <Icon name="alert_circle" class="h-5 w-5" />
@@ -1818,7 +1874,6 @@
             }}</AlertDescription>
           </Alert>
 
-          <!-- Invalid Rows Details -->
           <div v-if="importValidationResults.invalid?.length">
             <div class="flex items-center justify-between mb-3">
               <h3 class="text-lg font-semibold text-red-600 flex items-center gap-2">
@@ -1913,7 +1968,6 @@
             </div>
           </div>
 
-          <!-- Valid Rows Preview -->
           <div v-if="importValidationResults.valid?.length">
             <h3 class="text-lg font-semibold text-green-600 flex items-center gap-2 mb-3">
               <Icon name="check-circle" class="h-5 w-5" />
@@ -2021,7 +2075,6 @@ import {
   TableHead,
   TableBody,
   TableCell,
-  // NEW: Badge is used in the import modal
   Badge,
 } from "@/components/ui";
 import { usePage } from "@inertiajs/vue3";
@@ -2080,9 +2133,26 @@ const importValidationResults = ref<any>(null);
 const isValidating = ref(false);
 const isImporting = ref(false);
 
-// NEW: import type + tenant selection for QS
+// Import type + tenant selection for QS
 const importType = ref<"template" | "quicksight">("template");
 const importTenantId = ref<string | number>("");
+
+// ✅ NEW: file input ref + drag state (same as your working template)
+const importFileInput = ref<HTMLInputElement | null>(null);
+const isDragging = ref(false);
+let dragDepth = 0;
+
+// Prevent browser from opening dropped file outside dropzone
+onMounted(() => {
+  const prevent = (e: DragEvent) => e.preventDefault();
+  window.addEventListener("dragover", prevent);
+  window.addEventListener("drop", prevent);
+
+  onUnmounted(() => {
+    window.removeEventListener("dragover", prevent);
+    window.removeEventListener("drop", prevent);
+  });
+});
 
 const formAction = ref<"Create" | "Update">("Create");
 const form = useForm({
@@ -2242,7 +2312,7 @@ function exportCsv() {
     : route("repair_orders.export.admin");
 }
 
-// NEW: open import modal resets import state
+// ✅ UPDATED: open import modal resets import state + drag state + input value
 function openImportModal() {
   showImportModal.value = true;
   importValidationResults.value = null;
@@ -2250,9 +2320,14 @@ function openImportModal() {
   isImporting.value = false;
   importType.value = "template";
   importTenantId.value = "";
+
+  isDragging.value = false;
+  dragDepth = 0;
+
+  if (importFileInput.value) importFileInput.value.value = "";
 }
 
-// Create/Edit handlers (unchanged)
+// Create/Edit handlers
 function openCreateModal() {
   form.reset();
   formAction.value = "Create";
@@ -2314,7 +2389,7 @@ function submitForm() {
   });
 }
 
-// Delete handlers (unchanged)
+// Delete handlers
 let deleteId: number | null = null;
 function deleteOne(id: number) {
   deleteId = id;
@@ -2348,7 +2423,7 @@ function deleteBulk() {
   });
 }
 
-// Areas/Vendors/Statuses handlers (unchanged)
+// Areas/Vendors/Statuses handlers
 function openAreasModal() {
   areaForm.reset();
   showAreasModal.value = true;
@@ -2378,6 +2453,9 @@ function deleteVendor(id: number) {
 function restoreVendor(id: number) {
   router.post(route("vendors.restore.admin", id));
 }
+function forceDeleteVendor(id: number) {
+  router.delete(route("vendors.forceDelete.admin", id));
+}
 
 function openStatusModal() {
   statusForm.reset();
@@ -2394,8 +2472,11 @@ function deleteStatus(id: number) {
 function restoreStatus(id: number) {
   router.post(route("wo_statuses.restore.admin", id));
 }
+function forceDeleteStatus(id: number) {
+  router.delete(route("wo_statuses.forceDelete.admin", id));
+}
 
-// Other computed/utility (unchanged)
+// Other computed/utility
 const hasCanceledQSInvoices = computed(() => props.canceledQSInvoices.length > 0);
 const showCanceledQSInvoicesDialog = ref(false);
 
@@ -2446,10 +2527,13 @@ onMounted(() => {
   onUnmounted(() => document.removeEventListener("click", h));
 });
 
-// Clear flash
-setTimeout(() => (successMessage.value = ""), 5000);
+// Auto-clear success
+watch(successMessage, (val) => {
+  if (!val) return;
+  setTimeout(() => (successMessage.value = ""), 5000);
+});
 
-// Top panels (unchanged)
+// Top panels
 const topAreasOfConcern = computed(() =>
   (props.workOrderByAreasOfConcern || []).slice(0, 5)
 );
@@ -2502,16 +2586,51 @@ const activeFilterBadges = computed(() => {
   return badges;
 });
 
-// UPDATED: include importType + tenant_id in validation request
-function validateImportFile(event: Event) {
+function closeImportModal() {
+  showImportModal.value = false;
+  importValidationResults.value = null;
+  isValidating.value = false;
+  isImporting.value = false;
+  importType.value = "template";
+  importTenantId.value = "";
+
+  isDragging.value = false;
+  dragDepth = 0;
+
+  if (importFileInput.value) importFileInput.value.value = "";
+}
+
+/** ✅ FIXED: input change -> shared handler, then reset input so selecting same file works */
+function onImportInputChange(event: Event) {
   const target = event.target as HTMLInputElement;
   const file = target.files?.[0];
+  if (!file) return;
+
+  handleImportFile(file);
+
+  // reset so choosing same file again fires change
+  target.value = "";
+}
+
+/** ✅ Shared handler (drop + input) */
+function handleImportFile(file: File) {
   if (!file) return;
 
   // Require tenant when SuperAdmin + QS
   if (isAdmin.value && importType.value === "quicksight" && !importTenantId.value) {
     errorMessage.value = "Please select a company before validating a QuickSight CSV.";
-    target.value = "";
+    setTimeout(() => (errorMessage.value = ""), 4000);
+    return;
+  }
+
+  const isCsv =
+    file.type === "text/csv" ||
+    file.name.toLowerCase().endsWith(".csv") ||
+    file.type === "";
+
+  if (!isCsv) {
+    errorMessage.value = "Please upload a valid CSV file.";
+    setTimeout(() => (errorMessage.value = ""), 4000);
     return;
   }
 
@@ -2520,6 +2639,7 @@ function validateImportFile(event: Event) {
   const formData = new FormData();
   formData.append("file", file);
   formData.append("importType", importType.value);
+
   if (isAdmin.value && importType.value === "quicksight") {
     formData.append("tenant_id", String(importTenantId.value));
   }
@@ -2532,10 +2652,7 @@ function validateImportFile(event: Event) {
     forceFormData: true,
     preserveScroll: true,
     only: ["flash"],
-    onBefore: () => {
-      isValidating.value = true;
-    },
-    onSuccess: () => {
+    onFinish: () => {
       isValidating.value = false;
     },
     onError: () => {
@@ -2543,16 +2660,41 @@ function validateImportFile(event: Event) {
       errorMessage.value = "Failed to validate CSV file";
     },
   });
-
-  target.value = "";
 }
 
-// UPDATED: include importType + tenant_id in confirm request
+/** ✅ Drag handlers (same pattern as your template) */
+function onDragEnter() {
+  dragDepth += 1;
+  isDragging.value = true;
+}
+
+function onDragOver() {
+  isDragging.value = true;
+}
+
+function onDragLeave() {
+  dragDepth -= 1;
+  if (dragDepth <= 0) {
+    dragDepth = 0;
+    isDragging.value = false;
+  }
+}
+
+function onDrop(e: DragEvent) {
+  dragDepth = 0;
+  isDragging.value = false;
+
+  const file = e.dataTransfer?.files?.[0];
+  if (!file) return;
+
+  handleImportFile(file);
+}
+
+// Confirm Import (kept logic, just unchanged)
 function confirmImport() {
   if (!importValidationResults.value || importValidationResults.value.summary.invalid > 0)
     return;
 
-  // Require tenant when SuperAdmin + QS
   if (isAdmin.value && importType.value === "quicksight" && !importTenantId.value) {
     errorMessage.value = "Please select a company before importing a QuickSight CSV.";
     return;
@@ -2595,21 +2737,11 @@ function downloadErrorReport() {
   window.location.href = endpoint;
 }
 
-function closeImportModal() {
-  showImportModal.value = false;
-  importValidationResults.value = null;
-  isValidating.value = false;
-  isImporting.value = false;
-  importType.value = "template";
-  importTenantId.value = "";
-}
-
-// Watch flash validation payload (unchanged behavior)
+// Watch flash validation payload
 watch(
   () => (page.props as any).flash?.importValidation,
   (payload: any) => {
     if (!payload) return;
-
     if (payload.results) {
       importValidationResults.value = payload.results;
       if (payload.header_error) {
@@ -2618,10 +2750,9 @@ watch(
       showImportModal.value = true;
       return;
     }
-
     if (payload.message) errorMessage.value = payload.message;
   },
-  { immediate: true }
+  { immediate: false }
 );
 </script>
 

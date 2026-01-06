@@ -5,7 +5,7 @@
     :permissions="props.permissions"
   >
     <Head title="On-Time" />
-    <!-- responsive here -->
+
     <div
       class="w-full md:max-w-2xl lg:max-w-3xl xl:max-w-6xl lg:mx-auto m-0 p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6"
     >
@@ -22,39 +22,36 @@
       </Alert>
 
       <!-- Actions Section -->
-      <!-- responsive here -->
       <div
         class="mb-2 flex flex-col items-center justify-between px-2 sm:flex-row md:mb-4 lg:mb-6"
       >
-        <!-- responsive here -->
         <h1
           class="text-lg font-bold text-gray-800 dark:text-gray-200 md:text-xl lg:text-2xl"
         >
           On-Time Management
         </h1>
+
         <div class="flex flex-wrap gap-3 ml-3">
-          <!-- responsive here -->
           <Button
             class="px-2 py-0 md:px-4 md:py-2"
             @click="openForm()"
             variant="default"
             v-if="permissionNames.includes('delays.create')"
           >
-            <!-- responsive here -->
             <Icon name="plus" class="mr-1 h-4 w-4 md:mr-2" />
             Add Delay
           </Button>
-          <!-- responsive here -->
+
           <Button
             class="px-2 py-0 md:px-4 md:py-2"
             v-if="selectedDelays.length > 0 && permissionNames.includes('delays.delete')"
             @click="confirmDeleteSelected()"
             variant="destructive"
           >
-            <!-- responsive here -->
             <Icon name="trash" class="mr-1 h-4 w-4 md:mr-2" />
             Delete Selected ({{ selectedDelays.length }})
           </Button>
+
           <Button
             @click="showImportModal = true"
             v-if="permissionNames.includes('delays.import')"
@@ -65,25 +62,22 @@
             Import CSV
           </Button>
 
-          <!-- responsive here -->
           <Button
             class="px-2 py-0 md:px-4 md:py-2"
             @click.prevent="exportCSV"
             variant="outline"
             v-if="permissionNames.includes('delays.export')"
           >
-            <!-- responsive here -->
             <Icon name="download" class="mr-1 h-4 w-4 md:mr-2" />
             Download CSV
           </Button>
-          <!-- responsive here -->
+
           <Button
             class="px-2 py-0 md:px-4 md:py-2"
             v-if="isSuperAdmin"
             @click="openCodeModal()"
             variant="outline"
           >
-            <!-- responsive here -->
             <Icon name="settings" class="mr-1 h-4 w-4 md:mr-2" />
             Manage Delay Codes
           </Button>
@@ -95,11 +89,8 @@
 
       <!-- Date Filter Tabs -->
       <Card>
-        <!-- responsive here -->
         <CardContent class="p-2 md:p-4 lg:p-6">
-          <!-- responsive here -->
           <div class="flex flex-col items-center gap-2 md:items-start">
-            <!-- responsive here -->
             <div class="flex flex-wrap gap-1 md:gap-2">
               <Button
                 @click="selectDateFilter('yesterday')"
@@ -111,6 +102,7 @@
               >
                 Yesterday
               </Button>
+
               <Button
                 @click="selectDateFilter('current-week')"
                 variant="outline"
@@ -122,6 +114,7 @@
               >
                 WTD
               </Button>
+
               <Button
                 @click="selectDateFilter('6w')"
                 variant="outline"
@@ -132,6 +125,7 @@
               >
                 T6W
               </Button>
+
               <Button
                 @click="selectDateFilter('quarterly')"
                 variant="outline"
@@ -143,6 +137,7 @@
                 Quarterly
               </Button>
             </div>
+
             <div v-if="dateRange" class="text-sm text-muted-foreground">
               <span v-if="activeTab === 'yesterday' && dateRange.start">
                 Showing data from {{ formatDate(dateRange.start) }}
@@ -162,12 +157,11 @@
 
       <!-- Filters Section -->
       <Card>
-        <!-- responsive here -->
         <CardHeader class="p-2 md:p-4 lg:p-6">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <!-- responsive here -->
               <CardTitle class="text-lg md:text-xl lg:text-2xl">Filters</CardTitle>
+
               <div
                 v-if="!showFilters && hasActiveFilters"
                 class="ml-4 flex flex-wrap gap-2"
@@ -185,24 +179,28 @@
                 >
                   Code: {{ getDelayCodeLabel(filters.delayCode) }}
                 </div>
+
                 <div
                   v-if="filters.delayCategory"
                   class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold"
                 >
                   Category: {{ formatDelayCategory(filters.delayCategory) }}
                 </div>
+
                 <div
                   v-if="filters.delayType"
                   class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold"
                 >
                   Type: {{ filters.delayType === "origin" ? "Origin" : "Destination" }}
                 </div>
+
                 <div
                   v-if="filters.disputed"
                   class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold"
                 >
                   Disputed: {{ filters.disputed === "true" ? "Yes" : "No" }}
                 </div>
+
                 <div
                   v-if="filters.controllable"
                   class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold"
@@ -218,6 +216,7 @@
                 </div>
               </div>
             </div>
+
             <Button variant="ghost" size="sm" @click="showFilters = !showFilters">
               {{ showFilters ? "Hide Filters" : "Show Filters" }}
               <Icon
@@ -227,15 +226,12 @@
             </Button>
           </div>
         </CardHeader>
-        <!-- responsive here -->
+
         <CardContent v-if="showFilters" class="p-2 md:p-4 lg:p-6">
-          <!-- responsive here -->
           <div class="flex flex-col justify-between gap-1 md:gap-4">
-            <!-- responsive here -->
             <div class="grid w-full grid-cols-1 gap-1 sm:grid-cols-3 md:gap-4">
               <div>
                 <Label for="search">Search</Label>
-                <!-- responsive here -->
                 <Input
                   class="h-9 px-1 py-1 md:px-2 md:py-1 lg:h-10 lg:px-3 lg:py-2"
                   id="search"
@@ -258,6 +254,7 @@
                   </option>
                 </select>
               </div>
+
               <div>
                 <Label for="delayCategory">Delay Category</Label>
                 <select
@@ -272,6 +269,7 @@
                   <option value="601_plus">601+ mins</option>
                 </select>
               </div>
+
               <div>
                 <Label for="delayType">Delay Type</Label>
                 <select
@@ -284,6 +282,7 @@
                   <option value="destination">Destination</option>
                 </select>
               </div>
+
               <div>
                 <Label for="disputed">Disputed Status</Label>
                 <select
@@ -296,6 +295,7 @@
                   <option value="false">Not Disputed</option>
                 </select>
               </div>
+
               <div>
                 <Label for="controllable">Driver Controllable</Label>
                 <select
@@ -310,6 +310,7 @@
                 </select>
               </div>
             </div>
+
             <div class="flex justify-end space-x-2">
               <Button @click="resetFilters" variant="ghost" size="sm">
                 <Icon name="rotate_ccw" class="mr-2 h-4 w-4" />
@@ -331,12 +332,11 @@
         :driversData="bottomDrivers"
         :chartData="ontimeChartData"
         :averageOntime="average_ontime"
-        :currentDateFilter="props.dateRange.label"
+        :currentDateFilter="props.dateRange?.label"
         :delayType="filters.delayType"
       />
 
       <!-- Delays Table -->
-      <!-- responsive here -->
       <Card class="mx-auto max-w-[95vw] overflow-x-auto md:max-w-[64vw] lg:max-w-full">
         <CardContent class="p-0">
           <div class="overflow-x-auto">
@@ -358,7 +358,9 @@
                       />
                     </div>
                   </TableHead>
+
                   <TableHead v-if="isSuperAdmin">Company Name</TableHead>
+
                   <TableHead
                     v-for="col in tableColumns"
                     :key="col"
@@ -376,6 +378,7 @@
                             .join(" ")
                         }}
                       </template>
+
                       <div v-if="sortColumn === col" class="ml-2">
                         <svg
                           v-if="sortDirection === 'asc'"
@@ -398,6 +401,7 @@
                           <path d="M16 9l-4 4-4-4" />
                         </svg>
                       </div>
+
                       <div v-else class="ml-2 opacity-50">
                         <svg
                           class="h-4 w-4"
@@ -412,6 +416,7 @@
                       </div>
                     </div>
                   </TableHead>
+
                   <TableHead
                     class="text-right"
                     v-if="
@@ -422,6 +427,7 @@
                   >
                 </TableRow>
               </TableHeader>
+
               <TableBody>
                 <TableRow v-if="filteredDelays.length === 0">
                   <TableCell
@@ -433,6 +439,7 @@
                     No delays found matching your criteria
                   </TableCell>
                 </TableRow>
+
                 <TableRow
                   v-for="delay in filteredDelays"
                   :key="delay.id"
@@ -449,9 +456,11 @@
                       class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                     />
                   </TableCell>
-                  <TableCell v-if="isSuperAdmin">{{
-                    delay.tenant?.name || "—"
-                  }}</TableCell>
+
+                  <TableCell v-if="isSuperAdmin">
+                    {{ delay.tenant?.name || "—" }}
+                  </TableCell>
+
                   <TableCell
                     v-for="col in tableColumns"
                     :key="col"
@@ -460,12 +469,15 @@
                     <template v-if="col === 'date'">
                       {{ formatDate(delay[col]) }}
                     </template>
+
                     <template v-else-if="col === 'disputed'">
                       {{ delay[col] ? "Yes" : "No" }}
                     </template>
+
                     <template v-else-if="col === 'driver_controllable'">
                       {{ delay[col] === null ? "N/A" : delay[col] ? "Yes" : "No" }}
                     </template>
+
                     <template v-else-if="col === 'delay_code'">
                       {{ delay.delay_code?.code || "—" }}
                       <span
@@ -474,20 +486,24 @@
                         >(Deleted Code)</span
                       >
                     </template>
+
                     <template v-else-if="col === 'delay_category'">
                       {{ formatDelayCategory(delay.delay_category) }}
                     </template>
+
                     <template v-else>
                       {{ delay[col] }}
                     </template>
                   </TableCell>
+
                   <TableCell
                     v-if="
-                      permissionNames.includes('delays.udpate') ||
+                      permissionNames.includes('delays.update') ||
                       permissionNames.includes('delays.delete')
                     "
+                    class="text-right"
                   >
-                    <div class="flex space-x-2">
+                    <div class="flex justify-end space-x-2">
                       <Button
                         @click="openForm(delay)"
                         variant="warning"
@@ -497,6 +513,7 @@
                         <Icon name="pencil" class="mr-1 h-4 w-4" />
                         Edit
                       </Button>
+
                       <Button
                         @click="confirmDelete(delay.id)"
                         variant="destructive"
@@ -512,14 +529,14 @@
               </TableBody>
             </Table>
           </div>
+
           <!-- paginate -->
           <div class="border-t bg-muted/20 px-4 py-3" v-if="delays.links">
-            <!-- responsive here -->
             <div class="flex flex-col items-center justify-between gap-2 sm:flex-row">
               <div class="text-sm text-muted-foreground">
                 Showing {{ filteredDelays.length }} of {{ delays.data.length }} entries
               </div>
-              <!-- responsive here -->
+
               <div
                 class="flex w-full flex-col items-center gap-2 sm:w-auto sm:flex-row sm:gap-4"
               >
@@ -537,6 +554,7 @@
                     <option value="100">100</option>
                   </select>
                 </div>
+
                 <div class="flex flex-wrap">
                   <Button
                     v-for="link in delays.links"
@@ -556,7 +574,8 @@
           </div>
         </CardContent>
       </Card>
-      <!-- Delay Form Modal (Pass only active delay codes) -->
+
+      <!-- Delay Form Modal -->
       <Dialog v-model:open="formModal">
         <DialogContent class="max-w-[95vw] sm:max-w-[90vw] md:max-w-4xl">
           <DialogHeader class="px-4 sm:px-6">
@@ -568,6 +587,7 @@
               record.
             </DialogDescription>
           </DialogHeader>
+
           <DelayForm
             :delay="selectedDelay"
             :delay-codes="activeDelayCodes"
@@ -611,6 +631,7 @@
               >
                 No delay codes found
               </div>
+
               <div v-else class="divide-y">
                 <div
                   v-for="code in delay_codes"
@@ -633,6 +654,7 @@
                       {{ code.description }}
                     </div>
                   </div>
+
                   <div
                     class="flex space-x-1 opacity-0 transition-opacity group-hover:opacity-100"
                   >
@@ -647,6 +669,7 @@
                           <Icon name="refresh" class="mr-1 h-3 w-3 sm:h-3 sm:w-3" />
                           Restore
                         </Button>
+
                         <Button
                           @click="forceDeleteCode(code.id)"
                           size="sm"
@@ -657,6 +680,7 @@
                           Delete
                         </Button>
                       </template>
+
                       <template v-else>
                         <Button
                           @click="confirmDeleteCode(code.id)"
@@ -678,6 +702,7 @@
               <h3 class="text-sm font-medium sm:text-base">
                 {{ editingCode ? "Edit" : "Add" }} Delay Code
               </h3>
+
               <div class="space-y-3">
                 <div>
                   <Label for="code" class="text-xs sm:text-sm">Code</Label>
@@ -688,6 +713,7 @@
                     class="h-9 text-xs sm:h-10 sm:text-sm"
                   />
                 </div>
+
                 <div>
                   <Label for="description" class="text-xs sm:text-sm">Description</Label>
                   <Input
@@ -697,6 +723,7 @@
                     class="h-9 text-xs sm:h-10 sm:text-sm"
                   />
                 </div>
+
                 <div class="flex justify-end space-x-2">
                   <Button
                     @click="cancelCodeEdit"
@@ -738,6 +765,7 @@
               undone.
             </DialogDescription>
           </DialogHeader>
+
           <DialogFooter class="px-4 sm:px-6">
             <Button
               type="button"
@@ -769,6 +797,7 @@
               undone.
             </DialogDescription>
           </DialogHeader>
+
           <DialogFooter class="px-4 sm:px-6">
             <Button
               type="button"
@@ -778,6 +807,7 @@
             >
               Cancel
             </Button>
+
             <Button
               type="button"
               @click="deleteDelay(delayToDelete)"
@@ -800,6 +830,7 @@
               This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
+
           <DialogFooter class="px-4 sm:px-6">
             <Button
               type="button"
@@ -821,6 +852,8 @@
         </DialogContent>
       </Dialog>
     </div>
+
+    <!-- Import Modal -->
     <Dialog v-model:open="showImportModal">
       <DialogContent
         class="max-w-[95vw] sm:max-w-[90vw] md:max-w-5xl max-h-[90vh] overflow-hidden flex flex-col"
@@ -841,28 +874,52 @@
           <!-- Step 1: File Upload -->
           <div v-if="!importValidationResults">
             <div class="space-y-4">
+              <!-- ✅ Dropzone (drag & drop fixed) -->
               <div
-                class="flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-8 bg-muted/20"
+                class="flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-8 bg-muted/20 transition-colors"
+                :class="{
+                  'border-primary bg-primary/5': isDragging,
+                  'opacity-60 pointer-events-none': isValidating,
+                }"
+                @dragenter.prevent="onDragEnter"
+                @dragover.prevent="onDragOver"
+                @dragleave.prevent="onDragLeave"
+                @drop.prevent="onDrop"
               >
                 <Icon
                   name="file-spreadsheet"
                   class="h-12 w-12 text-muted-foreground mb-3"
                 />
-                <label class="cursor-pointer">
+
+                <div class="text-center">
+                  <div class="text-sm font-medium">
+                    <span class="text-primary">Drag & drop</span> your CSV here
+                  </div>
+                  <p class="text-xs text-muted-foreground mt-1">or</p>
+                </div>
+
+                <label class="cursor-pointer mt-3">
                   <span class="text-sm font-medium text-primary hover:underline">
                     Choose CSV file
                   </span>
                   <input
+                    ref="importFileInput"
                     type="file"
                     class="hidden"
-                    @change="validateImportFile"
-                    accept=".csv"
+                    @change="onImportInputChange"
+                    accept=".csv,text/csv"
                     :disabled="isValidating"
                   />
                 </label>
-                <p class="text-xs text-muted-foreground mt-2">or drag and drop</p>
+
+                <p class="text-xs text-muted-foreground mt-2">CSV only</p>
+
+                <div v-if="isDragging" class="mt-3 text-xs text-primary font-medium">
+                  Drop file to validate
+                </div>
               </div>
 
+              <!-- Template Download -->
               <div class="flex items-center gap-2 text-sm text-muted-foreground">
                 <Icon name="info" class="h-4 w-4" />
                 <a :href="templateUrl" download class="text-primary hover:underline">
@@ -1157,38 +1214,18 @@ const props = defineProps({
     default: () => ({ data: [], links: [] }),
   },
   tenantSlug: { type: String, default: null },
-  delay_codes: Array,
+  delay_codes: { type: Array, default: () => [] },
   tenants: { type: Array, default: () => [] },
   isSuperAdmin: { type: Boolean, default: false },
   dateRange: { type: Object, default: null },
   dateFilter: { type: String, default: "yesterday" },
-  weekNumber: {
-    type: Number,
-    default: null,
-  },
-  startWeekNumber: {
-    type: Number,
-    default: null,
-  },
-  endWeekNumber: {
-    type: Number,
-    default: null,
-  },
-  year: {
-    type: Number,
-    default: null,
-  },
-  delay_breakdown: {
-    type: Object,
-    default: null,
-  },
-  line_chart_data: {
-    type: Object,
-    default: null,
-  },
-  average_ontime: {
-    type: Number,
-  },
+  weekNumber: { type: Number, default: null },
+  startWeekNumber: { type: Number, default: null },
+  endWeekNumber: { type: Number, default: null },
+  year: { type: Number, default: null },
+  delay_breakdown: { type: Object, default: null },
+  line_chart_data: { type: Array, default: () => [] },
+  average_ontime: { type: Number, default: null },
   filters: {
     type: Object,
     default: () => ({
@@ -1197,33 +1234,66 @@ const props = defineProps({
       delayCategory: "",
       delayType: "",
       disputed: "",
-      driverControllable: "",
+      controllable: "",
     }),
   },
   permissions: Array,
 });
-const weekNumberText = computed(() => {
-  // For yesterday and current-week, show single week
-  if (
-    (activeTab.value === "yesterday" || activeTab.value === "current-week") &&
-    props.weekNumber &&
-    props.year
-  ) {
-    return `Week ${props.weekNumber}, ${props.year}`;
-  }
 
-  // For 6w and quarterly, show start-end week range if available
-  if (
-    (activeTab.value === "6w" || activeTab.value === "quarterly") &&
-    props.startWeekNumber &&
-    props.endWeekNumber &&
-    props.year
-  ) {
-    return `Weeks ${props.startWeekNumber}-${props.endWeekNumber}, ${props.year}`;
-  }
+const page = usePage();
 
-  return "";
+/** ✅ Prevent browser from opening file if dropped outside dropzone */
+onMounted(() => {
+  const prevent = (e) => e.preventDefault();
+  window.addEventListener("dragover", prevent);
+  window.addEventListener("drop", prevent);
+
+  onUnmounted(() => {
+    window.removeEventListener("dragover", prevent);
+    window.removeEventListener("drop", prevent);
+  });
 });
+
+/** Drag state for import dropzone */
+const importFileInput = ref(null);
+const isDragging = ref(false);
+let dragDepth = 0;
+
+function onDragEnter() {
+  dragDepth += 1;
+  isDragging.value = true;
+}
+function onDragOver() {
+  isDragging.value = true;
+}
+function onDragLeave() {
+  dragDepth -= 1;
+  if (dragDepth <= 0) {
+    dragDepth = 0;
+    isDragging.value = false;
+  }
+}
+function onDrop(e) {
+  dragDepth = 0;
+  isDragging.value = false;
+
+  const file = e.dataTransfer?.files?.[0];
+  if (!file) return;
+
+  handleImportFile(file);
+}
+
+function onImportInputChange(e) {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  handleImportFile(file);
+
+  // reset so choosing same file again triggers change
+  e.target.value = "";
+}
+
+/** Breadcrumbs */
 const breadcrumbs = [
   {
     title: props.tenantSlug ? "Dashboard" : "Admin Dashboard",
@@ -1239,7 +1309,7 @@ const breadcrumbs = [
   },
 ];
 
-// UI state
+/** UI state */
 const formModal = ref(false);
 const codeModal = ref(false);
 const selectedDelay = ref(null);
@@ -1249,28 +1319,56 @@ const showDeleteModal = ref(false);
 const delayToDelete = ref(null);
 const selectedDelays = ref([]);
 const showDeleteSelectedModal = ref(false);
-const exportForm = ref(null); // Add this line to define the exportForm ref
+const exportForm = ref(null);
 
-// Code management state
+const showImportModal = ref(false);
+const importValidationResults = ref(null);
+const isValidating = ref(false);
+const isImporting = ref(false);
+
+const showFilters = ref(false);
+
+/** Code management state */
 const showCodeForm = ref(false);
 const editingCode = ref(null);
 const codeForm = ref({ code: "", description: "" });
 const codeDeleteConfirm = ref(false);
 const codeToDelete = ref(null);
 
-// Sorting state
+/** Sorting state */
 const sortColumn = ref("date");
 const sortDirection = ref("desc");
-const page = usePage();
 
-const showImportModal = ref(false);
-const importValidationResults = ref(null);
-const isValidating = ref(false);
-const isImporting = ref(false);
-// Filtering state
+/** Filters */
 const filters = ref({ ...props.filters });
 
-// Table columns
+/** Pagination & Date filter state */
+const perPage = ref(props.delays?.per_page || 10);
+const activeTab = ref(props.dateFilter || "full");
+
+/** Week number text */
+const weekNumberText = computed(() => {
+  if (
+    (activeTab.value === "yesterday" || activeTab.value === "current-week") &&
+    props.weekNumber &&
+    props.year
+  ) {
+    return `Week ${props.weekNumber}, ${props.year}`;
+  }
+
+  if (
+    (activeTab.value === "6w" || activeTab.value === "quarterly") &&
+    props.startWeekNumber &&
+    props.endWeekNumber &&
+    props.year
+  ) {
+    return `Weeks ${props.startWeekNumber}-${props.endWeekNumber}, ${props.year}`;
+  }
+
+  return "";
+});
+
+/** Table columns */
 const tableColumns = [
   "date",
   "delay_type",
@@ -1281,13 +1379,35 @@ const tableColumns = [
   "driver_controllable",
 ];
 
-// Computed property: Filtered and sorted delays
-const filteredDelays = computed(() => {
-  let result = [...props.delays.data];
+/** Permissions */
+const permissionNames = computed(() => props.permissions.map((p) => p.name));
 
-  // Sorting logic
+/** Filter “chips” state */
+const hasActiveFilters = computed(() => {
+  return (
+    filters.value.search ||
+    filters.value.delayCode ||
+    filters.value.delayCategory ||
+    filters.value.disputed ||
+    filters.value.delayType ||
+    filters.value.controllable
+  );
+});
+
+const getDelayCodeLabel = (codeId) => {
+  if (!codeId) return "";
+  const idNum = typeof codeId === "string" ? parseInt(codeId, 10) : codeId;
+  const code = props.delay_codes.find((c) => c.id === idNum);
+  return code ? code.code : "";
+};
+
+/** Data: filtered + sorted delays */
+const filteredDelays = computed(() => {
+  let result = [...(props.delays?.data || [])];
+
   result.sort((a, b) => {
     let aVal, bVal;
+
     if (sortColumn.value === "delay_code") {
       aVal = a.delay_code?.code || "";
       bVal = b.delay_code?.code || "";
@@ -1295,25 +1415,29 @@ const filteredDelays = computed(() => {
       aVal = a[sortColumn.value];
       bVal = b[sortColumn.value];
     }
+
     if (aVal === null) return 1;
     if (bVal === null) return -1;
+
     if (typeof aVal === "string") {
       aVal = aVal.toLowerCase();
       bVal = bVal.toLowerCase();
     }
+
     if (aVal < bVal) return sortDirection.value === "asc" ? -1 : 1;
     if (aVal > bVal) return sortDirection.value === "asc" ? 1 : -1;
     return 0;
   });
+
   return result;
 });
 
-// Computed property: Only active (non-trashed) delay codes for the DelayForm dropdown
+/** Active delay codes for the form */
 const activeDelayCodes = computed(() => {
-  return props.delay_codes.filter((code) => !code.deleted_at);
+  return (props.delay_codes || []).filter((c) => !c.deleted_at);
 });
 
-// Sorting handler
+/** Sorting handler */
 function sortBy(column) {
   if (sortColumn.value === column) {
     sortDirection.value = sortDirection.value === "asc" ? "desc" : "asc";
@@ -1323,158 +1447,19 @@ function sortBy(column) {
   }
 }
 
-// Filter handlers
-function applyFilters() {
-  const routeName = props.tenantSlug
-    ? route("ontime.index", { tenantSlug: props.tenantSlug })
-    : route("ontime.index.admin");
-
-  router.get(routeName, {
-    ...filters.value,
-    perPage: perPage.value,
-    dateFilter: activeTab.value,
-  });
-}
-function resetFilters() {
-  filters.value = {
-    search: "",
-    dateFrom: "",
-    dateTo: "",
-    delayCode: "",
-    delayCategory: "",
-    delayType: "",
-    disputed: "",
-    controllable: "",
-  };
-  applyFilters();
-}
-
-// Pagination & Date Filter Functions
-const perPage = ref(props.delays.per_page || 10);
-const activeTab = ref(props.dateFilter || "full");
-
-function changePerPage() {
-  const routeName = props.tenantSlug
-    ? route("ontime.index", { tenantSlug: props.tenantSlug })
-    : route("ontime.index.admin");
-  router.get(routeName, {
-    ...filters.value,
-    perPage: perPage.value,
-    dateFilter: activeTab.value,
-  });
-}
-function selectDateFilter(filter) {
-  activeTab.value = filter;
-  const routeName = props.tenantSlug
-    ? route("ontime.index", { tenantSlug: props.tenantSlug })
-    : route("ontime.index.admin");
-  router.get(routeName, {
-    ...filters.value,
-    perPage: perPage.value,
-    dateFilter: filter,
-  });
-}
-function visitPage(url) {
-  if (url) {
-    // Add perPage parameter to the URL
-    const urlObj = new URL(url);
-    const baseUrl = urlObj.origin + urlObj.pathname;
-
-    router.get(baseUrl, {
-      ...filters.value,
-      perPage: perPage.value,
-      dateFilter: activeTab.value,
-      page: urlObj.searchParams.get("page") || 1,
-    });
-  }
-}
+/** Date format */
 function formatDate(dateStr) {
   if (!dateStr) return "";
+  // If backend returns "YYYY-MM-DD", format to M/D/YYYY
   const parts = dateStr.split("-");
   if (parts.length !== 3) return dateStr;
   const [year, month, day] = parts;
   return `${Number(month)}/${Number(day)}/${year}`;
 }
 
-// Delay Form Functions
-const openForm = (delay = null) => {
-  selectedDelay.value = delay;
-  formModal.value = true;
-};
-
-// Add the missing confirmDelete function
-const confirmDelete = (id) => {
-  delayToDelete.value = id;
-  showDeleteModal.value = true;
-};
-
-// Code Management Functions
-const openCodeModal = () => {
-  codeModal.value = true;
-  showCodeForm.value = false;
-  editingCode.value = null;
-};
-const openNewCodeForm = () => {
-  codeForm.value = { code: "", description: "" };
-  editingCode.value = null;
-  showCodeForm.value = true;
-};
-const editCode = (code) => {
-  codeForm.value = { code: code.code, description: code.description || "" };
-  editingCode.value = code.id;
-  showCodeForm.value = true;
-};
-const cancelCodeEdit = () => {
-  showCodeForm.value = false;
-  editingCode.value = null;
-};
-const confirmDeleteCode = (id) => {
-  codeToDelete.value = id;
-  codeDeleteConfirm.value = true;
-};
-
-// Add these variables to your script setup section
-const showFilters = ref(false);
-
-// Add this computed property to check if any filters are active
-const hasActiveFilters = computed(() => {
-  return (
-    filters.value.search ||
-    filters.value.dateFrom ||
-    filters.value.dateTo ||
-    filters.value.delayCode ||
-    filters.value.delayCategory ||
-    filters.value.disputed ||
-    filters.value.delayType ||
-    filters.value.controllable
-  );
-});
-
-// Add this helper function to get the delay code label
-const getDelayCodeLabel = (codeId) => {
-  if (!codeId) return "";
-  const code = props.delay_codes.find((c) => c.id === parseInt(codeId));
-  return code ? code.code : "";
-};
-
-// Add the missing deleteCode function
-const deleteCode = async (id) => {
-  try {
-    await router.delete(route("delay_codes.destroy.admin", id), {
-      onSuccess: () => {
-        codeDeleteConfirm.value = false;
-        successMessage.value = "Delay code deleted successfully";
-      },
-    });
-  } catch (error) {
-    console.error("Error deleting delay code:", error);
-  }
-};
-
-// Function to format delay category values
+/** Delay category label */
 function formatDelayCategory(category) {
   if (!category) return "—";
-
   switch (category) {
     case "1_120":
       return "1-120 mins";
@@ -1493,187 +1478,105 @@ function formatDelayCategory(category) {
   }
 }
 
-const saveCode = () => {
-  const form = useForm({
-    code: codeForm.value.code,
-    description: codeForm.value.description,
+/** Filters handlers */
+function applyFilters() {
+  const routeName = props.tenantSlug
+    ? route("ontime.index", { tenantSlug: props.tenantSlug })
+    : route("ontime.index.admin");
+
+  router.get(routeName, {
+    ...filters.value,
+    perPage: perPage.value,
+    dateFilter: activeTab.value,
   });
-  const routeName = editingCode.value
-    ? props.isSuperAdmin
-      ? "delay_codes.update.admin"
-      : "delay_codes.update"
-    : props.isSuperAdmin
-    ? "delay_codes.store.admin"
-    : "delay_codes.store";
-  const routeParams = editingCode.value
-    ? props.isSuperAdmin
-      ? { id: editingCode.value }
-      : { tenantSlug: props.tenantSlug, id: editingCode.value }
-    : props.isSuperAdmin
-    ? {}
-    : { tenantSlug: props.tenantSlug };
-  const method = editingCode.value ? form.put : form.post;
-  method.call(form, route(routeName, routeParams), {
-    onSuccess: () => {
-      successMessage.value = editingCode.value
-        ? "Delay code updated successfully."
-        : "Delay code created successfully.";
-      showCodeForm.value = false;
-      editingCode.value = null;
-      router.reload({ only: ["delay_codes"] });
-    },
-    onError: (errors) => {
-      console.error(errors);
-    },
+}
+
+function resetFilters() {
+  filters.value = {
+    search: "",
+    delayCode: "",
+    delayCategory: "",
+    delayType: "",
+    disputed: "",
+    controllable: "",
+  };
+  applyFilters();
+}
+
+/** Pagination + date filter */
+function changePerPage() {
+  const routeName = props.tenantSlug
+    ? route("ontime.index", { tenantSlug: props.tenantSlug })
+    : route("ontime.index.admin");
+
+  router.get(routeName, {
+    ...filters.value,
+    perPage: perPage.value,
+    dateFilter: activeTab.value,
   });
+}
+
+function selectDateFilter(filter) {
+  activeTab.value = filter;
+
+  const routeName = props.tenantSlug
+    ? route("ontime.index", { tenantSlug: props.tenantSlug })
+    : route("ontime.index.admin");
+
+  router.get(routeName, {
+    ...filters.value,
+    perPage: perPage.value,
+    dateFilter: filter,
+  });
+}
+
+function visitPage(url) {
+  if (!url) return;
+
+  const urlObj = new URL(url);
+  const baseUrl = urlObj.origin + urlObj.pathname;
+
+  router.get(baseUrl, {
+    ...filters.value,
+    perPage: perPage.value,
+    dateFilter: activeTab.value,
+    page: urlObj.searchParams.get("page") || 1,
+  });
+}
+
+/** Form modal */
+const openForm = (delay = null) => {
+  selectedDelay.value = delay;
+  formModal.value = true;
 };
-const restoreCode = (id) => {
-  const form = useForm({});
-  form.post(
-    route(props.isSuperAdmin ? "delay_codes.restore.admin" : "delay_codes.restore", {
-      id,
-    }),
-    {
-      onSuccess: () => {
-        successMessage.value = "Delay code restored successfully.";
-        router.reload({ only: ["delay_codes"] });
-      },
-      onError: (errors) => {
-        console.error(errors);
-      },
-    }
-  );
+
+/** Delete delay */
+const confirmDelete = (id) => {
+  delayToDelete.value = id;
+  showDeleteModal.value = true;
 };
-const forceDeleteCode = (id) => {
-  const form = useForm({});
-  form.delete(
-    route(
-      props.isSuperAdmin ? "delay_codes.forceDelete.admin" : "delay_codes.forceDelete",
-      { id }
-    ),
-    {
-      onSuccess: () => {
-        successMessage.value = "Delay code permanently deleted successfully.";
-        router.reload({ only: ["delay_codes"] });
-      },
-      onError: (errors) => {
-        console.error(errors);
-      },
-    }
-  );
-};
+
 const deleteDelay = (id) => {
-  const form = useForm({});
+  const f = useForm({});
   const routeName = props.isSuperAdmin ? "ontime.destroy.admin" : "ontime.destroy";
   const routeParams = props.isSuperAdmin
     ? { delay: id }
     : { tenantSlug: props.tenantSlug, delay: id };
-  form.delete(route(routeName, routeParams), {
+
+  f.delete(route(routeName, routeParams), {
     preserveScroll: true,
     onSuccess: () => {
       successMessage.value = "Delay record deleted successfully.";
       showDeleteModal.value = false;
+      delayToDelete.value = null;
+    },
+    onError: () => {
+      errorMessage.value = "Failed to delete delay record.";
     },
   });
 };
 
-// Auto-hide success message
-watch(successMessage, (newValue) => {
-  if (newValue) {
-    setTimeout(() => {
-      successMessage.value = "";
-    }, 5000);
-  }
-});
-
-// Check for flash messages
-if (props.flash && props.flash.error) {
-  errorMessage.value = props.flash.error;
-}
-
-// Auto-hide error message
-watch(errorMessage, (newValue) => {
-  if (newValue) {
-    setTimeout(() => {
-      errorMessage.value = "";
-    }, 5000);
-  }
-});
-
-// On-Time dashboard data from API
-const ontimeMetrics = computed(() => {
-  if (!props.delay_breakdown?.by_category) return null;
-
-  const categoryData = props.delay_breakdown.by_category;
-
-  const type = props.filters.delayType;
-  if (type) {
-    return {
-      // between1_120Count: categoryData[`category_1_120_${type}_count`] || '0',
-      // between121_600Count: categoryData[`category_121_600_${type}_count`] || '0',
-      moreThan601Count: categoryData[`category_601_plus_${type}_count`] || "0",
-      between1_60Count: categoryData[`category_1_60_${type}_count`] || "0",
-      between61_240Count: categoryData[`category_61_240_${type}_count`] || "0",
-      between241_600Count: categoryData[`category_241_600_${type}_count`] || "0",
-      totalDelays: categoryData[`total_${type}_delays`] || "0",
-      by_category: true,
-    };
-  } else {
-    return {
-      between1_120Count: categoryData.category_1_120_count || "0",
-      between121_600Count: categoryData.category_121_600_count || "0",
-      moreThan601Count: categoryData.category_601_plus_count || "0",
-      between1_60Count: categoryData.category_1_60_count || "0",
-      between61_240Count: categoryData.category_61_240_count || "0",
-      between241_600Count: categoryData.category_241_600_count || "0",
-      totalDelays: categoryData.total_delays || "0",
-      by_category: true,
-    };
-  }
-});
-
-const bottomDrivers = computed(() => {
-  if (props.filters.delayType == "origin")
-    return props.delay_breakdown?.bottom_five_drivers.origin || [];
-
-  if (props.filters.delayType == "destination")
-    return props.delay_breakdown?.bottom_five_drivers.destination || [];
-  else return props.delay_breakdown?.bottom_five_drivers.total || [];
-});
-
-const ontimeChartData = computed(() => {
-  if (!props.line_chart_data || props.line_chart_data.length === 0) {
-    return {
-      labels: [],
-      datasets: [
-        {
-          label: "On-Time Performance",
-          data: [],
-          borderColor: "#3b82f6",
-          backgroundColor: "rgba(59, 130, 246, 0.1)",
-          tension: 0.3,
-          fill: false,
-        },
-      ],
-    };
-  }
-
-  return {
-    labels: props.line_chart_data.map((item) => item.date),
-    datasets: [
-      {
-        label: "On-Time Performance",
-        data: props.line_chart_data.map((item) => item.onTimePerformance),
-        borderColor: "#3b82f6",
-        backgroundColor: "rgba(59, 130, 246, 0.1)",
-        tension: 0.3,
-        fill: false,
-      },
-    ],
-  };
-});
-
-// Computed property for "Select All" checkbox state
+/** Bulk selection */
 const isAllSelected = computed(() => {
   return (
     filteredDelays.value.length > 0 &&
@@ -1681,122 +1584,74 @@ const isAllSelected = computed(() => {
   );
 });
 
-// Computed property to check if there's data
-const hasData = computed(() => {
-  return props.delays.data && props.delays.data.length > 0;
-});
-
-// Bulk selection functions
 function toggleSelectAll(event) {
   if (event.target.checked) {
-    selectedDelays.value = filteredDelays.value.map((delay) => delay.id);
+    selectedDelays.value = filteredDelays.value.map((d) => d.id);
   } else {
     selectedDelays.value = [];
   }
 }
 
 function confirmDeleteSelected() {
-  if (selectedDelays.value.length > 0) {
-    showDeleteSelectedModal.value = true;
-  }
+  if (selectedDelays.value.length > 0) showDeleteSelectedModal.value = true;
 }
 
 function deleteSelectedDelays() {
-  const form = useForm({
-    ids: selectedDelays.value,
-  });
+  const f = useForm({ ids: selectedDelays.value });
 
   const routeName = props.isSuperAdmin
     ? "ontime.destroyBulk.admin"
     : "ontime.destroyBulk";
   const routeParams = props.isSuperAdmin ? {} : { tenantSlug: props.tenantSlug };
 
-  form.delete(route(routeName, routeParams), {
+  f.delete(route(routeName, routeParams), {
     preserveScroll: true,
     onSuccess: () => {
       successMessage.value = `${selectedDelays.value.length} delay records deleted successfully.`;
       selectedDelays.value = [];
       showDeleteSelectedModal.value = false;
-      // Reload the page to refresh the data
       router.reload();
     },
-    onError: (errors) => {
-      console.error(errors);
-    },
-  });
-}
-// Add these functions for import/export
-function handleImport(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  const formData = new FormData();
-  formData.append("csv_file", file);
-
-  const routeName = props.isSuperAdmin
-    ? route("ontime.import.admin")
-    : route("ontime.import", { tenantSlug: props.tenantSlug });
-
-  router.post(routeName, formData, {
-    onSuccess: () => {
-      successMessage.value = "Delays imported successfully";
-      event.target.value = ""; // Reset the file input
-    },
-    onError: (errors) => {
-      console.error(errors);
-      event.target.value = ""; // Reset the file input
+    onError: () => {
+      errorMessage.value = "Failed to delete selected delays.";
     },
   });
 }
 
+/** Export */
 function exportCSV() {
-  // Check if there are any delays before exporting
-  if (props.delays.data.length === 0) {
+  if ((props.delays?.data || []).length === 0) {
     errorMessage.value = "No delay data found to export.";
     return;
   }
-
-  // Submit the hidden form to trigger the download
-  if (exportForm.value) {
-    exportForm.value.submit();
-  }
+  exportForm.value?.submit();
 }
-// Computed property for export URL
+
 const exportUrl = computed(() => {
   return props.tenantSlug
     ? route("ontime.export", { tenantSlug: props.tenantSlug })
     : route("ontime.export.admin");
 });
 
-// Add these to the existing script setup section
-const showUploadOptions = ref(false);
-
-// Computed property for template URL
+/** Import template */
 const templateUrl = computed(() => {
   return "/storage/upload-data-temps/Delays Template.csv";
 });
 
-// Close dropdown when clicking outside
-onMounted(() => {
-  const handleClickOutside = (e) => {
-    if (showUploadOptions.value && !e.target.closest(".relative")) {
-      showUploadOptions.value = false;
-    }
-  };
-
-  document.addEventListener("click", handleClickOutside);
-
-  onUnmounted(() => {
-    document.removeEventListener("click", handleClickOutside);
-  });
-});
-
-const permissionNames = computed(() => props.permissions.map((p) => p.name));
-// Remove the separate onUnmounted hook since it's now inside onMounted
-
-function validateImportFile(event) {
-  const file = event.target.files?.[0];
+/** ✅ Import: shared file handler (drop + input) */
+function handleImportFile(file) {
   if (!file) return;
+
+  const isCsv =
+    file.type === "text/csv" ||
+    file.name.toLowerCase().endsWith(".csv") ||
+    file.type === "";
+
+  if (!isCsv) {
+    errorMessage.value = "Please upload a valid CSV file.";
+    setTimeout(() => (errorMessage.value = ""), 4000);
+    return;
+  }
 
   isValidating.value = true;
 
@@ -1813,12 +1668,10 @@ function validateImportFile(event) {
     only: ["flash"],
     onFinish: () => {
       isValidating.value = false;
-      event.target.value = "";
     },
     onError: () => {
       isValidating.value = false;
       errorMessage.value = "Failed to validate CSV file";
-      event.target.value = "";
     },
   });
 }
@@ -1868,8 +1721,14 @@ function closeImportModal() {
   importValidationResults.value = null;
   isValidating.value = false;
   isImporting.value = false;
+
+  isDragging.value = false;
+  dragDepth = 0;
+
+  if (importFileInput.value) importFileInput.value.value = "";
 }
 
+/** Listen for server validation payload */
 watch(
   () => page.props.flash?.importValidation,
   (payload) => {
@@ -1877,8 +1736,9 @@ watch(
 
     if (payload.results) {
       importValidationResults.value = payload.results;
-      if (payload.header_error)
+      if (payload.header_error) {
         importValidationResults.value.header_error = payload.header_error;
+      }
       showImportModal.value = true;
       return;
     }
@@ -1887,4 +1747,203 @@ watch(
   },
   { immediate: true }
 );
+
+/** Code management functions */
+const openCodeModal = () => {
+  codeModal.value = true;
+  showCodeForm.value = false;
+  editingCode.value = null;
+};
+
+const openNewCodeForm = () => {
+  codeForm.value = { code: "", description: "" };
+  editingCode.value = null;
+  showCodeForm.value = true;
+};
+
+const editCode = (code) => {
+  codeForm.value = { code: code.code, description: code.description || "" };
+  editingCode.value = code.id;
+  showCodeForm.value = true;
+};
+
+const cancelCodeEdit = () => {
+  showCodeForm.value = false;
+  editingCode.value = null;
+};
+
+const confirmDeleteCode = (id) => {
+  codeToDelete.value = id;
+  codeDeleteConfirm.value = true;
+};
+
+const deleteCode = (id) => {
+  if (!id) return;
+
+  router.delete(route("delay_codes.destroy.admin", id), {
+    onSuccess: () => {
+      codeDeleteConfirm.value = false;
+      codeToDelete.value = null;
+      successMessage.value = "Delay code deleted successfully";
+      router.reload({ only: ["delay_codes"] });
+    },
+    onError: () => {
+      errorMessage.value = "Failed to delete delay code.";
+    },
+  });
+};
+
+const saveCode = () => {
+  const f = useForm({
+    code: codeForm.value.code,
+    description: codeForm.value.description,
+  });
+
+  const routeName = editingCode.value
+    ? props.isSuperAdmin
+      ? "delay_codes.update.admin"
+      : "delay_codes.update"
+    : props.isSuperAdmin
+    ? "delay_codes.store.admin"
+    : "delay_codes.store";
+
+  const routeParams = editingCode.value
+    ? props.isSuperAdmin
+      ? { id: editingCode.value }
+      : { tenantSlug: props.tenantSlug, id: editingCode.value }
+    : props.isSuperAdmin
+    ? {}
+    : { tenantSlug: props.tenantSlug };
+
+  const method = editingCode.value ? f.put : f.post;
+
+  method.call(f, route(routeName, routeParams), {
+    onSuccess: () => {
+      successMessage.value = editingCode.value
+        ? "Delay code updated successfully."
+        : "Delay code created successfully.";
+      showCodeForm.value = false;
+      editingCode.value = null;
+      router.reload({ only: ["delay_codes"] });
+    },
+    onError: () => {
+      errorMessage.value = "Failed to save delay code.";
+    },
+  });
+};
+
+const restoreCode = (id) => {
+  const f = useForm({});
+  f.post(
+    route(props.isSuperAdmin ? "delay_codes.restore.admin" : "delay_codes.restore", {
+      id,
+    }),
+    {
+      onSuccess: () => {
+        successMessage.value = "Delay code restored successfully.";
+        router.reload({ only: ["delay_codes"] });
+      },
+      onError: () => {
+        errorMessage.value = "Failed to restore delay code.";
+      },
+    }
+  );
+};
+
+const forceDeleteCode = (id) => {
+  const f = useForm({});
+  f.delete(
+    route(
+      props.isSuperAdmin ? "delay_codes.forceDelete.admin" : "delay_codes.forceDelete",
+      { id }
+    ),
+    {
+      onSuccess: () => {
+        successMessage.value = "Delay code permanently deleted successfully.";
+        router.reload({ only: ["delay_codes"] });
+      },
+      onError: () => {
+        errorMessage.value = "Failed to permanently delete delay code.";
+      },
+    }
+  );
+};
+
+/** On-Time dashboard data */
+const ontimeMetrics = computed(() => {
+  if (!props.delay_breakdown?.by_category) return null;
+
+  const categoryData = props.delay_breakdown.by_category;
+  const type = props.filters?.delayType;
+
+  if (type) {
+    return {
+      moreThan601Count: categoryData[`category_601_plus_${type}_count`] || "0",
+      between1_60Count: categoryData[`category_1_60_${type}_count`] || "0",
+      between61_240Count: categoryData[`category_61_240_${type}_count`] || "0",
+      between241_600Count: categoryData[`category_241_600_${type}_count`] || "0",
+      totalDelays: categoryData[`total_${type}_delays`] || "0",
+      by_category: true,
+    };
+  }
+
+  return {
+    between1_120Count: categoryData.category_1_120_count || "0",
+    between121_600Count: categoryData.category_121_600_count || "0",
+    moreThan601Count: categoryData.category_601_plus_count || "0",
+    between1_60Count: categoryData.category_1_60_count || "0",
+    between61_240Count: categoryData.category_61_240_count || "0",
+    between241_600Count: categoryData.category_241_600_count || "0",
+    totalDelays: categoryData.total_delays || "0",
+    by_category: true,
+  };
+});
+
+const bottomDrivers = computed(() => {
+  if (props.filters?.delayType === "origin")
+    return props.delay_breakdown?.bottom_five_drivers?.origin || [];
+  if (props.filters?.delayType === "destination")
+    return props.delay_breakdown?.bottom_five_drivers?.destination || [];
+  return props.delay_breakdown?.bottom_five_drivers?.total || [];
+});
+
+const ontimeChartData = computed(() => {
+  if (!props.line_chart_data || props.line_chart_data.length === 0) {
+    return {
+      labels: [],
+      datasets: [
+        {
+          label: "On-Time Performance",
+          data: [],
+          borderColor: "#3b82f6",
+          backgroundColor: "rgba(59, 130, 246, 0.1)",
+          tension: 0.3,
+          fill: false,
+        },
+      ],
+    };
+  }
+
+  return {
+    labels: props.line_chart_data.map((item) => item.date),
+    datasets: [
+      {
+        label: "On-Time Performance",
+        data: props.line_chart_data.map((item) => item.onTimePerformance),
+        borderColor: "#3b82f6",
+        backgroundColor: "rgba(59, 130, 246, 0.1)",
+        tension: 0.3,
+        fill: false,
+      },
+    ],
+  };
+});
+
+/** Auto-hide messages */
+watch(successMessage, (v) => {
+  if (v) setTimeout(() => (successMessage.value = ""), 5000);
+});
+watch(errorMessage, (v) => {
+  if (v) setTimeout(() => (errorMessage.value = ""), 5000);
+});
 </script>

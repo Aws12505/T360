@@ -14,6 +14,7 @@
       </AlertTitle>
       <AlertDescription>{{ successMessage }}</AlertDescription>
     </Alert>
+
     <Alert
       v-if="errorMessage"
       variant="destructive"
@@ -38,6 +39,7 @@
           Truck Management
         </h1>
       </div>
+
       <div class="flex flex-wrap gap-3">
         <Button
           v-if="permissionNames.includes('trucks.create')"
@@ -47,6 +49,7 @@
         >
           <Icon name="plus" class="mr-1 h-4 w-4 md:mr-2" /> Create New Truck
         </Button>
+
         <Button
           v-if="selectedTrucks.length && permissionNames.includes('trucks.delete')"
           @click="confirmDeleteSelected"
@@ -57,6 +60,7 @@
             selectedTrucks.length
           }})
         </Button>
+
         <Button
           @click="showImportModal = true"
           v-if="permissionNames.includes('trucks.import')"
@@ -66,6 +70,7 @@
           <Icon name="upload" class="mr-1 h-4 w-4 md:mr-2" />
           Import CSV
         </Button>
+
         <Button
           v-if="permissionNames.includes('trucks.export')"
           @click.prevent="exportCSV"
@@ -98,6 +103,7 @@
           </Button>
         </div>
       </CardHeader>
+
       <Transition
         enter-active-class="transition-all duration-300 ease-out"
         leave-active-class="transition-all duration-200 ease-in"
@@ -123,6 +129,7 @@
                   class="py-1 px-1 md:px-2 md:py-1 h-9 lg:px-3 lg:py-2 lg:h-10"
                 />
               </div>
+
               <div>
                 <Label for="type" class="flex items-center gap-1.5 mb-2">
                   <Icon name="truck" class="h-4 w-4 text-muted-foreground" />
@@ -157,6 +164,7 @@
                   </div>
                 </div>
               </div>
+
               <div>
                 <Label for="make" class="flex items-center gap-1.5 mb-2">
                   <Icon name="tag" class="h-4 w-4 text-muted-foreground" />
@@ -195,6 +203,7 @@
                 </div>
               </div>
             </div>
+
             <Button @click="clearFilters" variant="ghost" size="sm" class="self-start">
               <Icon name="rotate_ccw" class="mr-2 h-4 w-4" /> Reset Filters
             </Button>
@@ -224,7 +233,9 @@
                     />
                   </div>
                 </TableHead>
+
                 <TableHead v-if="SuperAdmin" class="font-semibold">Company</TableHead>
+
                 <TableHead
                   v-for="col in tableColumns"
                   :key="col"
@@ -235,11 +246,12 @@
                     <template v-if="col === 'inspection_status'"
                       >Annual Inspection Status</template
                     >
-                    <template v-else-if="col === 'inspection_expiry_date'"
-                      >Annual Inspection Expiration Date</template
-                    >
+                    <template v-else-if="col === 'inspection_expiry_date'">
+                      Annual Inspection Expiration Date
+                    </template>
                     <template v-else-if="col === 'status'">Status</template>
                     <template v-else>{{ humanize(col) }}</template>
+
                     <div v-if="sortColumn === col" class="ml-2">
                       <svg
                         v-if="sortDirection === 'asc'"
@@ -262,6 +274,7 @@
                         <path d="M16 9l-4 4-4-4" />
                       </svg>
                     </div>
+
                     <div v-else class="ml-2 opacity-50">
                       <svg
                         class="h-4 w-4"
@@ -276,16 +289,19 @@
                     </div>
                   </div>
                 </TableHead>
+
                 <TableHead
                   v-if="
                     permissionNames.includes('trucks.update') ||
                     permissionNames.includes('trucks.delete')
                   "
                   class="font-semibold"
-                  >Actions</TableHead
                 >
+                  Actions
+                </TableHead>
               </TableRow>
             </TableHeader>
+
             <TableBody>
               <TableRow v-if="!paginatedEntries.length">
                 <TableCell
@@ -302,6 +318,7 @@
                   </div>
                 </TableCell>
               </TableRow>
+
               <TableRow
                 v-for="t in paginatedEntries"
                 :key="t.id"
@@ -318,7 +335,9 @@
                     class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                   />
                 </TableCell>
+
                 <TableCell v-if="SuperAdmin">{{ t.tenant?.name || "—" }}</TableCell>
+
                 <TableCell
                   v-for="col in tableColumns"
                   :key="col"
@@ -339,6 +358,7 @@
                       {{ formatCell(t, col) }}
                     </span>
                   </template>
+
                   <template v-else-if="col === 'inspection_status'">
                     <span
                       :class="{
@@ -352,10 +372,12 @@
                       {{ t[col] === "good" ? "Good" : "Expired" }}
                     </span>
                   </template>
+
                   <template v-else>
                     {{ formatCell(t, col) }}
                   </template>
                 </TableCell>
+
                 <TableCell
                   v-if="
                     permissionNames.includes('trucks.delete') ||
@@ -372,6 +394,7 @@
                     >
                       <Icon name="pencil" class="mr-1 h-4 w-4" /> Edit
                     </Button>
+
                     <Button
                       variant="destructive"
                       size="sm"
@@ -429,6 +452,7 @@
               </div>
             </div>
           </div>
+
           <div class="flex space-x-1">
             <Button
               size="sm"
@@ -439,18 +463,23 @@
             >
               <Icon name="chevron-left" class="h-4 w-4" /> Prev
             </Button>
+
+            <!-- keep your existing page number behavior -->
             <Button
               v-for="n in displayedPageNumbers"
-              :key="n"
+              :key="String(n)"
               size="sm"
               variant="ghost"
-              @click="goToPage(n)"
+              @click="typeof n === 'number' ? goToPage(n) : null"
+              :disabled="typeof n !== 'number'"
               :class="{
                 'border-primary bg-primary/10 text-primary font-medium': n === page,
+                'opacity-60 cursor-default': typeof n !== 'number',
               }"
             >
               {{ n }}
             </Button>
+
             <Button
               size="sm"
               variant="ghost"
@@ -474,21 +503,20 @@
               :name="form.id ? 'pencil' : 'plus-circle'"
               class="h-5 w-5 text-primary"
             />
-            <DialogTitle class="text-lg sm:text-xl">{{
-              form.id ? "Edit Truck" : "Create Truck"
-            }}</DialogTitle>
+            <DialogTitle class="text-lg sm:text-xl">
+              {{ form.id ? "Edit Truck" : "Create Truck" }}
+            </DialogTitle>
           </div>
-          <DialogDescription class="text-xs sm:text-sm mt-1"
-            >Fill in the details to {{ form.id ? "update" : "create" }} a
-            truck.</DialogDescription
-          >
+          <DialogDescription class="text-xs sm:text-sm mt-1">
+            Fill in the details to {{ form.id ? "update" : "create" }} a truck.
+          </DialogDescription>
         </DialogHeader>
 
         <form
           @submit.prevent="submitForm"
           class="grid max-h-[75vh] grid-cols-1 gap-4 overflow-y-auto p-4 sm:grid-cols-2 sm:gap-5 sm:p-6"
         >
-          <!-- Form sections -->
+          <!-- Basic Information -->
           <div class="col-span-2 mb-2 border-b pb-2">
             <h3 class="text-sm font-medium text-muted-foreground">Basic Information</h3>
           </div>
@@ -615,7 +643,7 @@
             </div>
           </div>
 
-          <!-- Additional Information Section -->
+          <!-- Additional Information -->
           <div class="col-span-2 mt-2 mb-2 border-b pb-2">
             <h3 class="text-sm font-medium text-muted-foreground">
               Additional Information
@@ -687,7 +715,7 @@
             />
           </div>
 
-          <!-- Inspection Section -->
+          <!-- Inspection -->
           <div class="col-span-2 mt-2 mb-2 border-b pb-2">
             <h3 class="text-sm font-medium text-muted-foreground">Inspection Details</h3>
           </div>
@@ -761,154 +789,6 @@
             </div>
           </div>
 
-          <div class="col-span-2 sm:col-span-1">
-            <Label for="make" class="flex items-center gap-1.5 mb-1.5">
-              <Icon name="tag" class="h-4 w-4 text-muted-foreground" />
-              Make
-            </Label>
-            <div class="relative">
-              <select
-                id="make"
-                v-model="form.make"
-                required
-                class="flex h-10 w-full appearance-none items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-shadow hover:shadow-sm focus:shadow-sm"
-              >
-                <option value="international">International</option>
-                <option value="kenworth">Kenworth</option>
-                <option value="peterbilt">Peterbilt</option>
-                <option value="volvo">Volvo</option>
-                <option value="freightliner">Freightliner</option>
-              </select>
-              <div
-                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700"
-              >
-                <svg
-                  class="h-4 w-4 opacity-50"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          <!-- Additional Information Section -->
-          <div class="col-span-2 mt-2 mb-2 border-b pb-2">
-            <h3 class="text-sm font-medium text-muted-foreground">
-              Additional Information
-            </h3>
-          </div>
-
-          <div class="col-span-2 sm:col-span-1">
-            <Label for="fuel" class="flex items-center gap-1.5 mb-1.5">
-              <Icon name="fuel" class="h-4 w-4 text-muted-foreground" />
-              Fuel
-            </Label>
-            <div class="relative">
-              <select
-                id="fuel"
-                v-model="form.fuel"
-                required
-                class="flex h-10 w-full appearance-none items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-shadow hover:shadow-sm focus:shadow-sm"
-              >
-                <option value="diesel">Diesel</option>
-                <option value="cng">CNG</option>
-              </select>
-              <div
-                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700"
-              >
-                <svg
-                  class="h-4 w-4 opacity-50"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-span-2 sm:col-span-1">
-            <Label for="license" class="flex items-center gap-1.5 mb-1.5">
-              <Icon name="id_card" class="h-4 w-4 text-muted-foreground" />
-              License
-            </Label>
-            <Input
-              id="license"
-              v-model.number="form.license"
-              type="number"
-              min="0"
-              required
-              placeholder="Enter license number"
-              class="transition-shadow hover:shadow-sm focus:shadow-sm"
-            />
-          </div>
-
-          <div class="col-span-2 sm:col-span-1">
-            <Label for="vin" class="flex items-center gap-1.5 mb-1.5">
-              <Icon name="fingerprint" class="h-4 w-4 text-muted-foreground" />
-              VIN
-            </Label>
-            <Input
-              id="vin"
-              v-model="form.vin"
-              type="text"
-              required
-              placeholder="Enter vehicle identification number"
-              class="transition-shadow hover:shadow-sm focus:shadow-sm"
-            />
-          </div>
-
-          <!-- Inspection Section -->
-          <div class="col-span-2 mt-2 mb-2 border-b pb-2">
-            <h3 class="text-sm font-medium text-muted-foreground">Inspection Details</h3>
-          </div>
-
-          <div class="col-span-2 sm:col-span-1">
-            <Label for="inspection_status" class="flex items-center gap-1.5 mb-1.5">
-              <Icon name="clipboard_check" class="h-4 w-4 text-muted-foreground" />
-              Annual Inspection Status
-            </Label>
-            <div class="relative">
-              <select
-                id="inspection_status"
-                v-model="form.inspection_status"
-                required
-                class="flex h-10 w-full appearance-none items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-shadow hover:shadow-sm focus:shadow-sm"
-              >
-                <option value="good">Good</option>
-                <option value="expired">Expired</option>
-              </select>
-              <div
-                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700"
-              >
-                <svg
-                  class="h-4 w-4 opacity-50"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-              </div>
-            </div>
-          </div>
-
           <!-- Form Actions -->
           <div class="col-span-2 mt-4 flex justify-end gap-3">
             <Button
@@ -938,10 +818,9 @@
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Confirm Deletion</DialogTitle>
-          <DialogDescription
-            >Are you sure you want to delete this truck? This action cannot be
-            undone.</DialogDescription
-          >
+          <DialogDescription>
+            Are you sure you want to delete this truck? This action cannot be undone.
+          </DialogDescription>
         </DialogHeader>
         <DialogFooter class="mt-4">
           <Button variant="outline" @click="showDeleteModal = false">Cancel</Button>
@@ -955,10 +834,10 @@
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Confirm Bulk Deletion</DialogTitle>
-          <DialogDescription
-            >Are you sure you want to delete {{ selectedTrucks.length }} trucks? This
-            action cannot be undone.</DialogDescription
-          >
+          <DialogDescription>
+            Are you sure you want to delete {{ selectedTrucks.length }} trucks? This
+            action cannot be undone.
+          </DialogDescription>
         </DialogHeader>
         <DialogFooter class="mt-4">
           <Button variant="outline" @click="showBulkDeleteModal = false">Cancel</Button>
@@ -968,6 +847,8 @@
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+    <!-- Import Modal (MIMIC Acceptance TEMPLATE) -->
     <Dialog v-model:open="showImportModal">
       <DialogContent
         class="max-w-[95vw] sm:max-w-[90vw] md:max-w-5xl max-h-[90vh] overflow-hidden flex flex-col"
@@ -988,26 +869,49 @@
           <!-- Step 1 -->
           <div v-if="!importValidationResults">
             <div class="space-y-4">
+              <!-- ✅ Dropzone (same structure as Acceptance) -->
               <div
-                class="flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-8 bg-muted/20"
+                class="flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-8 bg-muted/20 transition-colors"
+                :class="{
+                  'border-primary bg-primary/5': isDragging,
+                  'opacity-60 pointer-events-none': isValidating,
+                }"
+                @dragenter.prevent="onDragEnter"
+                @dragover.prevent="onDragOver"
+                @dragleave.prevent="onDragLeave"
+                @drop.prevent="onDrop"
               >
                 <Icon
                   name="file-spreadsheet"
                   class="h-12 w-12 text-muted-foreground mb-3"
                 />
-                <label class="cursor-pointer">
-                  <span class="text-sm font-medium text-primary hover:underline"
-                    >Choose CSV file</span
-                  >
+
+                <div class="text-center">
+                  <div class="text-sm font-medium">
+                    <span class="text-primary">Drag & drop</span> your CSV here
+                  </div>
+                  <p class="text-xs text-muted-foreground mt-1">or</p>
+                </div>
+
+                <label class="cursor-pointer mt-3">
+                  <span class="text-sm font-medium text-primary hover:underline">
+                    Choose CSV file
+                  </span>
                   <input
+                    ref="importFileInput"
                     type="file"
                     class="hidden"
-                    @change="validateImportFile"
-                    accept=".csv,.txt"
+                    @change="onImportInputChange"
+                    accept=".csv,text/csv"
                     :disabled="isValidating"
                   />
                 </label>
-                <p class="text-xs text-muted-foreground mt-2">or drag and drop</p>
+
+                <p class="text-xs text-muted-foreground mt-2">CSV only</p>
+
+                <div v-if="isDragging" class="mt-3 text-xs text-primary font-medium">
+                  Drop file to validate
+                </div>
               </div>
 
               <div class="flex items-center gap-2 text-sm text-muted-foreground">
@@ -1225,10 +1129,11 @@
           </div>
         </div>
 
+        <!-- Footer -->
         <div class="border-t p-4 flex justify-end gap-3">
-          <Button @click="closeImportModal" variant="outline" :disabled="isImporting"
-            >Close</Button
-          >
+          <Button @click="closeImportModal" variant="outline" :disabled="isImporting">
+            Close
+          </Button>
 
           <Button
             v-if="importValidationResults && importValidationResults.summary.valid > 0"
@@ -1255,6 +1160,7 @@
         </div>
       </DialogContent>
     </Dialog>
+
     <form ref="exportForm" method="GET" class="hidden" />
   </div>
 </template>
@@ -1315,6 +1221,7 @@ const showBulkDeleteModal = ref(false);
 const deleteTarget = ref<any>(null);
 const isSubmitting = ref(false);
 const showFilters = ref(false);
+
 // Form states
 const form = useForm({
   id: null,
@@ -1327,16 +1234,36 @@ const form = useForm({
   tenant_id: props.SuperAdmin ? "" : null,
   status: "active",
   inspection_status: "good",
-  inspection_expiry_date: new Date().toISOString().split("T")[0], // Today's date as default
+  inspection_expiry_date: new Date().toISOString().split("T")[0],
 });
+
 const importForm = useForm({ csv_file: null });
-const exportForm = ref(null);
+const exportForm = ref<HTMLFormElement | null>(null);
 const pageProps = usePage();
 
+// Import modal state
 const showImportModal = ref(false);
-const importValidationResults = ref(null);
+const importValidationResults = ref<any>(null);
 const isValidating = ref(false);
 const isImporting = ref(false);
+
+// Drag & drop state (same as Acceptance)
+const importFileInput = ref<HTMLInputElement | null>(null);
+const isDragging = ref(false);
+let dragDepth = 0;
+
+// Prevent browser from opening the file if dropped outside the dropzone (same as Acceptance)
+onMounted(() => {
+  const prevent = (e: DragEvent) => e.preventDefault();
+  window.addEventListener("dragover", prevent as any);
+  window.addEventListener("drop", prevent as any);
+
+  onUnmounted(() => {
+    window.removeEventListener("dragover", prevent as any);
+    window.removeEventListener("drop", prevent as any);
+  });
+});
+
 // Computeds
 const filteredEntries = computed(() =>
   props.entries.filter((t) => {
@@ -1351,6 +1278,7 @@ const filteredEntries = computed(() =>
     return true;
   })
 );
+
 const sortedEntries = computed(() =>
   [...filteredEntries.value].sort((a, b) => {
     let A = a[sortColumn.value],
@@ -1366,20 +1294,21 @@ const sortedEntries = computed(() =>
     return 0;
   })
 );
-const totalPages = computed(() => {
-  return Math.ceil(sortedEntries.value.length / perPage.value);
-});
+
+const totalPages = computed(() => Math.ceil(sortedEntries.value.length / perPage.value));
 
 const paginatedEntries = computed(() => {
   const start = (page.value - 1) * perPage.value;
   const end = start + perPage.value;
   return sortedEntries.value.slice(start, end);
 });
+
 const isAllSelected = computed(
   () =>
     paginatedEntries.value.length > 0 &&
     paginatedEntries.value.every((t) => selectedTrucks.value.includes(t.id))
 );
+
 const tableColumns = [
   "truckid",
   "type",
@@ -1397,6 +1326,7 @@ watch(successMessage, (v) => v && setTimeout(() => (successMessage.value = ""), 
 watch(perPage, (newValue) => {
   localPerPage.value = newValue;
 });
+
 // Methods
 function humanize(col: string) {
   return col.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
@@ -1414,13 +1344,16 @@ function formatCell(t: any, col: string) {
   const v = t[col];
   return typeof v === "string" ? v.charAt(0).toUpperCase() + v.slice(1) : v;
 }
+
 const resetPage = () => {
   page.value = 1;
 };
+
 function clearFilters() {
   filters.value = { search: "", type: "", make: "" };
   resetPage();
 }
+
 function sortBy(col: string) {
   if (sortColumn.value === col)
     sortDirection.value = sortDirection.value === "asc" ? "desc" : "asc";
@@ -1429,15 +1362,18 @@ function sortBy(col: string) {
     sortDirection.value = "asc";
   }
 }
+
 const onPerPageChange = () => {
   perPage.value = localPerPage.value;
   resetPage();
 };
-const goToPage = (newPage) => {
+
+const goToPage = (newPage: number) => {
   if (newPage >= 1 && newPage <= totalPages.value) {
     page.value = newPage;
   }
 };
+
 function toggleSelectAll(e: Event) {
   const chk = (e.target as HTMLInputElement).checked;
   if (chk)
@@ -1456,6 +1392,7 @@ function openCreateModal() {
   form.id = null;
   showModal.value = true;
 }
+
 function openEditModal(item: any) {
   form.reset();
   form.clearErrors();
@@ -1466,13 +1403,14 @@ function openEditModal(item: any) {
   form.fuel = item.fuel;
   form.license = item.license;
   form.vin = item.vin;
-  form.status = item.status; // Use status instead of is_active and is_returned
+  form.status = item.status;
   form.tenant_id = item.tenant_id;
   form.inspection_status = item.inspection_status || "good";
   form.inspection_expiry_date =
     item.inspection_expiry_date || new Date().toISOString().split("T")[0];
   showModal.value = true;
 }
+
 function closeModal() {
   showModal.value = false;
 }
@@ -1483,7 +1421,9 @@ function submitForm() {
     truckid: Number(form.truckid),
     license: Number(form.license),
   };
+
   const action = form.id ? "put" : "post";
+
   const url = form.id
     ? props.SuperAdmin
       ? route("truck.update.admin", [form.id])
@@ -1491,7 +1431,10 @@ function submitForm() {
     : route(props.SuperAdmin ? "truck.store.admin" : "truck.store", {
         tenantSlug: props.tenantSlug,
       });
+
   isSubmitting.value = true;
+
+  // @ts-ignore - inertia dynamic method
   form[action](url, {
     data,
     onSuccess: () => {
@@ -1507,11 +1450,14 @@ function confirmDelete(item: any) {
   deleteTarget.value = item;
   showDeleteModal.value = true;
 }
+
 function deleteEntry() {
   if (!deleteTarget.value) return;
+
   const url = props.SuperAdmin
     ? route("truck.destroy.admin", [deleteTarget.value.id])
     : route("truck.destroy", [props.tenantSlug, deleteTarget.value.id]);
+
   form.delete(url, {
     onSuccess: () => {
       successMessage.value = "Deleted successfully";
@@ -1523,10 +1469,12 @@ function deleteEntry() {
 function confirmDeleteSelected() {
   if (selectedTrucks.value.length) showBulkDeleteModal.value = true;
 }
+
 function deleteSelectedTrucks() {
   const url = route(props.SuperAdmin ? "truck.destroyBulk.admin" : "truck.destroyBulk", {
     tenantSlug: props.tenantSlug,
   });
+
   useForm({ ids: selectedTrucks.value }).delete(url, {
     onSuccess: () => {
       successMessage.value = `${selectedTrucks.value.length} deleted`;
@@ -1536,21 +1484,6 @@ function deleteSelectedTrucks() {
   });
 }
 
-function handleImport(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0];
-  if (!file) return;
-  importForm.csv_file = file;
-  importForm.post(
-    route(props.SuperAdmin ? "truck.import.admin" : "truck.import", {
-      tenantSlug: props.tenantSlug,
-    }),
-    {
-      forceFormData: true,
-      onSuccess: () => (successMessage.value = "Imported"),
-      onError: () => (errorMessage.value = "Import failed"),
-    }
-  );
-}
 function exportCSV() {
   if (!paginatedEntries.value.length) {
     errorMessage.value = "No data to export";
@@ -1567,57 +1500,31 @@ function exportCSV() {
 
 const templateUrl = computed(() => "/storage/upload-data-temps/Trucks Template.csv");
 
-onMounted(() => {
-  const handler = (e: Event) => {
-    if (showUploadOpts.value && !(e.target as HTMLElement).closest(".relative"))
-      showUploadOpts.value = false;
-  };
-  document.addEventListener("click", handler);
-  onUnmounted(() => document.removeEventListener("click", handler));
-});
-const displayedPageNumbers = computed(() => {
-  if (totalPages.value <= 7) {
-    // If we have 7 or fewer pages, show all page numbers
-    return Array.from({ length: totalPages.value }, (_, i) => i + 1);
-  }
-
-  // Otherwise, show a window of pages around the current page
-  const pageWindow = [];
-
-  // Always show first page
-  pageWindow.push(1);
-
-  // If not on first few pages, show ellipsis
-  if (page.value > 3) {
-    pageWindow.push("...");
-  }
-
-  // Calculate window around current page
-  const start = Math.max(2, page.value - 1);
-  const end = Math.min(totalPages.value - 1, page.value + 1);
-
-  for (let i = start; i <= end; i++) {
-    pageWindow.push(i);
-  }
-
-  // If not on last few pages, show ellipsis
-  if (page.value < totalPages.value - 2) {
-    pageWindow.push("...");
-  }
-
-  // Always show last page if we have more than 1 page
-  if (totalPages.value > 1) {
-    pageWindow.push(totalPages.value);
-  }
-
-  return pageWindow;
-});
-
-const permissionNames = computed(() => props.permissions.map((p) => p.name));
-
-function validateImportFile(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0];
+// ===== Import (MIMIC Acceptance behavior) =====
+function onImportInputChange(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
   if (!file) return;
+
+  handleImportFile(file);
+
+  // reset so choosing same file again fires change
+  input.value = "";
+}
+
+function handleImportFile(file: File) {
+  if (!file) return;
+
+  const isCsv =
+    file.type === "text/csv" ||
+    file.name.toLowerCase().endsWith(".csv") ||
+    file.type === "";
+
+  if (!isCsv) {
+    errorMessage.value = "Please upload a valid CSV file.";
+    setTimeout(() => (errorMessage.value = ""), 4000);
+    return;
+  }
 
   isValidating.value = true;
 
@@ -1633,14 +1540,37 @@ function validateImportFile(e: Event) {
     preserveScroll: true,
     onFinish: () => {
       isValidating.value = false;
-      (e.target as HTMLInputElement).value = "";
     },
     onError: () => {
       isValidating.value = false;
       errorMessage.value = "Failed to validate CSV file";
-      (e.target as HTMLInputElement).value = "";
     },
   });
+}
+
+// Drag handlers (same logic as Acceptance)
+function onDragEnter() {
+  dragDepth += 1;
+  isDragging.value = true;
+}
+function onDragOver() {
+  isDragging.value = true;
+}
+function onDragLeave() {
+  dragDepth -= 1;
+  if (dragDepth <= 0) {
+    dragDepth = 0;
+    isDragging.value = false;
+  }
+}
+function onDrop(e: DragEvent) {
+  dragDepth = 0;
+  isDragging.value = false;
+
+  const file = e.dataTransfer?.files?.[0];
+  if (!file) return;
+
+  handleImportFile(file);
 }
 
 function confirmImport() {
@@ -1688,19 +1618,70 @@ function closeImportModal() {
   importValidationResults.value = null;
   isValidating.value = false;
   isImporting.value = false;
+
+  // reset drag UI state
+  isDragging.value = false;
+  dragDepth = 0;
+
+  // clear file input
+  if (importFileInput.value) importFileInput.value.value = "";
 }
+
+// keep your existing listener for flash validation payload
 watch(
   () => (pageProps.props as any).flash?.importValidation,
   (payload: any) => {
     if (!payload) return;
+
     if (payload.results) {
       importValidationResults.value = payload.results;
-      if (payload.header_error)
+
+      if (payload.header_error) {
         importValidationResults.value.header_error = payload.header_error;
+      }
+
       showImportModal.value = true;
+      return;
     }
-    if (payload.message) errorMessage.value = payload.message;
+
+    if (payload.message) {
+      errorMessage.value = payload.message;
+    }
   },
-  { immediate: true }
+  { immediate: false }
 );
+
+// Pagination window (kept, but safe)
+const displayedPageNumbers = computed<(number | string)[]>(() => {
+  if (totalPages.value <= 7) {
+    return Array.from({ length: totalPages.value }, (_, i) => i + 1);
+  }
+
+  const pageWindow: (number | string)[] = [];
+  pageWindow.push(1);
+
+  if (page.value > 3) pageWindow.push("...");
+
+  const start = Math.max(2, page.value - 1);
+  const end = Math.min(totalPages.value - 1, page.value + 1);
+  for (let i = start; i <= end; i++) pageWindow.push(i);
+
+  if (page.value < totalPages.value - 2) pageWindow.push("...");
+
+  if (totalPages.value > 1) pageWindow.push(totalPages.value);
+
+  return pageWindow;
+});
+
+const permissionNames = computed(() => props.permissions.map((p) => p.name));
+
+// your original click-outside handler
+onMounted(() => {
+  const handler = (e: Event) => {
+    if (showUploadOpts.value && !(e.target as HTMLElement).closest(".relative"))
+      showUploadOpts.value = false;
+  };
+  document.addEventListener("click", handler);
+  onUnmounted(() => document.removeEventListener("click", handler));
+});
 </script>

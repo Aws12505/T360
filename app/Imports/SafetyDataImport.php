@@ -129,7 +129,6 @@ class SafetyDataImport implements ToCollection, WithStartRow, WithChunkReading, 
                 if ($firstCell === $totalString) {
                     break;
                 }
-                
                 // Skip empty rows
                 if (empty($firstCell) && count(array_filter($row->toArray())) < 3) {
                     $rowIndex++;
@@ -138,15 +137,14 @@ class SafetyDataImport implements ToCollection, WithStartRow, WithChunkReading, 
         
                 // Clean the row data: trim, cast to string, and convert empty/NA values to null.
                 $clean = $this->cleanRowData($row);
-        
-                // Retrieve the value from column index 51.
-                $maybeDate = $clean[51] ?? null;
+                // Retrieve the value from column index 53.
+                $maybeDate = $clean[53] ?? null;
         
                 // Convert the date
                 $rowDate = $this->parseDate($maybeDate);
-        
-                // Ensure the row has exactly 52 columns by padding with null values if needed.
-                while (count($clean) < 52) {
+
+                // Ensure the row has exactly 54 columns by padding with null values if needed.
+                while (count($clean) < 54) {
                     $clean->push(null);
                 }
         
@@ -166,7 +164,6 @@ class SafetyDataImport implements ToCollection, WithStartRow, WithChunkReading, 
                 
                 // Check if record exists (using our cache first)
                 $exists = false;
-                
                 if (!isset($existingRecords[$key])) {
                     // Only query the database when necessary
                     $exists = SafetyData::where([
@@ -179,13 +176,12 @@ class SafetyDataImport implements ToCollection, WithStartRow, WithChunkReading, 
                 } else {
                     $exists = $existingRecords[$key];
                 }
-                
+
                 if ($exists) {
                     $recordsToUpdate[] = $data;
                 } else {
                     $recordsToInsert[] = $data;
                 }
-                
                 // Process in batches to avoid memory issues
                 if (count($recordsToUpdate) + count($recordsToInsert) >= $this->batchSize) {
                     $this->processBatch($recordsToUpdate, $recordsToInsert);
@@ -304,7 +300,7 @@ class SafetyDataImport implements ToCollection, WithStartRow, WithChunkReading, 
             'requested_video'                     => $clean[42],
             'backing'                             => $clean[43],
             'roadside_parking'                    => $clean[44],
-            'lane_departure'                      => $clean[45],
+            'lane_conduct'                        => $clean[45],
             'driver_distracted_hard_brake'        => $clean[46],
             'following_distance_hard_brake'       => $clean[47],
             'driver_distracted_following_distance'=> $clean[48],

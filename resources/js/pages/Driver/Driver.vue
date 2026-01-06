@@ -5,7 +5,7 @@
     :permissions="props.permissions"
   >
     <Head title="Drivers" />
-    <!-- responsive here -->
+
     <div
       class="w-full md:max-w-2xl lg:max-w-3xl xl:max-w-6xl lg:mx-auto m-0 p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6"
     >
@@ -14,32 +14,30 @@
         <AlertTitle>Success</AlertTitle>
         <AlertDescription>{{ successMessage }}</AlertDescription>
       </Alert>
+
       <!-- Error Message -->
       <Alert v-if="errorMessage" variant="destructive">
         <AlertTitle>Error</AlertTitle>
         <AlertDescription>{{ errorMessage }}</AlertDescription>
       </Alert>
+
       <!-- Actions Section -->
-      <!-- responsive here -->
       <div
         class="flex flex-col sm:flex-row justify-between items-center px-2 mb-2 md:mb-4 lg:mb-6"
       >
-        <!-- responsive here -->
         <h1 class="text-lg md:text-xl lg:text-2xl font-bold">Driver Management</h1>
+
         <div class="flex flex-wrap gap-3">
-          <!-- responsive here -->
           <Button
             class="px-2 py-0 md:px-4 md:py-2"
             @click="openCreateModal"
             variant="default"
             v-if="permissionNames.includes('drivers.create')"
           >
-            <!-- responsive here -->
             <Icon name="plus" class="mr-1 h-4 w-4 md:mr-2" />
             Create New Driver
           </Button>
-          <!-- Add Delete Selected button -->
-          <!-- responsive here -->
+
           <Button
             class="px-2 py-0 md:px-4 md:py-2"
             v-if="
@@ -48,10 +46,10 @@
             @click="confirmDeleteSelected()"
             variant="destructive"
           >
-            <!-- responsive here -->
             <Icon name="trash" class="mr-1 h-4 w-4 md:mr-2" />
             Delete Selected ({{ selectedDrivers.length }})
           </Button>
+
           <Button
             @click="showImportModal = true"
             v-if="permissionNames.includes('drivers.import')"
@@ -62,14 +60,12 @@
             Import CSV
           </Button>
 
-          <!-- responsive here -->
           <Button
             class="px-2 py-0 md:px-4 md:py-2"
             @click.prevent="exportCSV"
             variant="outline"
             v-if="permissionNames.includes('drivers.export')"
           >
-            <!-- responsive here -->
             <Icon name="download" class="mr-1 h-4 w-4 md:mr-2" />
             Download CSV
           </Button>
@@ -78,20 +74,15 @@
 
       <!-- Filters Section -->
       <Card>
-        <!-- responsive here -->
         <CardHeader class="p-2 md:p-4 lg:p-6">
-          <!-- responsive here -->
           <CardTitle class="text-lg md:text-xl lg:text-2xl">Filters</CardTitle>
         </CardHeader>
-        <!-- responsive here -->
+
         <CardContent class="p-2 md:p-4 lg:p-6">
-          <!-- responsive here -->
           <div class="flex flex-col gap-1 md:gap-4">
-            <!-- responsive here -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-1 md:gap-4 w-full">
               <div>
                 <Label for="search">Search</Label>
-                <!-- responsive here -->
                 <Input
                   class="py-1 px-1 md:px-2 md:py-1 h-9 lg:px-3 lg:py-2 lg:h-10"
                   id="search"
@@ -101,9 +92,9 @@
                   @input="applyFilters"
                 />
               </div>
+
               <div>
                 <Label for="dateFrom">Hiring Date From</Label>
-                <!-- responsive here -->
                 <Input
                   class="py-1 px-1 md:px-2 md:py-1 h-9 lg:px-3 lg:py-2 lg:h-10"
                   id="dateFrom"
@@ -112,9 +103,9 @@
                   @change="applyFilters"
                 />
               </div>
+
               <div>
                 <Label for="dateTo">Hiring Date To</Label>
-                <!-- responsive here -->
                 <Input
                   class="py-1 px-1 md:px-2 md:py-1 h-9 lg:px-3 lg:py-2 lg:h-10"
                   id="dateTo"
@@ -124,6 +115,7 @@
                 />
               </div>
             </div>
+
             <Button @click="resetFilters" variant="ghost" size="sm">
               <Icon name="rotate_ccw" class="mr-2 h-4 w-4" />
               Reset
@@ -133,7 +125,6 @@
       </Card>
 
       <!-- Data Table -->
-      <!-- responsive here -->
       <Card class="mx-auto max-w-[95vw] md:max-w-[64vw] lg:max-w-full overflow-x-auto">
         <CardContent class="p-0">
           <div class="overflow-x-auto">
@@ -142,7 +133,7 @@
                 <TableRow
                   class="sticky top-0 z-10 border-b bg-background hover:bg-background"
                 >
-                  <!-- Add checkbox column for selecting all -->
+                  <!-- Select all checkbox -->
                   <TableHead
                     class="w-[50px]"
                     v-if="permissionNames.includes('drivers.delete')"
@@ -156,7 +147,9 @@
                       />
                     </div>
                   </TableHead>
+
                   <TableHead v-if="SuperAdmin">Company Name</TableHead>
+
                   <TableHead
                     v-for="col in tableColumns"
                     :key="col"
@@ -174,6 +167,7 @@
                             .join(" ")
                         }}
                       </div>
+
                       <div v-if="sortColumn === col" class="ml-2">
                         <svg
                           v-if="sortDirection === 'asc'"
@@ -196,6 +190,7 @@
                           <path d="M16 9l-4 4-4-4" />
                         </svg>
                       </div>
+
                       <div v-else class="ml-2 opacity-50">
                         <svg
                           class="h-4 w-4"
@@ -210,9 +205,10 @@
                       </div>
                     </div>
                   </TableHead>
+
                   <TableHead
                     v-if="
-                      permissionNames.includes('drivers.view') ||
+                      permissionNames.includes('drivers.profile.view') ||
                       permissionNames.includes('drivers.update') ||
                       permissionNames.includes('drivers.delete')
                     "
@@ -221,8 +217,9 @@
                   </TableHead>
                 </TableRow>
               </TableHeader>
+
               <TableBody>
-                <TableRow v-if="entries.data.length === 0">
+                <TableRow v-if="filteredEntries.length === 0">
                   <TableCell
                     :colspan="
                       SuperAdmin ? tableColumns.length + 3 : tableColumns.length + 2
@@ -232,8 +229,9 @@
                     No driver records found matching your criteria
                   </TableCell>
                 </TableRow>
-                <TableRow v-for="driver in entries.data" :key="driver.id">
-                  <!-- Checkbox for row selection -->
+
+                <TableRow v-for="driver in filteredEntries" :key="driver.id">
+                  <!-- Row checkbox -->
                   <TableCell
                     class="text-center"
                     v-if="permissionNames.includes('drivers.delete')"
@@ -245,25 +243,26 @@
                       class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                     />
                   </TableCell>
-                  <!-- Company Name column for SuperAdmin -->
+
                   <TableCell v-if="SuperAdmin">{{
                     driver.tenant?.name ?? "—"
                   }}</TableCell>
-                  <!-- Dynamic columns based on tableColumns array -->
+
                   <TableCell v-for="col in tableColumns" :key="col">
                     <template v-if="col === 'hiring_date'">
                       {{ formatDate(driver[col]) }}
                     </template>
+
                     <template v-else-if="col === 'mobile_phone'">
-                      <div class="whitespace-nowrap min-w-[70px]">
-                        {{ driver[col] }}
-                      </div>
+                      <div class="whitespace-nowrap min-w-[70px]">{{ driver[col] }}</div>
                     </template>
+
                     <template v-else>
                       {{ driver[col] }}
                     </template>
                   </TableCell>
-                  <!-- Actions column -->
+
+                  <!-- Actions -->
                   <TableCell
                     v-if="
                       permissionNames.includes('drivers.profile.view') ||
@@ -272,14 +271,9 @@
                     "
                   >
                     <div class="flex space-x-2">
-                      <!-- VIEW BUTTON -->
                       <Link
                         v-if="permissionNames.includes('drivers.profile.view')"
-                        :href="
-                          tenantSlug
-                            ? route('driver.show', [tenantSlug, driver.id])
-                            : route('driver.show.admin', driver.id)
-                        "
+                        :href="viewUrl(driver)"
                         class="flex items-center gap-1"
                       >
                         <Button
@@ -301,6 +295,7 @@
                         <Icon name="pencil" class="mr-1 h-4 w-4" />
                         Edit
                       </Button>
+
                       <Button
                         @click="deleteEntry(driver.id)"
                         variant="destructive"
@@ -316,16 +311,16 @@
               </TableBody>
             </Table>
           </div>
-          <!-- pagination -->
+
+          <!-- Pagination -->
           <div class="border-t bg-muted/20 px-4 py-3" v-if="entries.links">
-            <!-- responsive here -->
             <div class="flex flex-col sm:flex-row justify-between items-center gap-2">
               <div class="flex items-center gap-4 text-sm text-muted-foreground">
-                <span
-                  >Showing {{ filteredEntries.length }} of
-                  {{ entries.data.length }} entries</span
-                >
-                <!-- responsive here -->
+                <span>
+                  Showing {{ filteredEntries.length }} of
+                  {{ entries.data.length }} entries
+                </span>
+
                 <div
                   class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 w-full sm:w-auto"
                 >
@@ -343,7 +338,7 @@
                   </select>
                 </div>
               </div>
-              <!-- responsive here -->
+
               <div class="flex flex-wrap">
                 <Button
                   v-for="link in entries.links"
@@ -363,7 +358,7 @@
         </CardContent>
       </Card>
 
-      <!-- Modal -->
+      <!-- Create/Edit Modal -->
       <Dialog v-model:open="showModal">
         <DialogContent class="sm:max-w-4xl max-w-[95vw] mx-auto p-2 md:p-4 lg:p-6">
           <DialogHeader class="space-y-1 md:space-y-2">
@@ -375,7 +370,6 @@
             </DialogDescription>
           </DialogHeader>
 
-          <!-- SCROLLABLE WRAPPER ADDED HERE -->
           <div class="max-h-[80vh] overflow-y-auto pr-2">
             <form
               @submit.prevent="submitForm"
@@ -440,6 +434,7 @@
                     >*</span
                   >
                 </Label>
+
                 <div class="relative">
                   <Input
                     id="password"
@@ -462,9 +457,9 @@
 
               <!-- Netradyne User Name -->
               <div class="sm:col-span-2">
-                <Label for="netradyne_user_name" class="text-sm md:text-base"
-                  >Netradyne User Name</Label
-                >
+                <Label for="netradyne_user_name" class="text-sm md:text-base">
+                  Netradyne User Name
+                </Label>
                 <Input
                   id="netradyne_user_name"
                   v-model="form.netradyne_user_name"
@@ -476,9 +471,9 @@
 
               <!-- Mobile Phone -->
               <div class="sm:col-span-2">
-                <Label for="mobile_phone" class="text-sm md:text-base"
-                  >Mobile Phone Number</Label
-                >
+                <Label for="mobile_phone" class="text-sm md:text-base">
+                  Mobile Phone Number
+                </Label>
                 <Input
                   id="mobile_phone"
                   v-model="form.mobile_phone"
@@ -512,7 +507,6 @@
                   class="h-8 md:h-10 text-xs md:text-sm px-2 md:px-3 py-1 md:py-2"
                 />
 
-                <!-- Image preview -->
                 <div v-if="imagePreview" class="mt-2">
                   <img
                     :src="imagePreview"
@@ -531,8 +525,10 @@
                   @click="closeModal"
                   variant="outline"
                   class="h-8 md:h-10 text-xs md:text-sm px-2 md:px-4 py-1 md:py-2"
-                  >Cancel</Button
                 >
+                  Cancel
+                </Button>
+
                 <Button
                   type="submit"
                   variant="default"
@@ -546,7 +542,7 @@
         </DialogContent>
       </Dialog>
 
-      <!-- Delete Confirmation Dialog -->
+      <!-- Delete single confirmation -->
       <Dialog v-model:open="showDeleteModal">
         <DialogContent class="max-w-[95vw] sm:max-w-md mx-auto p-2 md:p-4 lg:p-6">
           <DialogHeader class="space-y-1 md:space-y-2">
@@ -557,6 +553,7 @@
               Are you sure you want to delete this driver? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
+
           <DialogFooter
             class="mt-2 md:mt-4 flex flex-col sm:flex-row gap-2 sm:gap-4 justify-end"
           >
@@ -568,6 +565,7 @@
             >
               Cancel
             </Button>
+
             <Button
               type="button"
               @click="confirmDelete"
@@ -580,18 +578,19 @@
         </DialogContent>
       </Dialog>
 
-      <!-- Add Delete Selected Confirmation Dialog -->
+      <!-- Delete selected confirmation -->
       <Dialog v-model:open="showDeleteSelectedModal">
         <DialogContent class="max-w-[95vw] sm:max-w-md mx-auto p-2 md:p-4 lg:p-6">
           <DialogHeader class="space-y-1 md:space-y-2">
-            <DialogTitle class="text-lg md:text-xl lg:text-2xl"
-              >Confirm Bulk Deletion</DialogTitle
-            >
+            <DialogTitle class="text-lg md:text-xl lg:text-2xl">
+              Confirm Bulk Deletion
+            </DialogTitle>
             <DialogDescription class="text-sm md:text-base">
               Are you sure you want to delete {{ selectedDrivers.length }} driver records?
               This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
+
           <DialogFooter
             class="mt-2 md:mt-4 flex flex-col sm:flex-row gap-2 sm:gap-4 justify-end"
           >
@@ -603,6 +602,7 @@
             >
               Cancel
             </Button>
+
             <Button
               type="button"
               @click="deleteSelectedDrivers()"
@@ -614,10 +614,12 @@
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <!-- Import Validation Modal -->
 
-      <form ref="exportForm" method="GET" class="hidden" />
+      <!-- Hidden Export Form -->
+      <form ref="exportForm" method="GET" class="hidden"></form>
     </div>
+
+    <!-- Import Modal -->
     <Dialog v-model:open="showImportModal">
       <DialogContent
         class="max-w-[95vw] sm:max-w-[90vw] md:max-w-5xl max-h-[90vh] overflow-hidden flex flex-col"
@@ -638,26 +640,49 @@
           <!-- Step 1: File Upload -->
           <div v-if="!importValidationResults">
             <div class="space-y-4">
+              <!-- ✅ Dropzone (drag & drop fixed) -->
               <div
-                class="flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-8 bg-muted/20"
+                class="flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-8 bg-muted/20 transition-colors"
+                :class="{
+                  'border-primary bg-primary/5': isDragging,
+                  'opacity-60 pointer-events-none': isValidating,
+                }"
+                @dragenter.prevent="onDragEnter"
+                @dragover.prevent="onDragOver"
+                @dragleave.prevent="onDragLeave"
+                @drop.prevent="onDrop"
               >
                 <Icon
                   name="file-spreadsheet"
                   class="h-12 w-12 text-muted-foreground mb-3"
                 />
-                <label class="cursor-pointer">
+
+                <div class="text-center">
+                  <div class="text-sm font-medium">
+                    <span class="text-primary">Drag & drop</span> your CSV here
+                  </div>
+                  <p class="text-xs text-muted-foreground mt-1">or</p>
+                </div>
+
+                <label class="cursor-pointer mt-3">
                   <span class="text-sm font-medium text-primary hover:underline">
                     Choose CSV file
                   </span>
                   <input
+                    ref="importFileInput"
                     type="file"
                     class="hidden"
-                    @change="validateImportFile"
-                    accept=".csv,.txt"
+                    @change="onImportInputChange"
+                    accept=".csv,text/csv"
                     :disabled="isValidating"
                   />
                 </label>
-                <p class="text-xs text-muted-foreground mt-2">or drag and drop</p>
+
+                <p class="text-xs text-muted-foreground mt-2">CSV only</p>
+
+                <div v-if="isDragging" class="mt-3 text-xs text-primary font-medium">
+                  Drop file to validate
+                </div>
               </div>
 
               <div class="flex items-center gap-2 text-sm text-muted-foreground">
@@ -678,7 +703,6 @@
 
           <!-- Step 2: Validation Results -->
           <div v-else class="space-y-4">
-            <!-- CSV Headers chips -->
             <div
               v-if="importValidationResults.headers?.length"
               class="rounded-lg border p-3"
@@ -700,7 +724,6 @@
               </div>
             </div>
 
-            <!-- Summary Cards -->
             <div class="grid grid-cols-3 gap-4">
               <Card class="border-2">
                 <CardContent class="p-4 text-center">
@@ -730,7 +753,6 @@
               </Card>
             </div>
 
-            <!-- Header Error -->
             <Alert v-if="importValidationResults.header_error" variant="destructive">
               <AlertTitle class="flex items-center gap-2">
                 <Icon name="alert_circle" class="h-5 w-5" />
@@ -741,7 +763,6 @@
               }}</AlertDescription>
             </Alert>
 
-            <!-- Invalid Rows -->
             <div v-if="importValidationResults.invalid?.length">
               <div class="flex items-center justify-between mb-3">
                 <h3 class="text-lg font-semibold text-red-600 flex items-center gap-2">
@@ -827,7 +848,6 @@
               </div>
             </div>
 
-            <!-- Valid Rows Preview -->
             <div v-if="importValidationResults.valid?.length">
               <h3
                 class="text-lg font-semibold text-green-600 flex items-center gap-2 mb-3"
@@ -880,7 +900,6 @@
           </div>
         </div>
 
-        <!-- Modal Footer -->
         <div class="border-t p-4 flex justify-end gap-3">
           <Button @click="closeImportModal" variant="outline" :disabled="isImporting">
             Close
@@ -920,17 +939,10 @@ import {
   Alert,
   AlertDescription,
   AlertTitle,
-  Button,
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
   Input,
   Label,
   Table,
@@ -940,58 +952,85 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui";
+import Button from "@/components/ui/button/Button.vue";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import AppLayout from "@/layouts/AppLayout.vue";
-import { Head, router, useForm, Link } from "@inertiajs/vue3";
+import { Head, Link, router, useForm, usePage } from "@inertiajs/vue3";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { Eye, EyeOff } from "lucide-vue-next";
-import { usePage } from "@inertiajs/vue3";
-
-// Import or create Select components
 
 const props = defineProps({
-  entries: Object,
-  tenantSlug: String,
-  SuperAdmin: Boolean,
-  tenants: Array,
-  permissions: Array,
+  entries: { type: Object, default: () => ({ data: [], links: [] }) },
+  tenantSlug: { type: String, default: null },
+  SuperAdmin: { type: Boolean, default: false },
+  tenants: { type: Array, default: () => [] },
+  permissions: { type: Array, default: () => [] },
+
+  // Optional (if your backend provides these; safe defaults)
+  perPage: { type: [Number, String], default: 10 },
+  dateFilter: { type: String, default: "full" },
 });
 
-// Add activeTab ref
-const activeTab = ref(props.dateFilter || "full");
-
-const perPage = ref(props.perPage || 10);
-// UI state
-const viewUrl = (driver) =>
-  tenantSlug
-    ? route("driver.show", [tenantSlug, driver.id])
-    : route("driver.show.admin", driver.id);
-
-const selectedDrivers = ref([]);
-const showDeleteSelectedModal = ref(false);
-const errorMessage = ref("");
-const successMessage = ref("");
-const showModal = ref(false);
-const showDeleteModal = ref(false);
-const formTitle = ref("Create Driver");
-const formAction = ref("Create");
-const exportForm = ref(null);
-const driverToDelete = ref(null);
-
-// Sorting state
-const sortColumn = ref("last_name");
-const sortDirection = ref("asc");
 const page = usePage();
 
-const showImportModal = ref(false);
-const importValidationResults = ref(null);
-const isValidating = ref(false);
-const isImporting = ref(false);
-// Filtering state
-const filters = ref({
-  search: "",
-  dateFrom: "",
-  dateTo: "",
+/** ✅ Prevent browser from opening file if dropped outside dropzone */
+onMounted(() => {
+  const prevent = (e) => e.preventDefault();
+  window.addEventListener("dragover", prevent);
+  window.addEventListener("drop", prevent);
+
+  onUnmounted(() => {
+    window.removeEventListener("dragover", prevent);
+    window.removeEventListener("drop", prevent);
+  });
 });
+
+/** Drag state for import dropzone */
+const importFileInput = ref(null);
+const isDragging = ref(false);
+let dragDepth = 0;
+
+function onDragEnter() {
+  dragDepth += 1;
+  isDragging.value = true;
+}
+function onDragOver() {
+  isDragging.value = true;
+}
+function onDragLeave() {
+  dragDepth -= 1;
+  if (dragDepth <= 0) {
+    dragDepth = 0;
+    isDragging.value = false;
+  }
+}
+function onDrop(e) {
+  dragDepth = 0;
+  isDragging.value = false;
+
+  const file = e.dataTransfer?.files?.[0];
+  if (!file) return;
+
+  handleImportFile(file);
+}
+function onImportInputChange(e) {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  handleImportFile(file);
+
+  // reset so picking same file triggers change
+  e.target.value = "";
+}
+
+const tenantSlug = computed(() => props.tenantSlug);
 
 const breadcrumbs = [
   {
@@ -1008,64 +1047,38 @@ const breadcrumbs = [
   },
 ];
 
-// Define columns for the data table
-const columns = computed(() => {
-  const baseColumns = [
-    {
-      accessorKey: "first_name",
-      header: "First Name",
-      cell: (info) => info.getValue(),
-      enableSorting: true,
-    },
-    {
-      accessorKey: "last_name",
-      header: "Last Name",
-      cell: (info) => info.getValue(),
-      enableSorting: true,
-    },
-    {
-      accessorKey: "email",
-      header: "Email",
-      cell: (info) => info.getValue(),
-      enableSorting: true,
-    },
-    {
-      accessorKey: "mobile_phone",
-      header: "Mobile Phone",
-      cell: (info) => info.getValue(),
-      enableSorting: true,
-    },
-    {
-      accessorKey: "hiring_date",
-      header: "Hiring Date",
-      cell: (info) => formatDate(info.getValue()),
-      enableSorting: true,
-    },
-    {
-      id: "actions",
-      header: "Actions",
-      cell: (info) => {
-        return {
-          driver: info.row.original,
-          edit: () => openEditModal(info.row.original),
-          delete: () => deleteEntry(info.row.original.id),
-        };
-      },
-      enableSorting: false,
-    },
-  ];
+const permissionNames = computed(() => (props.permissions || []).map((p) => p.name));
 
-  // Add company name column for SuperAdmin
-  if (props.SuperAdmin) {
-    baseColumns.unshift({
-      accessorKey: "tenant.name",
-      header: "Company Name",
-      cell: (info) => info.row.original.tenant?.name ?? "—",
-      enableSorting: true,
-    });
-  }
+/** UI state */
+const selectedDrivers = ref([]);
+const showDeleteSelectedModal = ref(false);
+const errorMessage = ref("");
+const successMessage = ref("");
+const showModal = ref(false);
+const showDeleteModal = ref(false);
+const formTitle = ref("Create Driver");
+const formAction = ref("Create");
+const exportForm = ref(null);
+const driverToDelete = ref(null);
 
-  return baseColumns;
+const perPage = ref(Number(props.perPage || 10));
+const activeTab = ref(props.dateFilter || "full");
+
+/** Sorting state */
+const sortColumn = ref("last_name");
+const sortDirection = ref("asc");
+
+/** Import */
+const showImportModal = ref(false);
+const importValidationResults = ref(null);
+const isValidating = ref(false);
+const isImporting = ref(false);
+
+/** Filtering state */
+const filters = ref({
+  search: "",
+  dateFrom: "",
+  dateTo: "",
 });
 
 const tableColumns = [
@@ -1086,58 +1099,57 @@ const form = useForm({
   hiring_date: "",
   netradyne_user_name: "",
   tenant_id: null,
-  password: "", // NEW
-  image: null, // NEW
+  password: "",
+  image: null,
 });
-
-const importForm = useForm({
-  csv_file: null,
-});
-const showPassword = ref(false);
 
 const deleteForm = useForm({});
 
-// Computed property for filtered and sorted entries
-const filteredEntries = computed(() => {
-  let result = [...props.entries.data];
+const showPassword = ref(false);
 
-  // Apply search filter
+const imagePreview = ref(null);
+
+const viewUrl = (driver) =>
+  props.tenantSlug
+    ? route("driver.show", [props.tenantSlug, driver.id])
+    : route("driver.show.admin", driver.id);
+
+/** Computed: filtered + sorted entries (client-side) */
+const filteredEntries = computed(() => {
+  let result = [...(props.entries?.data || [])];
+
+  // search
   if (filters.value.search) {
-    const searchTerm = filters.value.search.toLowerCase();
+    const s = filters.value.search.toLowerCase();
     result = result.filter(
-      (item) =>
-        item.first_name?.toLowerCase().includes(searchTerm) ||
-        item.last_name?.toLowerCase().includes(searchTerm) ||
-        item.email?.toLowerCase().includes(searchTerm)
+      (d) =>
+        d.first_name?.toLowerCase().includes(s) ||
+        d.last_name?.toLowerCase().includes(s) ||
+        d.email?.toLowerCase().includes(s)
     );
   }
 
-  // Apply date filters
+  // date range
   if (filters.value.dateFrom) {
     result = result.filter(
-      (item) => item.hiring_date && item.hiring_date >= filters.value.dateFrom
+      (d) => d.hiring_date && d.hiring_date >= filters.value.dateFrom
     );
   }
-
   if (filters.value.dateTo) {
-    result = result.filter(
-      (item) => item.hiring_date && item.hiring_date <= filters.value.dateTo
-    );
+    result = result.filter((d) => d.hiring_date && d.hiring_date <= filters.value.dateTo);
   }
 
-  // Apply sorting
+  // sorting
   result.sort((a, b) => {
     let valA = a[sortColumn.value];
     let valB = b[sortColumn.value];
 
-    // Handle null values
-    if (valA === null) return 1;
-    if (valB === null) return -1;
+    if (valA === null || valA === undefined) return 1;
+    if (valB === null || valB === undefined) return -1;
 
-    // String comparison
     if (typeof valA === "string") {
       valA = valA.toLowerCase();
-      valB = valB.toLowerCase();
+      valB = String(valB).toLowerCase();
     }
 
     if (valA < valB) return sortDirection.value === "asc" ? -1 : 1;
@@ -1148,120 +1160,125 @@ const filteredEntries = computed(() => {
   return result;
 });
 
-// Sort function
 function sortBy(column) {
   if (sortColumn.value === column) {
-    // Toggle direction if clicking the same column
     sortDirection.value = sortDirection.value === "asc" ? "desc" : "asc";
   } else {
-    // Set new column and default to ascending
     sortColumn.value = column;
     sortDirection.value = "asc";
   }
 }
 
-// Filter functions
 function applyFilters() {
-  // This function is triggered by input/change events
-  // The filtering is handled by the computed property
+  // filtering is computed client-side
 }
-
 function resetFilters() {
-  filters.value = {
-    search: "",
-    dateFrom: "",
-    dateTo: "",
-  };
+  filters.value = { search: "", dateFrom: "", dateTo: "" };
 }
 
 function openCreateModal() {
   form.reset();
+  form.clearErrors();
   form.tenant_id = null;
   form.netradyne_user_name = "";
+  form.password = "";
+  form.image = null;
+
+  imagePreview.value = null;
+
   formTitle.value = "Create Driver";
   formAction.value = "Create";
   showModal.value = true;
 }
 
 function openEditModal(item) {
+  form.reset();
+  form.clearErrors();
+
   form.id = item.id;
-  form.first_name = item.first_name;
-  form.last_name = item.last_name;
-  form.email = item.email;
-  form.mobile_phone = item.mobile_phone;
-  form.hiring_date = item.hiring_date;
-  form.tenant_id = item.tenant_id;
-  form.netradyne_user_name = item.netradyne_user_name;
-  form.password = item.password;
+  form.first_name = item.first_name ?? "";
+  form.last_name = item.last_name ?? "";
+  form.email = item.email ?? "";
+  form.mobile_phone = item.mobile_phone ?? "";
+  form.hiring_date = item.hiring_date ?? "";
+  form.tenant_id = item.tenant_id ?? null;
+  form.netradyne_user_name = item.netradyne_user_name ?? "";
+
+  // IMPORTANT: do NOT prefill password from server
+  form.password = "";
+  form.image = null;
+
+  // Preview existing image if you have a stored path
+  if (item.image) {
+    imagePreview.value = item.image.startsWith("http")
+      ? item.image
+      : `/storage/${item.image}`;
+  } else {
+    imagePreview.value = null;
+  }
+
   formTitle.value = "Edit Driver";
   formAction.value = "Update";
-  // Set imagePreview if there's an image
-  if (item.image) {
-    imagePreview.value = `/storage/${item.image}`; // Show existing image in the modal
-  } else {
-    imagePreview.value = null; // No image to preview
-  }
   showModal.value = true;
 }
 
 function closeModal() {
   showModal.value = false;
-  form.reset(); // Add this to clear form
-  imagePreview.value = null; // Clear image preview
+  form.reset();
+  form.clearErrors();
+  imagePreview.value = null;
+  showPassword.value = false;
 }
 
 function submitForm() {
-  // Handle undefined password as null
-  if (form.password === undefined) {
-    form.password = null;
-  }
+  const isCreate = formAction.value === "Create";
 
-  // Create a FormData object to handle file uploads
-  const formData = new FormData();
+  // Build FormData for file upload
+  const fd = new FormData();
 
-  // Append form data to the FormData object
   Object.keys(form.data()).forEach((key) => {
-    if (key === "image" && form.image instanceof File) {
-      formData.append("image", form.image); // Add image if it's a valid File object
-    } else if (form[key] !== undefined && form[key] !== null) {
-      formData.append(key, form[key]); // Append other form fields
+    if (key === "image") {
+      if (form.image instanceof File) fd.append("image", form.image);
+      return;
     }
+
+    // For update, don't send empty password
+    if (!isCreate && key === "password" && !form.password) return;
+
+    const value = form[key];
+    if (value !== undefined && value !== null) fd.append(key, value);
   });
 
-  // If it's an update, make sure to append the ID
-  if (form.id) {
-    formData.append("id", form.id);
+  // Routes
+  const endpoint = isCreate
+    ? props.SuperAdmin
+      ? route("driver.store.admin")
+      : route("driver.store", props.tenantSlug)
+    : props.SuperAdmin
+    ? route("driver.update.admin", [form.id])
+    : route("driver.update", [props.tenantSlug, form.id]);
+
+  // Many Laravel apps use POST + _method=PUT for updates with FormData
+  if (!isCreate) {
+    fd.append("_method", "PUT");
   }
 
-  const isCreate = formAction.value === "Create"; // Check if the action is Create or Update
-  const routeName = isCreate
-    ? props.SuperAdmin
-      ? route("driver.store.admin") // For super admin create route
-      : route("driver.store", props.tenantSlug) // For tenant create route
-    : props.SuperAdmin
-    ? route("driver.update.admin", [form.id]) // For super admin update route
-    : route("driver.update", [props.tenantSlug, form.id]); // For tenant update route
-
-  const method = isCreate ? "post" : "post"; // Set method based on create or update
-
-  // Submit the form
-  form[method](routeName, {
-    data: formData, // Send FormData object
-    forceFormData: true, // Ensure the form uses FormData for submission
+  form.post(endpoint, {
+    data: fd,
+    forceFormData: true,
+    preserveScroll: true,
     onSuccess: () => {
       successMessage.value = isCreate
         ? "Driver created successfully."
         : "Driver updated successfully.";
-      closeModal(); // Close modal after successful submission
+      closeModal();
     },
     onError: (errors) => {
-      console.error("Form submission error:", errors);
-      if (errors && Object.keys(errors).length > 0) {
-        // Show the first error message
-        const firstError = Object.values(errors)[0];
-        errorMessage.value = firstError;
+      // show first error if present
+      if (errors && Object.keys(errors).length) {
+        errorMessage.value = String(Object.values(errors)[0]);
       } else {
-        errorMessage.value = "An error occurred. Please try again."; // Default error message
+        errorMessage.value = "An error occurred. Please try again.";
       }
     },
   });
@@ -1273,93 +1290,114 @@ function deleteEntry(id) {
 }
 
 function confirmDelete() {
-  deleteForm.delete(
-    props.SuperAdmin
-      ? route("driver.destroy.admin", [driverToDelete.value])
-      : route("driver.destroy", [props.tenantSlug, driverToDelete.value]),
-    {
-      onSuccess: () => {
-        successMessage.value = "Driver deleted.";
-        showDeleteModal.value = false;
-      },
-    }
-  );
-}
+  const endpoint = props.SuperAdmin
+    ? route("driver.destroy.admin", [driverToDelete.value])
+    : route("driver.destroy", [props.tenantSlug, driverToDelete.value]);
 
-function handleImport(e) {
-  const file = e.target.files?.[0];
-  if (!file) return;
-
-  importForm.csv_file = file;
-  importForm.post(
-    props.SuperAdmin
-      ? route("driver.import.admin")
-      : route("driver.import", props.tenantSlug),
-    {
-      forceFormData: true,
-      onSuccess: () => (successMessage.value = "Data imported successfully."),
-      onError: () => alert("Import failed"),
-    }
-  );
+  deleteForm.delete(endpoint, {
+    preserveScroll: true,
+    onSuccess: () => {
+      successMessage.value = "Driver deleted.";
+      showDeleteModal.value = false;
+      driverToDelete.value = null;
+    },
+    onError: () => {
+      errorMessage.value = "Failed to delete driver.";
+    },
+  });
 }
 
 function exportCSV() {
-  if (props.entries.data.length === 0) {
+  if ((props.entries?.data || []).length === 0) {
     errorMessage.value = "No data available to export";
-    setTimeout(() => {
-      errorMessage.value = "";
-    }, 3000);
+    setTimeout(() => (errorMessage.value = ""), 3000);
     return;
   }
-  const routeName = props.SuperAdmin
+
+  const endpoint = props.SuperAdmin
     ? route("driver.export.admin")
     : route("driver.export", props.tenantSlug);
-  exportForm.value?.setAttribute("action", routeName);
+
+  exportForm.value?.setAttribute("action", endpoint);
   exportForm.value?.submit();
 }
 
 function visitPage(url) {
-  if (url) {
-    // Parse the URL to add perPage parameter
-    const urlObj = new URL(url);
-    urlObj.searchParams.set("perPage", perPage.value);
+  if (!url) return;
 
-    // Use the modified URL with the perPage parameter
-    router.get(
-      urlObj.href,
-      {},
-      {
-        only: ["entries"],
-        preserveState: true,
-      }
-    );
-  }
+  const urlObj = new URL(url);
+  urlObj.searchParams.set("perPage", String(perPage.value));
+
+  router.get(
+    urlObj.href,
+    {},
+    {
+      only: ["entries"],
+      preserveState: true,
+      preserveScroll: true,
+    }
+  );
 }
 
-// Auto-hide success message after 5 seconds
-watch(successMessage, (newValue) => {
-  if (newValue) {
-    setTimeout(() => {
-      successMessage.value = "";
-    }, 5000);
-  }
+function changePerPage() {
+  const endpoint = props.tenantSlug
+    ? route("driver.index", { tenantSlug: props.tenantSlug })
+    : route("driver.index.admin");
+
+  router.get(
+    endpoint,
+    {
+      dateFilter: activeTab.value,
+      perPage: perPage.value,
+    },
+    { preserveState: true, preserveScroll: true }
+  );
+}
+
+/** Select all checkbox state */
+const isAllSelected = computed(() => {
+  return (
+    filteredEntries.value.length > 0 &&
+    selectedDrivers.value.length === filteredEntries.value.length
+  );
 });
 
-// Format date string from YYYY-MM-DD to m/d/Y without using Date()
-// to avoid timezone-related day shifts.
-function formatDate(dateStr) {
-  if (!dateStr) return "";
-  const parts = dateStr.split("-");
-  if (parts.length !== 3) return dateStr;
-  const [year, month, day] = parts;
-  return `${Number(month)}/${Number(day)}/${year}`;
+function toggleSelectAll(event) {
+  if (event.target.checked) {
+    // select all in current filtered list
+    selectedDrivers.value = filteredEntries.value.map((d) => d.id);
+  } else {
+    selectedDrivers.value = [];
+  }
 }
 
+function confirmDeleteSelected() {
+  if (selectedDrivers.value.length > 0) showDeleteSelectedModal.value = true;
+}
+
+function deleteSelectedDrivers() {
+  const bulk = useForm({ ids: selectedDrivers.value });
+
+  const routeName = props.SuperAdmin ? "driver.destroyBulk.admin" : "driver.destroyBulk";
+  const routeParams = props.SuperAdmin ? {} : { tenantSlug: props.tenantSlug };
+
+  bulk.delete(route(routeName, routeParams), {
+    preserveScroll: true,
+    onSuccess: () => {
+      successMessage.value = `${selectedDrivers.value.length} driver records deleted successfully.`;
+      selectedDrivers.value = [];
+      showDeleteSelectedModal.value = false;
+    },
+    onError: () => {
+      errorMessage.value = "Failed to delete selected drivers.";
+    },
+  });
+}
+
+/** Phone formatting */
 function onPhoneInput(e) {
-  // 1) grab only digits, up to 10
   let digits = e.target.value.replace(/\D/g, "").slice(0, 10);
 
-  // 2) build the formatted string
   let formatted = digits;
   if (digits.length > 6) {
     formatted = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
@@ -1369,111 +1407,28 @@ function onPhoneInput(e) {
     formatted = `(${digits}`;
   }
 
-  // 3) overwrite both the visible input and your form state
   e.target.value = formatted;
   form.mobile_phone = formatted;
 }
 
-// Function to handle per page change
-function changePerPage() {
-  const routeName = props.tenantSlug
-    ? route("driver.index", { tenantSlug: props.tenantSlug })
-    : route("driver.index.admin");
-
-  router.get(
-    routeName,
-    {
-      dateFilter: activeTab.value,
-      perPage: perPage.value,
-    },
-    { preserveState: true }
-  );
+/** Date formatting (no Date() timezone shifts) */
+function formatDate(dateStr) {
+  if (!dateStr) return "";
+  const parts = String(dateStr).split("-");
+  if (parts.length !== 3) return String(dateStr);
+  const [year, month, day] = parts;
+  return `${Number(month)}/${Number(day)}/${year}`;
 }
 
-// Computed property for "Select All" checkbox state
-const isAllSelected = computed(() => {
-  return (
-    filteredEntries.value.length > 0 &&
-    selectedDrivers.value.length === filteredEntries.value.length
-  );
-});
-
-// Bulk selection functions
-function toggleSelectAll(event) {
-  if (event.target.checked) {
-    selectedDrivers.value = props.entries.data.map((driver) => driver.id);
-  } else {
-    selectedDrivers.value = [];
-  }
-}
-
-function confirmDeleteSelected() {
-  if (selectedDrivers.value.length > 0) {
-    showDeleteSelectedModal.value = true;
-  }
-}
-
-function deleteSelectedDrivers() {
-  const form = useForm({
-    ids: selectedDrivers.value,
-  });
-
-  const routeName = props.SuperAdmin ? "driver.destroyBulk.admin" : "driver.destroyBulk";
-  const routeParams = props.SuperAdmin ? {} : { tenantSlug: props.tenantSlug };
-
-  form.delete(route(routeName, routeParams), {
-    preserveScroll: true,
-    onSuccess: () => {
-      successMessage.value = `${selectedDrivers.value.length} driver records deleted successfully.`;
-      selectedDrivers.value = [];
-      showDeleteSelectedModal.value = false;
-    },
-    onError: (errors) => {
-      console.error(errors);
-    },
-  });
-}
-
-// Handle selection change from DataTable
-function handleSelectionChange(selectedIds) {
-  selectedDrivers.value = [...selectedIds];
-}
-
-// Add these new refs and computed properties
-const showUploadOptions = ref(false);
-
-// Computed property for template URL
-const templateUrl = computed(() => {
-  return "/storage/upload-data-temps/Drivers Template.csv";
-});
-
-// Close dropdown when clicking outside
-onMounted(() => {
-  const handleClickOutside = (e) => {
-    if (showUploadOptions.value && !e.target.closest(".relative")) {
-      showUploadOptions.value = false;
-    }
-  };
-
-  document.addEventListener("click", handleClickOutside);
-
-  onUnmounted(() => {
-    document.removeEventListener("click", handleClickOutside);
-  });
-});
-
-const permissionNames = computed(() => props.permissions.map((p) => p.name));
-
-const imagePreview = ref(null);
-
+/** Image input */
 function onImageChange(e) {
-  const file = e.target.files[0];
+  const file = e.target.files?.[0];
   if (file) {
     form.image = file;
 
     const reader = new FileReader();
-    reader.onload = (e) => {
-      imagePreview.value = e.target.result;
+    reader.onload = (evt) => {
+      imagePreview.value = evt.target?.result ?? null;
     };
     reader.readAsDataURL(file);
   } else {
@@ -1482,21 +1437,34 @@ function onImageChange(e) {
   }
 }
 
-function validateImportFile(event) {
-  const target = event.target;
-  const file = target.files?.[0];
+/** Template URL */
+const templateUrl = computed(() => "/storage/upload-data-temps/Drivers Template.csv");
+
+/** Import: shared handler for drop + input */
+function handleImportFile(file) {
   if (!file) return;
+
+  const isCsv =
+    file.type === "text/csv" ||
+    file.name.toLowerCase().endsWith(".csv") ||
+    file.type === "";
+
+  if (!isCsv) {
+    errorMessage.value = "Please upload a valid CSV file.";
+    setTimeout(() => (errorMessage.value = ""), 4000);
+    return;
+  }
 
   isValidating.value = true;
 
-  const formData = new FormData();
-  formData.append("file", file);
+  const fd = new FormData();
+  fd.append("file", file);
 
   const endpoint = props.tenantSlug
     ? route("driver.validateImport", { tenantSlug: props.tenantSlug })
     : route("driver.validateImport.admin");
 
-  router.post(endpoint, formData, {
+  router.post(endpoint, fd, {
     forceFormData: true,
     preserveScroll: true,
     only: ["flash"],
@@ -1508,13 +1476,12 @@ function validateImportFile(event) {
       errorMessage.value = "Failed to validate CSV file";
     },
   });
-
-  target.value = "";
 }
 
 function confirmImport() {
   if (!importValidationResults.value) return;
-  if (importValidationResults.value.summary.invalid > 0) return;
+  if (importValidationResults.value.header_error) return;
+  if ((importValidationResults.value.summary?.invalid ?? 0) > 0) return;
 
   isImporting.value = true;
 
@@ -1528,13 +1495,16 @@ function confirmImport() {
     {
       preserveScroll: true,
       onSuccess: () => {
-        isImporting.value = false;
-        successMessage.value = `Successfully imported ${importValidationResults.value.summary.valid} drivers`;
+        successMessage.value = `Successfully imported ${
+          importValidationResults.value.summary?.valid ?? 0
+        } drivers`;
         closeImportModal();
       },
       onError: () => {
-        isImporting.value = false;
         errorMessage.value = "Failed to import drivers";
+      },
+      onFinish: () => {
+        isImporting.value = false;
       },
     }
   );
@@ -1553,8 +1523,14 @@ function closeImportModal() {
   importValidationResults.value = null;
   isValidating.value = false;
   isImporting.value = false;
+
+  isDragging.value = false;
+  dragDepth = 0;
+
+  if (importFileInput.value) importFileInput.value.value = "";
 }
 
+/** Flash payload listener */
 watch(
   () => page.props.flash?.importValidation,
   (payload) => {
@@ -1562,11 +1538,8 @@ watch(
 
     if (payload.results) {
       importValidationResults.value = payload.results;
-
-      if (payload.header_error) {
+      if (payload.header_error)
         importValidationResults.value.header_error = payload.header_error;
-      }
-
       showImportModal.value = true;
       return;
     }
@@ -1575,4 +1548,12 @@ watch(
   },
   { immediate: true }
 );
+
+/** Auto-hide messages */
+watch(successMessage, (v) => {
+  if (v) setTimeout(() => (successMessage.value = ""), 5000);
+});
+watch(errorMessage, (v) => {
+  if (v) setTimeout(() => (errorMessage.value = ""), 5000);
+});
 </script>

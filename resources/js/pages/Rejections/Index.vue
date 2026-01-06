@@ -5,6 +5,7 @@
     :permissions="props.permissions"
   >
     <Head title="Acceptance" />
+
     <!-- responsive here -->
     <div
       class="w-full md:max-w-2xl lg:max-w-3xl xl:max-w-6xl lg:mx-auto m-0 p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6"
@@ -14,36 +15,34 @@
         <AlertTitle>Success</AlertTitle>
         <AlertDescription>{{ successMessage }}</AlertDescription>
       </Alert>
+
       <!-- Error Message -->
       <Alert v-if="errorMessage" variant="destructive">
         <AlertTitle>Error</AlertTitle>
         <AlertDescription>{{ errorMessage }}</AlertDescription>
       </Alert>
+
       <!-- Actions Section -->
-      <!-- responsive here -->
       <div
         class="mb-2 flex flex-col items-center justify-between px-2 sm:flex-row md:mb-4 lg:mb-6"
       >
-        <!-- responsive here -->
         <h1
           class="text-lg font-bold text-gray-800 dark:text-gray-200 md:text-xl lg:text-2xl"
         >
           Acceptance
         </h1>
+
         <div class="flex flex-wrap gap-3 ml-3">
-          <!-- responsive here -->
           <Button
             v-if="permissionNames.includes('acceptance.create')"
             class="px-2 py-0 md:px-4 md:py-2"
             @click="openForm()"
             variant="default"
           >
-            <!-- responsive here -->
             <Icon name="plus" class="mr-1 h-4 w-4 md:mr-2" />
             Add Rejection
           </Button>
-          <!-- Add Delete Selected button -->
-          <!-- responsive here -->
+
           <Button
             class="px-2 py-0 md:px-4 md:py-2"
             v-if="
@@ -53,10 +52,10 @@
             @click="confirmDeleteSelected()"
             variant="destructive"
           >
-            <!-- responsive here -->
             <Icon name="trash" class="mr-1 h-4 w-4 md:mr-2" />
             Delete Selected ({{ selectedRejections.length }})
           </Button>
+
           <Button
             @click="showImportModal = true"
             v-if="permissionNames.includes('acceptance.import')"
@@ -67,25 +66,22 @@
             Import CSV
           </Button>
 
-          <!-- responsive here -->
           <Button
             class="px-2 py-0 md:px-4 md:py-2"
             @click.prevent="exportCSV"
             variant="outline"
             v-if="permissionNames.includes('acceptance.export')"
           >
-            <!-- responsive here -->
             <Icon name="download" class="mr-1 h-4 w-4 md:mr-2" />
             Download CSV
           </Button>
-          <!-- responsive here -->
+
           <Button
             class="px-2 py-0 md:px-4 md:py-2"
             v-if="isSuperAdmin"
             @click="openCodeModal()"
             variant="outline"
           >
-            <!-- responsive here -->
             <Icon name="settings" class="mr-1 h-4 w-4 md:mr-2" />
             Manage Reason Codes
           </Button>
@@ -97,11 +93,8 @@
 
       <!-- Date Filter Tabs -->
       <Card>
-        <!-- responsive here -->
         <CardContent class="p-2 md:p-4 lg:p-6">
-          <!-- responsive here -->
           <div class="flex flex-col items-center gap-2 md:items-start">
-            <!-- responsive here -->
             <div class="flex flex-wrap gap-1 md:gap-2">
               <Button
                 @click="selectDateFilter('yesterday')"
@@ -145,6 +138,7 @@
                 Quarterly
               </Button>
             </div>
+
             <div v-if="dateRange" class="text-sm text-muted-foreground">
               <span v-if="activeTab === 'yesterday' && dateRange.start">
                 Showing data from {{ formatDate(dateRange.start) }}
@@ -164,12 +158,11 @@
 
       <!-- Filters Section -->
       <Card class="mb-6">
-        <!-- responsive here -->
         <CardHeader class="p-2 md:p-4 lg:p-6">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <!-- responsive here -->
               <CardTitle class="text-lg md:text-xl lg:text-2xl">Filters</CardTitle>
+
               <div
                 v-if="!showFilters && hasActiveFilters"
                 class="ml-4 flex flex-wrap gap-2"
@@ -219,6 +212,7 @@
                 </div>
               </div>
             </div>
+
             <Button variant="ghost" size="sm" @click="showFilters = !showFilters">
               {{ showFilters ? "Hide Filters" : "Show Filters" }}
               <Icon
@@ -228,15 +222,12 @@
             </Button>
           </div>
         </CardHeader>
-        <!-- responsive here -->
+
         <CardContent v-if="showFilters" class="p-2 md:p-4 lg:p-6">
-          <!-- responsive here -->
           <div class="flex flex-col gap-1 md:gap-4">
-            <!-- responsive here -->
             <div class="grid w-full grid-cols-1 gap-1 sm:grid-cols-3 md:gap-4">
               <div>
                 <Label for="search">Search</Label>
-                <!-- responsive here -->
                 <Input
                   class="h-9 w-full px-1 py-1 md:px-2 md:py-1 lg:h-10 lg:px-3 lg:py-2"
                   id="search"
@@ -260,6 +251,7 @@
                   <option value="load">Load</option>
                 </select>
               </div>
+
               <div>
                 <Label for="reasonCode">Reason Code</Label>
                 <select
@@ -277,6 +269,7 @@
                   </option>
                 </select>
               </div>
+
               <div>
                 <Label for="rejectionCategory">Rejection From Start Time</Label>
                 <select
@@ -285,7 +278,6 @@
                   class="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <option value="">All Categories</option>
-                  <!-- Dynamic options based on rejection type -->
                   <template
                     v-if="!filters.rejectionType || filters.rejectionType === 'block'"
                   >
@@ -299,7 +291,6 @@
                     <option value="more_than_6">More than 6 hours</option>
                     <option value="within_6">Within 6 hours</option>
                   </template>
-                  <!-- Common category for both -->
                   <option value="after_start">After start time</option>
                 </select>
               </div>
@@ -318,6 +309,7 @@
                   <option value="false">No</option>
                 </select>
               </div>
+
               <div>
                 <Label for="driverControllable">Driver Controllable</Label>
                 <select
@@ -359,7 +351,6 @@
       />
 
       <!-- Rejections Table -->
-      <!-- responsive here -->
       <Card class="mx-auto max-w-[95vw] overflow-x-auto md:max-w-[64vw] lg:max-w-full">
         <CardContent class="p-0">
           <div class="overflow-x-auto">
@@ -368,7 +359,6 @@
                 <TableRow
                   class="sticky top-0 z-10 border-b bg-background hover:bg-background"
                 >
-                  <!-- Add checkbox column for selecting all -->
                   <TableHead
                     class="w-[50px]"
                     v-if="permissionNames.includes('acceptance.delete')"
@@ -382,7 +372,9 @@
                       />
                     </div>
                   </TableHead>
+
                   <TableHead v-if="isSuperAdmin">Company Name</TableHead>
+
                   <TableHead
                     v-for="col in tableColumns"
                     :key="col"
@@ -400,6 +392,7 @@
                             .join(" ")
                         }}
                       </div>
+
                       <div v-if="sortColumn === col" class="ml-2">
                         <svg
                           v-if="sortDirection === 'asc'"
@@ -422,6 +415,7 @@
                           <path d="M16 9l-4 4-4-4" />
                         </svg>
                       </div>
+
                       <div v-else class="ml-2 opacity-50">
                         <svg
                           class="h-4 w-4"
@@ -436,15 +430,18 @@
                       </div>
                     </div>
                   </TableHead>
+
                   <TableHead
                     v-if="
                       permissionNames.includes('acceptance.update') ||
                       permissionNames.includes('acceptance.delete')
                     "
-                    >Actions</TableHead
                   >
+                    Actions
+                  </TableHead>
                 </TableRow>
               </TableHeader>
+
               <TableBody>
                 <TableRow v-if="filteredRejections.length === 0">
                   <TableCell
@@ -456,12 +453,12 @@
                     No rejections found matching your criteria
                   </TableCell>
                 </TableRow>
+
                 <TableRow
                   v-for="rejection in filteredRejections"
                   :key="rejection.id"
                   class="hover:bg-muted/50"
                 >
-                  <!-- Add checkbox for selecting individual row -->
                   <TableCell
                     class="text-center"
                     v-if="permissionNames.includes('acceptance.delete')"
@@ -473,9 +470,11 @@
                       class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                     />
                   </TableCell>
+
                   <TableCell v-if="isSuperAdmin">{{
                     rejection.tenant?.name || "—"
                   }}</TableCell>
+
                   <TableCell
                     v-for="col in tableColumns"
                     :key="col"
@@ -484,32 +483,40 @@
                     <template v-if="col === 'date'">
                       {{ formatDate(rejection[col]) }}
                     </template>
+
                     <template v-else-if="col === 'rejection_type'">
                       <span class="capitalize">{{ rejection[col] }}</span>
                     </template>
+
                     <template v-else-if="col === 'reason_code'">
                       {{ rejection.reason_code?.reason_code || "—" }}
                       <span
                         v-if="rejection.reason_code?.deleted_at"
                         class="ml-1 text-xs text-red-500"
-                        >(Deleted)</span
                       >
+                        (Deleted)
+                      </span>
                     </template>
+
                     <template v-else-if="col === 'disputed'">
                       {{ rejection[col] ? "Yes" : "No" }}
                     </template>
+
                     <template v-else-if="col === 'driver_controllable'">
                       {{
                         rejection[col] === null ? "N/A" : rejection[col] ? "Yes" : "No"
                       }}
                     </template>
+
                     <template v-else-if="col === 'rejection_category'">
                       {{ getRejectionCategoryLabel(rejection[col]) }}
                     </template>
+
                     <template v-else>
                       {{ rejection[col] }}
                     </template>
                   </TableCell>
+
                   <TableCell
                     v-if="
                       permissionNames.includes('acceptance.delete') ||
@@ -526,6 +533,7 @@
                         <Icon name="pencil" class="mr-1 h-4 w-4" />
                         Edit
                       </Button>
+
                       <Button
                         size="sm"
                         variant="destructive"
@@ -543,16 +551,14 @@
           </div>
 
           <!-- paginate -->
-          <!-- responsive here -->
           <div class="border-t bg-muted/20 px-4 py-3" v-if="rejections.links">
-            <!-- responsive here -->
             <div class="flex flex-col items-center justify-between gap-2 sm:flex-row">
               <div class="flex items-center gap-4 text-sm text-muted-foreground">
                 <span
                   >Showing {{ filteredRejections.length }} of
                   {{ rejections.data.length }} entries</span
                 >
-                <!-- responsive here -->
+
                 <div
                   class="flex w-full flex-col items-center gap-2 sm:w-auto sm:flex-row sm:gap-4"
                 >
@@ -568,7 +574,7 @@
                   </select>
                 </div>
               </div>
-              <!-- responsive here -->
+
               <div class="flex flex-wrap">
                 <Button
                   v-for="link in rejections.links"
@@ -657,8 +663,9 @@
                       <span
                         v-if="code.deleted_at"
                         class="ml-2 text-[0.65rem] text-red-500 sm:text-xs"
-                        >(Deleted)</span
                       >
+                        (Deleted)
+                      </span>
                     </div>
                     <div
                       v-if="code.description"
@@ -667,6 +674,7 @@
                       {{ code.description }}
                     </div>
                   </div>
+
                   <div
                     class="flex space-x-1 opacity-0 transition-opacity group-hover:opacity-100"
                   >
@@ -691,6 +699,7 @@
                           Delete
                         </Button>
                       </template>
+
                       <template v-else>
                         <Button
                           @click="confirmDeleteCode(code.id)"
@@ -722,6 +731,7 @@
                     class="h-9 text-xs sm:h-10 sm:text-sm"
                   />
                 </div>
+
                 <div>
                   <Label for="description" class="text-xs sm:text-sm">Description</Label>
                   <Input
@@ -731,6 +741,7 @@
                     class="h-9 text-xs sm:h-10 sm:text-sm"
                   />
                 </div>
+
                 <div class="flex justify-end space-x-2">
                   <Button
                     @click="cancelCodeEdit"
@@ -855,6 +866,7 @@
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
     <!-- Import Validation Modal -->
     <Dialog v-model:open="showImportModal">
       <DialogContent
@@ -877,26 +889,49 @@
           <!-- Step 1: File Upload -->
           <div v-if="!importValidationResults">
             <div class="space-y-4">
+              <!-- ✅ Dropzone -->
               <div
-                class="flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-8 bg-muted/20"
+                class="flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-8 bg-muted/20 transition-colors"
+                :class="{
+                  'border-primary bg-primary/5': isDragging,
+                  'opacity-60 pointer-events-none': isValidating,
+                }"
+                @dragenter.prevent="onDragEnter"
+                @dragover.prevent="onDragOver"
+                @dragleave.prevent="onDragLeave"
+                @drop.prevent="onDrop"
               >
                 <Icon
                   name="file-spreadsheet"
                   class="h-12 w-12 text-muted-foreground mb-3"
                 />
-                <label class="cursor-pointer">
+
+                <div class="text-center">
+                  <div class="text-sm font-medium">
+                    <span class="text-primary">Drag & drop</span> your CSV here
+                  </div>
+                  <p class="text-xs text-muted-foreground mt-1">or</p>
+                </div>
+
+                <label class="cursor-pointer mt-3">
                   <span class="text-sm font-medium text-primary hover:underline">
                     Choose CSV file
                   </span>
                   <input
+                    ref="importFileInput"
                     type="file"
                     class="hidden"
-                    @change="validateImportFile"
-                    accept=".csv"
+                    @change="onImportInputChange"
+                    accept=".csv,text/csv"
                     :disabled="isValidating"
                   />
                 </label>
-                <p class="text-xs text-muted-foreground mt-2">or drag and drop</p>
+
+                <p class="text-xs text-muted-foreground mt-2">CSV only</p>
+
+                <div v-if="isDragging" class="mt-3 text-xs text-primary font-medium">
+                  Drop file to validate
+                </div>
               </div>
 
               <!-- ✅ Template Download (kept) -->
@@ -1160,12 +1195,13 @@
 </template>
 
 <script setup>
-import { Head, useForm, usePage } from "@inertiajs/vue3";
+import { Head, useForm, usePage, router } from "@inertiajs/vue3";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-// Import UI components from their correct folders
+
 import AcceptanceDashboard from "@/components/acceptance/AcceptanceDashboard.vue";
 import Icon from "@/components/Icon.vue";
 import RejectionForm from "@/components/RejectionForm.vue";
+
 import {
   Alert,
   AlertDescription,
@@ -1183,7 +1219,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui";
+
 import Button from "@/components/ui/button/Button.vue";
+
 import {
   Dialog,
   DialogContent,
@@ -1192,8 +1230,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+
 import AppLayout from "@/layouts/AppLayout.vue";
-import { router } from "@inertiajs/vue3";
 
 const props = defineProps({
   rejections: {
@@ -1207,33 +1245,13 @@ const props = defineProps({
   dateFilter: { type: String, default: "yesterday" },
   dateRange: { type: Object, default: () => ({ label: "All Time" }) },
   perPage: { type: Number, default: 10 },
-  weekNumber: {
-    type: Number,
-    default: null,
-  },
-  startWeekNumber: {
-    type: Number,
-    default: null,
-  },
-  endWeekNumber: {
-    type: Number,
-    default: null,
-  },
-  year: {
-    type: Number,
-    default: null,
-  },
-  rejection_breakdown: {
-    type: Object,
-    default: null,
-  },
-  line_chart_data: {
-    type: Object,
-    default: null,
-  },
-  average_acceptance: {
-    type: Number,
-  },
+  weekNumber: { type: Number, default: null },
+  startWeekNumber: { type: Number, default: null },
+  endWeekNumber: { type: Number, default: null },
+  year: { type: Number, default: null },
+  rejection_breakdown: { type: Object, default: null },
+  line_chart_data: { type: Object, default: null },
+  average_acceptance: { type: Number },
   filters: {
     type: Object,
     default: () => ({
@@ -1247,14 +1265,34 @@ const props = defineProps({
   },
   permissions: Array,
 });
+
 const page = usePage();
 
+/** --- Import Modal state --- */
 const showImportModal = ref(false);
 const importValidationResults = ref(null);
 const isValidating = ref(false);
 const isImporting = ref(false);
+
+/** Drag & drop state */
+const importFileInput = ref(null);
+const isDragging = ref(false);
+let dragDepth = 0;
+
+/** Prevent browser from opening the file if dropped outside the dropzone */
+onMounted(() => {
+  const prevent = (e) => e.preventDefault();
+  window.addEventListener("dragover", prevent);
+  window.addEventListener("drop", prevent);
+
+  onUnmounted(() => {
+    window.removeEventListener("dragover", prevent);
+    window.removeEventListener("drop", prevent);
+  });
+});
+
+/** Week number label */
 const weekNumberText = computed(() => {
-  // For yesterday and current-week, show single week
   if (
     (activeTab.value === "yesterday" || activeTab.value === "current-week") &&
     props.weekNumber &&
@@ -1263,7 +1301,6 @@ const weekNumberText = computed(() => {
     return `Week ${props.weekNumber}, ${props.year}`;
   }
 
-  // For 6w and quarterly, show start-end week range if available
   if (
     (activeTab.value === "6w" || activeTab.value === "quarterly") &&
     props.startWeekNumber &&
@@ -1276,7 +1313,7 @@ const weekNumberText = computed(() => {
   return "";
 });
 
-// Set up breadcrumbs
+/** Breadcrumbs */
 const breadcrumbs = [
   {
     title: props.tenantSlug ? "Dashboard" : "Admin Dashboard",
@@ -1292,7 +1329,7 @@ const breadcrumbs = [
   },
 ];
 
-// Reactive state for modals and selected rejection
+/** Page state */
 const formModal = ref(false);
 const codeModal = ref(false);
 const selectedRejection = ref(null);
@@ -1303,42 +1340,38 @@ const perPage = ref(props.perPage || 10);
 const selectedRejections = ref([]);
 const showDeleteSelectedModal = ref(false);
 const exportForm = ref(null);
-const showFilters = ref(false); // Add this line to control filter visibility
+const showFilters = ref(false);
 const showDeleteModal = ref(false);
 const rejectionToDelete = ref(null);
-// Code management state
+
+/** Code management */
 const showCodeForm = ref(false);
 const editingCode = ref(null);
-const codeForm = ref({
-  reason_code: "",
-  description: "",
-});
+const codeForm = ref({ reason_code: "", description: "" });
 const codeDeleteConfirm = ref(false);
 const codeToDelete = ref(null);
 
-// Table columns for sorting and display
+/** Columns */
 const tableColumns = [
   "date",
   "driver_name",
   "rejection_type",
   "reason_code",
-  "rejection_category", // Changed from 'penalty'
+  "rejection_category",
   "disputed",
   "driver_controllable",
 ];
 
-// Sorting state
+/** Sorting */
 const sortColumn = ref("date");
 const sortDirection = ref("desc");
 
-// Filtering state
+/** Filters */
 const filters = ref({ ...props.filters });
 
-// Add a watcher to clear invalid category selection when type changes
 watch(
   () => filters.value.rejectionType,
   (newType, oldType) => {
-    // Only clear if type actually changed
     if (newType !== oldType && filters.value.rejectionCategory) {
       const blockCategories = [
         "advanced_rejection",
@@ -1348,7 +1381,6 @@ watch(
       ];
       const loadCategories = ["more_than_6", "within_6", "after_start"];
 
-      // If switching to block type and current category is not valid for block
       if (
         newType === "block" &&
         !blockCategories.includes(filters.value.rejectionCategory)
@@ -1356,7 +1388,6 @@ watch(
         filters.value.rejectionCategory = "";
       }
 
-      // If switching to load type and current category is not valid for load
       if (
         newType === "load" &&
         !loadCategories.includes(filters.value.rejectionCategory)
@@ -1367,26 +1398,22 @@ watch(
   }
 );
 
-// Computed property for filtered and sorted rejections
+/** Filtered & sorted */
 const filteredRejections = computed(() => {
   let result = [...props.rejections.data];
 
-  // Apply sorting
   result.sort((a, b) => {
     let valA = a[sortColumn.value];
     let valB = b[sortColumn.value];
 
-    // Special handling for reason_code which is an object
     if (sortColumn.value === "reason_code") {
       valA = a.reason_code?.reason_code || "";
       valB = b.reason_code?.reason_code || "";
     }
 
-    // Handle null values
     if (valA === null) return 1;
     if (valB === null) return -1;
 
-    // String comparison
     if (typeof valA === "string") {
       valA = valA.toLowerCase();
       valB = valB.toLowerCase();
@@ -1400,19 +1427,15 @@ const filteredRejections = computed(() => {
   return result;
 });
 
-// Sort function
 function sortBy(column) {
   if (sortColumn.value === column) {
-    // Toggle direction if clicking the same column
     sortDirection.value = sortDirection.value === "asc" ? "desc" : "asc";
   } else {
-    // Set new column and default to ascending
     sortColumn.value = column;
     sortDirection.value = "asc";
   }
 }
 
-// Filter functions
 function applyFilters() {
   const routeName = props.tenantSlug
     ? route("acceptance.index", { tenantSlug: props.tenantSlug })
@@ -1436,29 +1459,24 @@ function resetFilters() {
     disputed: "",
     driverControllable: "",
   };
-
   applyFilters();
 }
 
-// Function to open the rejection form modal (for create or edit)
+/** Modals */
 const openForm = (rejection = null) => {
   selectedRejection.value = rejection;
   formModal.value = true;
 };
 
-// Function to open the reason codes manager modal
 const openCodeModal = () => {
   codeModal.value = true;
   showCodeForm.value = false;
   editingCode.value = null;
 };
 
-// Code management functions
+/** Code manager */
 const openNewCodeForm = () => {
-  codeForm.value = {
-    reason_code: "",
-    description: "",
-  };
+  codeForm.value = { reason_code: "", description: "" };
   editingCode.value = null;
   showCodeForm.value = true;
 };
@@ -1516,7 +1534,6 @@ const saveCode = () => {
       router.reload({ only: ["rejection_reason_codes"] });
     },
     onError: (errors) => {
-      // Handle errors
       console.error(errors);
     },
   });
@@ -1563,7 +1580,7 @@ const deleteRejection = (id) => {
   });
 };
 
-// Function to handle pagination
+/** Pagination */
 const visitPage = (url) => {
   if (url) {
     const urlObj = new URL(url);
@@ -1578,7 +1595,7 @@ const visitPage = (url) => {
   }
 };
 
-// Function to handle date filter selection
+/** Date filter */
 function selectDateFilter(filter) {
   activeTab.value = filter;
 
@@ -1593,7 +1610,7 @@ function selectDateFilter(filter) {
   });
 }
 
-// Function to handle per page change
+/** Per page */
 function changePerPage() {
   const routeName = props.tenantSlug
     ? route("acceptance.index", { tenantSlug: props.tenantSlug })
@@ -1606,7 +1623,7 @@ function changePerPage() {
   });
 }
 
-// Format date string from YYYY-MM-DD to m/d/Y
+/** Format date */
 function formatDate(dateStr) {
   if (!dateStr) return "";
   const parts = dateStr.split("-");
@@ -1615,7 +1632,7 @@ function formatDate(dateStr) {
   return `${Number(month)}/${Number(day)}/${year}`;
 }
 
-// Auto-hide success message after 5 seconds
+/** Auto-hide success */
 watch(successMessage, (newValue) => {
   if (newValue) {
     setTimeout(() => {
@@ -1624,7 +1641,7 @@ watch(successMessage, (newValue) => {
   }
 });
 
-// Acceptance dashboard data from API
+/** Dashboard data */
 const acceptanceMetrics = computed(() => {
   if (
     !props.rejection_breakdown?.by_category ||
@@ -1633,7 +1650,6 @@ const acceptanceMetrics = computed(() => {
     return null;
 
   const categoryData = props.rejection_breakdown.by_category;
-
   const type = props.filters.rejectionType;
 
   if (type) {
@@ -1667,7 +1683,8 @@ const bottomDrivers = computed(() => {
 
   if (props.filters.rejectionType == "block")
     return props.rejection_breakdown?.bottom_five_drivers.block || [];
-  else return props.rejection_breakdown?.bottom_five_drivers.total || [];
+
+  return props.rejection_breakdown?.bottom_five_drivers.total || [];
 });
 
 const acceptanceChartData = computed(() => {
@@ -1700,7 +1717,7 @@ const acceptanceChartData = computed(() => {
   };
 });
 
-// Add these new methods to handle soft-deleted reason codes
+/** Reason code soft delete helpers */
 function restoreCode(id) {
   router.post(
     route("rejection_reason_codes.restore.admin", { id }),
@@ -1729,12 +1746,7 @@ function forceDeleteCode(id) {
   }
 }
 
-// Computed property for active reason codes (for the form dropdown)
-const activeReasonCodes = computed(() => {
-  return props.rejection_reason_codes.filter((code) => !code.deleted_at);
-});
-
-// Computed property for "Select All" checkbox state
+/** Select all rows */
 const isAllSelected = computed(() => {
   return (
     filteredRejections.value.length > 0 &&
@@ -1742,10 +1754,9 @@ const isAllSelected = computed(() => {
   );
 });
 
-// Bulk selection functions
 function toggleSelectAll(event) {
   if (event.target.checked) {
-    selectedRejections.value = filteredRejections.value.map((rejection) => rejection.id);
+    selectedRejections.value = filteredRejections.value.map((r) => r.id);
   } else {
     selectedRejections.value = [];
   }
@@ -1758,9 +1769,7 @@ function confirmDeleteSelected() {
 }
 
 function deleteSelectedRejections() {
-  const form = useForm({
-    ids: selectedRejections.value,
-  });
+  const form = useForm({ ids: selectedRejections.value });
 
   const routeName = props.isSuperAdmin
     ? "acceptance.destroyBulk.admin"
@@ -1780,9 +1789,31 @@ function deleteSelectedRejections() {
   });
 }
 
-function validateImportFile(event) {
+/** ✅ Import: input change */
+function onImportInputChange(event) {
   const file = event.target.files?.[0];
   if (!file) return;
+
+  handleImportFile(file);
+
+  // reset so choosing same file again fires change
+  event.target.value = "";
+}
+
+/** ✅ Import: shared handler (drop + input) */
+function handleImportFile(file) {
+  if (!file) return;
+
+  const isCsv =
+    file.type === "text/csv" ||
+    file.name.toLowerCase().endsWith(".csv") ||
+    file.type === "";
+
+  if (!isCsv) {
+    errorMessage.value = "Please upload a valid CSV file.";
+    setTimeout(() => (errorMessage.value = ""), 4000);
+    return;
+  }
 
   isValidating.value = true;
 
@@ -1799,16 +1830,43 @@ function validateImportFile(event) {
     only: ["flash"],
     onFinish: () => {
       isValidating.value = false;
-      event.target.value = ""; // reset input
     },
     onError: () => {
       isValidating.value = false;
       errorMessage.value = "Failed to validate CSV file";
-      event.target.value = "";
     },
   });
 }
 
+/** ✅ Drag handlers */
+function onDragEnter() {
+  dragDepth += 1;
+  isDragging.value = true;
+}
+
+function onDragOver() {
+  isDragging.value = true;
+}
+
+function onDragLeave() {
+  dragDepth -= 1;
+  if (dragDepth <= 0) {
+    dragDepth = 0;
+    isDragging.value = false;
+  }
+}
+
+function onDrop(e) {
+  dragDepth = 0;
+  isDragging.value = false;
+
+  const file = e.dataTransfer?.files?.[0];
+  if (!file) return;
+
+  handleImportFile(file);
+}
+
+/** Confirm import */
 function confirmImport() {
   if (!importValidationResults.value) return;
   if ((importValidationResults.value.summary?.invalid ?? 0) > 0) return;
@@ -1854,6 +1912,13 @@ function closeImportModal() {
   importValidationResults.value = null;
   isValidating.value = false;
   isImporting.value = false;
+
+  // reset drag UI state
+  isDragging.value = false;
+  dragDepth = 0;
+
+  // clear file input if possible
+  if (importFileInput.value) importFileInput.value.value = "";
 }
 
 function exportCSV() {
@@ -1864,43 +1929,27 @@ function exportCSV() {
     }, 3000);
     return;
   }
-  // Submit the hidden form to trigger the download
+
   if (exportForm.value) {
     exportForm.value.submit();
   }
 }
 
-// Computed property for export URL
+/** Export URL */
 const exportUrl = computed(() => {
   return props.tenantSlug
     ? route("acceptance.export", { tenantSlug: props.tenantSlug })
     : route("acceptance.export.admin");
 });
 
-// Computed property to check if there's data available
-const hasData = computed(() => {
-  // Check if there's data based on the selected date filter
-  if (
-    activeTab.value === "yesterday" ||
-    activeTab.value === "current-week" ||
-    activeTab.value === "6w" ||
-    activeTab.value === "quarterly"
-  ) {
-    // Check if there's data in the rejections array
-    return props.rejections && props.rejections.data && props.rejections.data.length > 0;
-  }
-  return true; // Default to true if no tab is selected
-});
-
-// Add these new refs and computed properties
-const showUploadOptions = ref(false);
-
-// Computed property for template URL
+/** Template URL */
 const templateUrl = computed(() => {
   return "/storage/upload-data-temps/Rejections Template.csv";
 });
 
-// Close dropdown when clicking outside
+/** Close dropdown when clicking outside (kept from your original) */
+const showUploadOptions = ref(false);
+
 onMounted(() => {
   const handleClickOutside = (e) => {
     if (showUploadOptions.value && !e.target.closest(".relative")) {
@@ -1915,7 +1964,7 @@ onMounted(() => {
   });
 });
 
-// Add these to your script section
+/** Active filters */
 const hasActiveFilters = computed(() => {
   return (
     filters.value.search ||
@@ -1929,14 +1978,12 @@ const hasActiveFilters = computed(() => {
   );
 });
 
-// Helper method to get the reason code text
 function getReasonCodeLabel(codeId) {
   if (!codeId) return "";
   const code = props.rejection_reason_codes.find((c) => c.id == codeId);
   return code ? code.reason_code : "";
 }
 
-// Helper method to get the rejection category label
 function getRejectionCategoryLabel(category) {
   if (!category) return "—";
 
@@ -1954,12 +2001,12 @@ function getRejectionCategoryLabel(category) {
 
 const permissionNames = computed(() => props.permissions.map((p) => p.name));
 
+/** Listen for server validation payload */
 watch(
   () => page.props.flash?.importValidation,
   (payload) => {
     if (!payload) return;
 
-    // Server sends { success, results, header_error? } (same pattern as Performance)
     if (payload.results) {
       importValidationResults.value = payload.results;
 

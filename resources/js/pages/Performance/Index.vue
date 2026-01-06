@@ -5,7 +5,7 @@
     :permissions="props.permissions"
   >
     <Head title="Performance" />
-    <!-- responsive here -->
+
     <div
       class="w-full md:max-w-2xl lg:max-w-3xl xl:max-w-6xl lg:mx-auto m-0 p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6"
     >
@@ -22,32 +22,27 @@
       </Alert>
 
       <!-- Actions Section -->
-      <!-- responsive here -->
       <div
         class="w-full md:max-w-xl lg:max-w-2xl xl:max-w-6xl m-auto pt-2 space-y-2 md:space-y-4 lg:space-y-6"
       >
-        <!-- responsive here -->
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
           <h1
             class="text-lg md:text-xl lg:text-2xl font-bold text-gray-800 dark:text-gray-200"
           >
             Performance Management
           </h1>
+
           <div class="flex flex-wrap gap-3">
-            <!-- responsive here -->
             <Button
               class="px-2 py-0 md:px-4 md:py-2"
               @click="openCreateModal"
               variant="default"
               v-if="permissionNames.includes('performance.create')"
             >
-              <!-- responsive here -->
               <Icon name="plus" class="mr-1 h-4 w-4 md:mr-2" />
               Create New Performance
             </Button>
 
-            <!-- Add Delete Selected button -->
-            <!-- responsive here -->
             <Button
               class="px-2 py-0 md:px-4 md:py-2"
               v-if="
@@ -57,7 +52,6 @@
               @click="confirmDeleteSelected()"
               variant="destructive"
             >
-              <!-- responsive here -->
               <Icon name="trash" class="mr-1 h-4 w-4 md:mr-2" />
               Delete Selected ({{ selectedPerformances.length }})
             </Button>
@@ -71,14 +65,13 @@
               <Icon name="upload" class="mr-1 h-4 w-4 md:mr-2" />
               Import CSV
             </Button>
-            <!-- responsive here -->
+
             <Button
               class="px-2 py-0 md:px-4 md:py-2"
               @click.prevent="exportCSV"
               variant="outline"
               v-if="permissionNames.includes('performance.export')"
             >
-              <!-- responsive here -->
               <Icon name="download" class="mr-1 h-4 w-4 md:mr-2" />
               Download CSV
             </Button>
@@ -88,11 +81,8 @@
 
       <!-- Date Filter Tabs -->
       <Card>
-        <!-- responsive here -->
         <CardContent class="p-2 md:p-4 lg:p-6">
-          <!-- responsive here -->
           <div class="flex flex-col items-center md:items-start gap-2">
-            <!-- responsive here -->
             <div class="flex flex-wrap gap-1 md:gap-2">
               <Button
                 @click="selectDateFilter('yesterday')"
@@ -136,6 +126,7 @@
                 Quarterly
               </Button>
             </div>
+
             <div v-if="dateRange" class="text-sm text-muted-foreground">
               <span v-if="activeTab === 'yesterday' && dateRange.start">
                 Showing data from {{ formatDate(dateRange.start) }}
@@ -153,11 +144,7 @@
         </CardContent>
       </Card>
 
-      <!-- Filters Section - REMOVED -->
-      <!-- Replaced with Date Filter Tabs above -->
-
       <!-- Performance Table -->
-      <!-- responsive here -->
       <Card class="mx-auto max-w-[95vw] md:max-w-[64vw] lg:max-w-full overflow-x-auto">
         <CardContent class="p-0">
           <div class="overflow-x-auto">
@@ -166,7 +153,6 @@
                 <TableRow
                   class="sticky top-0 z-10 border-b bg-background hover:bg-background"
                 >
-                  <!-- Add checkbox column for selecting all -->
                   <TableHead
                     class="w-[50px]"
                     v-if="permissionNames.includes('performance.delete')"
@@ -180,7 +166,9 @@
                       />
                     </div>
                   </TableHead>
+
                   <TableHead v-if="SuperAdmin">Company Name</TableHead>
+
                   <TableHead
                     v-for="col in tableColumns"
                     :key="col"
@@ -188,10 +176,10 @@
                     @click="sortBy(col)"
                   >
                     <div class="flex items-center">
-                      <!-- Display abbreviated or custom names with title attribute for hover tooltip -->
                       <span :title="getFullColumnName(col)">
                         {{ getDisplayColumnName(col) }}
                       </span>
+
                       <div v-if="sortColumn === col" class="ml-2">
                         <svg
                           v-if="sortDirection === 'asc'"
@@ -214,6 +202,7 @@
                           <path d="M16 9l-4 4-4-4" />
                         </svg>
                       </div>
+
                       <div v-else class="ml-2 opacity-50">
                         <svg
                           class="h-4 w-4"
@@ -228,6 +217,7 @@
                       </div>
                     </div>
                   </TableHead>
+
                   <TableHead
                     v-if="
                       permissionNames.includes('performance.update') ||
@@ -237,6 +227,7 @@
                   >
                 </TableRow>
               </TableHeader>
+
               <TableBody>
                 <TableRow v-if="filteredPerformances.length === 0">
                   <TableCell
@@ -248,12 +239,12 @@
                     No performance records found matching your criteria
                   </TableCell>
                 </TableRow>
+
                 <TableRow
                   v-for="item in filteredPerformances"
                   :key="item.id"
                   class="hover:bg-muted/50"
                 >
-                  <!-- Add checkbox for selecting individual row -->
                   <TableCell
                     class="text-center"
                     v-if="permissionNames.includes('performance.delete')"
@@ -265,58 +256,69 @@
                       class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                     />
                   </TableCell>
+
                   <TableCell v-if="SuperAdmin" class="min-w-[120px]">
                     {{ item.tenant?.name ?? "—" }}
                   </TableCell>
+
                   <TableCell class="min-w-[100px]">{{ formatDate(item.date) }}</TableCell>
+
                   <TableCell class="min-w-[120px]">
                     <div>{{ formatDecimal(item.acceptance) }}%</div>
                     <div class="text-xs italic text-gray-500 whitespace-normal">
                       ({{ formatRating(item.acceptance_rating) }})
                     </div>
                   </TableCell>
+
                   <TableCell class="min-w-[120px]"
                     >{{ formatDecimal(item.on_time_to_origin) }}%</TableCell
                   >
                   <TableCell class="min-w-[120px]"
                     >{{ formatDecimal(item.on_time_to_destination) }}%</TableCell
                   >
+
                   <TableCell class="min-w-[120px]">
                     <div>{{ formatDecimal(item.on_time) }}%</div>
                     <div class="text-xs italic text-gray-500 whitespace-normal">
                       ({{ formatRating(item.on_time_rating) }})
                     </div>
                   </TableCell>
+
                   <TableCell class="min-w-[140px]">
                     <div>{{ formatDecimal(item.maintenance_variance_to_spend) }}%</div>
                     <div class="text-xs italic text-gray-500 whitespace-normal">
                       ({{ formatRating(item.maintenance_variance_to_spend_rating) }})
                     </div>
                   </TableCell>
+
                   <TableCell class="min-w-[120px]">
                     <div>{{ item.open_boc }}</div>
                     <div class="text-xs italic text-gray-500 whitespace-normal">
                       ({{ formatRating(item.open_boc_rating) }})
                     </div>
                   </TableCell>
+
                   <TableCell class="min-w-[140px]">
                     <div>{{ item.meets_safety_bonus_criteria ? "Yes" : "No" }}</div>
                     <div class="text-xs italic text-gray-500 whitespace-normal">
                       ({{ formatRating(item.meets_safety_bonus_criteria_rating) }})
                     </div>
                   </TableCell>
+
                   <TableCell class="min-w-[120px]">
                     <div>{{ item.vcr_preventable }}</div>
                     <div class="text-xs italic text-gray-500 whitespace-normal">
                       ({{ formatRating(item.vcr_preventable_rating) }})
                     </div>
                   </TableCell>
+
                   <TableCell class="min-w-[120px]">
                     <div>{{ item.vmcr_p }}</div>
                     <div class="text-xs italic text-gray-500 whitespace-normal">
                       ({{ formatRating(item.vmcr_p_rating) }})
                     </div>
                   </TableCell>
+
                   <TableCell
                     class="min-w-[120px]"
                     v-if="
@@ -334,6 +336,7 @@
                         <Icon name="pencil" class="mr-1 h-4 w-4" />
                         Edit
                       </Button>
+
                       <Button
                         @click="deletePerformance(item.id)"
                         variant="destructive"
@@ -349,16 +352,16 @@
               </TableBody>
             </Table>
           </div>
+
           <!-- paginate -->
           <div class="border-t bg-muted/20 px-4 py-3" v-if="performances.links">
-            <!-- responsive here -->
             <div class="flex flex-col sm:flex-row justify-between items-center gap-2">
               <div class="flex items-center gap-4 text-sm text-muted-foreground">
                 <span
                   >Showing {{ filteredPerformances.length }} of
                   {{ performances.data.length }} entries</span
                 >
-                <!-- responsive here -->
+
                 <div
                   class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 w-full sm:w-auto"
                 >
@@ -374,7 +377,7 @@
                   </select>
                 </div>
               </div>
-              <!-- responsive here -->
+
               <div class="flex flex-wrap">
                 <Button
                   v-for="link in performances.links"
@@ -393,6 +396,7 @@
           </div>
         </CardContent>
       </Card>
+
       <!-- Modal for Create/Edit Performance -->
       <Dialog v-model:open="showModal">
         <DialogContent class="max-w-[95vw] sm:max-w-[90vw] md:max-w-4xl">
@@ -552,7 +556,7 @@
               />
             </div>
 
-            <!-- Safety Bonus Checkbox (full width) -->
+            <!-- Safety Bonus Checkbox -->
             <div class="col-span-2 flex items-center gap-2">
               <input
                 id="meets_safety_bonus_criteria"
@@ -560,9 +564,9 @@
                 type="checkbox"
                 class="h-3.5 w-3.5 rounded border-gray-300 text-primary focus:ring-1 focus:ring-primary sm:h-4 sm:w-4"
               />
-              <Label for="meets_safety_bonus_criteria" class="text-xs sm:text-sm"
-                >Meets Safety Bonus Criteria</Label
-              >
+              <Label for="meets_safety_bonus_criteria" class="text-xs sm:text-sm">
+                Meets Safety Bonus Criteria
+              </Label>
             </div>
 
             <DialogFooter
@@ -650,6 +654,7 @@
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
       <!-- Import Validation Modal -->
       <Dialog v-model:open="showImportModal">
         <DialogContent
@@ -659,11 +664,11 @@
             <div class="flex items-center gap-2">
               <Icon name="upload" class="h-5 w-5 text-primary" />
               <DialogTitle class="text-lg sm:text-xl font-semibold">
-                Import Rejections
+                Import Performances
               </DialogTitle>
             </div>
             <DialogDescription class="text-xs sm:text-sm mt-1 text-muted-foreground">
-              Upload a CSV file to import rejections. The file will be validated before
+              Upload a CSV file to import performances. The file will be validated before
               import.
             </DialogDescription>
           </DialogHeader>
@@ -672,29 +677,52 @@
             <!-- Step 1: File Upload -->
             <div v-if="!importValidationResults">
               <div class="space-y-4">
+                <!-- ✅ Dropzone (drag & drop fixed) -->
                 <div
-                  class="flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-8 bg-muted/20"
+                  class="flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-8 bg-muted/20 transition-colors"
+                  :class="{
+                    'border-primary bg-primary/5': isDragging,
+                    'opacity-60 pointer-events-none': isValidating,
+                  }"
+                  @dragenter.prevent="onDragEnter"
+                  @dragover.prevent="onDragOver"
+                  @dragleave.prevent="onDragLeave"
+                  @drop.prevent="onDrop"
                 >
                   <Icon
                     name="file-spreadsheet"
                     class="h-12 w-12 text-muted-foreground mb-3"
                   />
-                  <label class="cursor-pointer">
+
+                  <div class="text-center">
+                    <div class="text-sm font-medium">
+                      <span class="text-primary">Drag & drop</span> your CSV here
+                    </div>
+                    <p class="text-xs text-muted-foreground mt-1">or</p>
+                  </div>
+
+                  <label class="cursor-pointer mt-3">
                     <span class="text-sm font-medium text-primary hover:underline">
                       Choose CSV file
                     </span>
                     <input
+                      ref="importFileInput"
                       type="file"
                       class="hidden"
-                      @change="validateImportFile"
-                      accept=".csv"
+                      @change="onImportInputChange"
+                      accept=".csv,text/csv"
                       :disabled="isValidating"
                     />
                   </label>
-                  <p class="text-xs text-muted-foreground mt-2">or drag and drop</p>
+
+                  <p class="text-xs text-muted-foreground mt-2">CSV only</p>
+
+                  <div v-if="isDragging" class="mt-3 text-xs text-primary font-medium">
+                    Drop file to validate
+                  </div>
                 </div>
 
-                <!-- ✅ Template Download (kept) -->
+                <!-- ✅ Template Download -->
                 <div class="flex items-center gap-2 text-sm text-muted-foreground">
                   <Icon name="info" class="h-4 w-4" />
                   <a :href="templateUrl" download class="text-primary hover:underline">
@@ -960,7 +988,7 @@
       </Dialog>
 
       <!-- Hidden Export Form -->
-      <form ref="exportForm" method="GET" class="hidden" />
+      <form ref="exportForm" method="GET" class="hidden"></form>
     </div>
   </AppLayout>
 </template>
@@ -990,9 +1018,8 @@ import {
   TableRow,
 } from "@/components/ui";
 import AppLayout from "@/layouts/AppLayout.vue";
-import { Head, router, useForm } from "@inertiajs/vue3";
+import { Head, router, useForm, usePage } from "@inertiajs/vue3";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import { usePage } from "@inertiajs/vue3";
 
 const props = defineProps({
   performances: {
@@ -1005,26 +1032,33 @@ const props = defineProps({
   dateFilter: { type: String, default: "yesterday" },
   dateRange: { type: Object, default: () => ({ label: "All Time" }) },
   perPage: { type: Number, default: 10 },
-  weekNumber: {
-    type: Number,
-    default: null,
-  },
-  startWeekNumber: {
-    type: Number,
-    default: null,
-  },
-  endWeekNumber: {
-    type: Number,
-    default: null,
-  },
-  year: {
-    type: Number,
-    default: null,
-  },
+  weekNumber: { type: Number, default: null },
+  startWeekNumber: { type: Number, default: null },
+  endWeekNumber: { type: Number, default: null },
+  year: { type: Number, default: null },
   permissions: Array,
 });
+
+const page = usePage();
+
+/** ✅ Prevent browser from opening file if dropped outside dropzone */
+onMounted(() => {
+  const prevent = (e) => e.preventDefault();
+  window.addEventListener("dragover", prevent);
+  window.addEventListener("drop", prevent);
+
+  onUnmounted(() => {
+    window.removeEventListener("dragover", prevent);
+    window.removeEventListener("drop", prevent);
+  });
+});
+
+/** Drag state */
+const importFileInput = ref(null);
+const isDragging = ref(false);
+let dragDepth = 0;
+
 const weekNumberText = computed(() => {
-  // For yesterday and current-week, show single week
   if (
     (activeTab.value === "yesterday" || activeTab.value === "current-week") &&
     props.weekNumber &&
@@ -1033,7 +1067,6 @@ const weekNumberText = computed(() => {
     return `Week ${props.weekNumber}, ${props.year}`;
   }
 
-  // For 6w and quarterly, show start-end week range if available
   if (
     (activeTab.value === "6w" || activeTab.value === "quarterly") &&
     props.startWeekNumber &&
@@ -1045,7 +1078,8 @@ const weekNumberText = computed(() => {
 
   return "";
 });
-// UI state
+
+/** UI state */
 const errorMessage = ref("");
 const successMessage = ref("");
 const showModal = ref(false);
@@ -1057,36 +1091,14 @@ const selectedPerformances = ref([]);
 const showDeleteSelectedModal = ref(false);
 const showDeleteModal = ref(false);
 const performanceToDelete = ref(null);
-const exportForm = ref(null); // Add this line to define exportForm as a ref
-const page = usePage();
+const exportForm = ref(null);
 
 const showImportModal = ref(false);
 const importValidationResults = ref(null);
 const isValidating = ref(false);
 const isImporting = ref(false);
-// Update the visitPage function to preserve perPage
-function visitPage(url) {
-  if (url) {
-    // Add perPage and dateFilter parameters to the URL
-    const urlObj = new URL(url);
-    urlObj.searchParams.set("perPage", perPage.value);
-    urlObj.searchParams.set("dateFilter", activeTab.value);
 
-    router.get(urlObj.href, {}, { only: ["performances"] });
-  }
-}
-
-// Sorting state
-const sortColumn = ref("date");
-const sortDirection = ref("desc");
-
-// Filtering state
-const filters = ref({
-  search: "",
-  dateFrom: "",
-  dateTo: "",
-});
-
+/** Breadcrumbs */
 const breadcrumbs = [
   {
     title: props.tenantSlug ? "Dashboard" : "Admin Dashboard",
@@ -1102,6 +1114,22 @@ const breadcrumbs = [
   },
 ];
 
+/** Pagination visitPage (kept with perPage/dateFilter preservation) */
+function visitPage(url) {
+  if (url) {
+    const urlObj = new URL(url);
+    urlObj.searchParams.set("perPage", perPage.value);
+    urlObj.searchParams.set("dateFilter", activeTab.value);
+
+    router.get(urlObj.href, {}, { only: ["performances"] });
+  }
+}
+
+/** Sorting */
+const sortColumn = ref("date");
+const sortDirection = ref("desc");
+
+/** Table columns */
 const tableColumns = [
   "date",
   "acceptance",
@@ -1115,7 +1143,7 @@ const tableColumns = [
   "vmcr_p",
 ];
 
-// Initialize form state using Inertia's useForm helper.
+/** Form state */
 const form = useForm({
   tenant_id: null,
   date: "",
@@ -1131,22 +1159,18 @@ const form = useForm({
 });
 
 const deleteForm = useForm({});
-const importForm = useForm({ csv_file: null });
 
-// Computed property for filtered and sorted performances
+/** Filtered & sorted performances */
 const filteredPerformances = computed(() => {
   let result = [...props.performances.data];
 
-  // Apply sorting
   result.sort((a, b) => {
     let valA = a[sortColumn.value];
     let valB = b[sortColumn.value];
 
-    // Handle null values
     if (valA === null) return 1;
     if (valB === null) return -1;
 
-    // String comparison
     if (typeof valA === "string") {
       valA = valA.toLowerCase();
       valB = valB.toLowerCase();
@@ -1160,30 +1184,16 @@ const filteredPerformances = computed(() => {
   return result;
 });
 
-// Date filter function - use this instead of the old resetFilters
-function resetFilters() {
-  selectDateFilter("full");
-}
-
-// Sort function
 function sortBy(column) {
   if (sortColumn.value === column) {
-    // Toggle direction if clicking the same column
     sortDirection.value = sortDirection.value === "asc" ? "desc" : "asc";
   } else {
-    // Set new column and default to ascending
     sortColumn.value = column;
     sortDirection.value = "asc";
   }
 }
 
-// Filter functions
-function applyFilters() {
-  // This function is triggered by input/change events
-  // The filtering is handled by the computed property
-}
-
-// Make sure this function is defined before it's used in the template
+/** Date filter */
 function selectDateFilter(filter) {
   activeTab.value = filter;
 
@@ -1200,20 +1210,6 @@ function selectDateFilter(filter) {
     { preserveState: true }
   );
 }
-
-// Remove this duplicate function - delete lines 620-630
-// function selectDateFilter(filter) {
-//   activeTab.value = filter
-
-//   const routeName = props.tenantSlug
-//     ? route('performance.index', { tenantSlug: props.tenantSlug })
-//     : route('performance.index.admin')
-
-//   router.get(routeName, {
-//     dateFilter: filter,
-//     perPage: perPage.value
-//   }, { preserveState: true })
-// }
 
 function submitForm() {
   const isCreate = formAction.value === "Create";
@@ -1240,29 +1236,6 @@ function submitForm() {
   });
 }
 
-function handleImport(e) {
-  const file = e.target.files?.[0];
-  if (!file) return;
-
-  importForm.csv_file = file;
-
-  const routeName = props.SuperAdmin
-    ? route("performance.import.admin")
-    : route("performance.import", props.tenantSlug);
-
-  importForm.post(routeName, {
-    forceFormData: true,
-    preserveScroll: true,
-    onSuccess: () => {
-      importForm.reset();
-      successMessage.value = "CSV Imported successfully.";
-    },
-    onError: () => {
-      alert("Import failed.");
-    },
-  });
-}
-
 function exportCSV() {
   if (filteredPerformances.value.length === 0) {
     errorMessage.value = "No data available to export";
@@ -1271,6 +1244,7 @@ function exportCSV() {
     }, 3000);
     return;
   }
+
   const routeName = props.SuperAdmin
     ? route("performance.export.admin")
     : route("performance.export", props.tenantSlug);
@@ -1279,14 +1253,7 @@ function exportCSV() {
   exportForm.value?.submit();
 }
 
-// Remove this duplicate function
-// function visitPage(url) {
-//   if (url) {
-//     router.get(url, {}, { only: ['performances'] })
-//   }
-// }
-
-// Auto-hide success message after 5 seconds
+/** Auto-hide success message */
 watch(successMessage, (newValue) => {
   if (newValue) {
     setTimeout(() => {
@@ -1295,29 +1262,23 @@ watch(successMessage, (newValue) => {
   }
 });
 
-// Add a date formatting function
+/** Date formatting */
 function formatDate(dateString) {
   if (!dateString) return "";
-  // Create date with timezone adjustment to prevent the one day behind issue
-  const date = new Date(dateString + "T12:00:00"); // Add time component to avoid timezone issues
-
-  // Format as month-day-year manually
-  const month = date.getMonth() + 1; // getMonth is 0-indexed
+  const date = new Date(dateString + "T12:00:00");
+  const month = date.getMonth() + 1;
   const day = date.getDate();
   const year = date.getFullYear();
-
   return `${month}/${day}/${year}`;
 }
-// Add these functions after the other function definitions (around line 550-600)
+
+/** Modals */
 function openCreateModal() {
   formTitle.value = "Create Performance";
   formAction.value = "Create";
-
-  // Reset the form
   form.reset();
   form.clearErrors();
 
-  // Set default tenant_id for SuperAdmin
   if (props.SuperAdmin && props.tenants.length > 0) {
     form.tenant_id = "";
   }
@@ -1329,11 +1290,9 @@ function openEditModal(item) {
   formTitle.value = "Edit Performance";
   formAction.value = "Update";
 
-  // Reset the form first to clear any previous data
   form.reset();
   form.clearErrors();
 
-  // Populate the form with the item data
   form.id = item.id;
   form.tenant_id = item.tenant_id;
   form.date = item.date;
@@ -1345,6 +1304,7 @@ function openEditModal(item) {
   form.meets_safety_bonus_criteria = item.meets_safety_bonus_criteria;
   form.vcr_preventable = item.vcr_preventable;
   form.vmcr_p = item.vmcr_p;
+
   showModal.value = true;
 }
 
@@ -1354,6 +1314,7 @@ function closeModal() {
   form.clearErrors();
 }
 
+/** Delete */
 function deletePerformance(id) {
   performanceToDelete.value = id;
   showDeleteModal.value = true;
@@ -1378,7 +1339,7 @@ function confirmDelete() {
   });
 }
 
-// Computed property for "Select All" checkbox state
+/** Select all */
 const isAllSelected = computed(() => {
   return (
     filteredPerformances.value.length > 0 &&
@@ -1386,12 +1347,9 @@ const isAllSelected = computed(() => {
   );
 });
 
-// Bulk selection functions
 function toggleSelectAll(event) {
   if (event.target.checked) {
-    selectedPerformances.value = filteredPerformances.value.map(
-      (performance) => performance.id
-    );
+    selectedPerformances.value = filteredPerformances.value.map((p) => p.id);
   } else {
     selectedPerformances.value = [];
   }
@@ -1404,16 +1362,14 @@ function confirmDeleteSelected() {
 }
 
 function deleteSelectedPerformances() {
-  const form = useForm({
-    ids: selectedPerformances.value,
-  });
+  const bulkForm = useForm({ ids: selectedPerformances.value });
 
   const routeName = props.SuperAdmin
     ? "performance.destroyBulk.admin"
     : "performance.destroyBulk";
   const routeParams = props.SuperAdmin ? {} : { tenantSlug: props.tenantSlug };
 
-  form.delete(route(routeName, routeParams), {
+  bulkForm.delete(route(routeName, routeParams), {
     preserveScroll: true,
     onSuccess: () => {
       successMessage.value = `${selectedPerformances.value.length} performance records deleted successfully.`;
@@ -1426,6 +1382,7 @@ function deleteSelectedPerformances() {
   });
 }
 
+/** Ratings display */
 const formatRating = (rating) => {
   if (!rating) return "Not Available";
 
@@ -1450,30 +1407,8 @@ const formatRating = (rating) => {
       return rating;
   }
 };
-// Add these new refs and computed properties
-const showUploadOptions = ref(false);
 
-// Computed property for template URL
-const templateUrl = computed(() => {
-  return "/storage/upload-data-temps/Performances Template.csv";
-});
-
-// Close dropdown when clicking outside
-onMounted(() => {
-  const handleClickOutside = (e) => {
-    if (showUploadOptions.value && !e.target.closest(".relative")) {
-      showUploadOptions.value = false;
-    }
-  };
-
-  document.addEventListener("click", handleClickOutside);
-
-  onUnmounted(() => {
-    document.removeEventListener("click", handleClickOutside);
-  });
-});
-
-// Helper function to get display name for columns
+/** Column display helpers */
 const getDisplayColumnName = (column) => {
   const displayNames = {
     on_time_to_origin: "OTO",
@@ -1494,7 +1429,6 @@ const getDisplayColumnName = (column) => {
   );
 };
 
-// Helper function to get full column name for tooltip
 const getFullColumnName = (column) => {
   const fullNames = {
     on_time_to_origin: "On Time to Origin",
@@ -1529,38 +1463,45 @@ function changePerPage() {
     { preserveState: true }
   );
 }
+
 const formatDecimal = (value) => {
   if (value === null || value === undefined) return "—";
 
-  // Convert to number if it's a string
   const num = typeof value === "string" ? parseFloat(value) : value;
 
-  // Check if it's a whole number or ends with .00
-  if (Number.isInteger(num) || num.toFixed(2).endsWith(".00")) {
-    return Math.floor(num);
-  }
-
-  // Check if it ends with .x0 (remove trailing zero)
-  if (num.toFixed(2).endsWith("0")) {
-    return num.toFixed(1);
-  }
-
-  // Otherwise return with 2 decimal places
+  if (Number.isInteger(num) || num.toFixed(2).endsWith(".00")) return Math.floor(num);
+  if (num.toFixed(2).endsWith("0")) return num.toFixed(1);
   return num.toFixed(2);
 };
+
+/** Permissions */
 const permissionNames = computed(() => props.permissions.map((p) => p.name));
 
-function validateImportFile(event) {
-  const target = event.target;
-  const file = target.files?.[0];
+/** Template URL */
+const templateUrl = computed(() => {
+  return "/storage/upload-data-temps/Performances Template.csv";
+});
+
+/** ✅ Import: shared file handler (drop + input) */
+function handleImportFile(file) {
   if (!file) return;
+
+  const isCsv =
+    file.type === "text/csv" ||
+    file.name.toLowerCase().endsWith(".csv") ||
+    file.type === "";
+
+  if (!isCsv) {
+    errorMessage.value = "Please upload a valid CSV file.";
+    setTimeout(() => (errorMessage.value = ""), 4000);
+    return;
+  }
 
   isValidating.value = true;
 
   const formData = new FormData();
   formData.append("file", file);
 
-  // IMPORTANT: these routes must exist (validateImport)
   const endpoint = props.tenantSlug
     ? route("performance.validateImport", { tenantSlug: props.tenantSlug })
     : route("performance.validateImport.admin");
@@ -1577,13 +1518,51 @@ function validateImportFile(event) {
       errorMessage.value = "Failed to validate CSV file";
     },
   });
+}
 
-  target.value = "";
+/** ✅ Import: input change */
+function onImportInputChange(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  handleImportFile(file);
+
+  // reset so choosing same file again triggers change
+  event.target.value = "";
+}
+
+/** ✅ Drag handlers */
+function onDragEnter() {
+  dragDepth += 1;
+  isDragging.value = true;
+}
+
+function onDragOver() {
+  isDragging.value = true;
+}
+
+function onDragLeave() {
+  dragDepth -= 1;
+  if (dragDepth <= 0) {
+    dragDepth = 0;
+    isDragging.value = false;
+  }
+}
+
+function onDrop(e) {
+  dragDepth = 0;
+  isDragging.value = false;
+
+  const file = e.dataTransfer?.files?.[0];
+  if (!file) return;
+
+  handleImportFile(file);
 }
 
 function confirmImport() {
   if (!importValidationResults.value) return;
-  if (importValidationResults.value.summary.invalid > 0) return;
+  if ((importValidationResults.value.summary?.invalid ?? 0) > 0) return;
+  if (importValidationResults.value.header_error) return;
 
   isImporting.value = true;
 
@@ -1597,13 +1576,16 @@ function confirmImport() {
     {
       preserveScroll: true,
       onSuccess: () => {
-        isImporting.value = false;
-        successMessage.value = `Successfully imported ${importValidationResults.value.summary.valid} performances`;
+        successMessage.value = `Successfully imported ${
+          importValidationResults.value.summary?.valid ?? 0
+        } performances`;
         closeImportModal();
       },
       onError: () => {
-        isImporting.value = false;
         errorMessage.value = "Failed to import performances";
+      },
+      onFinish: () => {
+        isImporting.value = false;
       },
     }
   );
@@ -1622,8 +1604,14 @@ function closeImportModal() {
   importValidationResults.value = null;
   isValidating.value = false;
   isImporting.value = false;
+
+  isDragging.value = false;
+  dragDepth = 0;
+
+  if (importFileInput.value) importFileInput.value.value = "";
 }
 
+/** Listen for server validation payload */
 watch(
   () => page.props.flash?.importValidation,
   (payload) => {
