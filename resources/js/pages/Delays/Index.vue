@@ -432,7 +432,7 @@
                 <TableRow v-if="filteredDelays.length === 0">
                   <TableCell
                     :colspan="
-                      isSuperAdmin ? tableColumns.length + 2 : tableColumns.length + 1
+                      isSuperAdmin ? tableColumns.length + 3 : tableColumns.length + 2
                     "
                     class="py-8 text-center text-primary font-medium"
                   >
