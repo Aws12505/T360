@@ -15,6 +15,7 @@ use Carbon\Carbon;
 use App\Services\Summaries\MaintenanceBreakdownService;
 use App\Models\MilesDriven;
 //
+
 /**
  * Class RepairOrderService
  *
@@ -54,11 +55,11 @@ class RepairOrderService
         }, 'areasOfConcern' => function ($query) {
             $query->withTrashed()->get();
         }, 'woStatus', 'tenant']);
-        
+
         // Apply date filtering if requested
         $dateFilter = $this->filteringService->getDateFilter();
         $dateRange = [];
-        
+
         if ($dateFilter !== 'full') {
             $query = $this->filteringService->applyDateFilter($query, $dateFilter, 'ro_open_date', $dateRange);
         }
@@ -67,8 +68,8 @@ class RepairOrderService
             $search = strtolower($request->input('search'));
             $query->where(function ($q) use ($search) {
                 $q->whereRaw('LOWER(ro_number) LIKE ?', ["%{$search}%"])
-                  ->orWhereRaw('LOWER(wo_number) LIKE ?', ["%{$search}%"])
-                  ->orWhereRaw('LOWER(invoice) LIKE ?', ["%{$search}%"]);
+                    ->orWhereRaw('LOWER(wo_number) LIKE ?', ["%{$search}%"])
+                    ->orWhereRaw('LOWER(invoice) LIKE ?', ["%{$search}%"]);
             });
         }
         if ($request->filled('status_id')) {
@@ -79,49 +80,47 @@ class RepairOrderService
         }
         // Get per page value
         $perPage = $this->filteringService->getPerPage(Request::input('perPage', 10));
-        
+
         // Apply tenant filter for non-admin users
         if (!is_null(Auth::user()->tenant_id)) {
             $query->where('tenant_id', Auth::user()->tenant_id);
         }
-        if(Auth::user()->hasPermissionTo('repair-orders.view')){
+        if (Auth::user()->hasPermissionTo('repair-orders.view')) {
             $defaultComponent = 'repairOrders';
+        } else if (Auth::user()->hasPermissionTo('miles-driven.view')) {
+            $defaultComponent = 'milesDriven';
+        } else {
+            $defaultComponent = 'trucks';
         }
-        else if (Auth::user()->hasPermissionTo('miles-driven.view')){
-            $defaultComponent ='milesDriven';
-        }
-        else {
-            $defaultComponent ='trucks';
-        }
-        $openedComponent = $request->input('openedComponent',$defaultComponent);
+        $openedComponent = $request->input('openedComponent', $defaultComponent);
         $repairOrders = $query->latest('ro_open_date')->paginate($perPage);
         $isSuperAdmin = is_null(Auth::user()->tenant_id);
         $tenantSlug = $isSuperAdmin ? null : Auth::user()->tenant->slug;
         $tenants = $isSuperAdmin ? Tenant::all() : [];
         // Calculate week numbers for display
-$weekNumber = null;
-$startWeekNumber = null;
-$endWeekNumber = null;
-$year = null;
-if (!empty($dateRange) && isset($dateRange['start'])) {
-    $startDate = Carbon::parse($dateRange['start']);
-    $year = $startDate->year;
-$endDate = Carbon::parse($dateRange['end']);
-    // compute week numbers (Sunday=first day)
-    if (in_array($dateFilter, ['yesterday', 'current-week'])) {
-        $weekNumber = $this->weekNumberSundayStart($startDate);
-        $startWeekNumber = $endWeekNumber = null;
-    } else {
         $weekNumber = null;
-        $startWeekNumber = $this->weekNumberSundayStart($startDate);
-        $endWeekNumber = isset($dateRange['end']) ? 
-            $this->weekNumberSundayStart($endDate) : 
-            $startWeekNumber;
-    }
-}
+        $startWeekNumber = null;
+        $endWeekNumber = null;
+        $year = null;
+        if (!empty($dateRange) && isset($dateRange['start'])) {
+            $startDate = Carbon::parse($dateRange['start']);
+            $year = $startDate->year;
+            $endDate = Carbon::parse($dateRange['end']);
+            // compute week numbers (Sunday=first day)
+            if (in_array($dateFilter, ['yesterday', 'current-week'])) {
+                $weekNumber = $this->weekNumberSundayStart($startDate);
+                $startWeekNumber = $endWeekNumber = null;
+            } else {
+                $weekNumber = null;
+                $startWeekNumber = $this->weekNumberSundayStart($startDate);
+                $endWeekNumber = isset($dateRange['end']) ?
+                    $this->weekNumberSundayStart($endDate) :
+                    $startWeekNumber;
+            }
+        }
         // Get canceled QS invoices that need attention
         $canceledQSInvoices = $this->maintenanceBreakdownService->getCanceledQSInvoices();
-        
+
 
         $outstandingInvoices = $this->maintenanceBreakdownService->getOutstandingInvoices(null, null);
         $areasOfConcern = $this->maintenanceBreakdownService->getAreasOfConcern($startDate, $endDate);
@@ -140,7 +139,7 @@ $endDate = Carbon::parse($dateRange['end']);
             'tenantSlug' => $tenantSlug,
             'SuperAdmin' => $isSuperAdmin,
             'tenants' => $tenants,
-            'trucks' => Truck::get(),
+            'trucks' => $trucks,
             'vendors' => Vendor::withTrashed()->get(),
             'areasOfConcern' => AreaOfConcern::withTrashed()->get(),
             'woStatuses' => WoStatus::withTrashed()->get(),
@@ -157,12 +156,11 @@ $endDate = Carbon::parse($dateRange['end']);
             'filters' => $filters,
             'perPage' => $perPage,
             'openedComponent' => $openedComponent,
-            'entries'     => $trucks,
             'milesEntries' => $milesEntries,
             'permissions' => $permissions,
         ];
     }
-/**
+    /**
      * Get the week‐of‐year for a Carbon date, where weeks run Sunday → Saturday.
      *
      * @param  Carbon  $date
@@ -175,8 +173,8 @@ $endDate = Carbon::parse($dateRange['end']);
 
         // 0=Sunday, …, 6=Saturday for Jan 1
         $firstDayDow = $date->copy()
-                            ->startOfYear()
-                            ->dayOfWeek;
+            ->startOfYear()
+            ->dayOfWeek;
         // shift so weeks bound on Sunday, then ceil
         return (int) ceil(($dayOfYear + $firstDayDow) / 7);
     }
@@ -189,12 +187,12 @@ $endDate = Carbon::parse($dateRange['end']);
     public function createRepairOrder(array $data)
     {
         $repairOrder = RepairOrder::create($data);
-        
+
         // Properly handle the many-to-many relationship with the pivot table
         if (isset($data['area_of_concerns']) && is_array($data['area_of_concerns'])) {
             $repairOrder->areasOfConcern()->sync($data['area_of_concerns']);
         }
-        
+
         return $repairOrder;
     }
 
@@ -209,12 +207,12 @@ $endDate = Carbon::parse($dateRange['end']);
     {
         $repairOrder = RepairOrder::findOrFail($id);
         $repairOrder->update($data);
-        
+
         // Properly handle the many-to-many relationship with the pivot table
         if (isset($data['area_of_concerns']) && is_array($data['area_of_concerns'])) {
             $repairOrder->areasOfConcern()->sync($data['area_of_concerns']);
         }
-        
+
         return $repairOrder;
     }
 
@@ -244,15 +242,15 @@ $endDate = Carbon::parse($dateRange['end']);
         if (empty($ids)) {
             return;
         }
-        
+
         // For security, ensure the user can only delete repair orders they have access to
         $query = RepairOrder::whereIn('id', $ids);
-        
+
         // If not a super admin, restrict to tenant's repair orders
         if ($tenantId) {
             $query->where('tenant_id', $tenantId);
         }
-        
+
         $query->delete();
     }
 }

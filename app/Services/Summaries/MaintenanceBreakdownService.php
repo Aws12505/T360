@@ -7,15 +7,17 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\TenantMetricsRule;
 use App\Models\WoStatus;
+use App\Models\RepairOrder;
 
 class MaintenanceBreakdownService
 {
 
     protected ?int $email_tenant_id;
 
-public function __construct(?int $email_tenant_id = null) {
-    $this->email_tenant_id = $email_tenant_id;
-}
+    public function __construct(?int $email_tenant_id = null)
+    {
+        $this->email_tenant_id = $email_tenant_id;
+    }
     /**
      * Get total repair orders count for the date range
      */
@@ -24,11 +26,11 @@ public function __construct(?int $email_tenant_id = null) {
         $query = DB::table('repair_orders')
             ->whereBetween('ro_open_date', [$startDate, $endDate])
             ->leftJoin('wo_statuses', 'repair_orders.wo_status_id', '=', 'wo_statuses.id')
-            ->where(function($query) {
+            ->where(function ($query) {
                 $query->where('wo_statuses.name', '!=', 'Canceled');
             })
             ->whereRaw('LOWER(wo_number) != ?', ['not expected']);
-            
+
         $this->applyTenantFilter($query);
 
         return $query->count();
@@ -42,12 +44,12 @@ public function __construct(?int $email_tenant_id = null) {
         $query = DB::table('repair_orders')
             ->whereBetween('ro_open_date', [$startDate, $endDate])
             ->leftJoin('wo_statuses', 'repair_orders.wo_status_id', '=', 'wo_statuses.id')
-            ->where(function($query) {
+            ->where(function ($query) {
                 $query->where('wo_statuses.name', '!=', 'Canceled');
             })->whereRaw('LOWER(wo_number) != ?', ['not expected']);
-            
+
         $this->applyTenantFilter($query);
-        
+
         return $query->sum('invoice_amount') ?? 0;
     }
 
@@ -61,9 +63,9 @@ public function __construct(?int $email_tenant_id = null) {
             ->whereBetween('qs_invoice_date', [$startDate, $endDate])
             ->leftJoin('wo_statuses', 'repair_orders.wo_status_id', '=', 'wo_statuses.id')
             ->whereRaw('LOWER(wo_number) != ?', ['not expected']);
-            
+
         $this->applyTenantFilter($query);
-        
+
         return $query->sum('invoice_amount') ?? 0;
     }
 
@@ -76,50 +78,50 @@ public function __construct(?int $email_tenant_id = null) {
             ->where('on_qs', 'no')
             ->where('invoice_received', false)
             ->leftJoin('wo_statuses', 'repair_orders.wo_status_id', '=', 'wo_statuses.id')
-            ->where(function($query) {
+            ->where(function ($query) {
                 $query->where('wo_statuses.name', '!=', 'Canceled');
             })->whereRaw('LOWER(wo_number) != ?', ['not expected']);
-            
+
         $this->applyTenantFilter($query);
-        
+
         return $query->count();
     }
 
     /**
      * Get total miles driven for the date range
      */
-    public function getTotalMiles(Carbon $startDate, Carbon $endDate,$dateFilter = null): float
+    public function getTotalMiles(Carbon $startDate, Carbon $endDate, $dateFilter = null): float
     {
-        
-    // Skip calculation for yesterday timeframe
-    if ($dateFilter === 'yesterday') {
-        return 0;
-    }
 
-    // Ensure dates are Carbon instances
-    if (!($startDate instanceof Carbon)) {
-        $startDate = Carbon::parse($startDate);
-    }
+        // Skip calculation for yesterday timeframe
+        if ($dateFilter === 'yesterday') {
+            return 0;
+        }
 
-    if (!($endDate instanceof Carbon)) {
-        $endDate = Carbon::parse($endDate);
-    }
+        // Ensure dates are Carbon instances
+        if (!($startDate instanceof Carbon)) {
+            $startDate = Carbon::parse($startDate);
+        }
 
-    // Query to get sum of miles driven within the date range
-    $query = DB::table('miles_driven')
-        ->where(function ($q) use ($startDate, $endDate) {
-            $q->whereBetween('week_start_date', [$startDate, $endDate])
-              ->orWhereBetween('week_end_date', [$startDate, $endDate]);
-        })
-        ->selectRaw('SUM(miles) as total_miles');
+        if (!($endDate instanceof Carbon)) {
+            $endDate = Carbon::parse($endDate);
+        }
 
-    // Apply tenant filter if user is authenticated
-    $this->applyTenantFilter($query);
+        // Query to get sum of miles driven within the date range
+        $query = DB::table('miles_driven')
+            ->where(function ($q) use ($startDate, $endDate) {
+                $q->whereBetween('week_start_date', [$startDate, $endDate])
+                    ->orWhereBetween('week_end_date', [$startDate, $endDate]);
+            })
+            ->selectRaw('SUM(miles) as total_miles');
 
-    // Get the result safely
-    $result = $query->first();
+        // Apply tenant filter if user is authenticated
+        $this->applyTenantFilter($query);
 
-    return $result ? (float) $result->total_miles : 0;
+        // Get the result safely
+        $result = $query->first();
+
+        return $result ? (float) $result->total_miles : 0;
     }
 
     /**
@@ -132,21 +134,21 @@ public function __construct(?int $email_tenant_id = null) {
             ->leftJoin('area_of_concern_repair_order', 'area_of_concerns.id', '=', 'area_of_concern_repair_order.area_of_concern_id')
             ->leftJoin('repair_orders', 'area_of_concern_repair_order.repair_order_id', '=', 'repair_orders.id')
             ->leftJoin('wo_statuses', 'repair_orders.wo_status_id', '=', 'wo_statuses.id')
-            ->where(function($query) use ($startDate, $endDate) {
+            ->where(function ($query) use ($startDate, $endDate) {
                 $query->whereBetween('repair_orders.ro_open_date', [$startDate, $endDate])
-                      ->orWhereNull('repair_orders.ro_open_date');
+                    ->orWhereNull('repair_orders.ro_open_date');
             })
-            ->where(function($query) {
+            ->where(function ($query) {
                 $query->where('wo_statuses.name', '!=', 'Canceled');
             })->whereRaw('LOWER(repair_orders.wo_number) != ?', ['not expected']);
-            
+
         if (Auth::check() && Auth::user()->tenant_id !== null) {
-            $query->where(function($query) {
+            $query->where(function ($query) {
                 $query->where('repair_orders.tenant_id', Auth::user()->tenant_id)
-                      ->orWhereNull('repair_orders.tenant_id');
+                    ->orWhereNull('repair_orders.tenant_id');
             });
         }
-        
+
         return $query->groupBy('area_of_concerns.id', 'area_of_concerns.concern')
             ->orderBy('count', 'desc')
             ->get();
@@ -161,18 +163,18 @@ public function __construct(?int $email_tenant_id = null) {
             ->select('trucks.truckid', DB::raw('COUNT(repair_orders.id) as work_order_count'))
             ->join('trucks', 'repair_orders.truck_id', '=', 'trucks.id')
             ->leftJoin('wo_statuses', 'repair_orders.wo_status_id', '=', 'wo_statuses.id')
-            ->where(function($query) {
+            ->where(function ($query) {
                 $query->where('wo_statuses.name', '!=', 'Canceled');
             })
             ->whereBetween('repair_orders.ro_open_date', [$startDate, $endDate])
             ->whereRaw('LOWER(wo_number) != ?', ['not expected'])
             ->groupBy('trucks.truckid')
             ->orderBy('work_order_count', 'desc');
-            
+
         if (Auth::check() && Auth::user()->tenant_id !== null) {
             $query->where('repair_orders.tenant_id', Auth::user()->tenant_id);
         }
-        
+
         return $query->get();
     }
 
@@ -180,19 +182,19 @@ public function __construct(?int $email_tenant_id = null) {
      * Calculate QS MVtS value
      */
     public function calculateQSMVtS(float $qsInvoiceAmount, float $totalMiles, int $tenantId): float
-{
-    if ($totalMiles <= 0) {
-        return 0.0;
+    {
+        if ($totalMiles <= 0) {
+            return 0.0;
+        }
+
+        // Try to fetch this tenant’s rule
+        $rule = TenantMetricsRule::where('tenant_id', $tenantId)->first();
+
+        // Use the divisor from the rule if present, otherwise default to 0.135
+        $mvtsDivisor = $rule->mvts_divisor ?? 0.135;
+        // Calculate and return
+        return ($qsInvoiceAmount / $totalMiles) / $mvtsDivisor;
     }
-
-    // Try to fetch this tenant’s rule
-    $rule = TenantMetricsRule::where('tenant_id', $tenantId)->first();
-
-    // Use the divisor from the rule if present, otherwise default to 0.135
-    $mvtsDivisor = $rule->mvts_divisor ?? 0.135;
-    // Calculate and return
-    return ($qsInvoiceAmount / $totalMiles) / $mvtsDivisor;
-}
 
     /**
      * Calculate CPM metrics
@@ -208,19 +210,24 @@ public function __construct(?int $email_tenant_id = null) {
         ];
     }
 
-    
-    public function getOutstandingInvoices( $minInvoiceAmount = null, $outstandingDate = null): ?array
+
+    public function getOutstandingInvoices($minInvoiceAmount = null, $outstandingDate = null): ?array
     {
         // If both required parameters are null, return null
         if ($minInvoiceAmount === null && $outstandingDate === null) {
             $minInvoiceAmount = 0;
-            $outstandingDate = 1990-01-01;
+            $outstandingDate = 1990 - 01 - 01;
         }
 
         $query = DB::table('repair_orders')
-            ->select('repair_orders.ro_number', 'repair_orders.invoice_amount', 'vendors.vendor_name as vendor_name', 'repair_orders.ro_open_date as qs_invoice_date',
-                    DB::raw('YEAR(repair_orders.ro_open_date) as year'), 
-                    DB::raw('WEEK(repair_orders.ro_open_date) as week_number'))
+            ->select(
+                'repair_orders.ro_number',
+                'repair_orders.invoice_amount',
+                'vendors.vendor_name as vendor_name',
+                'repair_orders.ro_open_date as qs_invoice_date',
+                DB::raw('YEAR(repair_orders.ro_open_date) as year'),
+                DB::raw('WEEK(repair_orders.ro_open_date) as week_number')
+            )
             ->join('vendors', 'repair_orders.vendor_id', '=', 'vendors.id')
             ->where('repair_orders.on_qs', 'no')->whereRaw('LOWER(wo_number) != ?', ['not expected']);
 
@@ -243,11 +250,11 @@ public function __construct(?int $email_tenant_id = null) {
         $results = $query->get();
 
         // Calculate week number using the same logic as in MilesDriven.vue
-        $formattedResults = $results->map(function($item) {
+        $formattedResults = $results->map(function ($item) {
             // Convert the ro_open_date to a JavaScript-compatible date calculation
             $roOpenDate = new Carbon($item->year . '-01-01');
             $roOpenDate->addWeeks($item->week_number - 1);
-            
+
             // Calculate the week number using the same logic as in MilesDriven.vue
             $date = $roOpenDate->toDateString();
             $tmp = new Carbon($date);
@@ -274,45 +281,63 @@ public function __construct(?int $email_tenant_id = null) {
      */
     public function getCanceledQSInvoices(): array
     {
-        $query = DB::table('repair_orders')
-            ->select('repair_orders.ro_number', 'repair_orders.invoice_amount', 'vendors.vendor_name as vendor_name', 
-                    'repair_orders.ro_open_date', 'repair_orders.ro_close_date',
-                    DB::raw('YEAR(repair_orders.ro_open_date) as year'), 
-                    DB::raw('WEEK(repair_orders.ro_open_date) as week_number'))
-            ->join('vendors', 'repair_orders.vendor_id', '=', 'vendors.id')
-            ->join('wo_statuses', 'repair_orders.wo_status_id', '=', 'wo_statuses.id')
-            ->where('wo_statuses.name', '=', 'Canceled')
-            ->where('repair_orders.on_qs', 'yes');
-            
-        if (Auth::check() && Auth::user()->tenant_id !== null) {
-            $query->where('repair_orders.tenant_id', Auth::user()->tenant_id);
-        }
-        
-        // Get the results
-        $results = $query->get();
-        
-        // Format the results similar to outstanding invoices
-        $formattedResults = $results->map(function($item) {
-            // Convert the ro_open_date to a JavaScript-compatible date calculation
-            $roOpenDate = new Carbon($item->year . '-01-01');
-            $roOpenDate->addWeeks($item->week_number - 1);
-            
-            // Calculate the week number using the same logic as in MilesDriven.vue
-            $date = $roOpenDate->toDateString();
-            $tmp = new Carbon($date);
-            $tmp->addDays(4 - ($tmp->dayOfWeek ?: 7));
-            $year = $tmp->year;
-            $weekNumber = ceil((($tmp->timestamp - Carbon::create($year, 1, 1)->timestamp) / 86400 + 1) / 7) + 1;
+        $query = RepairOrder::query()
+            ->with([
+                'truck',
+                'vendor' => function ($q) {
+                    $q->withTrashed();
+                },
+                'areasOfConcern' => function ($q) {
+                    $q->withTrashed();
+                },
+                'woStatus',
+                'tenant',
+            ])
+            ->whereHas('woStatus', function ($q) {
+                $q->where('name', 'Canceled');
+            })
+            ->where('on_qs', 'yes');
 
-            return [
-                'ro_number' => $item->ro_number,
-                'invoice_amount' => $item->invoice_amount,
-                'vendor_name' => $item->vendor_name,
-                'ro_open_date' => $item->ro_open_date,
-                'ro_close_date' => $item->ro_close_date,
-                'year' => $year,
-                'week_number' => $weekNumber
-            ];
+        // Tenant filtering (if user belongs to a tenant)
+        if (Auth::check() && Auth::user()->tenant_id !== null) {
+            $query->where('tenant_id', Auth::user()->tenant_id);
+        }
+
+        $results = $query
+            ->orderByDesc('ro_open_date')
+            ->get();
+
+        $formattedResults = $results->map(function (RepairOrder $ro) {
+            // Same "MilesDriven.vue" week calculation logic you referenced
+            // Use ro_open_date directly (more accurate than DB WEEK/YEAR)
+            $date = $ro->ro_open_date ? Carbon::parse($ro->ro_open_date)->toDateString() : null;
+
+            $year = null;
+            $weekNumber = null;
+
+            if ($date) {
+                $tmp = Carbon::parse($date);
+                $tmp->addDays(4 - ($tmp->dayOfWeek ?: 7));
+                $year = $tmp->year;
+
+                $weekNumber = (int) (ceil(
+                    ((($tmp->timestamp - Carbon::create($year, 1, 1)->timestamp) / 86400) + 1) / 7
+                ) + 1);
+            }
+
+            // Convert model to array INCLUDING loaded relations
+            $row = $ro->toArray();
+
+            // Add "flat" helpers your dialog/table uses
+            $row['vendor_name'] = $ro->vendor?->vendor_name;
+            $row['wo_status_name'] = $ro->woStatus?->name;
+            $row['truck_number'] = $ro->truck?->truckid;
+
+            // Keep computed week/year like before
+            $row['year'] = $year;
+            $row['week_number'] = $weekNumber;
+
+            return $row;
         });
 
         return $formattedResults->toArray();
@@ -325,27 +350,32 @@ public function __construct(?int $email_tenant_id = null) {
     public function getNotExpectedQSInvoices(): array
     {
         $query = DB::table('repair_orders')
-            ->select('repair_orders.ro_number', 'repair_orders.invoice_amount', 'vendors.vendor_name as vendor_name', 
-                    'repair_orders.ro_open_date', 'repair_orders.ro_close_date',
-                    DB::raw('YEAR(repair_orders.ro_open_date) as year'), 
-                    DB::raw('WEEK(repair_orders.ro_open_date) as week_number'))
+            ->select(
+                'repair_orders.ro_number',
+                'repair_orders.invoice_amount',
+                'vendors.vendor_name as vendor_name',
+                'repair_orders.ro_open_date',
+                'repair_orders.ro_close_date',
+                DB::raw('YEAR(repair_orders.ro_open_date) as year'),
+                DB::raw('WEEK(repair_orders.ro_open_date) as week_number')
+            )
             ->join('vendors', 'repair_orders.vendor_id', '=', 'vendors.id')
             ->whereRaw('LOWER(repair_orders.wo_number) = ?', ['not expected'])
             ->where('repair_orders.on_qs', 'yes');
-            
+
         if (Auth::check() && Auth::user()->tenant_id !== null) {
             $query->where('repair_orders.tenant_id', Auth::user()->tenant_id);
         }
-        
+
         // Get the results
         $results = $query->get();
-        
+
         // Format the results similar to outstanding invoices
-        $formattedResults = $results->map(function($item) {
+        $formattedResults = $results->map(function ($item) {
             // Convert the ro_open_date to a JavaScript-compatible date calculation
             $roOpenDate = new Carbon($item->year . '-01-01');
             $roOpenDate->addWeeks($item->week_number - 1);
-            
+
             // Calculate the week number using the same logic as in MilesDriven.vue
             $date = $roOpenDate->toDateString();
             $tmp = new Carbon($date);
@@ -394,16 +424,16 @@ public function __construct(?int $email_tenant_id = null) {
         $workOrdersByTruck = $this->getWorkOrdersByTruck($startDate, $endDate);
         $cpmMetrics = $this->calculateCPMMetrics($totalInvoiceAmount, $qsInvoiceAmount, $totalMiles);
         $qsMVtS = $this->calculateQSMVtS($qsInvoiceAmount, $totalMiles, Auth::user()->tenant_id);
-        
+
         // Get outstanding invoices data
         $outstandingInvoices = $this->getOutstandingInvoices($minInvoiceAmount, $outstandingDate);
-        
+
         // Get canceled QS invoices that need attention
         $canceledQSInvoices = $this->getCanceledQSInvoices();
-        
+
         // Get "not expected" QS invoices that need attention
         $notExpectedQSInvoices = $this->getNotExpectedQSInvoices();
-        
+
         // Combine canceled and "not expected" QS invoices
         $combinedQSInvoices = array_merge($canceledQSInvoices, $notExpectedQSInvoices);
 
