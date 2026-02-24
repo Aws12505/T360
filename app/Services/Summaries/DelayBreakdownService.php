@@ -8,9 +8,10 @@ use Carbon\Carbon;
 
 class DelayBreakdownService
 {
-    /**
-     * Get delay breakdown by driver
-     */
+    // ─────────────────────────────────────────────
+    //  Core breakdown queries
+    // ─────────────────────────────────────────────
+
     public function getDelaysByDriver($startDate, $endDate)
     {
         $query = DB::table('delays')
@@ -18,8 +19,8 @@ class DelayBreakdownService
                 driver_name,
                 COUNT(*) as total_delays,
                 SUM(penalty) as total_penalty,
-                SUM(CASE WHEN delay_type = 'origin' THEN 1 ELSE 0 END) as total_origin_delays,
-                SUM(CASE WHEN delay_type = 'origin' THEN penalty ELSE 0 END) as total_origin_penalty,
+                SUM(CASE WHEN delay_type = 'origin'      THEN 1 ELSE 0 END) as total_origin_delays,
+                SUM(CASE WHEN delay_type = 'origin'      THEN penalty ELSE 0 END) as total_origin_penalty,
                 SUM(CASE WHEN delay_type = 'destination' THEN 1 ELSE 0 END) as total_destination_delays,
                 SUM(CASE WHEN delay_type = 'destination' THEN penalty ELSE 0 END) as total_destination_penalty
             ")
@@ -31,62 +32,55 @@ class DelayBreakdownService
     }
 
     /**
-     * Get delay breakdown by delay code
+     * Get delays grouped by delay_reason string (replaces the old delay_codes join).
+     * Null/empty reasons are grouped under '—'.
      */
-    public function getDelaysByCode($startDate, $endDate)
+    public function getDelaysByReason($startDate, $endDate)
     {
         $query = DB::table('delays')
-            ->join('delay_codes', 'delays.delay_code_id', '=', 'delay_codes.id')
             ->selectRaw("
-                delay_codes.code,
+                COALESCE(NULLIF(TRIM(delay_reason), ''), '—') as reason,
                 COUNT(*) as total_delays,
-                SUM(delays.penalty) as total_penalty,
-                SUM(CASE WHEN delays.delay_type = 'origin' THEN 1 ELSE 0 END) as total_origin_delays,
-                SUM(CASE WHEN delays.delay_type = 'origin' THEN delays.penalty ELSE 0 END) as total_origin_penalty,
-                SUM(CASE WHEN delays.delay_type = 'destination' THEN 1 ELSE 0 END) as total_destination_delays,
-                SUM(CASE WHEN delays.delay_type = 'destination' THEN delays.penalty ELSE 0 END) as total_destination_penalty
+                SUM(penalty) as total_penalty,
+                SUM(CASE WHEN delay_type = 'origin'      THEN 1 ELSE 0 END) as total_origin_delays,
+                SUM(CASE WHEN delay_type = 'origin'      THEN penalty ELSE 0 END) as total_origin_penalty,
+                SUM(CASE WHEN delay_type = 'destination' THEN 1 ELSE 0 END) as total_destination_delays,
+                SUM(CASE WHEN delay_type = 'destination' THEN penalty ELSE 0 END) as total_destination_penalty
             ")
-            ->whereBetween('delays.date', [$startDate, $endDate]);
+            ->whereBetween('date', [$startDate, $endDate]);
 
-        $this->applyTenantFilter($query, 'delays');
+        $this->applyTenantFilter($query);
 
-        return $query->groupBy('delay_codes.code')->get();
+        return $query
+            ->groupBy(DB::raw("COALESCE(NULLIF(TRIM(delay_reason), ''), '—')"))
+            ->orderBy('total_delays', 'desc')
+            ->get();
     }
 
-    /**
-     * Get count of all delays and breakdown by delay category
-     */
     public function getDelaysCategoryBreakdown($startDate, $endDate)
     {
         $query = DB::table('delays')
             ->selectRaw("
                 COUNT(*) as total_delays,
-                SUM(CASE WHEN delay_category = '1_120' THEN 1 ELSE 0 END) as category_1_120_count,
-                SUM(CASE WHEN delay_category = '121_600' THEN 1 ELSE 0 END) as category_121_600_count,
+
+                SUM(CASE WHEN delay_category = '1_60'     THEN 1 ELSE 0 END) as category_1_60_count,
+                SUM(CASE WHEN delay_category = '61_240'   THEN 1 ELSE 0 END) as category_61_240_count,
+                SUM(CASE WHEN delay_category = '241_600'  THEN 1 ELSE 0 END) as category_241_600_count,
                 SUM(CASE WHEN delay_category = '601_plus' THEN 1 ELSE 0 END) as category_601_plus_count,
-                SUM(CASE WHEN delay_category = '1_60' THEN 1 ELSE 0 END) as category_1_60_count,
-                SUM(CASE WHEN delay_category = '61_240' THEN 1 ELSE 0 END) as category_61_240_count,
-                SUM(CASE WHEN delay_category = '241_600' THEN 1 ELSE 0 END) as category_241_600_count,
-                
-                SUM(CASE WHEN delay_category = '1_120' AND delay_type = 'origin' THEN 1 ELSE 0 END) as category_1_120_origin_count,
-                SUM(CASE WHEN delay_category = '1_120' AND delay_type = 'destination' THEN 1 ELSE 0 END) as category_1_120_destination_count,
-                
-                SUM(CASE WHEN delay_category = '121_600' AND delay_type = 'origin' THEN 1 ELSE 0 END) as category_121_600_origin_count,
-                SUM(CASE WHEN delay_category = '121_600' AND delay_type = 'destination' THEN 1 ELSE 0 END) as category_121_600_destination_count,
-                
-                SUM(CASE WHEN delay_category = '601_plus' AND delay_type = 'origin' THEN 1 ELSE 0 END) as category_601_plus_origin_count,
+
+                SUM(CASE WHEN delay_category = '1_60'     AND delay_type = 'origin'      THEN 1 ELSE 0 END) as category_1_60_origin_count,
+                SUM(CASE WHEN delay_category = '1_60'     AND delay_type = 'destination' THEN 1 ELSE 0 END) as category_1_60_destination_count,
+
+                SUM(CASE WHEN delay_category = '61_240'   AND delay_type = 'origin'      THEN 1 ELSE 0 END) as category_61_240_origin_count,
+                SUM(CASE WHEN delay_category = '61_240'   AND delay_type = 'destination' THEN 1 ELSE 0 END) as category_61_240_destination_count,
+
+                SUM(CASE WHEN delay_category = '241_600'  AND delay_type = 'origin'      THEN 1 ELSE 0 END) as category_241_600_origin_count,
+                SUM(CASE WHEN delay_category = '241_600'  AND delay_type = 'destination' THEN 1 ELSE 0 END) as category_241_600_destination_count,
+
+                SUM(CASE WHEN delay_category = '601_plus' AND delay_type = 'origin'      THEN 1 ELSE 0 END) as category_601_plus_origin_count,
                 SUM(CASE WHEN delay_category = '601_plus' AND delay_type = 'destination' THEN 1 ELSE 0 END) as category_601_plus_destination_count,
-                
-                SUM(CASE WHEN delay_category = '1_60' AND delay_type = 'origin' THEN 1 ELSE 0 END) as category_1_60_origin_count,
-                SUM(CASE WHEN delay_category = '1_60' AND delay_type = 'destination' THEN 1 ELSE 0 END) as category_1_60_destination_count,
-                
-                SUM(CASE WHEN delay_category = '61_240' AND delay_type = 'origin' THEN 1 ELSE 0 END) as category_61_240_origin_count,
-                SUM(CASE WHEN delay_category = '61_240' AND delay_type = 'destination' THEN 1 ELSE 0 END) as category_61_240_destination_count,
-                
-                SUM(CASE WHEN delay_category = '241_600' AND delay_type = 'origin' THEN 1 ELSE 0 END) as category_241_600_origin_count,
-                SUM(CASE WHEN delay_category = '241_600' AND delay_type = 'destination' THEN 1 ELSE 0 END) as category_241_600_destination_count,
-                
-                SUM(CASE WHEN delay_type = 'origin' THEN 1 ELSE 0 END) as total_origin_delays,
+
+                SUM(CASE WHEN delay_type = 'origin'      THEN 1 ELSE 0 END) as total_origin_delays,
                 SUM(CASE WHEN delay_type = 'destination' THEN 1 ELSE 0 END) as total_destination_delays
             ")
             ->whereBetween('date', [$startDate, $endDate]);
@@ -96,247 +90,158 @@ class DelayBreakdownService
         return $query->first();
     }
 
-    /**
-     * Get bottom five drivers with highest penalty sum
-     */
     public function getBottomFiveDriversByPenalty($startDate, $endDate)
     {
-        // Get bottom five drivers by total penalty
-        $bottomFiveTotal = DB::table('delays')
-            ->selectRaw("
-                driver_name,
-                SUM(penalty) as total_penalty
-            ")
-            ->whereBetween('date', [$startDate, $endDate]);
-            
-        $this->applyTenantFilter($bottomFiveTotal);
-        
-        $bottomFiveTotal = $bottomFiveTotal->groupBy('driver_name')
+        $base = fn() => DB::table('delays')->whereBetween('date', [$startDate, $endDate]);
+
+        $total = $base()->selectRaw('driver_name, SUM(penalty) as total_penalty');
+        $this->applyTenantFilter($total);
+        $total = $total->groupBy('driver_name')
             ->orderBy('total_penalty', 'desc')
             ->limit(5)
             ->get();
-            
-        // Get bottom five drivers by origin penalty
-        $bottomFiveOrigin = DB::table('delays')
-            ->selectRaw("
+
+        $origin = $base()->selectRaw("
                 driver_name,
                 SUM(CASE WHEN delay_type = 'origin' THEN penalty ELSE 0 END) as total_penalty
             ")
-            ->whereBetween('date', [$startDate, $endDate])
             ->where('delay_type', 'origin');
-            
-        $this->applyTenantFilter($bottomFiveOrigin);
-        
-        $bottomFiveOrigin = $bottomFiveOrigin->groupBy('driver_name')
+        $this->applyTenantFilter($origin);
+        $origin = $origin->groupBy('driver_name')
             ->orderBy('total_penalty', 'desc')
             ->limit(5)
             ->get();
-            
-        // Get bottom five drivers by destination penalty
-        $bottomFiveDestination = DB::table('delays')
-            ->selectRaw("
+
+        $destination = $base()->selectRaw("
                 driver_name,
                 SUM(CASE WHEN delay_type = 'destination' THEN penalty ELSE 0 END) as total_penalty
             ")
-            ->whereBetween('date', [$startDate, $endDate])
             ->where('delay_type', 'destination');
-            
-        $this->applyTenantFilter($bottomFiveDestination);
-        
-        $bottomFiveDestination = $bottomFiveDestination->groupBy('driver_name')
+        $this->applyTenantFilter($destination);
+        $destination = $destination->groupBy('driver_name')
             ->orderBy('total_penalty', 'desc')
             ->limit(5)
             ->get();
-            
+
         return [
-            'total' => $bottomFiveTotal,
-            'origin' => $bottomFiveOrigin,
-            'destination' => $bottomFiveDestination
+            'total'       => $total,
+            'origin'      => $origin,
+            'destination' => $destination,
         ];
     }
 
-    /**
-     * Apply tenant filter to query if user is authenticated
-     */
-    public function applyTenantFilter($query, $tablePrefix = '')
-    {
-        if (Auth::check() && Auth::user()->tenant_id !== null) {
-            $columnName = $tablePrefix ? "{$tablePrefix}.tenant_id" : 'tenant_id';
-            $query->where($columnName, Auth::user()->tenant_id);
-        }
-    }
+    // ─────────────────────────────────────────────
+    //  Aggregate helpers
+    // ─────────────────────────────────────────────
 
-  
-
-    /**
-     * Get complete delay breakdown data for the specified date range
-     */
     public function getDelayBreakdown($startDate, $endDate): array
     {
         return [
             'by_driver' => $this->getDelaysByDriver($startDate, $endDate),
-            'by_code'   => $this->getDelaysByCode($startDate, $endDate),
+            'by_reason' => $this->getDelaysByReason($startDate, $endDate),
         ];
     }
+
     public function getDelayBreakdownDetailsPage($startDate, $endDate): array
     {
         return [
-            'by_category' => $this->getDelaysCategoryBreakdown($startDate, $endDate),
+            'by_category'         => $this->getDelaysCategoryBreakdown($startDate, $endDate),
             'bottom_five_drivers' => $this->getBottomFiveDriversByPenalty($startDate, $endDate),
         ];
     }
 
-    /**
-     * Get line chart data for on-time performance trends
-     * 
-     * @param string $startDate The start date for the query
-     * @param string $endDate The end date for the query
-     * @return array The line chart data
-     */
+    // ─────────────────────────────────────────────
+    //  Line chart
+    // ─────────────────────────────────────────────
+
     public function getLineChartData($startDate, $endDate): array
     {
-        // Use Carbon for consistent date handling
         $start = Carbon::parse($startDate);
-        $end = Carbon::parse($endDate);
-        
-        // Determine date filter type based on date range
+        $end   = Carbon::parse($endDate);
+
         $dateFilter = $this->determineDateFilterType($start, $end);
-        
-        // Determine grouping based on date filter type
-        if ($dateFilter === 'yesterday') {
-            // For yesterday, we'll show hourly data if available
-            $dateFormat = 'Y-m-d';
-            $groupBy = DB::raw('DATE_FORMAT(date, "%Y-%m-%d")');
-            $labelFormat = 'H:00'; // Hour format
-        } elseif ($dateFilter === 'current-week') {
-            // Current week - group by day
-            $dateFormat = 'Y-m-d';
-            $groupBy = DB::raw('DATE(date)');
-            $labelFormat = 'D'; // Day name (Mon, Tue, etc.)
-        } elseif ($dateFilter === '6w') {
-            // 6 weeks - group by week with weeks starting on Sunday
-            $dateFormat = 'Y-W';
-            // Use YEARWEEK with mode 0 (weeks starting on Sunday)
-            $groupBy = DB::raw('YEARWEEK(date, 6)');
-            $labelFormat = '\WW'; // Week number (W1, W2, etc.)
-        } else {
-            // Quarterly or longer - group by month
-            $dateFormat = 'Y-m';
-            $groupBy = DB::raw('DATE_FORMAT(date, "%Y-%m")');
-            $labelFormat = 'M'; // Month name (Jan, Feb, etc.)
-        }
-        
-        // Get the average on-time performance across the entire date range
+
+        [$groupBy, $dateFormat, $labelFormat] = match ($dateFilter) {
+            'yesterday'    => [DB::raw('DATE_FORMAT(date, "%Y-%m-%d")'), 'Y-m-d', 'Y-m-d'],
+            'current-week' => [DB::raw('DATE(date)'),                    'Y-m-d', 'D'],
+            '6w'           => [DB::raw('YEARWEEK(date, 6)'),             'Y-W',   'W'],
+            default        => [DB::raw('DATE_FORMAT(date, "%Y-%m")'),    'Y-m',   'M'],
+        };
+
         $averageQuery = DB::table('performances')
             ->selectRaw('AVG(on_time) as averageOnTime')
             ->whereBetween('date', [$startDate, $endDate]);
-        
         $this->applyTenantFilter($averageQuery);
-        $averageResult = $averageQuery->first();
-        $averageOnTime = $averageResult ? round($averageResult->averageOnTime, 1) : null;
-        
+        $averageOnTime = round($averageQuery->first()?->averageOnTime ?? 0, 1) ?: null;
+
         $query = DB::table('performances')
             ->select($groupBy, DB::raw('AVG(on_time) as onTimePerformance'))
             ->whereBetween('date', [$startDate, $endDate])
             ->groupBy($groupBy)
             ->orderBy($groupBy);
-        
         $this->applyTenantFilter($query);
-        $results = $query->get();
-        // Format dates based on the determined grouping
-        $chartData = $results->map(function($item) use ($dateFormat, $labelFormat, $dateFilter) {
-            // Get the first property (date or yearweek)
-            $dateValue = $item->{array_key_first((array)$item)};
-            
-            if ($dateFormat === 'Y-m-d') {
-                // For daily grouping
-                $date = Carbon::parse($dateValue);
-                $formattedDate = $date->format($labelFormat);
-            } elseif ($dateFormat === 'Y-m-d') {
-                // For hourly grouping
-                $date = Carbon::parse($dateValue);
-                $formattedDate = $date->format($labelFormat);
-            } elseif ($dateFormat === 'Y-m') {
-                // For monthly grouping
-                $date = Carbon::parse($dateValue . '-01');
-                $formattedDate = $date->format($labelFormat);
-            } else {
-                // For weekly grouping
-                // Extract year and week from YEARWEEK format (YYYYWW)
-                $year = substr($dateValue, 0, 4);
-                $week = substr($dateValue, 4);
-                $formattedDate = 'W' . $week;
-            }
-            
+
+        $chartData = $query->get()->map(function ($item) use ($dateFormat, $labelFormat) {
+            $dateValue = $item->{array_key_first((array) $item)};
+
+            $formattedDate = match ($dateFormat) {
+                'Y-W'  => 'W' . substr($dateValue, 4),
+                'Y-m'  => Carbon::parse($dateValue . '-01')->format($labelFormat),
+                default => Carbon::parse($dateValue)->format($labelFormat),
+            };
+
             return [
-                'date' => $formattedDate,
-                'onTimePerformance' => round($item->onTimePerformance, 1)
+                'date'              => $formattedDate,
+                'onTimePerformance' => round($item->onTimePerformance, 1),
             ];
         })->toArray();
-        
+
         return [
-            'chartData' => $chartData,
-            'averageOnTime' => $averageOnTime
+            'chartData'     => $chartData,
+            'averageOnTime' => $averageOnTime,
         ];
     }
-    
-    /**
-     * Determine the date filter type based on the date range
-     * 
-     * @param Carbon $start The start date
-     * @param Carbon $end The end date
-     * @return string The date filter type (yesterday, current-week, 6w, quarterly, or full)
-     */
+
+    // ─────────────────────────────────────────────
+    //  Private helpers
+    // ─────────────────────────────────────────────
+
+    public function applyTenantFilter($query, $tablePrefix = ''): void
+    {
+        if (Auth::check() && !is_null(Auth::user()->tenant_id)) {
+            $column = $tablePrefix ? "{$tablePrefix}.tenant_id" : 'tenant_id';
+            $query->where($column, Auth::user()->tenant_id);
+        }
+    }
+
     private function determineDateFilterType(Carbon $start, Carbon $end): string
     {
-        $daysDifference = $start->diffInDays($end);
-        $now = Carbon::now();
-        $isSunday= $now->dayOfWeek === 0;
-        if($isSunday){
+        $daysDiff = $start->diffInDays($end);
+        $now      = Carbon::now();
+
+        if ($now->dayOfWeek === 0) {
             $now->subDay();
         }
-        $yesterday = Carbon::yesterday();
+
+        $yesterday        = Carbon::yesterday();
         $currentWeekStart = $now->copy()->startOfWeek(Carbon::SUNDAY);
-        $currentWeekEnd = $now->copy()->endOfWeek(Carbon::SATURDAY);
-        $sixWeeksStart = $currentWeekStart->copy()->subWeeks(5);
-        
-        // Check if the date range matches yesterday
-        if ($start->isSameDay($yesterday) && $end->isSameDay($yesterday)) {
-            return 'yesterday';
-        }
-        
-        // Check if the date range matches current week
-        if ($start->isSameDay($currentWeekStart) && $end->isSameDay($currentWeekEnd)) {
-            return 'current-week';
-        }
-        
-        // Check if the date range matches 6 weeks
-        if ($start->isSameDay($sixWeeksStart) && $end->isSameDay($currentWeekEnd)) {
-            return '6w';
-        }
-        
-        // Check if the date range is approximately 3 months
-        if ($daysDifference >= 85 && $daysDifference <= 95) {
-            return 'quarterly';
-        }
-        
-        // Default to full if none of the above match
+        $currentWeekEnd   = $now->copy()->endOfWeek(Carbon::SATURDAY);
+        $sixWeeksStart    = $currentWeekStart->copy()->subWeeks(5);
+
+        if ($start->isSameDay($yesterday) && $end->isSameDay($yesterday))            return 'yesterday';
+        if ($start->isSameDay($currentWeekStart) && $end->isSameDay($currentWeekEnd)) return 'current-week';
+        if ($start->isSameDay($sixWeeksStart) && $end->isSameDay($currentWeekEnd))    return '6w';
+        if ($daysDiff >= 85 && $daysDiff <= 95)                                       return 'quarterly';
+
         return 'full';
     }
-    
-    /**
-     * Get complete delay breakdown data with line chart for the specified date range
-     */
+
     public function getDelayBreakdownWithChart($startDate, $endDate): array
     {
-        $basicData = $this->getDelayBreakdown($startDate, $endDate);
-        $detailsData = $this->getDelayBreakdownDetailsPage($startDate, $endDate);
-        $lineChartData = $this->getLineChartData($startDate, $endDate);
-        
         return array_merge(
-            $basicData,
-            $detailsData,
-            ['lineChartData' => $lineChartData]
+            $this->getDelayBreakdown($startDate, $endDate),
+            $this->getDelayBreakdownDetailsPage($startDate, $endDate),
+            ['lineChartData' => $this->getLineChartData($startDate, $endDate)]
         );
     }
 }

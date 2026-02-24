@@ -19,12 +19,4 @@ Route::controller(DelaysController::class)->group(function () {
 
         Route::get('/export', 'exportAdmin')->name('ontime.export.admin');
     });
-
-    // delay codes stay as-is
-    Route::prefix('delay-codes')->group(function () {
-        Route::post('/', 'storeCode')->name('delay_codes.store.admin');
-        Route::delete('{id}', 'destroyCode')->name('delay_codes.destroy.admin');
-        Route::post('{id}/restore', 'restoreCode')->name('delay_codes.restore.admin');
-        Route::delete('{id}/force', 'forceDeleteCode')->name('delay_codes.forceDelete.admin');
-    });
 });
