@@ -3,7 +3,6 @@
 namespace App\Services\On_Time;
 
 use App\Models\Delay;
-use App\Models\Tenant;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Response;
@@ -12,33 +11,139 @@ use Illuminate\Support\Str;
 class DelayImportExportService
 {
     // ─────────────────────────────────────────────────────────────
+    //  Shared CSV helpers
+    // ─────────────────────────────────────────────────────────────
+
+    private function detectDelimiter(string $filePath): string
+    {
+        $handle = fopen($filePath, 'r');
+        if (!$handle) return "\t";
+        $firstLine = fgets($handle);
+        fclose($handle);
+        if ($firstLine === false) return "\t";
+
+        $delimiters = [
+            ','  => substr_count($firstLine, ','),
+            "\t" => substr_count($firstLine, "\t"),
+            ';'  => substr_count($firstLine, ';'),
+            '|'  => substr_count($firstLine, '|'),
+        ];
+        arsort($delimiters);
+        return array_key_first($delimiters);
+    }
+
+    /**
+     * Strip BOM and trim all header elements.
+     * Trailing empty columns are intentionally kept — dropped
+     * only after via array_filter when comparing against expected.
+     */
+    private function sanitizeHeaders(array $headers): array
+    {
+        if (!empty($headers[0])) {
+            $headers[0] = preg_replace('/^\xEF\xBB\xBF/', '', $headers[0]);
+        }
+        return array_map(fn($h) => trim((string) $h), $headers);
+    }
+
+    /**
+     * Trim all values and drop trailing empty cells beyond expected count.
+     */
+    private function sanitizeRow(array $row, int $expectedCount): array
+    {
+        $row = array_map(fn($v) => is_string($v) ? trim($v) : $v, $row);
+        while (count($row) > $expectedCount && end($row) === '') {
+            array_pop($row);
+        }
+        return $row;
+    }
+
+    /**
+     * Returns true if every cell in the row is empty (blank line guard).
+     */
+    private function isBlankRow(array $row): bool
+    {
+        return empty(array_filter($row, fn($v) => trim((string) $v) !== ''));
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  Expected headers — both origin and destination are identical
+    // ─────────────────────────────────────────────────────────────
+
+    private function getExpectedHeaders(): array
+    {
+        return [
+            'Trip ID',
+            'Load ID',
+            'Leg #',
+            'Total Legs',
+            'Drivers',
+            'Driver Type',
+            'Segment Status',
+            'Run',
+            'Distance',
+            'Origin',
+            'Destination',
+            'Origin Yard Arrival Time',
+            'Origin Arrival Late Reason',
+            'Origin arrival previous late reason',
+            'Origin Delay Duration',
+            'Origin Delay Duration Bucket',
+            'Origin Arrival Penalty',
+            'Origin Yard Departure Time',
+            'Origin depart Late Reason',
+            'Origin depart previous late reason',
+            'Destination Yard Arrival Time',
+            'Destination Arrival Late Reason',
+            'Destination arrival previous late reason',
+            'Destination Delay Duration',
+            'Destination Delay Duration Bucket',
+            'Destination Arrival Penalty',
+            'App Usage: Check-in at origin',
+            'App Usage: Trailer Attach at Origin',
+            'App Usage: Check-out at origin',
+            'App Usage: Check-in at destination',
+            'App Usage compliance',
+            'Location Available',
+            'Location Unavailability Reason',
+        ];
+    }
+
+    // ─────────────────────────────────────────────────────────────
     //  Duration parser
-    //  Handles: "24m", "4h38m", "1h29m", "3650D" (days), "4m", ""
     // ─────────────────────────────────────────────────────────────
 
     private function parseDurationToMinutes(string $raw): ?int
     {
         $raw = trim($raw);
-        if ($raw === '' || $raw === null) return null;
+        if ($raw === '') return null;
 
-        // Days format e.g. "3650D"
-        if (preg_match('/^(\d+)\s*[Dd]$/i', $raw, $m)) {
-            return (int) $m[1] * 1440;
+        $totalMinutes = 0;
+        $matched      = 0;
+        $remaining    = $raw;
+
+        // Match tokens like "3D", "4h", "59m" — greedy left-to-right
+        while (preg_match('/^(\d+)\s*([DdHhMm])(.*)$/s', $remaining, $m)) {
+            $value     = (int) $m[1];
+            $unit      = strtolower($m[2]);
+            $remaining = $m[3];
+            $matched++;
+
+            $totalMinutes += match ($unit) {
+                'd' => $value * 1440,
+                'h' => $value * 60,
+                'm' => $value,
+            };
         }
 
-        // Hours + minutes e.g. "4h38m", "1h29m"
-        if (preg_match('/^(?:(\d+)\s*h)?\s*(?:(\d+)\s*m)?$/i', $raw, $m)) {
-            $hours   = isset($m[1]) && $m[1] !== '' ? (int) $m[1] : 0;
-            $minutes = isset($m[2]) && $m[2] !== '' ? (int) $m[2] : 0;
-            $total   = ($hours * 60) + $minutes;
-            return $total > 0 ? $total : null;
-        }
+        // If there's leftover non-whitespace content we couldn't parse → invalid
+        if (trim($remaining) !== '') return null;
 
-        return null;
+        // Must have matched at least one token and produced > 0 minutes
+        return ($matched > 0 && $totalMinutes > 0) ? $totalMinutes : null;
     }
 
     // ─────────────────────────────────────────────────────────────
-    //  Category + penalty from total minutes  (same logic as service)
+    //  Category + penalty from total minutes
     // ─────────────────────────────────────────────────────────────
 
     private function categoryFromMinutes(int $minutes): string
@@ -71,13 +176,12 @@ class DelayImportExportService
         $raw = trim($raw);
         if ($raw === '') return null;
 
-        // e.g. "1/19/2026 2:14 CST" or "1/4/2026 20:43 EST"
         if (preg_match('/^(\d{1,2}\/\d{1,2}\/\d{4}\s+\d{1,2}:\d{2})\s*(CST|EST)?$/i', $raw, $m)) {
             $dt       = Carbon::createFromFormat('m/d/Y H:i', trim($m[1]));
             $timezone = strtoupper($m[2] ?? 'EST');
 
             if ($timezone === 'CST') {
-                $dt->addHour(); // CST is UTC-6, EST is UTC-5 → +1h
+                $dt->addHour();
             }
 
             return $dt;
@@ -93,7 +197,6 @@ class DelayImportExportService
     private function resolveControllable(?string $penaltyRaw): bool
     {
         $val = trim((string) $penaltyRaw);
-        // Empty or "0" → not controllable
         return $val !== '' && $val !== '0';
     }
 
@@ -108,27 +211,32 @@ class DelayImportExportService
             'import_type' => 'required|in:origin,destination',
         ]);
 
-        $importType   = $request->input('import_type');
-        $isSuperAdmin = Auth::user()->tenant_id === null;
-        $tenantId     = $isSuperAdmin ? null : Auth::user()->tenant_id;
+        $importType      = $request->input('import_type');
+        $isSuperAdmin    = Auth::user()->tenant_id === null;
+        $tenantId        = $isSuperAdmin
+            ? $request->input('tenant_id')
+            : Auth::user()->tenant_id;
 
-        $file   = $request->file('csv_file');
-        $handle = fopen($file->getRealPath(), 'r');
+        $file            = $request->file('csv_file');
+        $filePath        = $file->getRealPath();
+        $delimiter       = $this->detectDelimiter($filePath);
+        $expectedHeaders = $this->getExpectedHeaders();
+        $expectedCount   = count($expectedHeaders);
 
+        $handle = fopen($filePath, 'r');
         if (!$handle) {
             throw new \Exception('Could not open the CSV file.');
         }
 
-        // Strip BOM if present
-        $bom = fread($handle, 3);
-        if ($bom !== "\xEF\xBB\xBF") {
-            rewind($handle);
-        }
+        // Read, sanitize, and discard header row
+        $rawHeader = fgetcsv($handle, 0, $delimiter);
+        // (already validated by validateImport — just consume it cleanly)
 
-        // Read and discard header row
-        fgetcsv($handle, 0, "\t"); // TSV (tab-separated based on sample data)
+        while (($rawRow = fgetcsv($handle, 0, $delimiter)) !== false) {
+            if ($this->isBlankRow($rawRow)) continue;
 
-        while (($row = fgetcsv($handle, 0, "\t")) !== false) {
+            $row = $this->sanitizeRow($rawRow, $expectedCount);
+
             try {
                 if ($importType === 'origin') {
                     $this->processOriginRow($row, $isSuperAdmin, $tenantId);
@@ -136,7 +244,6 @@ class DelayImportExportService
                     $this->processDestinationRow($row, $isSuperAdmin, $tenantId);
                 }
             } catch (\Exception $e) {
-                // Skip malformed rows silently — validation service caught these already
                 continue;
             }
         }
@@ -147,100 +254,64 @@ class DelayImportExportService
     // ─────────────────────────────────────────────────────────────
     //  Origin row processor
     //
-    //  Columns (0-indexed, tab-separated):
-    //  0  Segment Status
-    //  1  Run
-    //  2  Distance
-    //  3  Origin
-    //  4  Destination
-    //  5  Origin Yard Arrival Time        → date
-    //  6  Origin Arrival Late Reason      → delay_reason
-    //  7  Origin arrival previous late reason
-    //  8  Origin Delay Duration           → delay_duration
-    //  9  Origin Delay Duration Bucket
-    //  10 Origin Arrival Penalty          → controllable flag
-    //  11 Origin Yard Departure Time
-    //  12 Origin depart Late Reason
-    //  ... (rest ignored for origin import)
+    //  Both CSVs share the same 33-column layout.
+    //  For origin imports we read from the origin columns:
+    //
+    //  11 Origin Yard Arrival Time         → date
+    //  12 Origin Arrival Late Reason       → delay_reason
+    //  14 Origin Delay Duration            → delay_duration
+    //  16 Origin Arrival Penalty           → controllable flag
+    //   1 Load ID                          → load_id
+    //   4 Drivers                          → driver_name
     // ─────────────────────────────────────────────────────────────
 
     private function processOriginRow(array $row, bool $isSuperAdmin, ?int $tenantId): void
     {
-        // Resolve tenant for super admin (no tenant_name column in origin CSV,
-        // so super admin must pass tenantId another way — skip if null)
         if ($isSuperAdmin && $tenantId === null) return;
 
-        $rawDatetime    = $row[5]  ?? '';
-        $rawReason      = trim($row[6]  ?? '');
-        $rawDuration    = trim($row[8]  ?? '');
-        $rawPenalty     = trim($row[10] ?? '');
+        $loadId      = trim($row[1]  ?? '');
+        $driverName  = trim($row[4]  ?? '');
+        $rawDatetime = $row[11] ?? '';
+        $rawReason   = trim($row[12] ?? '');
+        $rawDuration = trim($row[14] ?? '');
+        $rawPenalty  = trim($row[16] ?? '');
 
-        // Date is required
         $date = $this->parseDatetime($rawDatetime);
         if (!$date) return;
 
-        // Duration → total minutes → category → penalty
-        $totalMinutes = $this->parseDurationToMinutes($rawDuration);
-        $category     = $totalMinutes ? $this->categoryFromMinutes($totalMinutes) : null;
-        $penalty      = $category    ? $this->penaltyFromCategory($category)      : 0;
-
-        // Controllable flags
+        $totalMinutes        = $this->parseDurationToMinutes($rawDuration);
+        $category            = $totalMinutes ? $this->categoryFromMinutes($totalMinutes) : null;
+        $penalty             = $category    ? $this->penaltyFromCategory($category)      : 0;
         $isControllable      = $this->resolveControllable($rawPenalty);
-        $driverControllable  = $isControllable;
-        $carrierControllable = $isControllable;
-
-        // Delay reason
-        $delayReason = $rawReason !== '' ? $rawReason : null;
-
-        // Load ID — origin CSV has no load_id column, so null
-        $loadId = null;
+        $delayReason         = $rawReason !== '' ? $rawReason : null;
 
         $this->upsertDelay([
-            'tenant_id'           => $tenantId,
-            'delay_type'          => 'origin',
-            'date'                => $date,
-            'driver_name'         => null, // no Drivers column in origin CSV
-            'delay_reason'        => $delayReason,
-            'delay_duration'      => $totalMinutes,
-            'delay_category'      => $category,
-            'penalty'             => $penalty,
-            'disputed'            => 'none',
-            'driver_controllable' => $driverControllable,
-            'carrier_controllable' => $carrierControllable,
-            'load_id'             => $loadId,
+            'tenant_id'            => $tenantId,
+            'delay_type'           => 'origin',
+            'date'                 => $date,
+            'load_id'              => $loadId !== '' ? $loadId : null,
+            'driver_name'          => $driverName !== '' ? $driverName : null,
+            'delay_reason'         => $delayReason,
+            'delay_duration'       => $totalMinutes,
+            'delay_category'       => $category,
+            'penalty'              => $penalty,
+            'disputed'             => 'none',
+            'driver_controllable'  => $isControllable,
+            'carrier_controllable' => $isControllable,
         ]);
     }
 
     // ─────────────────────────────────────────────────────────────
     //  Destination row processor
     //
-    //  Columns (0-indexed, tab-separated):
-    //  0  Trip ID
-    //  1  Load ID                          → load_id
-    //  2  Leg #
-    //  3  Total Legs
-    //  4  Drivers                          → driver_name
-    //  5  Driver Type
-    //  6  Segment Status
-    //  7  Run
-    //  8  Distance
-    //  9  Origin
-    //  10 Destination
-    //  11 Origin Yard Arrival Time
-    //  12 Origin Arrival Late Reason
-    //  13 Origin arrival previous late reason
-    //  14 Origin Delay Duration
-    //  15 Origin Delay Duration Bucket
-    //  16 Origin Arrival Penalty
-    //  17 Origin Yard Departure Time
-    //  18 Origin depart Late Reason
-    //  19 Origin depart previous late reason
-    //  20 Destination Yard Arrival Time    → date
-    //  21 Destination Arrival Late Reason  → delay_reason
-    //  22 Destination arrival previous late reason
-    //  23 Destination Delay Duration       → delay_duration
-    //  24 Destination Delay Duration Bucket
-    //  25 Destination Arrival Penalty      → controllable flag
+    //  For destination imports we read from the destination columns:
+    //
+    //   1 Load ID                           → load_id
+    //   4 Drivers                           → driver_name
+    //  20 Destination Yard Arrival Time     → date
+    //  21 Destination Arrival Late Reason   → delay_reason
+    //  23 Destination Delay Duration        → delay_duration
+    //  25 Destination Arrival Penalty       → controllable flag
     // ─────────────────────────────────────────────────────────────
 
     private function processDestinationRow(array $row, bool $isSuperAdmin, ?int $tenantId): void
@@ -261,31 +332,26 @@ class DelayImportExportService
         $category            = $totalMinutes ? $this->categoryFromMinutes($totalMinutes) : null;
         $penalty             = $category    ? $this->penaltyFromCategory($category)      : 0;
         $isControllable      = $this->resolveControllable($rawPenalty);
-        $driverControllable  = $isControllable;
-        $carrierControllable = $isControllable;
         $delayReason         = $rawReason !== '' ? $rawReason : null;
 
         $this->upsertDelay([
             'tenant_id'            => $tenantId,
             'delay_type'           => 'destination',
             'date'                 => $date,
+            'load_id'              => $loadId !== '' ? $loadId : null,
             'driver_name'          => $driverName !== '' ? $driverName : null,
             'delay_reason'         => $delayReason,
             'delay_duration'       => $totalMinutes,
             'delay_category'       => $category,
             'penalty'              => $penalty,
             'disputed'             => 'none',
-            'driver_controllable'  => $driverControllable,
-            'carrier_controllable' => $carrierControllable,
-            'load_id'              => $loadId !== '' ? $loadId : null,
+            'driver_controllable'  => $isControllable,
+            'carrier_controllable' => $isControllable,
         ]);
     }
 
     // ─────────────────────────────────────────────────────────────
     //  Upsert logic
-    //
-    //  If load_id exists for this tenant → check update scenario
-    //  If no load_id OR no match → create new record
     // ─────────────────────────────────────────────────────────────
 
     private function upsertDelay(array $data): void
@@ -308,14 +374,12 @@ class DelayImportExportService
             $hasNewReason = !empty($data['delay_reason']);
 
             if ($hadReason && !$hasNewReason) {
-                // Special case: had reason before, now no reason →
-                // only update carrier_controllable → false and disputed → 'won'
+                // Had a reason before, now cleared → auto-win
                 $existing->update([
                     'carrier_controllable' => false,
                     'disputed'             => 'won',
                 ]);
             } else {
-                // Normal update — refresh all fields
                 $existing->update([
                     'date'                 => $data['date'],
                     'driver_name'          => $data['driver_name'],
@@ -329,7 +393,6 @@ class DelayImportExportService
                 ]);
             }
         } else {
-            // New record
             Delay::create($data);
         }
     }
@@ -359,40 +422,44 @@ class DelayImportExportService
         $file     = fopen($filePath, 'w');
 
         // UTF-8 BOM for Excel
-        fwrite($file, "\xEF\xBB\xBF");
+        fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
-        $headers = [
-            ...($isSuperAdmin ? ['tenant_name'] : []),
-            'date',
-            'type',
-            'load_id',
-            'driver_name',
-            'delay_duration_minutes',
-            'delay_category',
-            'penalty',
-            'delay_reason',
-            'disputed',
-            'driver_controllable',
-            'carrier_controllable',
-        ];
+        $headers = [];
+        if ($isSuperAdmin) $headers[] = 'Company Name';
+
+        $headers = array_merge($headers, [
+            'Date',
+            'Type',
+            'Load ID',
+            'Driver Name',
+            'Delay Duration (minutes)',
+            'Delay Category',
+            'Penalty',
+            'Delay Reason',
+            'Disputed',
+            'Driver Controllable',
+            'Carrier Controllable',
+        ]);
 
         fputcsv($file, $headers);
 
         foreach ($delays as $delay) {
-            $row = [
-                ...($isSuperAdmin ? [$delay->tenant->name ?? ''] : []),
+            $row = [];
+            if ($isSuperAdmin) $row[] = $delay->tenant->name ?? '';
+
+            $row = array_merge($row, [
                 $delay->date ? Carbon::parse($delay->date)->format('m/d/Y H:i') : '',
                 $this->formatDelayType($delay),
-                $delay->load_id ?? '',
-                $delay->driver_name ?? '',
+                $delay->load_id      ?? '',
+                $delay->driver_name  ?? '',
                 $delay->delay_duration ?? '',
                 $this->formatDelayCategory($delay->delay_category),
                 $delay->penalty ?? '',
                 $delay->delay_reason ?? '',
                 $this->formatDisputeStatus($delay->disputed),
-                $delay->driver_controllable === null ? 'N/A' : ($delay->driver_controllable ? 'Yes' : 'No'),
+                $delay->driver_controllable  === null ? 'N/A' : ($delay->driver_controllable  ? 'Yes' : 'No'),
                 $delay->carrier_controllable === null ? 'N/A' : ($delay->carrier_controllable ? 'Yes' : 'No'),
-            ];
+            ]);
 
             fputcsv($file, $row);
         }
