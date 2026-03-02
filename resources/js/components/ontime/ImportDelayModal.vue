@@ -193,7 +193,77 @@
                 <div class="text-xs text-muted-foreground mt-1">Invalid</div>
               </div>
             </div>
+            <!-- ✅ NEW: Missing Arrival Time rows (requires user input) -->
+            <div v-if="validationResults.needs_input?.length > 0" class="space-y-2">
+              <div class="flex items-center justify-between">
+                <p
+                  class="text-sm font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1"
+                >
+                  <Icon name="alert-triangle" class="h-4 w-4" />
+                  Missing Arrival Time ({{ validationResults.needs_input.length }})
+                </p>
 
+                <p class="text-xs text-muted-foreground">
+                  Please enter the missing date/time before importing.
+                </p>
+              </div>
+
+              <div class="max-h-64 overflow-y-auto rounded-md border divide-y">
+                <div
+                  v-for="row in validationResults.needs_input"
+                  :key="row.rowNumber"
+                  class="p-3 bg-amber-50/50 dark:bg-amber-900/10 space-y-2"
+                >
+                  <div class="flex items-start justify-between gap-3 flex-wrap">
+                    <div class="text-xs font-semibold whitespace-nowrap">
+                      Row {{ row.rowNumber }}
+                    </div>
+
+                    <div class="flex flex-wrap gap-2">
+                      <span
+                        v-for="p in row.preview || []"
+                        :key="p.key"
+                        class="text-xs bg-muted rounded px-1.5 py-0.5"
+                      >
+                        {{ p.label }}: <span class="font-medium">{{ p.value }}</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 items-end">
+                    <div class="space-y-1">
+                      <Label class="text-xs">
+                        {{
+                          row.missing_field === "Origin Yard Arrival Time"
+                            ? "Origin Yard Arrival Time"
+                            : "Destination Yard Arrival Time"
+                        }}
+                      </Label>
+
+                      <input
+                        type="datetime-local"
+                        class="select-base h-9"
+                        :value="row.manual_datetime"
+                        @input="setManualDatetime(row, ($event.target as HTMLInputElement).value)"
+                        :disabled="isImporting"
+                      />
+
+                      <p v-if="!row.manual_datetime" class="text-xs text-destructive">
+                        This field is required to import this row.
+                      </p>
+                    </div>
+
+                    <div class="text-xs text-muted-foreground">
+                      This row will be imported with:
+                      <span class="font-medium">Penalty 0</span>,
+                      <span class="font-medium">no duration</span>,
+                      <span class="font-medium">not controllable</span>,
+                      <span class="font-medium">no category</span>.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
             <!-- Invalid rows -->
             <div v-if="validationResults.invalid?.length > 0" class="space-y-2">
               <div class="flex items-center justify-between">
@@ -256,8 +326,7 @@
             >
               <p class="text-sm font-semibold text-green-600 flex items-center gap-1">
                 <Icon name="check-circle" class="h-4 w-4" />
-                All {{ validationResults.summary.valid }} rows are valid and ready to
-                import.
+                All {{ importReadyCount }} rows are valid and ready to import.
               </p>
             </div>
 
@@ -271,19 +340,21 @@
                 v-if="(validationResults.summary?.invalid ?? 0) === 0"
                 variant="default"
                 size="sm"
-                :disabled="isImporting"
+                :disabled="isImporting || !canConfirmImport"
                 @click="confirmImport"
               >
+                <p
+                  v-if="!canConfirmImport && validationResults.needs_input?.length"
+                  class="text-xs text-amber-600"
+                >
+                  Please fill all missing arrival times to enable import.
+                </p>
                 <div
                   v-if="isImporting"
                   class="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2"
                 ></div>
                 <Icon v-else name="upload" class="mr-1 h-3 w-3" />
-                {{
-                  isImporting
-                    ? "Importing..."
-                    : `Import ${validationResults.summary?.valid} Delay(s)`
-                }}
+                {{ importButtonText }}
               </Button>
             </div>
           </template>
@@ -355,7 +426,40 @@ const importOptions = [
 ];
 
 // ─── Computed: selected tenant name for success message ───────────────────────
+const needsInputRows = computed(() => validationResults.value?.needs_input ?? []);
 
+function toDatetimeLocalValue(val: string | null | undefined) {
+  if (!val) return "";
+  // Accept either "YYYY-MM-DDTHH:mm" already, or "YYYY-MM-DD HH:mm"
+  // Keep it simple: if it has a "T", assume it's good.
+  if (val.includes("T")) return val.slice(0, 16);
+  // convert "YYYY-MM-DD HH:mm" -> "YYYY-MM-DDTHH:mm"
+  return val.replace(" ", "T").slice(0, 16);
+}
+
+function setManualDatetime(row: any, value: string) {
+  // value from datetime-local is "YYYY-MM-DDTHH:mm"
+  row.manual_datetime = value;
+}
+
+const isMissingRequiredManualDates = computed(() => {
+  const rows = needsInputRows.value;
+  if (!rows.length) return false;
+  return rows.some(
+    (r: any) => !r.manual_datetime || String(r.manual_datetime).trim() === ""
+  );
+});
+
+const canConfirmImport = computed(() => {
+  // existing rule: only allow confirm when invalid === 0
+  const invalid = validationResults.value?.summary?.invalid ?? 0;
+  if (invalid !== 0) return false;
+
+  // new rule: if needs_input exists, require all manual datetimes
+  if (isMissingRequiredManualDates.value) return false;
+
+  return true;
+});
 const selectedTenantName = computed(() => {
   if (!props.isSuperAdmin || !selectedTenantId.value) return null;
   const tenant = (props.tenants as any[]).find((t) => t.id === selectedTenantId.value);
@@ -454,14 +558,23 @@ function confirmImport() {
 
   // Send tenant_id in confirm request so backend session can be verified
   const payload: Record<string, any> = {};
+
   if (props.isSuperAdmin && selectedTenantId.value) {
     payload.tenant_id = selectedTenantId.value;
   }
 
+  // ✅ NEW: send corrected rows (rowNumber + manual_datetime)
+  const corrected = (validationResults.value?.needs_input ?? []).map((r: any) => ({
+    rowNumber: r.rowNumber,
+    manual_datetime: r.manual_datetime, // "YYYY-MM-DDTHH:mm"
+  }));
+
+  payload.corrected_rows = corrected;
+
   router.post(getRoute("confirm"), payload, {
     preserveScroll: true,
     onSuccess: () => {
-      const count = validationResults.value?.summary?.valid ?? 0;
+      const count = importReadyCount.value;
       emit(
         "success",
         `Successfully imported ${count} delay(s)${
@@ -476,7 +589,44 @@ function confirmImport() {
     },
   });
 }
+const needsInputFilledCount = computed(() => {
+  const rows = needsInputRows.value;
+  if (!rows.length) return 0;
+  return rows.filter(
+    (r: any) => r.manual_datetime && String(r.manual_datetime).trim() !== ""
+  ).length;
+});
 
+const needsInputTotalCount = computed(() => needsInputRows.value.length);
+
+const importReadyCount = computed(() => {
+  const valid = validationResults.value?.summary?.valid ?? 0;
+  return valid + needsInputFilledCount.value;
+});
+
+const missingManualCount = computed(
+  () => needsInputTotalCount.value - needsInputFilledCount.value
+);
+
+const importButtonText = computed(() => {
+  if (isImporting.value) return "Importing...";
+
+  const ready = importReadyCount.value;
+
+  // If there are rows waiting for manual dates, show progress
+  if (needsInputTotalCount.value > 0) {
+    const missing = missingManualCount.value;
+    if (missing > 0) {
+      return `Import ${ready} Delay(s) (missing ${missing} date${
+        missing === 1 ? "" : "s"
+      })`;
+    }
+    return `Import ${ready} Delay(s)`;
+  }
+
+  // Original behavior
+  return `Import ${ready} Delay(s)`;
+});
 // ─── Error report ─────────────────────────────────────────────────────────────
 
 function downloadErrorReport() {
@@ -508,11 +658,29 @@ watch(
   () => (page.props as any).flash?.importValidation,
   (payload) => {
     if (!payload) return;
+
     isValidating.value = false;
+
     if (payload.results) {
+      // ✅ Keep full structure including needs_input
       validationResults.value = { ...payload.results };
-      if (payload.header_error)
+
+      // ✅ Normalize needs_input to always exist
+      if (!validationResults.value.needs_input) {
+        validationResults.value.needs_input = [];
+      }
+
+      // ✅ Pre-fill manual_datetime for rows that need it (empty default)
+      validationResults.value.needs_input = validationResults.value.needs_input.map(
+        (r: any) => ({
+          ...r,
+          manual_datetime: toDatetimeLocalValue(r.manual_datetime || ""), // usually empty
+        })
+      );
+
+      if (payload.header_error) {
         validationResults.value.header_error = payload.header_error;
+      }
     } else if (payload.message) {
       emit("error", payload.message);
     }

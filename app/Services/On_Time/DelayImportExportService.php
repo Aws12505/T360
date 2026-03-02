@@ -211,9 +211,11 @@ class DelayImportExportService
             'import_type' => 'required|in:origin,destination',
         ]);
 
-        $importType      = $request->input('import_type');
-        $isSuperAdmin    = Auth::user()->tenant_id === null;
-        $tenantId        = $isSuperAdmin
+        $importType   = $request->input('import_type');
+        $corrected    = $request->input('corrected_rows', []); // ✅ NEW
+        $isSuperAdmin = Auth::user()->tenant_id === null;
+
+        $tenantId = $isSuperAdmin
             ? $request->input('tenant_id')
             : Auth::user()->tenant_id;
 
@@ -223,25 +225,37 @@ class DelayImportExportService
         $expectedHeaders = $this->getExpectedHeaders();
         $expectedCount   = count($expectedHeaders);
 
+        // ✅ Build corrected row map
+        $correctedMap = [];
+        foreach ($corrected as $row) {
+            if (isset($row['rowNumber'], $row['manual_datetime'])) {
+                $correctedMap[$row['rowNumber']] = $row['manual_datetime'];
+            }
+        }
+
         $handle = fopen($filePath, 'r');
         if (!$handle) {
             throw new \Exception('Could not open the CSV file.');
         }
 
-        // Read, sanitize, and discard header row
-        $rawHeader = fgetcsv($handle, 0, $delimiter);
-        // (already validated by validateImport — just consume it cleanly)
+        fgetcsv($handle, 0, $delimiter); // skip header
+
+        $rowNumber = 1;
 
         while (($rawRow = fgetcsv($handle, 0, $delimiter)) !== false) {
+            $rowNumber++;
+
             if ($this->isBlankRow($rawRow)) continue;
 
             $row = $this->sanitizeRow($rawRow, $expectedCount);
 
             try {
+                $manualDate = $correctedMap[$rowNumber] ?? null;
+
                 if ($importType === 'origin') {
-                    $this->processOriginRow($row, $isSuperAdmin, $tenantId);
+                    $this->processOriginRow($row, $tenantId, $manualDate);
                 } else {
-                    $this->processDestinationRow($row, $isSuperAdmin, $tenantId);
+                    $this->processDestinationRow($row, $tenantId, $manualDate);
                 }
             } catch (\Exception $e) {
                 continue;
@@ -265,9 +279,9 @@ class DelayImportExportService
     //   4 Drivers                          → driver_name
     // ─────────────────────────────────────────────────────────────
 
-    private function processOriginRow(array $row, bool $isSuperAdmin, ?int $tenantId): void
+    private function processOriginRow(array $row, ?int $tenantId, ?string $manualDate = null): void
     {
-        if ($isSuperAdmin && $tenantId === null) return;
+        if ($tenantId === null) return;
 
         $loadId      = trim($row[1]  ?? '');
         $driverName  = trim($row[4]  ?? '');
@@ -277,20 +291,43 @@ class DelayImportExportService
         $rawPenalty  = trim($row[16] ?? '');
 
         $date = $this->parseDatetime($rawDatetime);
+
+        // ✅ If missing date and manual provided
+        if (!$date && $manualDate) {
+            $date = Carbon::parse($manualDate);
+
+            $this->upsertDelay([
+                'tenant_id'            => $tenantId,
+                'delay_type'           => 'origin',
+                'date'                 => $date,
+                'load_id'              => $loadId ?: null,
+                'driver_name'          => $driverName ?: null,
+                'delay_reason'         => null,
+                'delay_duration'       => null,
+                'delay_category'       => null,
+                'penalty'              => 0,
+                'disputed'             => 'none',
+                'driver_controllable'  => false,
+                'carrier_controllable' => false,
+            ]);
+
+            return;
+        }
+
         if (!$date) return;
 
-        $totalMinutes        = $this->parseDurationToMinutes($rawDuration);
-        $category            = $totalMinutes ? $this->categoryFromMinutes($totalMinutes) : null;
-        $penalty             = $category    ? $this->penaltyFromCategory($category)      : 0;
-        $isControllable      = $this->resolveControllable($rawPenalty);
-        $delayReason         = $rawReason !== '' ? $rawReason : null;
+        $totalMinutes   = $this->parseDurationToMinutes($rawDuration);
+        $category       = $totalMinutes ? $this->categoryFromMinutes($totalMinutes) : null;
+        $penalty        = $category ? $this->penaltyFromCategory($category) : 0;
+        $isControllable = $this->resolveControllable($rawPenalty);
+        $delayReason    = $rawReason !== '' ? $rawReason : null;
 
         $this->upsertDelay([
             'tenant_id'            => $tenantId,
             'delay_type'           => 'origin',
             'date'                 => $date,
-            'load_id'              => $loadId !== '' ? $loadId : null,
-            'driver_name'          => $driverName !== '' ? $driverName : null,
+            'load_id'              => $loadId ?: null,
+            'driver_name'          => $driverName ?: null,
             'delay_reason'         => $delayReason,
             'delay_duration'       => $totalMinutes,
             'delay_category'       => $category,
@@ -314,9 +351,9 @@ class DelayImportExportService
     //  25 Destination Arrival Penalty       → controllable flag
     // ─────────────────────────────────────────────────────────────
 
-    private function processDestinationRow(array $row, bool $isSuperAdmin, ?int $tenantId): void
+    private function processDestinationRow(array $row, ?int $tenantId, ?string $manualDate = null): void
     {
-        if ($isSuperAdmin && $tenantId === null) return;
+        if ($tenantId === null) return;
 
         $loadId      = trim($row[1]  ?? '');
         $driverName  = trim($row[4]  ?? '');
@@ -326,20 +363,43 @@ class DelayImportExportService
         $rawPenalty  = trim($row[25] ?? '');
 
         $date = $this->parseDatetime($rawDatetime);
+
+        // ✅ Manual override
+        if (!$date && $manualDate) {
+            $date = Carbon::parse($manualDate);
+
+            $this->upsertDelay([
+                'tenant_id'            => $tenantId,
+                'delay_type'           => 'destination',
+                'date'                 => $date,
+                'load_id'              => $loadId ?: null,
+                'driver_name'          => $driverName ?: null,
+                'delay_reason'         => null,
+                'delay_duration'       => null,
+                'delay_category'       => null,
+                'penalty'              => 0,
+                'disputed'             => 'none',
+                'driver_controllable'  => false,
+                'carrier_controllable' => false,
+            ]);
+
+            return;
+        }
+
         if (!$date) return;
 
-        $totalMinutes        = $this->parseDurationToMinutes($rawDuration);
-        $category            = $totalMinutes ? $this->categoryFromMinutes($totalMinutes) : null;
-        $penalty             = $category    ? $this->penaltyFromCategory($category)      : 0;
-        $isControllable      = $this->resolveControllable($rawPenalty);
-        $delayReason         = $rawReason !== '' ? $rawReason : null;
+        $totalMinutes   = $this->parseDurationToMinutes($rawDuration);
+        $category       = $totalMinutes ? $this->categoryFromMinutes($totalMinutes) : null;
+        $penalty        = $category ? $this->penaltyFromCategory($category) : 0;
+        $isControllable = $this->resolveControllable($rawPenalty);
+        $delayReason    = $rawReason !== '' ? $rawReason : null;
 
         $this->upsertDelay([
             'tenant_id'            => $tenantId,
             'delay_type'           => 'destination',
             'date'                 => $date,
-            'load_id'              => $loadId !== '' ? $loadId : null,
-            'driver_name'          => $driverName !== '' ? $driverName : null,
+            'load_id'              => $loadId ?: null,
+            'driver_name'          => $driverName ?: null,
             'delay_reason'         => $delayReason,
             'delay_duration'       => $totalMinutes,
             'delay_category'       => $category,

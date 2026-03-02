@@ -135,6 +135,7 @@ class DelayImportValidationService
         $expectedHeaders = $this->getExpectedHeaders($importType);
 
         $this->results['expected_headers'] = $expectedHeaders;
+        $this->results['needs_input'] = []; // ✅ NEW
 
         // Read and sanitize header row
         $rawHeader = fgetcsv($handle, 0, $delimiter);
@@ -146,15 +147,11 @@ class DelayImportValidationService
             ];
         }
 
-        // Sanitize headers (BOM strip + trim, no trailing pop)
         $headerRow = $this->sanitizeHeaders($rawHeader);
-
-        // Drop the trailing empty column the source CSV adds after the last tab
         $headerRow = array_values(array_filter($headerRow, fn($h) => $h !== ''));
 
         $this->results['headers'] = $headerRow;
 
-        // Normalize and compare
         $normalizedIncoming = array_map(fn($h) => strtolower(trim($h)), $headerRow);
         $normalizedExpected = array_map(fn($h) => strtolower(trim($h)), $expectedHeaders);
 
@@ -168,6 +165,7 @@ class DelayImportValidationService
         }
 
         $rowNumber = 1;
+
         while (($rawRow = fgetcsv($handle, 0, $delimiter)) !== false) {
             $rowNumber++;
 
@@ -181,11 +179,14 @@ class DelayImportValidationService
                 ? $this->validateOriginRow($row, $expectedHeaders, $rowNumber, $isSuperAdmin)
                 : $this->validateDestinationRow($row, $expectedHeaders, $rowNumber, $isSuperAdmin);
 
-            if ($validation['isValid']) {
-                $this->results['valid'][]           = $validation;
+            // ✅ NEW LOGIC: separate "needs_input"
+            if (!empty($validation['needsDateInput'])) {
+                $this->results['needs_input'][] = $validation;
+            } elseif ($validation['isValid']) {
+                $this->results['valid'][] = $validation;
                 $this->results['summary']['valid']++;
             } else {
-                $this->results['invalid'][]          = $validation;
+                $this->results['invalid'][] = $validation;
                 $this->results['summary']['invalid']++;
             }
         }
@@ -214,21 +215,34 @@ class DelayImportValidationService
         $data = array_combine($headers, $row);
         $data = array_map(fn($v) => trim((string) $v), $data);
 
-        // Date — origin uses Origin Yard Arrival Time
         $rawDate = $data['Origin Yard Arrival Time'] ?? '';
+
+        // ✅ NEW: Missing date handled as "needs input"
         if ($rawDate === '') {
-            $errors[] = 'Origin Yard Arrival Time is required';
-        } elseif (!$this->parseDatetime($rawDate)) {
+            return [
+                'rowNumber'       => $rowNumber,
+                'isValid'         => false,
+                'needsDateInput'  => true,
+                'missing_field'   => 'Origin Yard Arrival Time',
+                'errors'          => [],
+                'warnings'        => [],
+                'data'            => $data,
+                'preview'         => $this->buildPreview($data, [
+                    'Load ID',
+                    'Drivers',
+                ]),
+            ];
+        }
+
+        if (!$this->parseDatetime($rawDate)) {
             $errors[] = "Origin Yard Arrival Time format invalid: {$rawDate}";
         }
 
-        // Duration (nullable — no reason = on time, that's fine)
         $rawDuration = $data['Origin Delay Duration'] ?? '';
         if ($rawDuration !== '' && $this->parseDurationToMinutes($rawDuration) === null) {
             $errors[] = "Origin Delay Duration format invalid: {$rawDuration} (expected e.g. '24m', '4h38m', '3650D')";
         }
 
-        // Penalty
         $rawPenalty = $data['Origin Arrival Penalty'] ?? '';
         if ($rawPenalty !== '' && !is_numeric($rawPenalty)) {
             $warnings[] = "Origin Arrival Penalty is not numeric: {$rawPenalty}";
@@ -270,31 +284,42 @@ class DelayImportValidationService
         $data = array_combine($headers, $row);
         $data = array_map(fn($v) => trim((string) $v), $data);
 
-        // Load ID — required for destination upsert matching
         if (empty($data['Load ID'])) {
             $errors[] = 'Load ID is required';
         }
 
-        // Drivers — warning only
         if (empty($data['Drivers'])) {
             $warnings[] = 'Drivers column is empty';
         }
 
-        // Date — destination uses Destination Yard Arrival Time
         $rawDate = $data['Destination Yard Arrival Time'] ?? '';
+
+        // ✅ NEW: Missing date handled as "needs input"
         if ($rawDate === '') {
-            $errors[] = 'Destination Yard Arrival Time is required';
-        } elseif (!$this->parseDatetime($rawDate)) {
+            return [
+                'rowNumber'       => $rowNumber,
+                'isValid'         => false,
+                'needsDateInput'  => true,
+                'missing_field'   => 'Destination Yard Arrival Time',
+                'errors'          => [],
+                'warnings'        => [],
+                'data'            => $data,
+                'preview'         => $this->buildPreview($data, [
+                    'Load ID',
+                    'Drivers',
+                ]),
+            ];
+        }
+
+        if (!$this->parseDatetime($rawDate)) {
             $errors[] = "Destination Yard Arrival Time format invalid: {$rawDate}";
         }
 
-        // Duration
         $rawDuration = $data['Destination Delay Duration'] ?? '';
         if ($rawDuration !== '' && $this->parseDurationToMinutes($rawDuration) === null) {
             $errors[] = "Destination Delay Duration format invalid: {$rawDuration} (expected e.g. '24m', '4h38m', '3650D')";
         }
 
-        // Penalty
         $rawPenalty = $data['Destination Arrival Penalty'] ?? '';
         if ($rawPenalty !== '' && !is_numeric($rawPenalty)) {
             $warnings[] = "Destination Arrival Penalty is not numeric: {$rawPenalty}";

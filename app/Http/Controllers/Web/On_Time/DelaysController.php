@@ -137,15 +137,15 @@ class DelaysController extends Controller
     public function confirmImport(Request $request, $tenantSlug = null)
     {
         try {
-            $filePath   = session('ontime_import_file_path');
-            $importType = session('ontime_import_type');
-            $isSuperAdmin = is_null(Auth::user()->tenant_id);
+            $filePath      = session('ontime_import_file_path');
+            $importType    = session('ontime_import_type');
+            $isSuperAdmin  = is_null(Auth::user()->tenant_id);
+            $correctedRows = $request->input('corrected_rows', []); // ✅ NEW
 
             if (!$filePath || !Storage::exists($filePath)) {
                 return back()->with('error', 'Import session expired. Please upload the file again.');
             }
 
-            // Resolve tenant_id — super admin reads from session (set during validate)
             $tenantId = $isSuperAdmin
                 ? session('ontime_import_tenant_id')
                 : Auth::user()->tenant_id;
@@ -166,14 +166,20 @@ class DelaysController extends Controller
             $importRequest = new Request();
             $importRequest->files->set('csv_file', $file);
             $importRequest->merge([
-                'import_type' => $importType,
-                'tenant_id'   => $tenantId,   // ← passed into importDelays
+                'import_type'   => $importType,
+                'tenant_id'     => $tenantId,
+                'corrected_rows' => $correctedRows, // ✅ NEW
             ]);
 
             $this->delayImportExportService->importDelays($importRequest);
 
             Storage::delete($filePath);
-            session()->forget(['ontime_import_file_path', 'ontime_import_validation_results', 'ontime_import_type', 'ontime_import_tenant_id']);
+            session()->forget([
+                'ontime_import_file_path',
+                'ontime_import_validation_results',
+                'ontime_import_type',
+                'ontime_import_tenant_id'
+            ]);
 
             return back()->with('success', 'Delays imported successfully.');
         } catch (\Exception $e) {
