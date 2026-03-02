@@ -3,39 +3,33 @@
 namespace App\Http\Controllers\Web\On_Time;
 
 use App\Http\Controllers\Controller;
-use App\Services\On_Time\DelayCodesService;
 use App\Services\On_Time\DelayService;
 use App\Services\On_Time\DelayImportExportService;
+use App\Services\On_Time\DelayImportValidationService;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use App\Http\Requests\On_Time\StoreDelayRequest;
 use App\Http\Requests\On_Time\UpdateDelayRequest;
-use App\Http\Requests\On_Time\StoreDelayCode;
 use Illuminate\Http\Request;
-use App\Services\On_Time\DelayImportValidationService;
 use Illuminate\Support\Facades\Storage;
 
 class DelaysController extends Controller
 {
     protected DelayService $delayService;
-    protected DelayCodesService $delayCodesService;
     protected DelayImportExportService $delayImportExportService;
     protected DelayImportValidationService $delayImportValidationService;
 
     public function __construct(
-        DelayService $delayService, 
-        DelayCodesService $delayCodesService,
+        DelayService $delayService,
         DelayImportExportService $delayImportExportService,
         DelayImportValidationService $delayImportValidationService
-    )
-    {
+    ) {
         $this->delayService = $delayService;
-        $this->delayCodesService = $delayCodesService;
         $this->delayImportExportService = $delayImportExportService;
         $this->delayImportValidationService = $delayImportValidationService;
     }
 
-    // Delay records actions
+    // ─── CRUD ───────────────────────────────────────────
 
     public function index()
     {
@@ -75,152 +69,142 @@ class DelaysController extends Controller
 
     public function destroyBulk(Request $request, $tenantSlug = null)
     {
-        $ids = $request->input('ids', []);
-        $this->delayService->deleteMultipleDelays($ids);
+        $this->delayService->deleteMultipleDelays($request->input('ids', []));
         return back();
     }
 
     public function destroyBulkAdmin(Request $request)
     {
-        $ids = $request->input('ids', []);
-        $this->delayService->deleteMultipleDelays($ids);
+        $this->delayService->deleteMultipleDelays($request->input('ids', []));
         return back();
     }
 
-    // Delay code actions
+    // ─── Import ─────────────────────────────────────────
 
-    public function storeCode(StoreDelayCode $request)
+    public function validateImport(Request $request, $tenantSlug = null)
     {
-        $this->delayCodesService->createDelayCode($request->validated());
-        return back();
-    }
+        $request->validate([
+            'file'        => 'required|file|mimes:csv,txt|max:10240',
+            'import_type' => 'required|in:origin,destination',
+        ]);
 
-    public function destroyCode($id)
-    {
-        $this->delayCodesService->deleteDelayCode($id);
-        return back();
-    }
+        $isSuperAdmin = is_null(Auth::user()->tenant_id);
 
-    // New endpoints for SuperAdmin
+        // Super admin must pass tenant_id explicitly
+        if ($isSuperAdmin) {
+            $request->validate(['tenant_id' => 'required|exists:tenants,id']);
+            session(['ontime_import_tenant_id' => $request->input('tenant_id')]);
+        }
 
-    /**
-     * Restore a soft-deleted delay code.
-     */
-    public function restoreCode($id)
-    {
-        $this->delayCodesService->restoreDelayCode($id);
-        return back();
-    }
+        try {
+            $results = $this->delayImportValidationService->validateDelaysCsv(
+                $request->file('file'),
+                $request->input('import_type')
+            );
 
-    /**
-     * Permanently force delete a delay code.
-     */
-    public function forceDeleteCode($id)
-    {
-        $this->delayCodesService->forceDeleteDelayCode($id);
-        return back();
-    }
+            if (isset($results['header_error'])) {
+                session()->forget(['ontime_import_validation_results', 'ontime_import_file_path', 'ontime_import_type', 'ontime_import_tenant_id']);
+                return back()->with('importValidation', [
+                    'success'      => false,
+                    'header_error' => $results['header_error'],
+                    'results'      => $results,
+                ]);
+            }
 
-   public function validateImport(Request $request, $tenantSlug = null)
-{
-    $request->validate([
-        'file' => 'required|file|mimes:csv,txt|max:10240',
-    ]);
+            session(['ontime_import_validation_results' => $results]);
+            session(['ontime_import_type' => $request->input('import_type')]);
 
-    try {
-        $results = $this->delayImportValidationService->validateDelaysCsv($request->file('file'));
-
-        if (isset($results['header_error'])) {
-            session()->forget('ontime_import_validation_results');
-            session()->forget('ontime_import_file_path');
+            if (($results['summary']['invalid'] ?? 0) === 0) {
+                $path = $request->file('file')->store('temp-imports');
+                session(['ontime_import_file_path' => $path]);
+            } else {
+                session()->forget('ontime_import_file_path');
+            }
 
             return back()->with('importValidation', [
-                'success' => false,
-                'header_error' => $results['header_error'],
+                'success' => true,
                 'results' => $results,
             ]);
+        } catch (\Exception $e) {
+            session()->forget(['ontime_import_validation_results', 'ontime_import_file_path', 'ontime_import_type', 'ontime_import_tenant_id']);
+            return back()->with('importValidation', [
+                'success' => false,
+                'message' => $e->getMessage(),
+            ]);
         }
-
-        session(['ontime_import_validation_results' => $results]);
-
-        // Only store the file if everything is valid
-        if (($results['summary']['invalid'] ?? 0) === 0) {
-            $path = $request->file('file')->store('temp-imports');
-            session(['ontime_import_file_path' => $path]);
-        } else {
-            session()->forget('ontime_import_file_path');
-        }
-
-        return back()->with('importValidation', [
-            'success' => true,
-            'results' => $results,
-        ]);
-    } catch (\Exception $e) {
-        session()->forget('ontime_import_validation_results');
-        session()->forget('ontime_import_file_path');
-
-        return back()->with('importValidation', [
-            'success' => false,
-            'message' => $e->getMessage(),
-        ]);
     }
-}
 
-public function confirmImport(Request $request, $tenantSlug = null)
-{
-    try {
-        $filePath = session('ontime_import_file_path');
+    public function confirmImport(Request $request, $tenantSlug = null)
+    {
+        try {
+            $filePath      = session('ontime_import_file_path');
+            $importType    = session('ontime_import_type');
+            $isSuperAdmin  = is_null(Auth::user()->tenant_id);
+            $correctedRows = $request->input('corrected_rows', []); // ✅ NEW
 
-        if (!$filePath || !Storage::exists($filePath)) {
-            return back()->with('error', 'Import session expired. Please upload the file again.');
+            if (!$filePath || !Storage::exists($filePath)) {
+                return back()->with('error', 'Import session expired. Please upload the file again.');
+            }
+
+            $tenantId = $isSuperAdmin
+                ? session('ontime_import_tenant_id')
+                : Auth::user()->tenant_id;
+
+            if (!$tenantId) {
+                return back()->with('error', 'Could not resolve tenant for import.');
+            }
+
+            $storedFile = Storage::path($filePath);
+            $file = new \Illuminate\Http\UploadedFile(
+                $storedFile,
+                basename($filePath),
+                mime_content_type($storedFile),
+                null,
+                true
+            );
+
+            $importRequest = new Request();
+            $importRequest->files->set('csv_file', $file);
+            $importRequest->merge([
+                'import_type'   => $importType,
+                'tenant_id'     => $tenantId,
+                'corrected_rows' => $correctedRows, // ✅ NEW
+            ]);
+
+            $this->delayImportExportService->importDelays($importRequest);
+
+            Storage::delete($filePath);
+            session()->forget([
+                'ontime_import_file_path',
+                'ontime_import_validation_results',
+                'ontime_import_type',
+                'ontime_import_tenant_id'
+            ]);
+
+            return back()->with('success', 'Delays imported successfully.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Import failed: ' . $e->getMessage());
         }
-
-        $storedFile = Storage::path($filePath);
-
-        $file = new \Illuminate\Http\UploadedFile(
-            $storedFile,
-            basename($filePath),
-            mime_content_type($storedFile),
-            null,
-            true
-        );
-
-        // DelayImportExportService expects csv_file
-        $importRequest = new Request();
-        $importRequest->files->set('csv_file', $file);
-
-        $this->delayImportExportService->importDelays($importRequest);
-
-        Storage::delete($filePath);
-        session()->forget(['ontime_import_file_path', 'ontime_import_validation_results']);
-
-        return back()->with('success', 'Delays imported successfully.');
-    } catch (\Exception $e) {
-        return back()->with('error', 'Import failed: ' . $e->getMessage());
     }
-}
 
-public function downloadErrorReport(Request $request, $tenantSlug = null)
-{
-    try {
-        $results = session('ontime_import_validation_results');
+    public function downloadErrorReport(Request $request, $tenantSlug = null)
+    {
+        try {
+            $results = session('ontime_import_validation_results');
 
-        if (!$results || empty($results['invalid'])) {
-            return back()->with('error', 'No validation errors to download.');
+            if (!$results || empty($results['invalid'])) {
+                return back()->with('error', 'No validation errors to download.');
+            }
+
+            $filePath = $this->delayImportValidationService->generateErrorReport($results['invalid']);
+            return response()->download($filePath)->deleteFileAfterSend(true);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to generate error report: ' . $e->getMessage());
         }
-
-        $filePath = $this->delayImportValidationService->generateErrorReport($results['invalid']);
-
-        return response()->download($filePath)->deleteFileAfterSend(true);
-    } catch (\Exception $e) {
-        return back()->with('error', 'Failed to generate error report: ' . $e->getMessage());
     }
-}
 
+    // ─── Export ─────────────────────────────────────────
 
-    /**
-     * Export delays to CSV file.
-     */
     public function export($tenantSlug = null)
     {
         try {
@@ -230,9 +214,6 @@ public function downloadErrorReport(Request $request, $tenantSlug = null)
         }
     }
 
-    /**
-     * Export delays to CSV file for admin.
-     */
     public function exportAdmin()
     {
         try {

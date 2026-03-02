@@ -2,8 +2,6 @@
 
 namespace App\Services\On_Time;
 
-use App\Models\Tenant;
-use App\Models\DelayCode;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -11,31 +9,137 @@ use Illuminate\Support\Facades\Storage;
 class DelayImportValidationService
 {
     protected array $results = [
-        'valid' => [],
-        'invalid' => [],
-        'summary' => ['total' => 0, 'valid' => 0, 'invalid' => 0],
-        'headers' => [],
+        'valid'            => [],
+        'invalid'          => [],
+        'summary'          => ['total' => 0, 'valid' => 0, 'invalid' => 0],
+        'headers'          => [],
         'expected_headers' => [],
     ];
 
-    public function validateDelaysCsv($file): array
+    // ─────────────────────────────────────────────────────────────
+    //  Shared CSV helpers
+    // ─────────────────────────────────────────────────────────────
+
+    private function detectDelimiter(string $filePath): string
     {
-        $handle = fopen($file->getRealPath(), 'r');
+        $handle = fopen($filePath, 'r');
+        if (!$handle) return "\t";
+        $firstLine = fgets($handle);
+        fclose($handle);
+        if ($firstLine === false) return "\t";
+
+        $delimiters = [
+            ','  => substr_count($firstLine, ','),
+            "\t" => substr_count($firstLine, "\t"),
+            ';'  => substr_count($firstLine, ';'),
+            '|'  => substr_count($firstLine, '|'),
+        ];
+        arsort($delimiters);
+        return array_key_first($delimiters);
+    }
+
+    /**
+     * Strip BOM and trim all header elements.
+     * NOTE: trailing empty columns are intentionally kept —
+     * the source CSV has a trailing tab after the last column.
+     */
+    private function sanitizeHeaders(array $headers): array
+    {
+        if (!empty($headers[0])) {
+            $headers[0] = preg_replace('/^\xEF\xBB\xBF/', '', $headers[0]);
+        }
+        return array_map(fn($h) => trim((string) $h), $headers);
+    }
+
+    /**
+     * Trim all values and drop trailing empty cells beyond expected count.
+     */
+    private function sanitizeRow(array $row, int $expectedCount): array
+    {
+        $row = array_map(fn($v) => is_string($v) ? trim($v) : $v, $row);
+        while (count($row) > $expectedCount && end($row) === '') {
+            array_pop($row);
+        }
+        return $row;
+    }
+
+    /**
+     * Returns true if every cell in the row is empty (blank line guard).
+     */
+    private function isBlankRow(array $row): bool
+    {
+        return empty(array_filter($row, fn($v) => trim((string) $v) !== ''));
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  Expected headers per import type
+    //  Both origin and destination share the same 33-column format.
+    // ─────────────────────────────────────────────────────────────
+
+    private function getExpectedHeaders(string $importType): array
+    {
+        // Both origin and destination CSVs have identical headers.
+        // The distinction is which columns are populated per row.
+        return [
+            'Trip ID',
+            'Load ID',
+            'Leg #',
+            'Total Legs',
+            'Drivers',
+            'Driver Type',
+            'Segment Status',
+            'Run',
+            'Distance',
+            'Origin',
+            'Destination',
+            'Origin Yard Arrival Time',
+            'Origin Arrival Late Reason',
+            'Origin arrival previous late reason',
+            'Origin Delay Duration',
+            'Origin Delay Duration Bucket',
+            'Origin Arrival Penalty',
+            'Origin Yard Departure Time',
+            'Origin depart Late Reason',
+            'Origin depart previous late reason',
+            'Destination Yard Arrival Time',
+            'Destination Arrival Late Reason',
+            'Destination arrival previous late reason',
+            'Destination Delay Duration',
+            'Destination Delay Duration Bucket',
+            'Destination Arrival Penalty',
+            'App Usage: Check-in at origin',
+            'App Usage: Trailer Attach at Origin',
+            'App Usage: Check-out at origin',
+            'App Usage: Check-in at destination',
+            'App Usage compliance',
+            'Location Available',
+            'Location Unavailability Reason',
+        ];
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  Main entry
+    // ─────────────────────────────────────────────────────────────
+
+    public function validateDelaysCsv($file, string $importType): array
+    {
+        $filePath  = $file->getRealPath();
+        $delimiter = $this->detectDelimiter($filePath);
+
+        $handle = fopen($filePath, 'r');
         if (!$handle) {
             throw new \Exception('Unable to open CSV file.');
         }
 
-        $user = Auth::user();
-        $isSuperAdmin = $user && $user->tenant_id === null;
-
-        $expectedHeaders = $isSuperAdmin
-            ? ['tenant_name', 'date', 'delay_type', 'driver_name', 'delay_category', 'delay_code', 'disputed', 'driver_controllable']
-            : ['date', 'delay_type', 'driver_name', 'delay_category', 'delay_code', 'disputed', 'driver_controllable'];
+        $isSuperAdmin    = Auth::user() && Auth::user()->tenant_id === null;
+        $expectedHeaders = $this->getExpectedHeaders($importType);
 
         $this->results['expected_headers'] = $expectedHeaders;
+        $this->results['needs_input'] = []; // ✅ NEW
 
-        $headerRow = fgetcsv($handle, 0, ',');
-        if ($headerRow === false) {
+        // Read and sanitize header row
+        $rawHeader = fgetcsv($handle, 0, $delimiter);
+        if ($rawHeader === false) {
             fclose($handle);
             return [
                 ...$this->results,
@@ -43,38 +147,42 @@ class DelayImportValidationService
             ];
         }
 
-        $headerRow = array_map(fn ($h) => trim((string) $h), $headerRow);
+        $headerRow = $this->sanitizeHeaders($rawHeader);
+        $headerRow = array_values(array_filter($headerRow, fn($h) => $h !== ''));
+
         $this->results['headers'] = $headerRow;
 
-        if (count($headerRow) !== count($expectedHeaders)) {
-            fclose($handle);
-            return [
-                ...$this->results,
-                'header_error' =>
-                    'CSV headers do not match expected format. Expected ' .
-                    count($expectedHeaders) . ' columns, got ' . count($headerRow) . ' columns.',
-            ];
-        }
-
-        $normalizedIncoming = array_map(fn ($h) => strtolower(trim((string) $h)), $headerRow);
-        $normalizedExpected = array_map(fn ($h) => strtolower(trim((string) $h)), $expectedHeaders);
+        $normalizedIncoming = array_map(fn($h) => strtolower(trim($h)), $headerRow);
+        $normalizedExpected = array_map(fn($h) => strtolower(trim($h)), $expectedHeaders);
 
         if ($normalizedIncoming !== $normalizedExpected) {
             fclose($handle);
             return [
                 ...$this->results,
-                'header_error' => 'CSV header names/order do not match expected template.',
+                'header_error' => 'CSV headers do not match the expected template. '
+                    . 'Expected ' . count($expectedHeaders) . ' columns, got ' . count($headerRow) . '.',
             ];
         }
 
         $rowNumber = 1;
-        while (($row = fgetcsv($handle, 0, ',')) !== false) {
+
+        while (($rawRow = fgetcsv($handle, 0, $delimiter)) !== false) {
             $rowNumber++;
+
+            if ($this->isBlankRow($rawRow)) continue;
+
             $this->results['summary']['total']++;
 
-            $validation = $this->validateRow($row, $expectedHeaders, $rowNumber, $isSuperAdmin);
+            $row = $this->sanitizeRow($rawRow, count($expectedHeaders));
 
-            if ($validation['isValid']) {
+            $validation = $importType === 'origin'
+                ? $this->validateOriginRow($row, $expectedHeaders, $rowNumber, $isSuperAdmin)
+                : $this->validateDestinationRow($row, $expectedHeaders, $rowNumber, $isSuperAdmin);
+
+            // ✅ NEW LOGIC: separate "needs_input"
+            if (!empty($validation['needsDateInput'])) {
+                $this->results['needs_input'][] = $validation;
+            } elseif ($validation['isValid']) {
                 $this->results['valid'][] = $validation;
                 $this->results['summary']['valid']++;
             } else {
@@ -87,166 +195,164 @@ class DelayImportValidationService
         return $this->results;
     }
 
-    protected function validateRow(array $row, array $expectedHeaders, int $rowNumber, bool $isSuperAdmin): array
+    // ─────────────────────────────────────────────────────────────
+    //  Origin row validator
+    //  Reads from the shared 33-column format but only validates
+    //  origin-specific fields (cols 5, 6, 8, 10).
+    // ─────────────────────────────────────────────────────────────
+
+    private function validateOriginRow(array $row, array $headers, int $rowNumber, bool $isSuperAdmin): array
     {
-        $errors = [];
+        $errors   = [];
         $warnings = [];
 
-        // mismatch: preview ONLY first 3 columns
-        if (count($row) !== count($expectedHeaders)) {
+        $row = $this->sanitizeRow($row, count($headers));
+
+        if (count($row) !== count($headers)) {
+            return $this->columnMismatchResult($rowNumber, $row, $headers);
+        }
+
+        $data = array_combine($headers, $row);
+        $data = array_map(fn($v) => trim((string) $v), $data);
+
+        $rawDate = $data['Origin Yard Arrival Time'] ?? '';
+
+        // ✅ NEW: Missing date handled as "needs input"
+        if ($rawDate === '') {
             return [
-                'rowNumber' => $rowNumber,
-                'isValid' => false,
-                'errors' => ['Column count mismatch. Expected ' . count($expectedHeaders) . ' columns, got ' . count($row)],
-                'warnings' => [],
-                'data' => $row,
-                'preview' => $this->getRawPreviewWithHeaders($row, $expectedHeaders),
+                'rowNumber'       => $rowNumber,
+                'isValid'         => false,
+                'needsDateInput'  => true,
+                'missing_field'   => 'Origin Yard Arrival Time',
+                'errors'          => [],
+                'warnings'        => [],
+                'data'            => $data,
+                'preview'         => $this->buildPreview($data, [
+                    'Load ID',
+                    'Drivers',
+                ]),
             ];
         }
 
-        $data = array_combine($expectedHeaders, $row);
-        $data = collect($data)->map(fn ($v) => is_string($v) ? trim($v) : $v)->toArray();
-
-        // tenant check (superadmin only)
-        if ($isSuperAdmin) {
-            if (empty($data['tenant_name'])) {
-                $errors[] = 'Tenant name is required';
-            } else {
-                $tenant = Tenant::where('name', $data['tenant_name'])->first();
-                if (!$tenant) $errors[] = "Tenant not found: {$data['tenant_name']}";
-            }
+        if (!$this->parseDatetime($rawDate)) {
+            $errors[] = "Origin Yard Arrival Time format invalid: {$rawDate}";
         }
 
-        // date m/d/Y
-        if (empty($data['date'])) {
-            $errors[] = 'Date is required';
-        } else {
-            try {
-                Carbon::createFromFormat('m/d/Y', $data['date']);
-            } catch (\Exception $e) {
-                $errors[] = 'Date format invalid (expected m/d/Y): ' . $data['date'];
-            }
+        $rawDuration = $data['Origin Delay Duration'] ?? '';
+        if ($rawDuration !== '' && $this->parseDurationToMinutes($rawDuration) === null) {
+            $errors[] = "Origin Delay Duration format invalid: {$rawDuration} (expected e.g. '24m', '4h38m', '3650D')";
         }
 
-        // delay_type origin/destination
-        $type = strtolower((string)($data['delay_type'] ?? ''));
-        if (!in_array($type, ['origin', 'destination'], true)) {
-            $errors[] = "Delay type must be 'origin' or 'destination'";
-        }
-
-        // driver_name
-        if (empty($data['driver_name'])) {
-            $errors[] = 'Driver name is required';
-        }
-
-        // delay_category allowed set
-        $category = (string)($data['delay_category'] ?? '');
-        $allowedCategories = ['1_120', '121_600', '601_plus', '1_60', '61_240', '241_600'];
-        if (!in_array($category, $allowedCategories, true)) {
-            $errors[] = "Delay category invalid: {$category}";
-        }
-
-        // delay_code must exist by code
-        if (empty($data['delay_code'])) {
-            $errors[] = 'Delay code is required';
-        } else {
-            $exists = DelayCode::where('code', $data['delay_code'])->exists();
-            if (!$exists) $errors[] = "Delay code not found: {$data['delay_code']}";
-        }
-
-        // disputed Yes/No
-        $disputedRaw = strtolower(trim((string)($data['disputed'] ?? '')));
-        if ($disputedRaw === '') {
-            $errors[] = "Disputed is required (Yes/No)";
-        } elseif (!in_array($disputedRaw, ['yes', 'no'], true)) {
-            $errors[] = "Disputed must be 'Yes' or 'No', got: {$data['disputed']}";
-        }
-
-        // driver_controllable Yes/No/N/A (nullable)
-        $dcRaw = strtolower(trim((string)($data['driver_controllable'] ?? '')));
-        if ($dcRaw !== '' && !in_array($dcRaw, ['yes', 'no', 'n/a'], true)) {
-            $errors[] = "Driver controllable must be 'Yes', 'No', or 'N/A', got: {$data['driver_controllable']}";
+        $rawPenalty = $data['Origin Arrival Penalty'] ?? '';
+        if ($rawPenalty !== '' && !is_numeric($rawPenalty)) {
+            $warnings[] = "Origin Arrival Penalty is not numeric: {$rawPenalty}";
         }
 
         return [
             'rowNumber' => $rowNumber,
-            'isValid' => empty($errors),
-            'errors' => $errors,
-            'warnings' => $warnings,
-            'data' => $data,
-            'preview' => $this->getRowPreviewWithHeaders($data, $isSuperAdmin),
+            'isValid'   => empty($errors),
+            'errors'    => $errors,
+            'warnings'  => $warnings,
+            'data'      => $data,
+            'preview'   => $this->buildPreview($data, [
+                'Load ID',
+                'Drivers',
+                'Origin Yard Arrival Time',
+                'Origin Arrival Late Reason',
+                'Origin Delay Duration',
+            ]),
         ];
     }
 
-    protected function getRowPreviewWithHeaders(array $data, bool $isSuperAdmin): array
-    {
-        $previewFields = $isSuperAdmin
-            ? ['tenant_name', 'date', 'delay_type', 'delay_code']
-            : ['date', 'delay_type', 'driver_name', 'delay_code'];
+    // ─────────────────────────────────────────────────────────────
+    //  Destination row validator
+    //  Reads from the same 33-column format but validates
+    //  destination-specific fields (cols 20, 21, 23, 25).
+    // ─────────────────────────────────────────────────────────────
 
-        $labels = [
-            'tenant_name' => 'Tenant',
-            'date' => 'Date',
-            'delay_type' => 'Type',
-            'driver_name' => 'Driver',
-            'delay_category' => 'Category',
-            'delay_code' => 'Delay Code',
+    private function validateDestinationRow(array $row, array $headers, int $rowNumber, bool $isSuperAdmin): array
+    {
+        $errors   = [];
+        $warnings = [];
+
+        $row = $this->sanitizeRow($row, count($headers));
+
+        if (count($row) !== count($headers)) {
+            return $this->columnMismatchResult($rowNumber, $row, $headers);
+        }
+
+        $data = array_combine($headers, $row);
+        $data = array_map(fn($v) => trim((string) $v), $data);
+
+        if (empty($data['Load ID'])) {
+            $errors[] = 'Load ID is required';
+        }
+
+        if (empty($data['Drivers'])) {
+            $warnings[] = 'Drivers column is empty';
+        }
+
+        $rawDate = $data['Destination Yard Arrival Time'] ?? '';
+
+        // ✅ NEW: Missing date handled as "needs input"
+        if ($rawDate === '') {
+            return [
+                'rowNumber'       => $rowNumber,
+                'isValid'         => false,
+                'needsDateInput'  => true,
+                'missing_field'   => 'Destination Yard Arrival Time',
+                'errors'          => [],
+                'warnings'        => [],
+                'data'            => $data,
+                'preview'         => $this->buildPreview($data, [
+                    'Load ID',
+                    'Drivers',
+                ]),
+            ];
+        }
+
+        if (!$this->parseDatetime($rawDate)) {
+            $errors[] = "Destination Yard Arrival Time format invalid: {$rawDate}";
+        }
+
+        $rawDuration = $data['Destination Delay Duration'] ?? '';
+        if ($rawDuration !== '' && $this->parseDurationToMinutes($rawDuration) === null) {
+            $errors[] = "Destination Delay Duration format invalid: {$rawDuration} (expected e.g. '24m', '4h38m', '3650D')";
+        }
+
+        $rawPenalty = $data['Destination Arrival Penalty'] ?? '';
+        if ($rawPenalty !== '' && !is_numeric($rawPenalty)) {
+            $warnings[] = "Destination Arrival Penalty is not numeric: {$rawPenalty}";
+        }
+
+        return [
+            'rowNumber' => $rowNumber,
+            'isValid'   => empty($errors),
+            'errors'    => $errors,
+            'warnings'  => $warnings,
+            'data'      => $data,
+            'preview'   => $this->buildPreview($data, [
+                'Load ID',
+                'Drivers',
+                'Destination Yard Arrival Time',
+                'Destination Arrival Late Reason',
+                'Destination Delay Duration',
+            ]),
         ];
-
-        $preview = [];
-
-        foreach ($previewFields as $key) {
-            if (!array_key_exists($key, $data) || $data[$key] === '' || $data[$key] === null) continue;
-
-            $value = (string) $data[$key];
-            if (strlen($value) > 30) $value = substr($value, 0, 30) . '...';
-
-            $preview[] = [
-                'key' => $key,
-                'label' => $labels[$key] ?? $key,
-                'value' => $value,
-            ];
-        }
-
-        if (empty($preview)) {
-            $preview[] = ['key' => 'row', 'label' => 'Row', 'value' => '(empty)'];
-        }
-
-        return $preview;
     }
 
-    private function getRawPreviewWithHeaders(array $row, array $expectedHeaders): array
-    {
-        $out = [];
-
-        foreach (array_slice($expectedHeaders, 0, 3) as $i => $h) {
-            $val = isset($row[$i]) ? (string) $row[$i] : '';
-            if (strlen($val) > 30) $val = substr($val, 0, 30) . '...';
-
-            $out[] = [
-                'key' => $h,
-                'label' => ucwords(str_replace('_', ' ', (string) $h)),
-                'value' => $val,
-            ];
-        }
-
-        if (empty($out)) {
-            $out[] = ['key' => 'row', 'label' => 'Row', 'value' => '(empty)'];
-        }
-
-        return $out;
-    }
+    // ─────────────────────────────────────────────────────────────
+    //  Error report CSV
+    // ─────────────────────────────────────────────────────────────
 
     public function generateErrorReport(array $invalidRows): string
     {
         $fileName = 'delays_import_errors_' . date('Y-m-d_His') . '.csv';
-
-        $dir = 'temp-imports';
+        $dir      = 'temp-imports';
         Storage::makeDirectory($dir);
 
         $path = $dir . '/' . $fileName;
         $full = Storage::path($path);
-
         $file = fopen($full, 'w');
 
         fputcsv($file, ['Row Number', 'Preview', 'Errors', 'Warnings']);
@@ -257,25 +363,106 @@ class DelayImportValidationService
             if (is_array($row['preview'] ?? null)) {
                 $parts = [];
                 foreach ($row['preview'] as $p) {
-                    $label = $p['label'] ?? '';
-                    $val = $p['value'] ?? '';
-                    if ($label !== '' && $val !== '') $parts[] = "{$label}: {$val}";
+                    if (($p['label'] ?? '') !== '' && ($p['value'] ?? '') !== '') {
+                        $parts[] = "{$p['label']}: {$p['value']}";
+                    }
                 }
                 $previewString = !empty($parts) ? implode(' | ', $parts) : '—';
-            } elseif (isset($row['preview'])) {
-                $previewString = (string) $row['preview'];
             }
 
             fputcsv($file, [
                 $row['rowNumber'] ?? '—',
                 $previewString,
-                !empty($row['errors']) ? implode('; ', $row['errors']) : '—',
+                !empty($row['errors'])   ? implode('; ', $row['errors'])   : '—',
                 !empty($row['warnings']) ? implode('; ', $row['warnings']) : '—',
             ]);
         }
 
         fclose($file);
-
         return $full;
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  Shared helpers
+    // ─────────────────────────────────────────────────────────────
+
+    private function parseDatetime(string $raw): ?Carbon
+    {
+        $raw = trim($raw);
+        if ($raw === '') return null;
+
+        if (preg_match('/^(\d{1,2}\/\d{1,2}\/\d{4}\s+\d{1,2}:\d{2})\s*(CST|EST)?$/i', $raw, $m)) {
+            try {
+                return Carbon::createFromFormat('m/d/Y H:i', trim($m[1]));
+            } catch (\Exception $e) {
+                return null;
+            }
+        }
+
+        return null;
+    }
+
+    private function parseDurationToMinutes(string $raw): ?int
+    {
+        $raw = trim($raw);
+        if ($raw === '') return null;
+
+        $totalMinutes = 0;
+        $matched      = 0;
+        $remaining    = $raw;
+
+        while (preg_match('/^(\d+)\s*([DdHhMm])(.*)$/s', $remaining, $m)) {
+            $value     = (int) $m[1];
+            $unit      = strtolower($m[2]);
+            $remaining = $m[3];
+            $matched++;
+
+            $totalMinutes += match ($unit) {
+                'd' => $value * 1440,
+                'h' => $value * 60,
+                'm' => $value,
+            };
+        }
+
+        // Leftover non-whitespace → unrecognised format → invalid
+        if (trim($remaining) !== '') return null;
+
+        return ($matched > 0 && $totalMinutes > 0) ? $totalMinutes : null;
+    }
+
+    private function buildPreview(array $data, array $fields): array
+    {
+        $preview = [];
+        foreach ($fields as $field) {
+            $val = $data[$field] ?? '';
+            if ($val === '') continue;
+            if (strlen($val) > 30) $val = substr($val, 0, 30) . '...';
+            $preview[] = ['key' => $field, 'label' => $field, 'value' => $val];
+        }
+
+        return !empty($preview) ? $preview : [['key' => 'row', 'label' => 'Row', 'value' => '(empty)']];
+    }
+
+    private function columnMismatchResult(int $rowNumber, array $row, array $headers): array
+    {
+        return [
+            'rowNumber' => $rowNumber,
+            'isValid'   => false,
+            'errors'    => ['Column count mismatch. Expected ' . count($headers) . ', got ' . count($row)],
+            'warnings'  => [],
+            'data'      => $row,
+            'preview'   => $this->buildRawPreview($row, $headers),
+        ];
+    }
+
+    private function buildRawPreview(array $row, array $headers): array
+    {
+        $out = [];
+        foreach (array_slice($headers, 0, 3) as $i => $h) {
+            $val = isset($row[$i]) ? (string) $row[$i] : '';
+            if (strlen($val) > 30) $val = substr($val, 0, 30) . '...';
+            $out[] = ['key' => $h, 'label' => $h, 'value' => $val];
+        }
+        return !empty($out) ? $out : [['key' => 'row', 'label' => 'Row', 'value' => '(empty)']];
     }
 }

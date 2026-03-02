@@ -10,8 +10,6 @@ Route::controller(DelaysController::class)
 
         Route::get('/', 'index')->name('index')->middleware('permission:delays.view');
         Route::post('/', 'store')->name('store')->middleware('permission:delays.create');
-        Route::put('{delay}', 'update')->name('update')->middleware('permission:delays.update');
-        Route::delete('{delay}', 'destroy')->name('destroy')->middleware('permission:delays.delete');
         Route::delete('-bulk', 'destroyBulk')->name('destroyBulk')->middleware('permission:delays.delete');
 
         // ✅ NEW: validation + confirm import + error report (Performance-style)
@@ -28,4 +26,7 @@ Route::controller(DelaysController::class)
             ->middleware('permission:delays.import');
 
         Route::get('/export', 'export')->name('export')->middleware('permission:delays.export');
+
+        Route::put('{delay}', 'update')->name('update')->middleware('permission:delays.update');
+        Route::delete('{delay}', 'destroy')->name('destroy')->middleware('permission:delays.delete');
     });

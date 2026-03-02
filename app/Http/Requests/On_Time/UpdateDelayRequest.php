@@ -10,31 +10,44 @@ class UpdateDelayRequest extends FormRequest
 {
     public function authorize()
     {
-        return true; // Adjust authorization as needed.
+        return true;
     }
 
     public function rules()
     {
+        $tenantId = !is_null(Auth::user()->tenant_id)
+            ? Auth::user()->tenant_id
+            : $this->input('tenant_id');
+
+        // Grab the delay ID from the route — works for both
+        // /tenant/{tenantSlug}/delays/{id} and /admin/delays/{id}
+        $delayId = $this->route('id') ?? $this->route('delay');
+
         return [
-            'date' => 'required|date',
-            'driver_name' => 'required|string',
-            'delay_type' => 'required|in:origin,destination',
-            'delay_category' => 'required|in:1_120,121_600,601_plus,1_60,61_240,241_600',
-            'delay_code_id' => [
-                'required',
-                Rule::exists('delay_codes', 'id')->whereNull('deleted_at'),
+            'date'                   => 'required|date',
+            'delay_type'             => 'required|in:origin,destination',
+            'driver_name'            => 'nullable|string|max:75',
+            'delay_duration_hours'   => 'required|integer|min:0',
+            'delay_duration_minutes' => 'required|integer|min:0|max:59',
+            'delay_reason'           => 'nullable|string',
+            'load_id'                => [
+                'nullable',
+                'string',
+                Rule::unique('delays', 'load_id')
+                    ->where('tenant_id', $tenantId)
+                    ->ignore($delayId),
             ],
-            'disputed' => 'required|boolean',
-            'driver_controllable' => 'nullable|boolean',
-            'tenant_id' => 'required|exists:tenants,id',
+            'disputed'               => 'nullable|in:none,pending,won,lost',
+            'driver_controllable'    => 'nullable|boolean',
+            'carrier_controllable'   => 'nullable|boolean',
+            'tenant_id'              => 'required|exists:tenants,id',
         ];
     }
 
     protected function prepareForValidation()
     {
-        // If the user is not SuperAdmin, enforce the user's tenant_id.
-        if (!is_null(Auth::user()->tenant_id)) { 
-            $this->merge(['tenant_id' => Auth::user()->tenant_id]); 
+        if (!is_null(Auth::user()->tenant_id)) {
+            $this->merge(['tenant_id' => Auth::user()->tenant_id]);
         }
     }
 }
