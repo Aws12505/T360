@@ -291,7 +291,7 @@ const isValidating = ref(false);
 const isImporting = ref(false);
 
 // Import type + tenant selection for QS
-const importType = ref<"template" | "quicksight">("template");
+const importType = "quicksight";
 const importTenantId = ref<string | number>("");
 
 // ✅ NEW: drag state (same as your working template)
@@ -326,8 +326,10 @@ const form = useForm({
   invoice_received: false,
   on_qs: "no",
   qs_invoice_date: "",
-  disputed: false,
+  dispute_review_status: "None",
+  dispute_review_determination: "",
   dispute_outcome: "",
+  original_amount: "",
   repairs_made: "",
   area_of_concerns: [],
 });
@@ -353,7 +355,7 @@ const dateOptions = [
   { label: "Quarterly", value: "quarterly" },
 ];
 
-const templateUrl = "/storage/upload-data-temps/Repair Orders Template.csv";
+const templateUrl = "";
 
 // Helpers
 const formatDate = (dateStr: string) => {
@@ -474,7 +476,7 @@ function openImportModal() {
   importValidationResults.value = null;
   isValidating.value = false;
   isImporting.value = false;
-  importType.value = "template";
+  importType.value = "quicksight";
   importTenantId.value = "";
 
   isDragging.value = false;
@@ -504,8 +506,10 @@ function openEdit(o: any) {
   form.invoice_received = Boolean(o.invoice_received);
   form.on_qs = o.on_qs || "no";
   form.qs_invoice_date = o.qs_invoice_date || "";
-  form.disputed = Boolean(o.disputed);
+  form.dispute_review_status = o.dispute_review_status || "None";
+  form.dispute_review_determination = o.dispute_review_determination || "";
   form.dispute_outcome = o.dispute_outcome || "";
+  form.original_amount = o.original_amount || "";
   form.repairs_made = o.repairs_made || "";
 
   form.area_of_concerns = [];
@@ -745,7 +749,7 @@ function closeImportModal() {
   importValidationResults.value = null;
   isValidating.value = false;
   isImporting.value = false;
-  importType.value = "template";
+  importType.value = "quicksight";
   importTenantId.value = "";
 
   isDragging.value = false;
@@ -783,9 +787,9 @@ function handleImportFile(file: File) {
 
   const formData = new FormData();
   formData.append("file", file);
-  formData.append("importType", importType.value);
+  formData.append("importType", "quicksight");
 
-  if (isAdmin.value && importType.value === "quicksight") {
+  if (isAdmin.value) {
     formData.append("tenant_id", String(importTenantId.value));
   }
 
@@ -847,10 +851,8 @@ function confirmImport() {
   router.post(
     endpoint,
     {
-      importType: importType.value,
-      ...(isAdmin.value && importType.value === "quicksight"
-        ? { tenant_id: importTenantId.value }
-        : {}),
+      importType: "quicksight",
+      ...(isAdmin.value ? { tenant_id: importTenantId.value } : {}),
     },
     {
       preserveScroll: true,
