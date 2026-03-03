@@ -6,6 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\ValidationException;
+
 class StoreRepairOrderRequest extends FormRequest
 {
     public function authorize()
@@ -24,15 +25,17 @@ class StoreRepairOrderRequest extends FormRequest
             'area_of_concerns.*'  => 'exists:area_of_concerns,id',
             'repairs_made'        => 'nullable|string',
             'vendor_id'           => 'required|exists:vendors,id',
-            'wo_number'           => 'nullable|string', 
+            'wo_number'           => 'nullable|string',
             'wo_status_id'        => 'nullable|exists:wo_statuses,id', // Changed from enum validation to foreign key
-            'invoice'             => 'nullable|string', 
+            'invoice'             => 'nullable|string',
             'invoice_amount'      => 'nullable|numeric',
             'invoice_received'    => 'required|boolean',
             'on_qs'               => 'required|in:yes,no,not expected',
             'qs_invoice_date'     => 'nullable|date',
-            'disputed'            => 'required|boolean',
-            'dispute_outcome'     => 'nullable|string',
+            'dispute_review_status' => 'required|in:None,Pending,Reviewed,Overcharged',
+            'dispute_review_determination' => 'nullable|in:Granted,Partially Granted',
+            'dispute_outcome' => 'nullable|numeric',
+            'original_amount' => 'nullable|numeric',
             'tenant_id'           => 'required|exists:tenants,id',
         ];
     }

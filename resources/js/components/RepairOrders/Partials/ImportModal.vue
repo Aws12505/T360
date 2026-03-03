@@ -20,114 +20,56 @@
         <!-- Step 1 -->
         <div v-if="!importValidationResults">
           <div class="space-y-4">
-            <!-- Import type selector -->
-            <div class="rounded-lg border p-4 bg-muted/10 space-y-3">
+            <!-- Company selector (SuperAdmin only) -->
+            <div v-if="isAdmin" class="rounded-lg border p-4 bg-muted/10 space-y-3">
               <div class="flex items-center gap-2">
-                <Icon name="sliders" class="h-4 w-4 text-muted-foreground" />
-                <div class="text-sm font-semibold">Import format</div>
+                <Icon name="building" class="h-4 w-4 text-muted-foreground" />
+                <div class="text-sm font-semibold">Company (Required)</div>
               </div>
 
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <label
-                  class="flex items-start gap-3 rounded-md border p-3 cursor-pointer hover:bg-muted/20 transition-colors"
-                  :class="
-                    importTypeProxy === 'template' ? 'border-primary bg-primary/5' : ''
-                  "
+              <div class="relative">
+                <select
+                  v-model="importTenantIdProxy"
+                  class="flex h-10 w-full appearance-none items-center rounded-md border bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  :disabled="isValidating"
                 >
-                  <input
-                    type="radio"
-                    class="mt-1"
-                    value="template"
-                    v-model="importTypeProxy"
-                    :disabled="isValidating"
-                  />
-                  <div class="space-y-1">
-                    <div class="text-sm font-medium">Template Import</div>
-                    <div class="text-xs text-muted-foreground">
-                      Uses the standard Repair Orders CSV template (download below).
-                    </div>
-                  </div>
-                </label>
+                  <option value="">Select a company</option>
+                  <option v-for="t in tenants" :key="t.id" :value="String(t.id)">
+                    {{ t.name }}
+                  </option>
+                </select>
 
-                <label
-                  class="flex items-start gap-3 rounded-md border p-3 cursor-pointer hover:bg-muted/20 transition-colors"
-                  :class="
-                    importTypeProxy === 'quicksight' ? 'border-primary bg-primary/5' : ''
-                  "
+                <div
+                  class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700"
                 >
-                  <input
-                    type="radio"
-                    class="mt-1"
-                    value="quicksight"
-                    v-model="importTypeProxy"
-                    :disabled="isValidating"
-                  />
-                  <div class="space-y-1">
-                    <div class="text-sm font-medium">QuickSight CSV Import</div>
-                    <div class="text-xs text-muted-foreground">
-                      Upload a QuickSight-exported CSV and we’ll map columns
-                      automatically.
-                    </div>
-                  </div>
-                </label>
-              </div>
-
-              <!-- tenant select for SuperAdmin + quicksight -->
-              <div
-                v-if="isAdmin && importTypeProxy === 'quicksight'"
-                class="pt-2 border-t"
-              >
-                <Label class="flex items-center gap-1.5 mb-2 text-sm font-medium">
-                  <Icon name="building" class="h-4 w-4 text-muted-foreground" />
-                  Company (required for QuickSight import)
-                </Label>
-
-                <div class="relative">
-                  <select
-                    v-model="importTenantIdProxy"
-                    class="flex h-10 w-full appearance-none items-center rounded-md border bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                    :disabled="isValidating"
+                  <svg
+                    class="h-4 w-4 opacity-50"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
                   >
-                    <option value="">Select a company</option>
-                    <option v-for="t in tenants" :key="t.id" :value="String(t.id)">
-                      {{ t.name }}
-                    </option>
-                  </select>
-
-                  <div
-                    class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700"
-                  >
-                    <svg
-                      class="h-4 w-4 opacity-50"
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fill-rule="evenodd"
-                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                        clip-rule="evenodd"
-                      />
-                    </svg>
-                  </div>
+                    <path
+                      fill-rule="evenodd"
+                      d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
                 </div>
-
-                <Alert
-                  v-if="
-                    isAdmin && importTypeProxy === 'quicksight' && !importTenantIdProxy
-                  "
-                  variant="destructive"
-                  class="mt-3"
-                >
-                  <AlertTitle class="flex items-center gap-2">
-                    <Icon name="alert_circle" class="h-5 w-5" />
-                    Required
-                  </AlertTitle>
-                  <AlertDescription>
-                    Please select a company before validating a QuickSight CSV.
-                  </AlertDescription>
-                </Alert>
               </div>
+
+              <Alert
+                v-if="isAdmin && !importTenantIdProxy"
+                variant="destructive"
+                class="mt-3"
+              >
+                <AlertTitle class="flex items-center gap-2">
+                  <Icon name="alert_circle" class="h-5 w-5" />
+                  Required
+                </AlertTitle>
+                <AlertDescription>
+                  Please select a company before validating the CSV.
+                </AlertDescription>
+              </Alert>
             </div>
 
             <!-- Dropzone -->
@@ -149,7 +91,7 @@
 
               <div class="text-center">
                 <div class="text-sm font-medium">
-                  <span class="text-primary">Drag & drop</span> your CSV here
+                  <span class="text-primary">Drag & drop</span> your QuickSight CSV here
                 </div>
                 <p class="text-xs text-muted-foreground mt-1">or</p>
               </div>
@@ -163,48 +105,241 @@
                   type="file"
                   class="hidden"
                   accept=".csv,text/csv"
-                  :disabled="
-                    isValidating ||
-                    (isAdmin && importTypeProxy === 'quicksight' && !importTenantIdProxy)
-                  "
+                  :disabled="isValidating || (isAdmin && !importTenantIdProxy)"
                   @change="onInputInternal"
                 />
               </label>
 
-              <p class="text-xs text-muted-foreground mt-2">CSV only</p>
+              <p class="text-xs text-muted-foreground mt-2">QuickSight CSV only</p>
 
               <div v-if="isDragging" class="mt-3 text-xs text-primary font-medium">
                 Drop file to validate
               </div>
             </div>
 
-            <!-- Template download only for template import -->
-            <div
-              v-if="importTypeProxy === 'template'"
-              class="flex items-center gap-2 text-sm text-muted-foreground"
-            >
-              <Icon name="info" class="h-4 w-4" />
-              <a :href="templateUrl" download class="text-primary hover:underline">
-                Download CSV Template
-              </a>
-            </div>
-
             <div v-if="isValidating" class="flex items-center justify-center gap-2 p-4">
               <div
                 class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"
               ></div>
-              <span class="text-sm text-muted-foreground">Validating CSV file...</span>
+              <span class="text-sm text-muted-foreground"> Validating CSV file... </span>
             </div>
           </div>
         </div>
 
         <!-- Step 2 (unchanged) -->
         <div v-else class="space-y-4">
-          <!-- ... keep your Step 2 exactly as-is ... -->
-          <!-- (no changes needed for your switching bug) -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <Badge variant="outline" class="text-xs">
+                {{ importType === "template" ? "Template Import" : "QuickSight Import" }}
+              </Badge>
+              <Badge
+                v-if="isAdmin && importType === 'quicksight' && importTenantId"
+                variant="outline"
+                class="text-xs"
+              >
+                Tenant ID: {{ importTenantId }}
+              </Badge>
+            </div>
+          </div>
 
-          <!-- NOTE: your existing Step 2 markup can stay exactly as you already have it. -->
-          <!-- I’m not re-pasting it to avoid duplicating a huge block, since the bug is Step 1 binding. -->
+          <div
+            v-if="importValidationResults.headers?.length"
+            class="rounded-lg border p-3"
+          >
+            <div class="flex items-center justify-between">
+              <div class="text-sm font-semibold">CSV Headers</div>
+              <div class="text-xs text-muted-foreground">
+                {{ importValidationResults.headers.length }} columns
+              </div>
+            </div>
+            <div class="mt-2 flex flex-wrap gap-2">
+              <span
+                v-for="h in importValidationResults.headers"
+                :key="h"
+                class="rounded-full bg-muted px-2 py-0.5 text-xs"
+              >
+                {{ h }}
+              </span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-4">
+            <Card class="border-2">
+              <CardContent class="p-4 text-center">
+                <div class="text-2xl font-bold">
+                  {{ importValidationResults.summary.total }}
+                </div>
+                <div class="text-sm text-muted-foreground">Total Rows</div>
+              </CardContent>
+            </Card>
+
+            <Card class="border-2 border-green-500/50 bg-green-50 dark:bg-green-900/10">
+              <CardContent class="p-4 text-center">
+                <div class="text-2xl font-bold text-green-600">
+                  {{ importValidationResults.summary.valid }}
+                </div>
+                <div class="text-sm text-muted-foreground">Valid</div>
+              </CardContent>
+            </Card>
+
+            <Card class="border-2 border-red-500/50 bg-red-50 dark:bg-red-900/10">
+              <CardContent class="p-4 text-center">
+                <div class="text-2xl font-bold text-red-600">
+                  {{ importValidationResults.summary.invalid }}
+                </div>
+                <div class="text-sm text-muted-foreground">Invalid</div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Alert v-if="importValidationResults.header_error" variant="destructive">
+            <AlertTitle class="flex items-center gap-2">
+              <Icon name="alert_circle" class="h-5 w-5" />
+              Header Error
+            </AlertTitle>
+            <AlertDescription>{{
+              importValidationResults.header_error
+            }}</AlertDescription>
+          </Alert>
+
+          <div v-if="importValidationResults.invalid?.length">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-lg font-semibold text-red-600 flex items-center gap-2">
+                <Icon name="alert-triangle" class="h-5 w-5" />
+                Validation Errors ({{ importValidationResults.invalid.length }})
+              </h3>
+
+              <Button
+                @click="downloadErrorReport"
+                variant="outline"
+                size="sm"
+                class="flex items-center gap-2"
+              >
+                <Icon name="download" class="h-4 w-4" />
+                Download Error Report
+              </Button>
+            </div>
+
+            <div class="border rounded-lg overflow-hidden">
+              <div class="max-h-96 overflow-y-auto">
+                <Table>
+                  <TableHeader class="sticky top-0 bg-background">
+                    <TableRow>
+                      <TableHead class="w-20">Row #</TableHead>
+                      <TableHead>Preview</TableHead>
+                      <TableHead>Errors</TableHead>
+                      <TableHead v-if="hasWarnings">Warnings</TableHead>
+                    </TableRow>
+                  </TableHeader>
+
+                  <TableBody>
+                    <TableRow
+                      v-for="row in importValidationResults.invalid"
+                      :key="row.rowNumber"
+                      class="hover:bg-muted/50"
+                    >
+                      <TableCell class="font-medium">{{ row.rowNumber }}</TableCell>
+
+                      <TableCell class="text-sm text-muted-foreground">
+                        <div class="flex flex-wrap gap-x-3 gap-y-1">
+                          <span
+                            v-for="p in row.preview"
+                            :key="p.key"
+                            class="whitespace-nowrap"
+                          >
+                            <span class="font-medium text-foreground"
+                              >{{ p.label }}:</span
+                            >
+                            {{ p.value }}
+                          </span>
+                        </div>
+                      </TableCell>
+
+                      <TableCell>
+                        <div class="space-y-1">
+                          <div
+                            v-for="(error, idx) in row.errors"
+                            :key="idx"
+                            class="text-xs text-red-600 flex items-start gap-1"
+                          >
+                            <Icon name="x-circle" class="h-3 w-3 mt-0.5 flex-shrink-0" />
+                            <span>{{ error }}</span>
+                          </div>
+                        </div>
+                      </TableCell>
+
+                      <TableCell v-if="hasWarnings">
+                        <div class="space-y-1">
+                          <div
+                            v-for="(warning, idx) in row.warnings"
+                            :key="idx"
+                            class="text-xs text-yellow-600 flex items-start gap-1"
+                          >
+                            <Icon
+                              name="alert-triangle"
+                              class="h-3 w-3 mt-0.5 flex-shrink-0"
+                            />
+                            <span>{{ warning }}</span>
+                          </div>
+                          <div
+                            v-if="!row.warnings?.length"
+                            class="text-xs text-muted-foreground"
+                          >
+                            —
+                          </div>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="importValidationResults.valid?.length">
+            <h3 class="text-lg font-semibold text-green-600 flex items-center gap-2 mb-3">
+              <Icon name="check-circle" class="h-5 w-5" />
+              Valid Rows ({{ importValidationResults.valid.length }})
+            </h3>
+
+            <div class="text-sm text-muted-foreground mb-2">
+              Showing first 5 valid rows
+            </div>
+
+            <div class="border rounded-lg overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Row #</TableHead>
+                    <TableHead>Preview</TableHead>
+                  </TableRow>
+                </TableHeader>
+
+                <TableBody>
+                  <TableRow
+                    v-for="row in importValidationResults.valid.slice(0, 5)"
+                    :key="row.rowNumber"
+                  >
+                    <TableCell class="font-medium">{{ row.rowNumber }}</TableCell>
+
+                    <TableCell class="text-sm">
+                      <div class="flex flex-wrap gap-x-3 gap-y-1">
+                        <span
+                          v-for="p in row.preview"
+                          :key="p.key"
+                          class="whitespace-nowrap"
+                        >
+                          <span class="font-medium">{{ p.label }}:</span>
+                          {{ p.value }}
+                        </span>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+          </div>
         </div>
       </div>
 

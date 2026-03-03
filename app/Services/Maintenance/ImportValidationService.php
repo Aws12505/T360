@@ -22,32 +22,15 @@ class ImportValidationService
     /**
      * Validate CSV file without importing
      */
-public function validateRepairOrdersCsv($file, string $importType = 'template', ?int $tenantId = null): array
-{
-    $handle = fopen($file->getRealPath(), 'r');
-    if (!$handle) throw new \Exception('Unable to open CSV file.');
+    public function validateRepairOrdersCsv($file, string $importType = 'quicksight', ?int $tenantId = null): array
+    {
+        $handle = fopen($file->getRealPath(), 'r');
+        if (!$handle) throw new \Exception('Unable to open CSV file.');
 
-    $user = Auth::user();
-    $isSuperAdmin = $user && $user->tenant_id === null;
-    // -------------------------
-    // 1) Expected headers
-    // -------------------------
-    if ($importType === 'template') {
-        $expectedHeaders = $isSuperAdmin
-            ? [
-                'tenant_name','ro_number','ro_open_date','ro_close_date',
-                'truckid','repairs_made','vendor','wo_number','wo_status',
-                'invoice','invoice_amount','invoice_received','on_qs',
-                'qs_invoice_date','disputed','dispute_outcome','area_of_concerns'
-              ]
-            : [
-                'ro_number','ro_open_date','ro_close_date',
-                'truckid','repairs_made','vendor','wo_number','wo_status',
-                'invoice','invoice_amount','invoice_received','on_qs',
-                'qs_invoice_date','disputed','dispute_outcome','area_of_concerns'
-              ];
-    } else {
-        // QuickSight export headers (exact match, normalized)
+        $user = Auth::user();
+        $isSuperAdmin = $user && $user->tenant_id === null;
+
+        // ✅ CHANGED: QuickSight only headers
         $expectedHeaders = [
             'Work Order #',
             'Vendor',
@@ -70,357 +53,377 @@ public function validateRepairOrdersCsv($file, string $importType = 'template', 
             'T6W indicator',
             'Allowance time period',
         ];
-    }
 
-    $headerRow = fgetcsv($handle, 0, ',');
-    if ($headerRow === false) {
-        fclose($handle);
-        return [
-            'headers' => $expectedHeaders,
-            'valid' => [],
-            'invalid' => [],
-            'summary' => ['total' => 0, 'valid' => 0, 'invalid' => 0],
-            'header_error' => 'CSV file appears to be empty or unreadable.',
-        ];
-    }
-
-$normalizedHeaderRow = array_map(function ($h) {
-    $h = (string) $h;
-
-    // Remove UTF-8 BOM if present (usually only on first header)
-    $h = preg_replace('/^\xEF\xBB\xBF/', '', $h);
-
-    // Trim whitespace
-    $h = trim($h);
-
-    // Remove wrapping quotes if present
-    $h = trim($h, "\"'");
-
-    // Lowercase for comparison
-    return strtolower($h);
-}, $headerRow);
-
-$normalizedExpected = array_map(function ($h) {
-    $h = (string) $h;
-    $h = trim($h);
-    $h = trim($h, "\"'");
-    return strtolower($h);
-}, $expectedHeaders);    if (count($normalizedHeaderRow) !== count($normalizedExpected)) {
-        fclose($handle);
-        return [
-            'headers' => $expectedHeaders,
-            'valid' => [],
-            'invalid' => [],
-            'summary' => ['total' => 0, 'valid' => 0, 'invalid' => 0],
-            'header_error' => 'CSV headers do not match expected format. Expected ' .
-                count($expectedHeaders) . ' columns, got ' . count($headerRow) . ' columns.',
-        ];
-    }
-
-    if ($normalizedHeaderRow !== $normalizedExpected) {
-        fclose($handle);
-        return [
-            'headers' => $expectedHeaders,
-            'valid' => [],
-            'invalid' => [],
-            'summary' => ['total' => 0, 'valid' => 0, 'invalid' => 0],
-            'header_error' => 'CSV headers do not match expected format.',
-        ];
-    }
-
-    $this->results = [
-        'headers' => $expectedHeaders,
-        'valid' => [],
-        'invalid' => [],
-        'summary' => ['total' => 0, 'valid' => 0, 'invalid' => 0],
-    ];
-
-    $rowNumber = 1;
-
-    while (($row = fgetcsv($handle, 0, ',')) !== false) {
-        $rowNumber++;
-        $this->results['summary']['total']++;
-
-        $validationResult = $importType === 'template'
-            ? $this->validateRowTemplate($row, $expectedHeaders, $rowNumber, $isSuperAdmin)
-            : $this->validateRowQuickSight($row, $expectedHeaders, $rowNumber, $isSuperAdmin, $tenantId);
-
-        if ($validationResult['isValid']) {
-            $this->results['valid'][] = $validationResult;
-            $this->results['summary']['valid']++;
-        } else {
-            $this->results['invalid'][] = $validationResult;
-            $this->results['summary']['invalid']++;
+        $headerRow = fgetcsv($handle, 0, ',');
+        if ($headerRow === false) {
+            fclose($handle);
+            return [
+                'headers' => $expectedHeaders,
+                'valid' => [],
+                'invalid' => [],
+                'summary' => ['total' => 0, 'valid' => 0, 'invalid' => 0],
+                'header_error' => 'CSV file appears to be empty or unreadable.',
+            ];
         }
+
+        $normalizedHeaderRow = array_map(function ($h) {
+            $h = (string) $h;
+            $h = preg_replace('/^\xEF\xBB\xBF/', '', $h);
+            $h = trim($h);
+            $h = trim($h, "\"'");
+            return strtolower($h);
+        }, $headerRow);
+
+        $normalizedExpected = array_map(function ($h) {
+            $h = (string) $h;
+            $h = trim($h);
+            $h = trim($h, "\"'");
+            return strtolower($h);
+        }, $expectedHeaders);
+
+        if (count($normalizedHeaderRow) !== count($normalizedExpected)) {
+            fclose($handle);
+            return [
+                'headers' => $expectedHeaders,
+                'valid' => [],
+                'invalid' => [],
+                'summary' => ['total' => 0, 'valid' => 0, 'invalid' => 0],
+                'header_error' => 'CSV headers do not match expected format. Expected ' .
+                    count($expectedHeaders) . ' columns, got ' . count($headerRow) . ' columns.',
+            ];
+        }
+
+        if ($normalizedHeaderRow !== $normalizedExpected) {
+            fclose($handle);
+            return [
+                'headers' => $expectedHeaders,
+                'valid' => [],
+                'invalid' => [],
+                'summary' => ['total' => 0, 'valid' => 0, 'invalid' => 0],
+                'header_error' => 'CSV headers do not match expected format.',
+            ];
+        }
+
+        $this->results = [
+            'headers' => $expectedHeaders,
+            'valid' => [],
+            'invalid' => [],
+            'summary' => ['total' => 0, 'valid' => 0, 'invalid' => 0],
+        ];
+
+        $rowNumber = 1;
+
+        while (($row = fgetcsv($handle, 0, ',')) !== false) {
+            $rowNumber++;
+            $this->results['summary']['total']++;
+
+            // ✅ CHANGED: always validate QuickSight
+            $validationResult = $this->validateRowQuickSight($row, $expectedHeaders, $rowNumber, $isSuperAdmin, $tenantId);
+
+            if ($validationResult['isValid']) {
+                $this->results['valid'][] = $validationResult;
+                $this->results['summary']['valid']++;
+            } else {
+                $this->results['invalid'][] = $validationResult;
+                $this->results['summary']['invalid']++;
+            }
+        }
+
+        fclose($handle);
+        return $this->results;
     }
 
-    fclose($handle);
-    return $this->results;
-}
+    // /**
+    //  * Validate a single row
+    //  */
+    // protected function validateRowTemplate(array $row, array $expectedHeaders, int $rowNumber, bool $isSuperAdmin): array
+    // {
+    //     $errors = [];
+    //     $warnings = [];
 
-    /**
-     * Validate a single row
-     */
-    protected function validateRowTemplate(array $row, array $expectedHeaders, int $rowNumber, bool $isSuperAdmin): array
-    {
+    //     // Column count mismatch
+    //     if (count($row) !== count($expectedHeaders)) {
+    //         return [
+    //             'rowNumber' => $rowNumber,
+    //             'isValid' => false,
+    //             'errors' => [
+    //                 'Column count mismatch. Expected ' . count($expectedHeaders) . ' columns, got ' . count($row),
+    //             ],
+    //             'warnings' => [],
+    //             'data' => $row,
+    //             'preview' => [
+    //                 ['key' => 'col1', 'label' => 'Column 1', 'value' => (string)($row[0] ?? '')],
+    //                 ['key' => 'col2', 'label' => 'Column 2', 'value' => (string)($row[1] ?? '')],
+    //                 ['key' => 'col3', 'label' => 'Column 3', 'value' => (string)($row[2] ?? '')],
+    //             ],
+    //         ];
+    //     }
+
+    //     $data = array_combine($expectedHeaders, $row);
+    //     $rowData = $data; // keep original for UI preview
+
+    //     // Validate RO Open Date
+    //     if (empty($data['ro_open_date'])) {
+    //         $errors[] = 'RO Open Date is required';
+    //     } else {
+    //         try {
+    //             $data['ro_open_date'] = Carbon::createFromFormat('m/d/Y', $data['ro_open_date'])->format('Y-m-d');
+    //         } catch (\Exception $e) {
+    //             $errors[] = 'RO Open Date format invalid (expected m/d/Y): ' . $data['ro_open_date'];
+    //         }
+    //     }
+
+    //     // Validate RO Close Date
+    //     if (!empty($data['ro_close_date'])) {
+    //         try {
+    //             $data['ro_close_date'] = Carbon::createFromFormat('m/d/Y', $data['ro_close_date'])->format('Y-m-d');
+    //         } catch (\Exception $e) {
+    //             $errors[] = 'RO Close Date format invalid (expected m/d/Y): ' . $data['ro_close_date'];
+    //         }
+    //     }
+
+    //     // Validate QS Invoice Date
+    //     if (!empty($data['qs_invoice_date'])) {
+    //         try {
+    //             $data['qs_invoice_date'] = Carbon::createFromFormat('m/d/Y', $data['qs_invoice_date'])->format('Y-m-d');
+    //         } catch (\Exception $e) {
+    //             $errors[] = 'QS Invoice Date format invalid (expected m/d/Y): ' . $data['qs_invoice_date'];
+    //         }
+    //     }
+
+    //     // Validate truck
+    //     if (empty($data['truckid'])) {
+    //         $errors[] = 'Truck ID is required';
+    //     } else {
+    //         $truck = Truck::where('truckid', $data['truckid'])->first();
+    //         if (!$truck) {
+    //             $errors[] = "Truck not found: {$data['truckid']}";
+    //         }
+    //     }
+
+    //     // Validate vendor
+    //     if (empty($data['vendor'])) {
+    //         $errors[] = 'Vendor is required';
+    //     } else {
+    //         $vendor = Vendor::where('vendor_name', $data['vendor'])->first();
+    //         if (!$vendor) {
+    //             $errors[] = "Vendor not found: {$data['vendor']}";
+    //         } elseif (method_exists($vendor, 'trashed') && $vendor->trashed()) {
+    //             $errors[] = "Vendor is deleted: {$data['vendor']}";
+    //         }
+    //     }
+
+    //     // Validate WO Status
+    //     if (!empty($data['wo_status'])) {
+    //         $woStatus = WoStatus::where('name', $data['wo_status'])->first();
+    //         if (!$woStatus) {
+    //             $errors[] = "WO Status not found: {$data['wo_status']}";
+    //         } elseif (method_exists($woStatus, 'trashed') && $woStatus->trashed()) {
+    //             $errors[] = "WO Status is deleted: {$data['wo_status']}";
+    //         }
+    //     }
+
+    //     // Validate boolean fields
+    //     $invoiceReceived = strtolower(trim((string)$data['invoice_received']));
+    //     if (!in_array($invoiceReceived, ['yes', 'no'], true)) {
+    //         $errors[] = "Invoice Received must be 'Yes' or 'No', got: {$data['invoice_received']}";
+    //     }
+
+    //     $onQs = strtolower(trim((string)$data['on_qs']));
+    //     if (!in_array($onQs, ['yes', 'no', 'not expected'], true)) {
+    //         $errors[] = "On QS must be 'Yes', 'No', or 'Not Expected', got: {$data['on_qs']}";
+    //     }
+
+    //     $disputed = strtolower(trim((string)$data['disputed']));
+    //     if (!in_array($disputed, ['yes', 'no'], true)) {
+    //         $errors[] = "Disputed must be 'Yes' or 'No', got: {$data['disputed']}";
+    //     }
+
+    //     // Validate areas of concern
+    //     if (!empty($data['area_of_concerns'])) {
+    //         $concernNames = array_map('trim', explode(',', (string)$data['area_of_concerns']));
+    //         foreach ($concernNames as $concernName) {
+    //             if ($concernName === '') continue;
+
+    //             $area = AreaOfConcern::withTrashed()->where('concern', $concernName)->first();
+    //             if (!$area) {
+    //                 $errors[] = "Area of Concern not found: {$concernName}";
+    //             } elseif ($area->trashed()) {
+    //                 // keep this as a warning (UI will hide column if none exist)
+    //                 $warnings[] = "Area of Concern is deleted (will be skipped): {$concernName}";
+    //             }
+    //         }
+    //     }
+
+    //     // Validate tenant for SuperAdmin
+    //     if ($isSuperAdmin) {
+    //         if (empty($data['tenant_name'])) {
+    //             $errors[] = 'Tenant name is required';
+    //         } else {
+    //             $tenant = Tenant::where('name', $data['tenant_name'])->first();
+    //             if (!$tenant) {
+    //                 $errors[] = "Tenant not found: {$data['tenant_name']}";
+    //             }
+    //         }
+    //     }
+
+    //     // Validate numeric invoice amount
+    //     if (!empty($data['invoice_amount']) && !is_numeric($data['invoice_amount'])) {
+    //         $errors[] = "Invoice Amount must be numeric: {$data['invoice_amount']}";
+    //     }
+
+    //     // Validate RO Number
+    //     if (empty($data['ro_number'])) {
+    //         $errors[] = 'RO Number is required';
+    //     }
+
+    //     return [
+    //         'rowNumber' => $rowNumber,
+    //         'isValid' => empty($errors),
+    //         'errors' => $errors,
+    //         'warnings' => $warnings,
+    //         'data' => $rowData,
+    //         'preview' => $this->getRowPreview($rowData, $isSuperAdmin),
+    //     ];
+    // }
+    protected function validateRowQuickSight(
+        array $row,
+        array $expectedHeaders,
+        int $rowNumber,
+        bool $isSuperAdmin,
+        ?int $tenantId
+    ): array {
         $errors = [];
         $warnings = [];
 
-        // Column count mismatch
         if (count($row) !== count($expectedHeaders)) {
             return [
                 'rowNumber' => $rowNumber,
                 'isValid' => false,
-                'errors' => [
-                    'Column count mismatch. Expected ' . count($expectedHeaders) . ' columns, got ' . count($row),
-                ],
+                'errors' => ['Column count mismatch.'],
                 'warnings' => [],
                 'data' => $row,
                 'preview' => [
                     ['key' => 'col1', 'label' => 'Column 1', 'value' => (string)($row[0] ?? '')],
-                    ['key' => 'col2', 'label' => 'Column 2', 'value' => (string)($row[1] ?? '')],
-                    ['key' => 'col3', 'label' => 'Column 3', 'value' => (string)($row[2] ?? '')],
                 ],
             ];
         }
 
-        $data = array_combine($expectedHeaders, $row);
-        $rowData = $data; // keep original for UI preview
+        $qs = array_combine($expectedHeaders, $row);
 
-        // Validate RO Open Date
-        if (empty($data['ro_open_date'])) {
-            $errors[] = 'RO Open Date is required';
-        } else {
-            try {
-                $data['ro_open_date'] = Carbon::createFromFormat('m/d/Y', $data['ro_open_date'])->format('Y-m-d');
-            } catch (\Exception $e) {
-                $errors[] = 'RO Open Date format invalid (expected m/d/Y): ' . $data['ro_open_date'];
+        if ($isSuperAdmin && !$tenantId) {
+            $errors[] = 'Tenant is required for QuickSight import.';
+        }
+
+        // Dates (flex)
+        $roOpen = $this->parseDateFlex(trim((string)($qs['WO start date'] ?? '')), 'RO Open Date', $errors);
+        $roClose = $this->parseDateFlexNullable(trim((string)($qs['WO end date'] ?? '')), 'RO Close Date', $errors);
+        $invoiceDate = $this->parseDateFlexNullable(trim((string)($qs['Invoice date'] ?? '')), 'Invoice Date', $errors);
+
+        // Required
+        $roNumber = trim((string)($qs['Work Order #'] ?? ''));
+        $truckid  = trim((string)($qs['Asset ID'] ?? ''));
+        $vendor   = trim((string)($qs['Vendor'] ?? ''));
+
+        if ($roNumber === '') $errors[] = 'RO Number is required';
+        if ($truckid === '') $errors[] = 'Truck ID is required';
+        if ($vendor === '') $errors[] = 'Vendor is required';
+        if (empty($roOpen)) $errors[] = 'RO Open Date is required';
+
+        // Validate truck exists
+        if ($truckid !== '') {
+            $truck = Truck::where('truckid', $truckid)->first();
+            if (!$truck) $errors[] = "Truck not found: {$truckid}";
+        }
+
+        // Validate vendor exists
+        if ($vendor !== '') {
+            $v = Vendor::where('vendor_name', $vendor)->first();
+            if (!$v) $errors[] = "Vendor not found: {$vendor}";
+            elseif (method_exists($v, 'trashed') && $v->trashed()) $errors[] = "Vendor is deleted: {$vendor}";
+        }
+
+        /*
+    ✅ CHANGED: invoice_amount is QS "Invoice revised amount"
+    ✅ NEW: original_amount derived from QS "Invoice amount" when they differ
+    */
+        $origStr = trim((string)($qs['Invoice amount'] ?? ''));
+        $revStr  = trim((string)($qs['Invoice revised amount'] ?? ''));
+
+        if ($revStr !== '' && !is_numeric($revStr)) {
+            $errors[] = "Invoice revised amount must be numeric: {$revStr}";
+        }
+        if ($origStr !== '' && !is_numeric($origStr)) {
+            $errors[] = "Invoice amount must be numeric: {$origStr}";
+        }
+
+        $originalAmount = null;
+        if ($origStr !== '' && is_numeric($origStr) && $revStr !== '' && is_numeric($revStr)) {
+            if ((float)$origStr != (float)$revStr) {
+                $originalAmount = (float)$origStr;
             }
         }
 
-        // Validate RO Close Date
-        if (!empty($data['ro_close_date'])) {
-            try {
-                $data['ro_close_date'] = Carbon::createFromFormat('m/d/Y', $data['ro_close_date'])->format('Y-m-d');
-            } catch (\Exception $e) {
-                $errors[] = 'RO Close Date format invalid (expected m/d/Y): ' . $data['ro_close_date'];
-            }
+        /*
+    ✅ NEW: dispute fields validation
+    */
+        $status = trim((string)($qs['Dispute/Review status'] ?? 'None'));
+        $determination = trim((string)($qs['Dispute/Review determination'] ?? ''));
+        $outcome = trim((string)($qs['Dispute outcome'] ?? ''));
+
+        $allowedStatuses = ['None', 'Pending', 'Reviewed', 'Overcharged'];
+        if ($status !== '' && !in_array($status, $allowedStatuses, true)) {
+            $errors[] = "Dispute/Review status invalid: {$status}";
         }
 
-        // Validate QS Invoice Date
-        if (!empty($data['qs_invoice_date'])) {
-            try {
-                $data['qs_invoice_date'] = Carbon::createFromFormat('m/d/Y', $data['qs_invoice_date'])->format('Y-m-d');
-            } catch (\Exception $e) {
-                $errors[] = 'QS Invoice Date format invalid (expected m/d/Y): ' . $data['qs_invoice_date'];
-            }
+        $allowedDeterminations = ['Granted', 'Partially Granted'];
+        if ($determination !== '' && !in_array($determination, $allowedDeterminations, true)) {
+            $errors[] = "Dispute/Review determination invalid: {$determination}";
         }
 
-        // Validate truck
-        if (empty($data['truckid'])) {
-            $errors[] = 'Truck ID is required';
-        } else {
-            $truck = Truck::where('truckid', $data['truckid'])->first();
-            if (!$truck) {
-                $errors[] = "Truck not found: {$data['truckid']}";
-            }
+        if ($outcome !== '' && !is_numeric($outcome)) {
+            $errors[] = "Dispute outcome must be numeric: {$outcome}";
         }
 
-        // Validate vendor
-        if (empty($data['vendor'])) {
-            $errors[] = 'Vendor is required';
-        } else {
-            $vendor = Vendor::where('vendor_name', $data['vendor'])->first();
-            if (!$vendor) {
-                $errors[] = "Vendor not found: {$data['vendor']}";
-            } elseif (method_exists($vendor, 'trashed') && $vendor->trashed()) {
-                $errors[] = "Vendor is deleted: {$data['vendor']}";
-            }
-        }
+        // Preview
+        $preview = [
+            ['key' => 'ro_number', 'label' => 'RO#', 'value' => $roNumber],
+            ['key' => 'truckid', 'label' => 'Truck', 'value' => $truckid],
+            ['key' => 'vendor', 'label' => 'Vendor', 'value' => $vendor],
+            ['key' => 'ro_open_date', 'label' => 'Open Date', 'value' => (string)($qs['WO start date'] ?? '')],
+            ['key' => 'invoice_revised', 'label' => 'Revised Amt', 'value' => $revStr],
+            ['key' => 'original_amount', 'label' => 'Original Amt', 'value' => $originalAmount !== null ? (string)$originalAmount : '—'],
+            ['key' => 'dispute_status', 'label' => 'Dispute Status', 'value' => $status ?: 'None'],
+        ];
 
-        // Validate WO Status
-        if (!empty($data['wo_status'])) {
-            $woStatus = WoStatus::where('name', $data['wo_status'])->first();
-            if (!$woStatus) {
-                $errors[] = "WO Status not found: {$data['wo_status']}";
-            } elseif (method_exists($woStatus, 'trashed') && $woStatus->trashed()) {
-                $errors[] = "WO Status is deleted: {$data['wo_status']}";
-            }
-        }
+        // Store mapped data (optional but useful)
+        $data = [
+            'ro_number' => $roNumber,
+            'vendor' => $vendor,
+            'ro_open_date' => $roOpen,
+            'ro_close_date' => $roClose,
+            'truckid' => $truckid,
+            'invoice' => trim((string)($qs['Invoice #'] ?? '')),
+            'qs_invoice_date' => $invoiceDate,
 
-        // Validate boolean fields
-        $invoiceReceived = strtolower(trim((string)$data['invoice_received']));
-        if (!in_array($invoiceReceived, ['yes', 'no'], true)) {
-            $errors[] = "Invoice Received must be 'Yes' or 'No', got: {$data['invoice_received']}";
-        }
+            // in-system meaning
+            'invoice_amount' => $revStr,
+            'original_amount' => $originalAmount,
 
-        $onQs = strtolower(trim((string)$data['on_qs']));
-        if (!in_array($onQs, ['yes', 'no', 'not expected'], true)) {
-            $errors[] = "On QS must be 'Yes', 'No', or 'Not Expected', got: {$data['on_qs']}";
-        }
-
-        $disputed = strtolower(trim((string)$data['disputed']));
-        if (!in_array($disputed, ['yes', 'no'], true)) {
-            $errors[] = "Disputed must be 'Yes' or 'No', got: {$data['disputed']}";
-        }
-
-        // Validate areas of concern
-        if (!empty($data['area_of_concerns'])) {
-            $concernNames = array_map('trim', explode(',', (string)$data['area_of_concerns']));
-            foreach ($concernNames as $concernName) {
-                if ($concernName === '') continue;
-
-                $area = AreaOfConcern::withTrashed()->where('concern', $concernName)->first();
-                if (!$area) {
-                    $errors[] = "Area of Concern not found: {$concernName}";
-                } elseif ($area->trashed()) {
-                    // keep this as a warning (UI will hide column if none exist)
-                    $warnings[] = "Area of Concern is deleted (will be skipped): {$concernName}";
-                }
-            }
-        }
-
-        // Validate tenant for SuperAdmin
-        if ($isSuperAdmin) {
-            if (empty($data['tenant_name'])) {
-                $errors[] = 'Tenant name is required';
-            } else {
-                $tenant = Tenant::where('name', $data['tenant_name'])->first();
-                if (!$tenant) {
-                    $errors[] = "Tenant not found: {$data['tenant_name']}";
-                }
-            }
-        }
-
-        // Validate numeric invoice amount
-        if (!empty($data['invoice_amount']) && !is_numeric($data['invoice_amount'])) {
-            $errors[] = "Invoice Amount must be numeric: {$data['invoice_amount']}";
-        }
-
-        // Validate RO Number
-        if (empty($data['ro_number'])) {
-            $errors[] = 'RO Number is required';
-        }
+            'dispute_review_status' => $status ?: 'None',
+            'dispute_review_determination' => $determination ?: null,
+            'dispute_outcome' => $outcome,
+        ];
 
         return [
             'rowNumber' => $rowNumber,
             'isValid' => empty($errors),
             'errors' => $errors,
             'warnings' => $warnings,
-            'data' => $rowData,
-            'preview' => $this->getRowPreview($rowData, $isSuperAdmin),
+            'data' => $data,
+            'preview' => $preview,
         ];
     }
-protected function validateRowQuickSight(
-    array $row,
-    array $expectedHeaders,
-    int $rowNumber,
-    bool $isSuperAdmin,
-    ?int $tenantId
-): array {
-    $errors = [];
-    $warnings = [];
-
-    if (count($row) !== count($expectedHeaders)) {
-        return [
-            'rowNumber' => $rowNumber,
-            'isValid' => false,
-            'errors' => ['Column count mismatch.'],
-            'warnings' => [],
-            'data' => $row,
-            'preview' => [
-                ['key' => 'col1', 'label' => 'Column 1', 'value' => (string)($row[0] ?? '')],
-            ],
-        ];
-    }
-
-    $qs = array_combine($expectedHeaders, $row);
-
-    // Map QS -> internal template-like structure
-    // Requirements you said:
-    // 1st col RO# => ro_number
-    // 2nd vendor => vendor
-    // 3rd start => ro_open_date
-    // 4th end => ro_close_date
-    // 5th asset id => truckid
-    // 9th invoice date => qs_invoice_date
-    // 15th invoice amount => invoice_amount
-
-    $data = [
-        'ro_number'        => trim((string)($qs['Work Order #'] ?? '')),
-        'vendor'           => trim((string)($qs['Vendor'] ?? '')),
-        'ro_open_date'     => trim((string)($qs['WO start date'] ?? '')),
-        'ro_close_date'    => trim((string)($qs['WO end date'] ?? '')),
-        'truckid'          => trim((string)($qs['Asset ID'] ?? '')),
-        'invoice'          => trim((string)($qs['Invoice #'] ?? '')),
-        'qs_invoice_date'  => trim((string)($qs['Invoice date'] ?? '')),
-        'invoice_amount'   => trim((string)($qs['Invoice amount'] ?? '')),
-
-        // fill missing required fields
-        'on_qs'            => 'yes',
-        'disputed'         => 'no',
-        'invoice_received' => !empty($qs['Invoice #']) ? 'yes' : 'no',
-
-        // optional fields we don't have
-        'repairs_made'     => '',
-        'wo_number'        => '',
-        'wo_status'        => '',
-        'dispute_outcome'  => '',
-        'area_of_concerns' => '',
-    ];
-
-    // If SuperAdmin QuickSight import: use provided tenant_id (required)
-    if ($isSuperAdmin) {
-        if (!$tenantId) $errors[] = 'Tenant is required for QuickSight import.';
-    }
-
-    // Date formats: QuickSight might be m/d/Y, Y-m-d, or timestamps.
-    // We'll support both m/d/Y and Y-m-d quickly.
-    $data['ro_open_date'] = $this->parseDateFlex($data['ro_open_date'], 'RO Open Date', $errors);
-    $data['ro_close_date'] = $this->parseDateFlexNullable($data['ro_close_date'], 'RO Close Date', $errors);
-    $data['qs_invoice_date'] = $this->parseDateFlexNullable($data['qs_invoice_date'], 'Invoice Date', $errors);
-
-    // Required: ro_number, truckid, vendor, ro_open_date
-    if ($data['ro_number'] === '') $errors[] = 'RO Number is required';
-    if ($data['truckid'] === '') $errors[] = 'Truck ID is required';
-    if ($data['vendor'] === '') $errors[] = 'Vendor is required';
-    if (empty($data['ro_open_date'])) $errors[] = 'RO Open Date is required';
-
-    // Validate truck exists
-    if ($data['truckid'] !== '') {
-        $truck = \App\Models\Truck::where('truckid', $data['truckid'])->first();
-        if (!$truck) $errors[] = "Truck not found: {$data['truckid']}";
-    }
-
-    // Validate vendor exists
-    if ($data['vendor'] !== '') {
-        $vendor = \App\Models\Vendor::where('vendor_name', $data['vendor'])->first();
-        if (!$vendor) $errors[] = "Vendor not found: {$data['vendor']}";
-        elseif (method_exists($vendor, 'trashed') && $vendor->trashed()) $errors[] = "Vendor is deleted: {$data['vendor']}";
-    }
-
-    // invoice_amount numeric if present
-    if ($data['invoice_amount'] !== '' && !is_numeric($data['invoice_amount'])) {
-        $errors[] = "Invoice Amount must be numeric: {$data['invoice_amount']}";
-    }
-
-    // Preview (show key fields)
-    $preview = [
-        ['key' => 'ro_number', 'label' => 'RO#', 'value' => $data['ro_number']],
-        ['key' => 'truckid', 'label' => 'Truck', 'value' => $data['truckid']],
-        ['key' => 'vendor', 'label' => 'Vendor', 'value' => $data['vendor']],
-        ['key' => 'ro_open_date', 'label' => 'Open Date', 'value' => (string)($qs['WO start date'] ?? '')],
-    ];
-
-    return [
-        'rowNumber' => $rowNumber,
-        'isValid' => empty($errors),
-        'errors' => $errors,
-        'warnings' => $warnings,
-        'data' => $data,     // IMPORTANT: store mapped data so import step can reuse if you want
-        'preview' => $preview,
-    ];
-}
 
     /**
      * Return structured preview fields with labels so the UI can show:
@@ -504,35 +507,36 @@ protected function validateRowQuickSight(
         return $filePath;
     }
 
-        protected function parseDateFlex(string $val, string $label, array &$errors): ?string
-{
-    $val = trim($val);
-    if ($val === '') return null;
+    protected function parseDateFlex(string $val, string $label, array &$errors): ?string
+    {
+        $val = trim($val);
+        if ($val === '') return null;
 
-    try {
-        // try m/d/Y
-        return Carbon::createFromFormat('m/d/Y', $val)->format('Y-m-d');
-    } catch (\Exception $e) {}
+        try {
+            // try m/d/Y
+            return Carbon::createFromFormat('m/d/Y', $val)->format('Y-m-d');
+        } catch (\Exception $e) {
+        }
 
-    try {
-        // try Y-m-d
-        return Carbon::createFromFormat('Y-m-d', $val)->format('Y-m-d');
-    } catch (\Exception $e) {}
+        try {
+            // try Y-m-d
+            return Carbon::createFromFormat('Y-m-d', $val)->format('Y-m-d');
+        } catch (\Exception $e) {
+        }
 
-    // try Carbon parse (timestamps)
-    try {
-        return Carbon::parse($val)->format('Y-m-d');
-    } catch (\Exception $e) {
-        $errors[] = "{$label} format invalid: {$val}";
-        return null;
+        // try Carbon parse (timestamps)
+        try {
+            return Carbon::parse($val)->format('Y-m-d');
+        } catch (\Exception $e) {
+            $errors[] = "{$label} format invalid: {$val}";
+            return null;
+        }
+    }
+
+    protected function parseDateFlexNullable(string $val, string $label, array &$errors): ?string
+    {
+        $val = trim($val);
+        if ($val === '') return null;
+        return $this->parseDateFlex($val, $label, $errors);
     }
 }
-
-protected function parseDateFlexNullable(string $val, string $label, array &$errors): ?string
-{
-    $val = trim($val);
-    if ($val === '') return null;
-    return $this->parseDateFlex($val, $label, $errors);
-}
-}
-    

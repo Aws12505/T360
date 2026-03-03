@@ -377,35 +377,71 @@
             </div>
           </div>
 
-          <!-- Dispute Information (Update only) -->
-          <div v-if="formAction === 'Update'" class="col-span-2">
-            <div class="border-b pb-1 mb-2 mt-1 flex items-center gap-2">
-              <Icon name="alert-octagon" class="h-4 w-4 text-primary" />
-              <h3 class="text-md font-semibold text-primary">Dispute Information</h3>
+          <div class="col-span-2 border-b pb-1 mb-2 mt-1 flex items-center gap-2">
+            <Icon name="alert-octagon" class="h-4 w-4 text-primary" />
+            <h3 class="text-md font-semibold text-primary">Dispute / Review</h3>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 col-span-2">
+            <!-- Status -->
+            <div>
+              <Label class="mb-1 text-sm font-medium">Dispute / Review Status</Label>
+              <select
+                v-model="form.dispute_review_status"
+                class="flex h-9 w-full rounded-md border px-3 text-sm"
+              >
+                <option value="None">None</option>
+                <option value="Pending">Pending</option>
+                <option value="Reviewed">Reviewed</option>
+                <option value="Overcharged">Overcharged</option>
+              </select>
             </div>
 
-            <div class="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                v-model="form.disputed"
-                class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-1 focus:ring-primary"
-              />
-              <Label class="flex items-center gap-1.5 text-sm font-medium">
-                <Icon name="alert-circle" class="h-4 w-4 text-muted-foreground" />
-                Disputed?
-              </Label>
+            <!-- Determination -->
+            <div>
+              <Label class="mb-1 text-sm font-medium">Determination</Label>
+              <select
+                v-model="form.dispute_review_determination"
+                class="flex h-9 w-full rounded-md border px-3 text-sm"
+              >
+                <option value="">—</option>
+                <option value="Granted">Granted</option>
+                <option value="Partially Granted">Partially Granted</option>
+              </select>
             </div>
 
-            <div v-if="form.disputed" class="mt-2">
-              <Label class="flex items-center gap-1.5 mb-1 text-sm font-medium">
-                <Icon name="message-square" class="h-4 w-4 text-muted-foreground" />
-                Dispute Outcome
-              </Label>
-              <textarea
-                v-model="form.dispute_outcome"
-                class="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                rows="2"
-              ></textarea>
+            <!-- Original Amount -->
+            <div>
+              <Label class="mb-1 text-sm font-medium">Original Amount</Label>
+              <div class="relative">
+                <span
+                  class="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground"
+                  >$</span
+                >
+                <Input
+                  type="number"
+                  step="0.01"
+                  v-model="form.original_amount"
+                  class="pl-7 h-9 w-full"
+                />
+              </div>
+            </div>
+
+            <!-- Dispute Outcome -->
+            <div>
+              <Label class="mb-1 text-sm font-medium">Dispute Outcome</Label>
+              <div class="relative">
+                <span
+                  class="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground"
+                  >$</span
+                >
+                <Input
+                  type="number"
+                  step="0.01"
+                  v-model="form.dispute_outcome"
+                  class="pl-7 h-9 w-full"
+                />
+              </div>
             </div>
           </div>
         </form>

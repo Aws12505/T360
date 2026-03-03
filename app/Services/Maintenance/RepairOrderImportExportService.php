@@ -63,7 +63,8 @@ class RepairOrderImportExportService
     {
         $request->validate([
             'file' => 'required|file|mimes:csv,txt',
-            'importType' => 'nullable|in:template,quicksight',
+            // ✅ CHANGED: template removed
+            'importType' => 'nullable|in:quicksight',
             // Required only for SuperAdmin + quicksight (since QS doesn't include tenant_name)
             'tenant_id' => 'nullable|integer|exists:tenants,id',
         ]);
@@ -74,49 +75,33 @@ class RepairOrderImportExportService
             return redirect()->back()->with('error', 'Unable to open CSV file.');
         }
 
-        $importType = $request->input('importType', 'template');
+        $importType = $request->input('importType', 'quicksight');
         $tenantIdFromRequest = $request->input('tenant_id');
         $isSuperAdmin = Auth::user()->tenant_id === null;
 
-        // Define expected headers.
-        if ($importType === 'template') {
-            $expectedHeaders = $isSuperAdmin
-                ? [
-                    'tenant_name', 'ro_number', 'ro_open_date', 'ro_close_date',
-                    'truckid', 'repairs_made', 'vendor', 'wo_number', 'wo_status',
-                    'invoice', 'invoice_amount', 'invoice_received', 'on_qs',
-                    'qs_invoice_date', 'disputed', 'dispute_outcome', 'area_of_concerns'
-                ]
-                : [
-                    'ro_number', 'ro_open_date', 'ro_close_date',
-                    'truckid', 'repairs_made', 'vendor', 'wo_number', 'wo_status',
-                    'invoice', 'invoice_amount', 'invoice_received', 'on_qs',
-                    'qs_invoice_date', 'disputed', 'dispute_outcome', 'area_of_concerns'
-                ];
-        } else {
-            $expectedHeaders = [
-                'Work Order #',
-                'Vendor',
-                'WO start date',
-                'WO end date',
-                'Asset ID',
-                'Asset age (days)',
-                'Fuel type',
-                'Invoice #',
-                'Invoice date',
-                'Processing Timestamp',
-                'Invoice report week',
-                'Dispute/Review status',
-                'Dispute/Review determination',
-                'Dispute outcome',
-                'Invoice amount',
-                'Invoice revised amount',
-                'Exemption Reason',
-                'Invoice revised amount post exemptions',
-                'T6W indicator',
-                'Allowance time period',
-            ];
-        }
+        // ✅ CHANGED: QuickSight-only expected headers
+        $expectedHeaders = [
+            'Work Order #',
+            'Vendor',
+            'WO start date',
+            'WO end date',
+            'Asset ID',
+            'Asset age (days)',
+            'Fuel type',
+            'Invoice #',
+            'Invoice date',
+            'Processing Timestamp',
+            'Invoice report week',
+            'Dispute/Review status',
+            'Dispute/Review determination',
+            'Dispute outcome',
+            'Invoice amount',
+            'Invoice revised amount',
+            'Exemption Reason',
+            'Invoice revised amount post exemptions',
+            'T6W indicator',
+            'Allowance time period',
+        ];
 
         // Read CSV header row.
         $headerRow = fgetcsv($handle, 0, ',');
@@ -143,7 +128,7 @@ class RepairOrderImportExportService
         }
 
         // For SuperAdmin + quicksight we need a tenant_id (QS has no tenant_name).
-        if ($isSuperAdmin && $importType === 'quicksight' && !$tenantIdFromRequest) {
+        if ($isSuperAdmin && !$tenantIdFromRequest) {
             fclose($handle);
             return redirect()->back()->with('error', 'Tenant is required for QuickSight import.');
         }
@@ -156,13 +141,11 @@ class RepairOrderImportExportService
             try {
                 return Carbon::createFromFormat('m/d/Y', $val)->format('Y-m-d');
             } catch (\Exception $e) {
-                // continue
             }
 
             try {
                 return Carbon::createFromFormat('Y-m-d', $val)->format('Y-m-d');
             } catch (\Exception $e) {
-                // continue
             }
 
             try {
@@ -182,41 +165,85 @@ class RepairOrderImportExportService
             }
 
             // Combine headers with row values
-            $raw = array_combine($expectedHeaders, $row);
+            $qs = array_combine($expectedHeaders, $row);
 
-            // If quicksight, map to template-like structure used below
-            if ($importType === 'quicksight') {
-                $raw = [
-                    'ro_number'        => trim((string)($raw['Work Order #'] ?? '')),
-                    'vendor'           => trim((string)($raw['Vendor'] ?? '')),
-                    'ro_open_date'     => trim((string)($raw['WO start date'] ?? '')),
-                    'ro_close_date'    => trim((string)($raw['WO end date'] ?? '')),
-                    'truckid'          => trim((string)($raw['Asset ID'] ?? '')),
-                    'repairs_made'     => null,
+            /*
+        ✅ NEW: invoice_amount = revised amount
+        ✅ NEW: original_amount only if different; then original_amount = invoice amount (original)
+        */
+            $qsInvoiceAmountOriginal = trim((string)($qs['Invoice amount'] ?? ''));
+            $qsInvoiceAmountRevised  = trim((string)($qs['Invoice revised amount'] ?? ''));
 
-                    'wo_number'        => null,
-                    'wo_status'        => '',
+            $invoiceAmount = ($qsInvoiceAmountRevised !== '' && is_numeric($qsInvoiceAmountRevised))
+                ? (float) $qsInvoiceAmountRevised
+                : null;
 
-                    'invoice'          => trim((string)($raw['Invoice #'] ?? '')),
-                    'qs_invoice_date'  => trim((string)($raw['Invoice date'] ?? '')),
-                    'invoice_amount'   => trim((string)($raw['Invoice amount'] ?? '')),
+            $originalAmount = null;
+            if (
+                $qsInvoiceAmountOriginal !== '' && is_numeric($qsInvoiceAmountOriginal) &&
+                $qsInvoiceAmountRevised !== '' && is_numeric($qsInvoiceAmountRevised) &&
+                (float)$qsInvoiceAmountOriginal != (float)$qsInvoiceAmountRevised
+            ) {
+                $originalAmount = (float) $qsInvoiceAmountOriginal;
+            }
 
-                    // defaults
-                    'invoice_received' => (!empty($raw['Invoice #']) ? 'yes' : 'no'),
-                    'on_qs'            => 'yes',
-                    'disputed'         => 'no',
-                    'dispute_outcome'  => null,
+            /*
+        ✅ NEW: dispute fields from QuickSight
+        */
+            $status = trim((string)($qs['Dispute/Review status'] ?? 'None'));
+            $determination = trim((string)($qs['Dispute/Review determination'] ?? ''));
+            $outcome = trim((string)($qs['Dispute outcome'] ?? ''));
 
-                    // QS doesn't have areas of concern
-                    'area_of_concerns' => '',
-                ];
+            $allowedStatuses = ['None', 'Pending', 'Reviewed', 'Overcharged'];
+            if (!in_array($status, $allowedStatuses, true)) {
+                $status = 'None';
+            }
 
-                // SuperAdmin: tenant_id from request, Non-superadmin: from user tenant
-                if ($isSuperAdmin) {
-                    $raw['tenant_id'] = (int) $tenantIdFromRequest;
-                } else {
-                    $raw['tenant_id'] = Auth::user()->tenant_id;
-                }
+            $allowedDeterminations = ['Granted', 'Partially Granted'];
+            if ($determination === '' || !in_array($determination, $allowedDeterminations, true)) {
+                $determination = null;
+            }
+
+            $outcome = ($outcome !== '' && is_numeric($outcome)) ? (float)$outcome : null;
+
+            // Map QS -> internal structure used below (kept your flow)
+            $raw = [
+                'ro_number'        => trim((string)($qs['Work Order #'] ?? '')),
+                'vendor'           => trim((string)($qs['Vendor'] ?? '')),
+                'ro_open_date'     => trim((string)($qs['WO start date'] ?? '')),
+                'ro_close_date'    => trim((string)($qs['WO end date'] ?? '')),
+                'truckid'          => trim((string)($qs['Asset ID'] ?? '')),
+                'repairs_made'     => null,
+
+                'wo_number'        => null,
+                'wo_status'        => '',
+
+                'invoice'          => trim((string)($qs['Invoice #'] ?? '')),
+                'qs_invoice_date'  => trim((string)($qs['Invoice date'] ?? '')),
+
+                // ✅ CHANGED: invoice_amount is revised amount
+                'invoice_amount'   => $invoiceAmount,
+                // ✅ NEW
+                'original_amount'  => $originalAmount,
+
+                // defaults
+                'invoice_received' => (!empty($qs['Invoice #']) ? 'yes' : 'no'),
+                'on_qs'            => 'yes',
+
+                // ✅ NEW dispute fields
+                'dispute_review_status'        => $status,
+                'dispute_review_determination' => $determination,
+                'dispute_outcome'              => $outcome,
+
+                // QS doesn't have areas of concern
+                'area_of_concerns' => '',
+            ];
+
+            // SuperAdmin: tenant_id from request, Non-superadmin: from user tenant
+            if ($isSuperAdmin) {
+                $raw['tenant_id'] = (int) $tenantIdFromRequest;
+            } else {
+                $raw['tenant_id'] = Auth::user()->tenant_id;
             }
 
             // Convert dates
@@ -235,8 +262,6 @@ class RepairOrderImportExportService
             $raw['on_qs'] = $onQsValue === 'yes'
                 ? 'yes'
                 : ($onQsValue === 'not expected' ? 'not expected' : 'no');
-
-            $raw['disputed'] = strtolower(trim((string)($raw['disputed'] ?? 'no'))) === 'yes';
 
             // Process truck (truckid -> truck_id)
             $truckid = trim((string)($raw['truckid'] ?? ''));
@@ -298,58 +323,30 @@ class RepairOrderImportExportService
                 );
             }
 
-            /**
-             * Process areas of concern (PIVOT)
-             * - Build $areaIds
-             * - REMOVE area_of_concerns from $raw BEFORE save
-             * - sync AFTER save
-             */
+            // Areas of concern (QS doesn't provide these; keep your pivot pattern)
             $areaIds = [];
-            if (isset($raw['area_of_concerns']) && !empty($raw['area_of_concerns'])) {
-                $concernNames = array_map('trim', explode(',', (string) $raw['area_of_concerns']));
-                foreach ($concernNames as $concernName) {
-                    if ($concernName === '') continue;
-
-                    $area = AreaOfConcern::withTrashed()->where('concern', $concernName)->first();
-                    if ($area && !$area->trashed()) {
-                        $areaIds[] = $area->id;
-                    }
-                }
-            }
-            unset($raw['area_of_concerns']); // ✅ critical
-
-            // Tenant assignment
-            if (!isset($raw['tenant_id'])) {
-                if ($isSuperAdmin) {
-                    // template import uses tenant_name
-                    $tenantName = trim((string)($raw['tenant_name'] ?? ''));
-                    if ($tenantName === '') {
-                        $rowsSkipped++;
-                        continue;
-                    }
-                    $tenant = Tenant::where('name', $tenantName)->first();
-                    if (!$tenant) {
-                        $rowsSkipped++;
-                        continue;
-                    }
-                    $raw['tenant_id'] = $tenant->id;
-                    unset($raw['tenant_name']);
-                } else {
-                    $raw['tenant_id'] = Auth::user()->tenant_id;
-                }
-            } else {
-                // For quicksight we already set tenant_id; ensure tenant_name doesn't exist
-                unset($raw['tenant_name']);
-            }
+            unset($raw['area_of_concerns']);
 
             // Ensure empty strings -> null for nullable fields
-            foreach (['ro_close_date', 'qs_invoice_date', 'wo_number', 'invoice', 'dispute_outcome', 'invoice_amount', 'repairs_made'] as $field) {
+            foreach (
+                [
+                    'ro_close_date',
+                    'qs_invoice_date',
+                    'wo_number',
+                    'invoice',
+                    'invoice_amount',
+                    'original_amount',
+                    'repairs_made',
+                    'dispute_review_determination',
+                    'dispute_outcome',
+                ] as $field
+            ) {
                 if (array_key_exists($field, $raw) && $raw[$field] === '') {
                     $raw[$field] = null;
                 }
             }
 
-            // Validate row (note: no area_of_concerns here because it's pivot)
+            // ✅ CHANGED: updated validation rules for new fields (no disputed)
             $validator = Validator::make($raw, [
                 'ro_number'        => 'nullable|string',
                 'ro_open_date'     => 'required|date',
@@ -357,17 +354,21 @@ class RepairOrderImportExportService
                 'truck_id'         => 'required|exists:trucks,id',
                 'vendor_id'        => 'required|exists:vendors,id',
 
-                // nullable
                 'wo_number'        => 'nullable|string',
                 'wo_status_id'     => 'nullable|exists:wo_statuses,id',
 
                 'invoice'          => 'nullable|string',
                 'invoice_amount'   => 'nullable|numeric',
+                'original_amount'  => 'nullable|numeric',
                 'invoice_received' => 'required|boolean',
                 'on_qs'            => 'required|in:yes,no,not expected',
                 'qs_invoice_date'  => 'nullable|date',
-                'disputed'         => 'required|boolean',
-                'dispute_outcome'  => 'nullable|string',
+
+                // ✅ NEW dispute fields
+                'dispute_review_status'        => 'required|in:None,Pending,Reviewed,Overcharged',
+                'dispute_review_determination' => 'nullable|in:Granted,Partially Granted',
+                'dispute_outcome'              => 'nullable|numeric',
+
                 'tenant_id'        => 'required|exists:tenants,id',
                 'repairs_made'     => 'nullable|string',
             ]);
@@ -387,9 +388,7 @@ class RepairOrderImportExportService
                 );
             }
 
-            // Sync pivot AFTER save/update
-            // If you only want to sync when the CSV provides areas, keep as-is.
-            // If you want to clear existing areas when CSV has none, this already clears via sync([]).
+            // Sync pivot AFTER save/update (QS has none => sync([]) clears)
             $repairOrder->areasOfConcern()->sync($areaIds);
 
             $rowsImported++;
@@ -408,7 +407,9 @@ class RepairOrderImportExportService
      */
     public function exportRepairOrders()
     {
-        $repairOrders = RepairOrder::with([
+        $isSuperAdmin = Auth::user()->tenant_id === null;
+
+        $query = RepairOrder::with([
             'truck',
             'vendor' => function ($query) {
                 $query->withTrashed();
@@ -420,7 +421,13 @@ class RepairOrderImportExportService
                 $query->withTrashed();
             },
             'tenant'
-        ])->get();
+        ]);
+
+        if (!$isSuperAdmin) {
+            $query->where('tenant_id', Auth::user()->tenant_id);
+        }
+
+        $repairOrders = $query->get();
 
         if ($repairOrders->isEmpty()) {
             return redirect()->back()->with('error', 'No Data');
@@ -430,53 +437,136 @@ class RepairOrderImportExportService
         $filePath = public_path($fileName);
         $file = fopen($filePath, 'w');
 
-        $headers = [
-            'tenant_name',
-            'ro_number',
-            'ro_open_date',
-            'ro_close_date',
-            'truckid',
-            'repairs_made',
-            'vendor',
-            'wo_number',
-            'wo_status',
-            'invoice',
-            'invoice_amount',
-            'invoice_received',
-            'on_qs',
-            'qs_invoice_date',
-            'disputed',
-            'dispute_outcome',
-            'area_of_concerns',
-        ];
+        // ✅ UTF-8 BOM
+        fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+        /*
+    |--------------------------------------------------------------------------
+    | HEADERS — MATCH QUICK SIGHT STYLE
+    |--------------------------------------------------------------------------
+    */
+
+        $headers = [];
+
+        if ($isSuperAdmin) {
+            $headers[] = 'Company Name';
+        }
+
+        $headers = array_merge($headers, [
+            'Work Order #',
+            'WO Start Date',
+            'WO End Date',
+            'Asset ID',
+            'Repairs Made',
+            'Vendor',
+            'WO Number',
+            'WO Status',
+            'Invoice #',
+            'Invoice Revised Amount',
+            'Invoice Amount',
+            'Invoice Received',
+            'On QS',
+            'Invoice Date',
+            'Dispute/Review Status',
+            'Dispute/Review Determination',
+            'Dispute Outcome',
+            'Areas Of Concern',
+        ]);
+
         fputcsv($file, $headers);
 
+        /*
+    |--------------------------------------------------------------------------
+    | HELPERS
+    |--------------------------------------------------------------------------
+    */
+
+        $formatCurrency = function ($value) {
+            return is_numeric($value)
+                ? '$' . number_format((float)$value, 2)
+                : '';
+        };
+
+        $properCase = function ($value) {
+            if (!$value) return '';
+            return ucwords(strtolower($value));
+        };
+
+        /*
+    |--------------------------------------------------------------------------
+    | DATA
+    |--------------------------------------------------------------------------
+    */
+
         foreach ($repairOrders as $ro) {
-            fputcsv($file, [
-                $ro->tenant->name ?? '—',
-                $ro->ro_number,
-                !empty($ro->ro_open_date) ? Carbon::parse($ro->ro_open_date)->format('m/d/Y') : '',
-                !empty($ro->ro_close_date) ? Carbon::parse($ro->ro_close_date)->format('m/d/Y') : '',
+
+            $row = [];
+
+            if ($isSuperAdmin) {
+                $row[] = $properCase($ro->tenant->name ?? '—');
+            }
+
+            $row = array_merge($row, [
+
+                // IDs stay untouched
+                $ro->ro_number ?? '',
+
+                $ro->ro_open_date
+                    ? Carbon::parse($ro->ro_open_date)->format('m/d/Y')
+                    : '',
+
+                $ro->ro_close_date
+                    ? Carbon::parse($ro->ro_close_date)->format('m/d/Y')
+                    : '',
+
                 $ro->truck?->truckid ?? '—',
-                $ro->repairs_made,
+
+                $properCase($ro->repairs_made),
+
                 $ro->vendor
-                    ? ($ro->vendor->trashed() ? $ro->vendor->vendor_name . ' (Deleted)' : $ro->vendor->vendor_name)
+                    ? ($ro->vendor->trashed()
+                        ? $properCase($ro->vendor->vendor_name) . ' (Deleted)'
+                        : $properCase($ro->vendor->vendor_name))
                     : '—',
-                $ro->wo_number,
+
+                $ro->wo_number ?? '',
+
                 $ro->woStatus
-                    ? ($ro->woStatus->trashed() ? $ro->woStatus->name . ' (Deleted)' : $ro->woStatus->name)
+                    ? ($ro->woStatus->trashed()
+                        ? $properCase($ro->woStatus->name) . ' (Deleted)'
+                        : $properCase($ro->woStatus->name))
                     : '—',
-                $ro->invoice,
-                $ro->invoice_amount,
-                $ro->invoice_received ? 'Yes' : 'No',
-                ucfirst($ro->on_qs),
-                !empty($ro->qs_invoice_date) ? Carbon::parse($ro->qs_invoice_date)->format('m/d/Y') : '',
-                $ro->disputed ? 'Yes' : 'No',
-                $ro->dispute_outcome,
-                implode(',', $ro->areasOfConcern->map(function ($area) {
-                    return $area->trashed() ? $area->concern . ' (Deleted)' : $area->concern;
+
+                $ro->invoice ?? '',
+
+                // ✅ Revised amount (your system invoice_amount)
+                $formatCurrency($ro->invoice_amount),
+
+                // ✅ Original amount (if exists)
+                $formatCurrency($ro->original_amount),
+
+                $ro->invoice_received ? 'True' : 'False',
+
+                $properCase($ro->on_qs),
+
+                $ro->qs_invoice_date
+                    ? Carbon::parse($ro->qs_invoice_date)->format('m/d/Y')
+                    : '',
+
+                $properCase($ro->dispute_review_status),
+
+                $properCase($ro->dispute_review_determination),
+
+                $formatCurrency($ro->dispute_outcome),
+
+                implode(',', $ro->areasOfConcern->map(function ($area) use ($properCase) {
+                    return $area->trashed()
+                        ? $properCase($area->concern) . ' (Deleted)'
+                        : $properCase($area->concern);
                 })->toArray()),
             ]);
+
+            fputcsv($file, $row);
         }
 
         fclose($file);

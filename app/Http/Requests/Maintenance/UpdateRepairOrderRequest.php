@@ -30,8 +30,10 @@ class UpdateRepairOrderRequest extends FormRequest
             'invoice_received'    => 'required|boolean',
             'on_qs'               => 'required|in:yes,no,not expected',
             'qs_invoice_date'     => 'nullable|date',
-            'disputed'            => 'required|boolean',
-            'dispute_outcome'     => 'nullable|string',
+            'dispute_review_status' => 'required|in:None,Pending,Reviewed,Overcharged',
+            'dispute_review_determination' => 'nullable|in:Granted,Partially Granted',
+            'dispute_outcome' => 'nullable|numeric',
+            'original_amount' => 'nullable|numeric',
             'tenant_id'           => 'required|exists:tenants,id',
         ];
     }

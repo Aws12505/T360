@@ -65,8 +65,10 @@
               <TableHead class="font-semibold">Invoice Received</TableHead>
               <TableHead class="font-semibold">On QS</TableHead>
               <TableHead class="font-semibold">QS Invoice Date</TableHead>
-              <TableHead class="font-semibold">Disputed</TableHead>
-
+              <TableHead class="font-semibold">Original Amount</TableHead>
+              <TableHead class="font-semibold">Dispute Status</TableHead>
+              <TableHead class="font-semibold">Determination</TableHead>
+              <TableHead class="font-semibold">Dispute Outcome</TableHead>
               <TableHead
                 class="font-semibold"
                 v-if="
@@ -81,7 +83,7 @@
 
           <TableBody>
             <TableRow v-if="!repairOrders.data.length">
-              <TableCell :colspan="isAdmin ? 16 : 15" class="py-8 text-center">
+              <TableCell :colspan="isAdmin ? 19 : 18" class="py-8 text-center">
                 <div
                   class="flex flex-col items-center justify-center rounded-lg border bg-muted/20 py-16"
                 >
@@ -171,7 +173,19 @@
               </TableCell>
 
               <TableCell class="whitespace-nowrap">
-                {{ o.disputed ? "Yes" : "No" }}
+                {{ o.original_amount ? formatCurrency(o.original_amount) : "—" }}
+              </TableCell>
+
+              <TableCell class="whitespace-nowrap">
+                {{ o.dispute_review_status || "None" }}
+              </TableCell>
+
+              <TableCell class="whitespace-nowrap">
+                {{ o.dispute_review_determination || "—" }}
+              </TableCell>
+
+              <TableCell class="whitespace-nowrap">
+                {{ o.dispute_outcome ? formatCurrency(o.dispute_outcome) : "—" }}
               </TableCell>
 
               <TableCell
