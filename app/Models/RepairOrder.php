@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Scopes\TenantScope;
+
 class RepairOrder extends Model
 {
     protected $fillable = [
@@ -21,8 +22,10 @@ class RepairOrder extends Model
         'invoice_received',
         'on_qs',
         'qs_invoice_date',
-        'disputed',
+        'dispute_review_status',
+        'dispute_review_determination',
         'dispute_outcome',
+        'original_amount',
         'tenant_id',
     ];
 
@@ -40,11 +43,11 @@ class RepairOrder extends Model
 
     // Many-to-many with Areas Of Concern
     public function areasOfConcern()
-{
-    return $this->belongsToMany(AreaOfConcern::class, 'area_of_concern_repair_order')
-                ->withTimestamps()
-                ->withTrashed(); // Include soft deleted areas of concern
-}
+    {
+        return $this->belongsToMany(AreaOfConcern::class, 'area_of_concern_repair_order')
+            ->withTimestamps()
+            ->withTrashed(); // Include soft deleted areas of concern
+    }
 
     // Relationship to Tenant
     public function tenant()
@@ -60,7 +63,7 @@ class RepairOrder extends Model
 
     protected static function booted()
     {
-        if(Auth::check()) {
+        if (Auth::check()) {
             static::addGlobalScope(new TenantScope);
         }
     }
