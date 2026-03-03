@@ -407,7 +407,9 @@ class RepairOrderImportExportService
      */
     public function exportRepairOrders()
     {
-        $repairOrders = RepairOrder::with([
+        $isSuperAdmin = Auth::user()->tenant_id === null;
+
+        $query = RepairOrder::with([
             'truck',
             'vendor' => function ($query) {
                 $query->withTrashed();
@@ -419,7 +421,13 @@ class RepairOrderImportExportService
                 $query->withTrashed();
             },
             'tenant'
-        ])->get();
+        ]);
+
+        if (!$isSuperAdmin) {
+            $query->where('tenant_id', Auth::user()->tenant_id);
+        }
+
+        $repairOrders = $query->get();
 
         if ($repairOrders->isEmpty()) {
             return redirect()->back()->with('error', 'No Data');
@@ -429,58 +437,136 @@ class RepairOrderImportExportService
         $filePath = public_path($fileName);
         $file = fopen($filePath, 'w');
 
-        // ✅ CHANGED headers to match new dispute fields
-        $headers = [
-            'tenant_name',
-            'ro_number',
-            'ro_open_date',
-            'ro_close_date',
-            'truckid',
-            'repairs_made',
-            'vendor',
-            'wo_number',
-            'wo_status',
-            'invoice',
-            'invoice_amount',   // (revised amount in your system)
-            'original_amount',  // ✅ NEW
-            'invoice_received',
-            'on_qs',
-            'qs_invoice_date',
-            'dispute_review_status',        // ✅ NEW
-            'dispute_review_determination', // ✅ NEW
-            'dispute_outcome',              // ✅ NEW (decimal)
-            'area_of_concerns',
-        ];
+        // ✅ UTF-8 BOM
+        fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+        /*
+    |--------------------------------------------------------------------------
+    | HEADERS — MATCH QUICK SIGHT STYLE
+    |--------------------------------------------------------------------------
+    */
+
+        $headers = [];
+
+        if ($isSuperAdmin) {
+            $headers[] = 'Company Name';
+        }
+
+        $headers = array_merge($headers, [
+            'Work Order #',
+            'WO Start Date',
+            'WO End Date',
+            'Asset ID',
+            'Repairs Made',
+            'Vendor',
+            'WO Number',
+            'WO Status',
+            'Invoice #',
+            'Invoice Revised Amount',
+            'Invoice Amount',
+            'Invoice Received',
+            'On QS',
+            'Invoice Date',
+            'Dispute/Review Status',
+            'Dispute/Review Determination',
+            'Dispute Outcome',
+            'Areas Of Concern',
+        ]);
+
         fputcsv($file, $headers);
 
+        /*
+    |--------------------------------------------------------------------------
+    | HELPERS
+    |--------------------------------------------------------------------------
+    */
+
+        $formatCurrency = function ($value) {
+            return is_numeric($value)
+                ? '$' . number_format((float)$value, 2)
+                : '';
+        };
+
+        $properCase = function ($value) {
+            if (!$value) return '';
+            return ucwords(strtolower($value));
+        };
+
+        /*
+    |--------------------------------------------------------------------------
+    | DATA
+    |--------------------------------------------------------------------------
+    */
+
         foreach ($repairOrders as $ro) {
-            fputcsv($file, [
-                $ro->tenant->name ?? '—',
-                $ro->ro_number,
-                !empty($ro->ro_open_date) ? Carbon::parse($ro->ro_open_date)->format('m/d/Y') : '',
-                !empty($ro->ro_close_date) ? Carbon::parse($ro->ro_close_date)->format('m/d/Y') : '',
+
+            $row = [];
+
+            if ($isSuperAdmin) {
+                $row[] = $properCase($ro->tenant->name ?? '—');
+            }
+
+            $row = array_merge($row, [
+
+                // IDs stay untouched
+                $ro->ro_number ?? '',
+
+                $ro->ro_open_date
+                    ? Carbon::parse($ro->ro_open_date)->format('m/d/Y')
+                    : '',
+
+                $ro->ro_close_date
+                    ? Carbon::parse($ro->ro_close_date)->format('m/d/Y')
+                    : '',
+
                 $ro->truck?->truckid ?? '—',
-                $ro->repairs_made,
+
+                $properCase($ro->repairs_made),
+
                 $ro->vendor
-                    ? ($ro->vendor->trashed() ? $ro->vendor->vendor_name . ' (Deleted)' : $ro->vendor->vendor_name)
+                    ? ($ro->vendor->trashed()
+                        ? $properCase($ro->vendor->vendor_name) . ' (Deleted)'
+                        : $properCase($ro->vendor->vendor_name))
                     : '—',
-                $ro->wo_number,
+
+                $ro->wo_number ?? '',
+
                 $ro->woStatus
-                    ? ($ro->woStatus->trashed() ? $ro->woStatus->name . ' (Deleted)' : $ro->woStatus->name)
+                    ? ($ro->woStatus->trashed()
+                        ? $properCase($ro->woStatus->name) . ' (Deleted)'
+                        : $properCase($ro->woStatus->name))
                     : '—',
-                $ro->invoice,
-                $ro->invoice_amount,
-                $ro->original_amount, // ✅ NEW
-                $ro->invoice_received ? 'Yes' : 'No',
-                ucfirst($ro->on_qs),
-                !empty($ro->qs_invoice_date) ? Carbon::parse($ro->qs_invoice_date)->format('m/d/Y') : '',
-                $ro->dispute_review_status,        // ✅ NEW
-                $ro->dispute_review_determination, // ✅ NEW
-                $ro->dispute_outcome,              // ✅ NEW
-                implode(',', $ro->areasOfConcern->map(function ($area) {
-                    return $area->trashed() ? $area->concern . ' (Deleted)' : $area->concern;
+
+                $ro->invoice ?? '',
+
+                // ✅ Revised amount (your system invoice_amount)
+                $formatCurrency($ro->invoice_amount),
+
+                // ✅ Original amount (if exists)
+                $formatCurrency($ro->original_amount),
+
+                $ro->invoice_received ? 'True' : 'False',
+
+                $properCase($ro->on_qs),
+
+                $ro->qs_invoice_date
+                    ? Carbon::parse($ro->qs_invoice_date)->format('m/d/Y')
+                    : '',
+
+                $properCase($ro->dispute_review_status),
+
+                $properCase($ro->dispute_review_determination),
+
+                $formatCurrency($ro->dispute_outcome),
+
+                implode(',', $ro->areasOfConcern->map(function ($area) use ($properCase) {
+                    return $area->trashed()
+                        ? $properCase($area->concern) . ' (Deleted)'
+                        : $properCase($area->concern);
                 })->toArray()),
             ]);
+
+            fputcsv($file, $row);
         }
 
         fclose($file);
