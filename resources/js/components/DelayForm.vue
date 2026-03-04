@@ -34,36 +34,21 @@
       <!-- Load ID -->
       <div>
         <Label for="load_id">Load ID</Label>
-        <Input
-          id="load_id"
-          v-model="form.load_id"
-          placeholder="Optional load ID..."
-          class="w-full"
-        />
+        <Input id="load_id" v-model="form.load_id" placeholder="Optional load ID..." class="w-full" />
         <InputError :message="form.errors.load_id" />
       </div>
 
       <!-- Driver Name -->
       <div>
         <Label for="driver_name">Driver Name</Label>
-        <Input
-          id="driver_name"
-          v-model="form.driver_name"
-          placeholder="Optional..."
-          class="w-full"
-        />
+        <Input id="driver_name" v-model="form.driver_name" placeholder="Optional..." class="w-full" />
         <InputError :message="form.errors.driver_name" />
       </div>
 
       <!-- Delay Reason -->
       <div>
         <Label for="delay_reason">Delay Reason</Label>
-        <Input
-          id="delay_reason"
-          v-model="form.delay_reason"
-          placeholder="Optional reason..."
-          class="w-full"
-        />
+        <Input id="delay_reason" v-model="form.delay_reason" placeholder="Optional reason..." class="w-full" />
         <InputError :message="form.errors.delay_reason" />
       </div>
 
@@ -72,39 +57,23 @@
         <Label>Delay Duration</Label>
         <div class="flex items-center gap-3">
           <div class="flex-1">
-            <Input
-              type="number"
-              min="0"
-              v-model.number="form.delay_duration_hours"
-              class="w-full"
-              placeholder="Hours"
-            />
+            <Input type="number" min="0" v-model.number="form.delay_duration_hours" class="w-full"
+              placeholder="Hours" />
             <span class="text-xs text-muted-foreground mt-1 block">Hours</span>
           </div>
           <span class="text-muted-foreground mt-[-14px]">:</span>
           <div class="flex-1">
-            <Input
-              type="number"
-              min="0"
-              max="59"
-              v-model.number="form.delay_duration_minutes"
-              class="w-full"
-              placeholder="Minutes"
-            />
+            <Input type="number" min="0" max="59" v-model.number="form.delay_duration_minutes" class="w-full"
+              placeholder="Minutes" />
             <span class="text-xs text-muted-foreground mt-1 block">Minutes</span>
           </div>
           <!-- Auto-resolved preview -->
-          <div
-            v-if="resolvedCategory"
-            class="flex-1 rounded-md border bg-muted/30 px-3 py-2 text-sm text-center"
-          >
+          <div v-if="resolvedCategory" class="flex-1 rounded-md border bg-muted/30 px-3 py-2 text-sm text-center">
             <span class="block text-xs text-muted-foreground mb-0.5">Category</span>
             <span class="font-medium">{{ resolvedCategory }}</span>
           </div>
-          <div
-            v-if="resolvedPenalty !== null"
-            class="flex-1 rounded-md border bg-muted/30 px-3 py-2 text-sm text-center"
-          >
+          <div v-if="resolvedPenalty !== null"
+            class="flex-1 rounded-md border bg-muted/30 px-3 py-2 text-sm text-center">
             <span class="block text-xs text-muted-foreground mb-0.5">Penalty</span>
             <span class="font-medium">{{ resolvedPenalty }}</span>
           </div>
@@ -128,11 +97,7 @@
       <!-- Driver Controllable -->
       <div>
         <Label for="driver_controllable">Driver Controllable</Label>
-        <select
-          id="driver_controllable"
-          v-model="form.driver_controllable"
-          class="select-base"
-        >
+        <select id="driver_controllable" v-model="form.driver_controllable" class="select-base">
           <option :value="null">N/A</option>
           <option :value="true">Yes</option>
           <option :value="false">No</option>
@@ -143,11 +108,7 @@
       <!-- Carrier Controllable -->
       <div>
         <Label for="carrier_controllable">Carrier Controllable</Label>
-        <select
-          id="carrier_controllable"
-          v-model="form.carrier_controllable"
-          class="select-base"
-        >
+        <select id="carrier_controllable" v-model="form.carrier_controllable" class="select-base">
           <option :value="null">N/A</option>
           <option :value="true">Yes</option>
           <option :value="false">No</option>
@@ -157,15 +118,8 @@
     </div>
 
     <!-- Form Actions -->
-    <div
-      class="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:justify-end sm:space-x-2 pt-4 border-t"
-    >
-      <Button
-        type="button"
-        @click="emit('close')"
-        variant="outline"
-        class="w-full sm:w-auto"
-      >
+    <div class="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:justify-end sm:space-x-2 pt-4 border-t">
+      <Button type="button" @click="emit('close')" variant="outline" class="w-full sm:w-auto">
         Cancel
       </Button>
       <Button type="submit" :disabled="form.processing" class="w-full sm:w-auto">
@@ -305,16 +259,16 @@ function submit() {
       ? "ontime.update.admin"
       : "ontime.store.admin"
     : isEdit
-    ? "ontime.update"
-    : "ontime.store";
+      ? "ontime.update"
+      : "ontime.store";
 
   const routeParams = props.isSuperAdmin
     ? isEdit
-      ? { id: form.id }
+      ? { delay: form.id }
       : {}
     : isEdit
-    ? { tenantSlug: props.tenantSlug, id: form.id }
-    : { tenantSlug: props.tenantSlug };
+      ? { tenantSlug: props.tenantSlug, delay: form.id }
+      : { tenantSlug: props.tenantSlug };
 
   const method = isEdit ? "put" : "post";
 
@@ -330,9 +284,6 @@ function submit() {
 
 <style scoped>
 .select-base {
-  @apply flex h-10 w-full items-center rounded-md border border-input bg-background
-         px-3 py-2 text-sm ring-offset-background appearance-none
-         focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2
-         disabled:cursor-not-allowed disabled:opacity-50;
+  @apply flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background appearance-none focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
 }
 </style>
