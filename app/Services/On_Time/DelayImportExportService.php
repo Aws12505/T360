@@ -538,8 +538,8 @@ class DelayImportExportService
         $hasReason = !empty($delay->delay_reason);
 
         return match ($delay->delay_type) {
-            'origin'      => $hasReason ? 'Delay to Origin'      : 'Origin Leg',
-            'destination' => $hasReason ? 'Delay to Destination' : 'Destination Leg',
+            'origin'      => $hasReason ? 'Origin'      : 'Origin',
+            'destination' => $hasReason ? 'Destination' : 'Destination',
             default       => ucfirst($delay->delay_type),
         };
     }
