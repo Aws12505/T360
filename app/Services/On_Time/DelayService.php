@@ -32,7 +32,7 @@ class DelayService
      */
     private function resolveDuration(array $data): int
     {
-        $hours   = (int) ($data['delay_duration_hours']   ?? 0);
+        $hours = (int) ($data['delay_duration_hours'] ?? 0);
         $minutes = (int) ($data['delay_duration_minutes'] ?? 0);
         return ($hours * 60) + $minutes;
     }
@@ -48,10 +48,10 @@ class DelayService
     private function resolveCategory(int $totalMinutes): string
     {
         return match (true) {
-            $totalMinutes <= 60  => '1_60',
+            $totalMinutes <= 60 => '1_60',
             $totalMinutes <= 240 => '61_240',
             $totalMinutes <= 600 => '241_600',
-            default              => '601_plus',
+            default => '601_plus',
         };
     }
 
@@ -66,11 +66,11 @@ class DelayService
     private function resolvePenalty(string $category): int
     {
         return match ($category) {
-            '1_60'     => 1,
-            '61_240'   => 2,
-            '241_600'  => 4,
+            '1_60' => 1,
+            '61_240' => 2,
+            '241_600' => 4,
             '601_plus' => 8,
-            default    => 0,
+            default => 0,
         };
     }
 
@@ -80,13 +80,13 @@ class DelayService
      */
     private function resolveComputedFields(array $data): array
     {
-        $totalMinutes          = $this->resolveDuration($data);
-        $category              = $this->resolveCategory($totalMinutes);
-        $penalty               = $this->resolvePenalty($category);
+        $totalMinutes = $this->resolveDuration($data);
+        $category = $this->resolveCategory($totalMinutes);
+        $penalty = $this->resolvePenalty($category);
 
         $data['delay_duration'] = $totalMinutes;
         $data['delay_category'] = $category;
-        $data['penalty']        = $penalty;
+        $data['penalty'] = $penalty;
 
         // Remove the UI-only fields — not stored in DB
         unset($data['delay_duration_hours'], $data['delay_duration_minutes']);
@@ -103,7 +103,7 @@ class DelayService
         $query = Delay::with('tenant');
 
         $dateFilter = $this->filteringService->getDateFilter();
-        $dateRange  = [];
+        $dateRange = [];
 
         if ($dateFilter !== 'full') {
             $query = $this->filteringService->applyDateFilter($query, $dateFilter, 'date', $dateRange);
@@ -168,26 +168,26 @@ class DelayService
         $delays = $query->latest('date')->paginate($perPage);
 
         $isSuperAdmin = is_null(Auth::user()->tenant_id);
-        $tenantSlug   = $isSuperAdmin ? null : Auth::user()->tenant->slug;
-        $tenants      = $isSuperAdmin ? Tenant::all() : [];
+        $tenantSlug = $isSuperAdmin ? null : Auth::user()->tenant->slug;
+        $tenants = $isSuperAdmin ? Tenant::all() : [];
 
         // Week number calculation
-        $weekNumber      = null;
+        $weekNumber = null;
         $startWeekNumber = null;
-        $endWeekNumber   = null;
-        $year            = null;
+        $endWeekNumber = null;
+        $year = null;
 
         if (!empty($dateRange) && isset($dateRange['start'])) {
             $startDate = Carbon::parse($dateRange['start']);
-            $year      = $startDate->year;
+            $year = $startDate->year;
 
             if (in_array($dateFilter, ['yesterday', 'current-week'])) {
-                $weekNumber      = $this->weekNumberSundayStart($startDate);
+                $weekNumber = $this->weekNumberSundayStart($startDate);
                 $startWeekNumber = $endWeekNumber = null;
             } else {
-                $weekNumber      = null;
+                $weekNumber = null;
                 $startWeekNumber = $this->weekNumberSundayStart($startDate);
-                $endWeekNumber   = isset($dateRange['end'])
+                $endWeekNumber = isset($dateRange['end'])
                     ? $this->weekNumberSundayStart(Carbon::parse($dateRange['end']))
                     : $startWeekNumber;
             }
@@ -204,31 +204,31 @@ class DelayService
         );
 
         $filters = [
-            'search'             => (string) $request->input('search', ''),
-            'delayType'          => (string) $request->input('delayType', ''),
-            'delayCategory'      => (string) $request->input('delayCategory', ''),
-            'disputed'           => (string) $request->input('disputed', ''),
+            'search' => (string) $request->input('search', ''),
+            'delayType' => (string) $request->input('delayType', ''),
+            'delayCategory' => (string) $request->input('delayCategory', ''),
+            'disputed' => (string) $request->input('disputed', ''),
             'driverControllable' => (string) $request->input('driverControllable', ''),
             'carrierControllable' => (string) $request->input('carrierControllable', ''),
-            'delayReasonFilter'  => (string) $request->input('delayReasonFilter', 'with_reason'),
+            'delayReasonFilter' => (string) $request->input('delayReasonFilter', 'with_reason'),
         ];
 
         return [
-            'delays'           => $delays,
-            'tenantSlug'       => $tenantSlug,
-            'isSuperAdmin'     => $isSuperAdmin,
-            'tenants'          => $tenants,
-            'dateRange'        => $dateRange,
-            'dateFilter'       => $dateFilter,
-            'weekNumber'       => $weekNumber,
-            'startWeekNumber'  => $startWeekNumber,
-            'endWeekNumber'    => $endWeekNumber,
-            'year'             => $year,
-            'delay_breakdown'  => $delayBreakdown,
-            'line_chart_data'  => $lineChartData['chartData'] ?? [],
-            'average_ontime'   => $lineChartData['averageOnTime'] ?? null,
-            'filters'          => $filters,
-            'permissions'      => Auth::user()->getAllPermissions(),
+            'delays' => $delays,
+            'tenantSlug' => $tenantSlug,
+            'isSuperAdmin' => $isSuperAdmin,
+            'tenants' => $tenants,
+            'dateRange' => $dateRange,
+            'dateFilter' => $dateFilter,
+            'weekNumber' => $weekNumber,
+            'startWeekNumber' => $startWeekNumber,
+            'endWeekNumber' => $endWeekNumber,
+            'year' => $year,
+            'delay_breakdown' => $delayBreakdown,
+            'line_chart_data' => $lineChartData['chartData'] ?? [],
+            'average_ontime' => $lineChartData['averageOnTime'] ?? null,
+            'filters' => $filters,
+            'permissions' => Auth::user()->getAllPermissions(),
         ];
     }
 
@@ -238,20 +238,40 @@ class DelayService
 
     public function createDelay(array $data): void
     {
-        $user              = Auth::user();
+        $user = Auth::user();
         $data['tenant_id'] = is_null($user->tenant_id) ? $data['tenant_id'] : $user->tenant_id;
-        $data              = $this->resolveComputedFields($data);
+        $data = $this->resolveComputedFields($data);
 
         Delay::create($data);
     }
 
     public function updateDelay(int $id, array $data): void
     {
-        $user              = Auth::user();
+        $user = Auth::user();
         $data['tenant_id'] = is_null($user->tenant_id) ? $data['tenant_id'] : $user->tenant_id;
-        $data              = $this->resolveComputedFields($data);
+        $data = $this->resolveComputedFields($data);
 
-        Delay::findOrFail($id)->update($data);
+        $delay = Delay::findOrFail($id);
+
+        $delay->fill([
+            'tenant_id' => $data['tenant_id'],
+            'date' => $data['date'],
+            'delay_type' => $data['delay_type'],
+            'driver_name' => $data['driver_name'],
+            'delay_category' => $data['delay_category'],
+            'penalty' => $data['penalty'],
+            'disputed' => $data['disputed'],
+            'driver_controllable' => $data['driver_controllable'],
+            'carrier_controllable' => $data['carrier_controllable'],
+            'delay_duration' => $data['delay_duration'],
+            'delay_reason' => $data['delay_reason'] ?? null,
+            'load_id' => $data['load_id'],
+        ]);
+
+        // 🚫 Skip model enforcement (same as rejection)
+        $delay->skipControllableEnforcement();
+
+        $delay->save();
     }
 
     public function deleteDelay(int $id): void
@@ -280,7 +300,7 @@ class DelayService
 
     private function weekNumberSundayStart(Carbon $date): int
     {
-        $dayOfYear   = $date->dayOfYear;
+        $dayOfYear = $date->dayOfYear;
         $firstDayDow = $date->copy()->startOfYear()->dayOfWeek;
         return (int) ceil(($dayOfYear + $firstDayDow) / 7);
     }

@@ -432,8 +432,12 @@ class DelayImportExportService
         if ($existing) {
             $hadReason    = !empty($existing->delay_reason);
             $hasNewReason = !empty($data['delay_reason']);
+ $hadPenalty    = (bool) $existing->carrier_controllable;
+        $hasNewPenalty = (bool) $data['carrier_controllable'];
 
-            if ($hadReason && !$hasNewReason) {
+        $reasonRemoved  = $hadReason && !$hasNewReason;
+        $penaltyRemoved = $hadPenalty && !$hasNewPenalty;
+            if ($reasonRemoved || $penaltyRemoved)  {
                 // Had a reason before, now cleared → auto-win
                 $existing->update([
                     'carrier_controllable' => false,

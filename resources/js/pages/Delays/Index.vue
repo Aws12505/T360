@@ -821,7 +821,7 @@ function confirmDeleteSelected() {
 
 function deleteDelay(id) {
   const routeName = props.isSuperAdmin ? "ontime.destroy.admin" : "ontime.destroy";
-  const routeParams = props.isSuperAdmin ? { id } : { tenantSlug: props.tenantSlug, id };
+  const routeParams = props.isSuperAdmin ? { delay: id } : { tenantSlug: props.tenantSlug, delay: id };
   router.delete(route(routeName, routeParams), {
     preserveScroll: true,
     onSuccess: () => {

@@ -88,16 +88,13 @@ class Rejection extends Model
             }
 
             if (preg_match('/amazon/i', $rejection->rejection_reason)) {
-                $rejection->driver_controllable  = false;
+                $rejection->driver_controllable = false;
                 $rejection->carrier_controllable = false;
                 return true;
             }
 
-            if (
-                preg_match('/mechanical[_]?trailer/i', $rejection->rejection_reason) ||
-                preg_match('/weather/i', $rejection->rejection_reason)
-            ) {
-                $rejection->driver_controllable  = false;
+            if (preg_match('/mechanical[_]?trailer|weather|expired/i', $rejection->rejection_reason)) {
+                $rejection->driver_controllable = false;
                 $rejection->carrier_controllable = false;
             }
 
