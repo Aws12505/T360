@@ -1,14 +1,10 @@
 <template>
-  <AppLayout
-    :breadcrumbs="breadcrumbs"
-    :tenantSlug="tenantSlug"
-    :permissions="props.permissions"
-  >
+  <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug" :permissions="props.permissions">
+
     <Head title="Acceptance" />
 
     <div
-      class="w-full md:max-w-2xl lg:max-w-3xl xl:max-w-6xl lg:mx-auto m-0 p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6"
-    >
+      class="w-full md:max-w-2xl lg:max-w-3xl xl:max-w-6xl lg:mx-auto m-0 p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6">
       <!-- Success Message -->
       <Alert v-if="successMessage" variant="success">
         <AlertTitle>Success</AlertTitle>
@@ -22,55 +18,34 @@
       </Alert>
 
       <!-- Actions Section -->
-      <div
-        class="mb-2 flex flex-col items-center justify-between px-2 sm:flex-row md:mb-4 lg:mb-6"
-      >
-        <h1
-          class="text-lg font-bold text-gray-800 dark:text-gray-200 md:text-xl lg:text-2xl"
-        >
+      <div class="mb-2 flex flex-col items-center justify-between px-2 sm:flex-row md:mb-4 lg:mb-6">
+        <h1 class="text-lg font-bold text-gray-800 dark:text-gray-200 md:text-xl lg:text-2xl">
           Acceptance
         </h1>
 
         <div class="flex flex-wrap gap-3 ml-3">
-          <Button
-            v-if="permissionNames.includes('acceptance.create')"
-            class="px-2 py-0 md:px-4 md:py-2"
-            @click="openForm()"
-            variant="default"
-          >
+          <Button v-if="permissionNames.includes('acceptance.create')" class="px-2 py-0 md:px-4 md:py-2"
+            @click="openForm()" variant="default">
             <Icon name="plus" class="mr-1 h-4 w-4 md:mr-2" />
             Add Rejection
           </Button>
 
-          <Button
-            class="px-2 py-0 md:px-4 md:py-2"
-            v-if="
-              selectedRejections.length > 0 &&
-              permissionNames.includes('acceptance.delete')
-            "
-            @click="confirmDeleteSelected()"
-            variant="destructive"
-          >
+          <Button class="px-2 py-0 md:px-4 md:py-2" v-if="
+            selectedRejections.length > 0 &&
+            permissionNames.includes('acceptance.delete')
+          " @click="confirmDeleteSelected()" variant="destructive">
             <Icon name="trash" class="mr-1 h-4 w-4 md:mr-2" />
             Delete Selected ({{ selectedRejections.length }})
           </Button>
 
-          <Button
-            v-if="permissionNames.includes('acceptance.import')"
-            variant="secondary"
-            class="px-2 py-0 md:px-4 md:py-2 shadow-sm hover:shadow transition-all"
-            @click="showImportModal = true"
-          >
+          <Button v-if="permissionNames.includes('acceptance.import')" variant="secondary"
+            class="px-2 py-0 md:px-4 md:py-2 shadow-sm hover:shadow transition-all" @click="showImportModal = true">
             <Icon name="upload" class="mr-1 h-4 w-4 md:mr-2" />
             Import CSV
           </Button>
 
-          <Button
-            class="px-2 py-0 md:px-4 md:py-2"
-            @click.prevent="exportCSV"
-            variant="outline"
-            v-if="permissionNames.includes('acceptance.export')"
-          >
+          <Button class="px-2 py-0 md:px-4 md:py-2" @click.prevent="exportCSV" variant="outline"
+            v-if="permissionNames.includes('acceptance.export')">
             <Icon name="download" class="mr-1 h-4 w-4 md:mr-2" />
             Download CSV
           </Button>
@@ -85,45 +60,25 @@
         <CardContent class="p-2 md:p-4 lg:p-6">
           <div class="flex flex-col items-center gap-2 md:items-start">
             <div class="flex flex-wrap gap-1 md:gap-2">
-              <Button
-                @click="selectDateFilter('yesterday')"
-                variant="outline"
-                size="sm"
-                :class="{
-                  'border-primary bg-primary/10 text-primary': activeTab === 'yesterday',
-                }"
-              >
+              <Button @click="selectDateFilter('yesterday')" variant="outline" size="sm" :class="{
+                'border-primary bg-primary/10 text-primary': activeTab === 'yesterday',
+              }">
                 Yesterday
               </Button>
-              <Button
-                @click="selectDateFilter('current-week')"
-                variant="outline"
-                size="sm"
-                :class="{
-                  'border-primary bg-primary/10 text-primary':
-                    activeTab === 'current-week',
-                }"
-              >
+              <Button @click="selectDateFilter('current-week')" variant="outline" size="sm" :class="{
+                'border-primary bg-primary/10 text-primary':
+                  activeTab === 'current-week',
+              }">
                 WTD
               </Button>
-              <Button
-                @click="selectDateFilter('6w')"
-                variant="outline"
-                size="sm"
-                :class="{
-                  'border-primary bg-primary/10 text-primary': activeTab === '6w',
-                }"
-              >
+              <Button @click="selectDateFilter('6w')" variant="outline" size="sm" :class="{
+                'border-primary bg-primary/10 text-primary': activeTab === '6w',
+              }">
                 T6W
               </Button>
-              <Button
-                @click="selectDateFilter('quarterly')"
-                variant="outline"
-                size="sm"
-                :class="{
-                  'border-primary bg-primary/10 text-primary': activeTab === 'quarterly',
-                }"
-              >
+              <Button @click="selectDateFilter('quarterly')" variant="outline" size="sm" :class="{
+                'border-primary bg-primary/10 text-primary': activeTab === 'quarterly',
+              }">
                 Quarterly
               </Button>
             </div>
@@ -152,87 +107,62 @@
               <CardTitle class="text-lg md:text-xl lg:text-2xl">Filters</CardTitle>
 
               <!-- ── With/Without Reason toggle — always visible ── -->
-              <div
-                class="flex items-center rounded-lg border border-input bg-muted p-0.5 gap-0.5"
-              >
-                <button
-                  @click="setReasonFilter('with_reason')"
-                  :class="[
-                    'rounded-md px-3 py-1 text-xs font-medium transition-all',
-                    localFilters.rejectionReasonFilter === 'with_reason'
-                      ? 'bg-background text-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground',
-                  ]"
-                >
+              <div class="flex items-center rounded-lg border border-input bg-muted p-0.5 gap-0.5">
+                <button @click="setReasonFilter('with_reason')" :class="[
+                  'rounded-md px-3 py-1 text-xs font-medium transition-all',
+                  localFilters.rejectionReasonFilter === 'with_reason'
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground',
+                ]">
                   Rejected
                 </button>
-                <button
-                  @click="setReasonFilter('without_reason')"
-                  :class="[
-                    'rounded-md px-3 py-1 text-xs font-medium transition-all',
-                    localFilters.rejectionReasonFilter === 'without_reason'
-                      ? 'bg-background text-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground',
-                  ]"
-                >
+                <button @click="setReasonFilter('without_reason')" :class="[
+                  'rounded-md px-3 py-1 text-xs font-medium transition-all',
+                  localFilters.rejectionReasonFilter === 'without_reason'
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground',
+                ]">
                   Accepted
                 </button>
-                <button
-                  @click="setReasonFilter('all')"
-                  :class="[
-                    'rounded-md px-3 py-1 text-xs font-medium transition-all',
-                    localFilters.rejectionReasonFilter === 'all'
-                      ? 'bg-background text-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground',
-                  ]"
-                >
+                <button @click="setReasonFilter('all')" :class="[
+                  'rounded-md px-3 py-1 text-xs font-medium transition-all',
+                  localFilters.rejectionReasonFilter === 'all'
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground',
+                ]">
                   All
                 </button>
               </div>
 
               <!-- Active filter pills (when filters panel is collapsed) -->
               <div v-if="!showFilters && hasActiveFilters" class="flex flex-wrap gap-2">
-                <span
-                  v-if="localFilters.search"
-                  class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold"
-                >
+                <span v-if="localFilters.search"
+                  class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
                   Search: {{ localFilters.search }}
                 </span>
-                <span
-                  v-if="localFilters.rejectionType"
-                  class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold"
-                >
+                <span v-if="localFilters.rejectionType"
+                  class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
                   Type: {{ rejectionTypeLabel(localFilters.rejectionType) }}
                 </span>
-                <span
-                  v-if="localFilters.rejectionBucket"
-                  class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold"
-                >
+                <span v-if="localFilters.rejectionBucket"
+                  class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
                   Bucket: {{ bucketLabel(localFilters.rejectionBucket) }}
                 </span>
-                <span
-                  v-if="localFilters.disputed"
-                  class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold capitalize"
-                >
+                <span v-if="localFilters.disputed"
+                  class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold capitalize">
                   Disputed: {{ localFilters.disputed }}
                 </span>
-                <span
-                  v-if="localFilters.carrierControllable"
-                  class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold"
-                >
+                <span v-if="localFilters.carrierControllable"
+                  class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
                   Carrier:
                   {{ localFilters.carrierControllable === "true" ? "Yes" : "No" }}
                 </span>
-                <span
-                  v-if="localFilters.driverControllable"
-                  class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold"
-                >
+                <span v-if="localFilters.driverControllable"
+                  class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
                   Driver: {{ localFilters.driverControllable === "true" ? "Yes" : "No" }}
                 </span>
-                <span
-                  v-if="localFilters.penaltyMin || localFilters.penaltyMax"
-                  class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold"
-                >
+                <span v-if="localFilters.penaltyMin || localFilters.penaltyMax"
+                  class="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
                   Penalty: {{ localFilters.penaltyMin || "0" }} –
                   {{ localFilters.penaltyMax || "∞" }}
                 </span>
@@ -242,10 +172,7 @@
             <!-- Right: Show/Hide toggle -->
             <Button variant="ghost" size="sm" @click="showFilters = !showFilters">
               {{ showFilters ? "Hide Filters" : "Show Filters" }}
-              <Icon
-                :name="showFilters ? 'chevron-up' : 'chevron-down'"
-                class="ml-2 h-4 w-4"
-              />
+              <Icon :name="showFilters ? 'chevron-up' : 'chevron-down'" class="ml-2 h-4 w-4" />
             </Button>
           </div>
         </CardHeader>
@@ -256,22 +183,13 @@
             <div class="grid w-full grid-cols-1 gap-3 sm:grid-cols-3 md:gap-4">
               <div>
                 <Label for="search">Search</Label>
-                <Input
-                  class="h-9 w-full lg:h-10"
-                  id="search"
-                  v-model="localFilters.search"
-                  type="text"
-                  placeholder="Driver name, Block ID, Load ID..."
-                />
+                <Input class="h-9 w-full lg:h-10" id="search" v-model="localFilters.search" type="text"
+                  placeholder="Driver name, Block ID, Load ID..." />
               </div>
               <div>
                 <Label for="rejectionType">Rejection Type</Label>
-                <select
-                  id="rejectionType"
-                  v-model="localFilters.rejectionType"
-                  class="select-base"
-                  @change="localFilters.rejectionBucket = ''"
-                >
+                <select id="rejectionType" v-model="localFilters.rejectionType" class="select-base"
+                  @change="localFilters.rejectionBucket = ''">
                   <option value="">All Types</option>
                   <option value="advanced_block">Advanced Block</option>
                   <option value="block">Block</option>
@@ -280,19 +198,13 @@
               </div>
               <div>
                 <Label for="rejectionBucket">Rejection Bucket</Label>
-                <select
-                  id="rejectionBucket"
-                  v-model="localFilters.rejectionBucket"
-                  class="select-base"
-                >
+                <select id="rejectionBucket" v-model="localFilters.rejectionBucket" class="select-base">
                   <option value="">All Buckets</option>
                   <!-- Load buckets -->
-                  <template
-                    v-if="
-                      localFilters.rejectionType === 'load' ||
-                      localFilters.rejectionType === ''
-                    "
-                  >
+                  <template v-if="
+                    localFilters.rejectionType === 'load' ||
+                    localFilters.rejectionType === ''
+                  ">
                     <option value="rejected_after_start_time">After Start Time</option>
                     <option value="rejected_0_6_hours_before_start_time">
                       0–6 Hours Before
@@ -302,12 +214,10 @@
                     </option>
                   </template>
                   <!-- Block buckets -->
-                  <template
-                    v-if="
-                      localFilters.rejectionType === 'block' ||
-                      localFilters.rejectionType === ''
-                    "
-                  >
+                  <template v-if="
+                    localFilters.rejectionType === 'block' ||
+                    localFilters.rejectionType === ''
+                  ">
                     <option value="less_than_24">Less Than 24 Hours Before</option>
                     <option value="more_than_24">24+ Hours Before</option>
                   </template>
@@ -329,11 +239,7 @@
               </div>
               <div>
                 <Label for="carrierControllable">Carrier Controllable</Label>
-                <select
-                  id="carrierControllable"
-                  v-model="localFilters.carrierControllable"
-                  class="select-base"
-                >
+                <select id="carrierControllable" v-model="localFilters.carrierControllable" class="select-base">
                   <option value="">All</option>
                   <option value="true">Yes</option>
                   <option value="false">No</option>
@@ -341,11 +247,7 @@
               </div>
               <div>
                 <Label for="driverControllable">Driver Controllable</Label>
-                <select
-                  id="driverControllable"
-                  v-model="localFilters.driverControllable"
-                  class="select-base"
-                >
+                <select id="driverControllable" v-model="localFilters.driverControllable" class="select-base">
                   <option value="">All</option>
                   <option value="true">Yes</option>
                   <option value="false">No</option>
@@ -357,25 +259,13 @@
             <div class="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 md:gap-4">
               <div>
                 <Label for="penaltyMin">Penalty Min</Label>
-                <Input
-                  class="h-9 w-full lg:h-10"
-                  id="penaltyMin"
-                  v-model="localFilters.penaltyMin"
-                  type="number"
-                  min="0"
-                  placeholder="e.g. 0"
-                />
+                <Input class="h-9 w-full lg:h-10" id="penaltyMin" v-model="localFilters.penaltyMin" type="number"
+                  min="0" placeholder="e.g. 0" />
               </div>
               <div>
                 <Label for="penaltyMax">Penalty Max</Label>
-                <Input
-                  class="h-9 w-full lg:h-10"
-                  id="penaltyMax"
-                  v-model="localFilters.penaltyMax"
-                  type="number"
-                  min="0"
-                  placeholder="e.g. 100"
-                />
+                <Input class="h-9 w-full lg:h-10" id="penaltyMax" v-model="localFilters.penaltyMax" type="number"
+                  min="0" placeholder="e.g. 100" />
               </div>
             </div>
 
@@ -394,15 +284,10 @@
       </Card>
 
       <!-- Acceptance Dashboard -->
-      <AcceptanceDashboard
-        v-if="!props.isSuperAdmin"
-        :metricsData="acceptanceMetrics || {}"
-        :driversData="bottomDrivers || []"
-        :chartData="acceptanceChartData || {}"
-        :averageAcceptance="props.average_acceptance || null"
-        :currentDateFilter="props.dateRange?.label || ''"
-        :currentFilters="localFilters || {}"
-      />
+      <AcceptanceDashboard v-if="!props.isSuperAdmin" :metricsData="acceptanceMetrics || {}"
+        :driversData="bottomDrivers || []" :chartData="acceptanceChartData || {}"
+        :averageAcceptance="props.average_acceptance || null" :currentDateFilter="props.dateRange?.label || ''"
+        :currentFilters="localFilters || {}" />
 
       <!-- Rejections Table -->
       <Card class="mx-auto max-w-[95vw] overflow-x-auto md:max-w-[64vw] lg:max-w-full">
@@ -410,65 +295,32 @@
           <div class="overflow-x-auto">
             <Table class="relative h-[500px] overflow-auto">
               <TableHeader>
-                <TableRow
-                  class="sticky top-0 z-10 border-b bg-background hover:bg-background"
-                >
-                  <TableHead
-                    class="w-[50px]"
-                    v-if="permissionNames.includes('acceptance.delete')"
-                  >
+                <TableRow class="sticky top-0 z-10 border-b bg-background hover:bg-background">
+                  <TableHead class="w-[50px]" v-if="permissionNames.includes('acceptance.delete')">
                     <div class="flex items-center justify-center">
-                      <input
-                        type="checkbox"
-                        @change="toggleSelectAll"
-                        :checked="isAllSelected"
-                        class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                      />
+                      <input type="checkbox" @change="toggleSelectAll" :checked="isAllSelected"
+                        class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
                     </div>
                   </TableHead>
 
-                  <TableHead v-if="props.isSuperAdmin" class="whitespace-nowrap"
-                    >Company</TableHead
-                  >
+                  <TableHead v-if="props.isSuperAdmin" class="whitespace-nowrap">Company</TableHead>
 
-                  <TableHead
-                    v-for="col in visibleColumns"
-                    :key="col.key"
-                    class="cursor-pointer whitespace-nowrap"
-                    @click="sortBy(col.key)"
-                  >
+                  <TableHead v-for="col in visibleColumns" :key="col.key" class="cursor-pointer whitespace-nowrap"
+                    @click="sortBy(col.key)">
                     <div class="flex items-center gap-1">
                       {{ col.label }}
                       <span v-if="sortColumn === col.key">
-                        <svg
-                          v-if="sortDirection === 'asc'"
-                          class="h-4 w-4"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                        >
+                        <svg v-if="sortDirection === 'asc'" class="h-4 w-4" viewBox="0 0 24 24" fill="none"
+                          stroke="currentColor" stroke-width="2">
                           <path d="M8 15l4-4 4 4" />
                         </svg>
-                        <svg
-                          v-else
-                          class="h-4 w-4"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                        >
+                        <svg v-else class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                          stroke-width="2">
                           <path d="M16 9l-4 4-4-4" />
                         </svg>
                       </span>
                       <span v-else class="opacity-40">
-                        <svg
-                          class="h-4 w-4"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                        >
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                           <path d="M8 10l4-4 4 4" />
                           <path d="M16 14l-4 4-4-4" />
                         </svg>
@@ -476,12 +328,10 @@
                     </div>
                   </TableHead>
 
-                  <TableHead
-                    v-if="
-                      permissionNames.includes('acceptance.update') ||
-                      permissionNames.includes('acceptance.delete')
-                    "
-                  >
+                  <TableHead v-if="
+                    permissionNames.includes('acceptance.update') ||
+                    permissionNames.includes('acceptance.delete')
+                  ">
                     Actions
                   </TableHead>
                 </TableRow>
@@ -489,65 +339,37 @@
 
               <TableBody>
                 <TableRow v-if="sortedRejections.length === 0">
-                  <TableCell
-                    :colspan="totalColspan"
-                    class="py-8 text-center text-primary font-medium"
-                  >
+                  <TableCell :colspan="totalColspan" class="py-8 text-center text-primary font-medium">
                     No rejections found matching your criteria
                   </TableCell>
                 </TableRow>
 
-                <TableRow
-                  v-for="rejection in sortedRejections"
-                  :key="rejection.id"
-                  class="hover:bg-muted/50"
-                >
-                  <TableCell
-                    class="text-center"
-                    v-if="permissionNames.includes('acceptance.delete')"
-                  >
-                    <input
-                      type="checkbox"
-                      :value="rejection.id"
-                      v-model="selectedRejections"
-                      class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                    />
+                <TableRow v-for="rejection in sortedRejections" :key="rejection.id" class="hover:bg-muted/50">
+                  <TableCell class="text-center" v-if="permissionNames.includes('acceptance.delete')">
+                    <input type="checkbox" :value="rejection.id" v-model="selectedRejections"
+                      class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
                   </TableCell>
 
                   <TableCell v-if="props.isSuperAdmin" class="whitespace-nowrap">
                     {{ rejection.tenant?.name || "—" }}
                   </TableCell>
 
-                  <TableCell
-                    v-for="col in visibleColumns"
-                    :key="col.key"
-                    class="whitespace-nowrap text-sm"
-                  >
+                  <TableCell v-for="col in visibleColumns" :key="col.key" class="whitespace-nowrap text-sm">
                     <CellValue :col="col.key" :rejection="rejection" />
                   </TableCell>
 
-                  <TableCell
-                    v-if="
-                      permissionNames.includes('acceptance.delete') ||
-                      permissionNames.includes('acceptance.update')
-                    "
-                  >
+                  <TableCell v-if="
+                    permissionNames.includes('acceptance.delete') ||
+                    permissionNames.includes('acceptance.update')
+                  ">
                     <div class="flex space-x-2">
-                      <Button
-                        size="sm"
-                        @click="openForm(rejection)"
-                        variant="warning"
-                        v-if="permissionNames.includes('acceptance.update')"
-                      >
+                      <Button size="sm" @click="openForm(rejection)" variant="warning"
+                        v-if="permissionNames.includes('acceptance.update')">
                         <Icon name="pencil" class="mr-1 h-4 w-4" />
                         Edit
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        @click="confirmDeleteRejection(rejection.id)"
-                        v-if="permissionNames.includes('acceptance.delete')"
-                      >
+                      <Button size="sm" variant="destructive" @click="confirmDeleteRejection(rejection.id)"
+                        v-if="permissionNames.includes('acceptance.delete')">
                         <Icon name="trash" class="mr-1 h-4 w-4" />
                         Delete
                       </Button>
@@ -568,11 +390,8 @@
                 </span>
                 <div class="flex items-center gap-2">
                   <span class="text-sm">Show:</span>
-                  <select
-                    v-model="localPerPage"
-                    @change="changePerPage"
-                    class="h-8 rounded-md border border-input bg-background px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                  >
+                  <select v-model="localPerPage" @change="changePerPage"
+                    class="h-8 rounded-md border border-input bg-background px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring">
                     <option v-for="size in [10, 25, 50, 100]" :key="size" :value="size">
                       {{ size }}
                     </option>
@@ -580,16 +399,9 @@
                 </div>
               </div>
               <div class="flex flex-wrap">
-                <Button
-                  v-for="link in props.rejections.links"
-                  :key="link.label"
-                  @click="visitPage(link.url)"
-                  :disabled="!link.url"
-                  variant="ghost"
-                  size="sm"
-                  class="mx-1"
-                  :class="{ 'border-primary bg-primary/10 text-primary': link.active }"
-                >
+                <Button v-for="link in props.rejections.links" :key="link.label" @click="visitPage(link.url)"
+                  :disabled="!link.url" variant="ghost" size="sm" class="mx-1"
+                  :class="{ 'border-primary bg-primary/10 text-primary': link.active }">
                   <span v-html="link.label"></span>
                 </Button>
               </div>
@@ -610,15 +422,9 @@
               rejection.
             </DialogDescription>
           </DialogHeader>
-          <RejectionForm
-            :rejection="normalizedRejection"
-            :tenants="props.tenants"
-            :is-super-admin="props.isSuperAdmin"
-            :tenant-slug="props.tenantSlug"
-            @close="formModal = false"
-            @success="onFormSuccess"
-            class="max-h-[75vh] overflow-y-auto p-4 sm:p-6"
-          />
+          <RejectionForm :rejection="normalizedRejection" :tenants="props.tenants" :is-super-admin="props.isSuperAdmin"
+            :tenant-slug="props.tenantSlug" @close="formModal = false" @success="onFormSuccess"
+            class="max-h-[75vh] overflow-y-auto p-4 sm:p-6" />
         </DialogContent>
       </Dialog>
 
@@ -633,18 +439,8 @@
             </DialogDescription>
           </DialogHeader>
           <DialogFooter class="px-4 sm:px-6">
-            <Button
-              type="button"
-              @click="showDeleteSelectedModal = false"
-              variant="outline"
-              >Cancel</Button
-            >
-            <Button
-              type="button"
-              @click="deleteSelectedRejections()"
-              variant="destructive"
-              >Delete Selected</Button
-            >
+            <Button type="button" @click="showDeleteSelectedModal = false" variant="outline">Cancel</Button>
+            <Button type="button" @click="deleteSelectedRejections()" variant="destructive">Delete Selected</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -660,28 +456,15 @@
             </DialogDescription>
           </DialogHeader>
           <DialogFooter class="px-4 sm:px-6">
-            <Button type="button" @click="showDeleteModal = false" variant="outline"
-              >Cancel</Button
-            >
-            <Button
-              type="button"
-              @click="deleteRejection(rejectionToDelete)"
-              variant="destructive"
-              >Delete</Button
-            >
+            <Button type="button" @click="showDeleteModal = false" variant="outline">Cancel</Button>
+            <Button type="button" @click="deleteRejection(rejectionToDelete)" variant="destructive">Delete</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       <!-- Import Modal -->
-      <ImportRejectionModal
-        v-model:open="showImportModal"
-        :is-super-admin="props.isSuperAdmin"
-        :tenant-slug="props.tenantSlug"
-        :tenants="props.tenants"
-        @success="onImportSuccess"
-        @error="onImportError"
-      />
+      <ImportRejectionModal v-model:open="showImportModal" :is-super-admin="props.isSuperAdmin"
+        :tenant-slug="props.tenantSlug" :tenants="props.tenants" @success="onImportSuccess" @error="onImportError" />
     </div>
   </AppLayout>
 </template>
@@ -819,7 +602,7 @@ function getRejectionType(r) {
 function rejectionTypeLabel(type) {
   return (
     { advanced_block: "Advanced Block", block: "Block", load: "Load", unknown: "—" }[
-      type
+    type
     ] ?? type
   );
 }
@@ -828,9 +611,9 @@ function bucketLabel(bucket) {
   const map = {
     more_than_24: "24+ hours before start",
     less_than_24: "Less than 24 hours before start",
-    rejected_after_start_time: "Rejected after start time",
-    rejected_0_6_hours_before_start_time: "Rejected 0–6 hours before start",
-    rejected_6_plus_hours_before_start_time: "Rejected 6+ hours before start",
+    rejected_after_start_time: "After start time",
+    rejected_0_6_hours_before_start_time: "0-6 Hours",
+    rejected_6_plus_hours_before_start_time: "6+ Hours",
   };
   return map[bucket] ?? bucket ?? "—";
 }
@@ -1067,10 +850,10 @@ const ALL_COLUMNS = [
     render: (r) =>
       r.rejection_reason
         ? h(
-            "span",
-            { class: "block max-w-[180px] truncate", title: r.rejection_reason },
-            r.rejection_reason
-          )
+          "span",
+          { class: "block max-w-[180px] truncate", title: r.rejection_reason },
+          r.rejection_reason
+        )
         : h("span", { class: "text-muted-foreground" }, "—"),
   },
 
@@ -1231,8 +1014,8 @@ const sortedRejections = computed(() => {
       String(valA).toLowerCase() < String(valB).toLowerCase()
         ? -1
         : String(valA).toLowerCase() > String(valB).toLowerCase()
-        ? 1
-        : 0;
+          ? 1
+          : 0;
     return sortDirection.value === "asc" ? cmp : -cmp;
   });
 });
@@ -1575,9 +1358,6 @@ onMounted(() => {
 
 <style scoped>
 .select-base {
-  @apply flex h-10 w-full items-center rounded-md border border-input bg-background
-         px-3 py-2 text-sm ring-offset-background
-         focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2
-         disabled:cursor-not-allowed disabled:opacity-50;
+  @apply flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
 }
 </style>
