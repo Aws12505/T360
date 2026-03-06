@@ -120,7 +120,7 @@ class RepairOrderImportExportService
         };
 
         $normalizedHeaderRow = array_map($normalizeHeader, $headerRow);
-        $normalizedExpected  = array_map($normalizeHeader, $expectedHeaders);
+        $normalizedExpected = array_map($normalizeHeader, $expectedHeaders);
 
         if (count($normalizedHeaderRow) !== count($normalizedExpected) || $normalizedHeaderRow !== $normalizedExpected) {
             fclose($handle);
@@ -136,7 +136,8 @@ class RepairOrderImportExportService
         // Flexible date parser (supports m/d/Y, Y-m-d, timestamps).
         $parseFlexDate = function ($val): ?string {
             $val = trim((string) $val);
-            if ($val === '') return null;
+            if ($val === '')
+                return null;
 
             try {
                 return Carbon::createFromFormat('m/d/Y', $val)->format('Y-m-d');
@@ -171,8 +172,8 @@ class RepairOrderImportExportService
         ✅ NEW: invoice_amount = revised amount
         ✅ NEW: original_amount only if different; then original_amount = invoice amount (original)
         */
-            $qsInvoiceAmountOriginal = trim((string)($qs['Invoice amount'] ?? ''));
-            $qsInvoiceAmountRevised  = trim((string)($qs['Invoice revised amount'] ?? ''));
+            $qsInvoiceAmountOriginal = trim((string) ($qs['Invoice amount'] ?? ''));
+            $qsInvoiceAmountRevised = trim((string) ($qs['Invoice revised amount'] ?? ''));
 
             $invoiceAmount = ($qsInvoiceAmountRevised !== '' && is_numeric($qsInvoiceAmountRevised))
                 ? (float) $qsInvoiceAmountRevised
@@ -182,7 +183,7 @@ class RepairOrderImportExportService
             if (
                 $qsInvoiceAmountOriginal !== '' && is_numeric($qsInvoiceAmountOriginal) &&
                 $qsInvoiceAmountRevised !== '' && is_numeric($qsInvoiceAmountRevised) &&
-                (float)$qsInvoiceAmountOriginal != (float)$qsInvoiceAmountRevised
+                (float) $qsInvoiceAmountOriginal != (float) $qsInvoiceAmountRevised
             ) {
                 $originalAmount = (float) $qsInvoiceAmountOriginal;
             }
@@ -190,9 +191,9 @@ class RepairOrderImportExportService
             /*
         ✅ NEW: dispute fields from QuickSight
         */
-            $status = trim((string)($qs['Dispute/Review status'] ?? 'None'));
-            $determination = trim((string)($qs['Dispute/Review determination'] ?? ''));
-            $outcome = trim((string)($qs['Dispute outcome'] ?? ''));
+            $status = trim((string) ($qs['Dispute/Review status'] ?? 'None'));
+            $determination = trim((string) ($qs['Dispute/Review determination'] ?? ''));
+            $outcome = trim((string) ($qs['Dispute outcome'] ?? ''));
 
             $allowedStatuses = ['None', 'Pending', 'Reviewed', 'Overcharged'];
             if (!in_array($status, $allowedStatuses, true)) {
@@ -204,36 +205,38 @@ class RepairOrderImportExportService
                 $determination = null;
             }
 
-            $outcome = ($outcome !== '' && is_numeric($outcome)) ? (float)$outcome : null;
-
+            $outcome = ($outcome !== '' && is_numeric($outcome)) ? (float) $outcome : null;
+            if (($outcome === '' || $outcome === null || $outcome === '0') && $invoiceAmount !== null && $invoiceAmount !== $qsInvoiceAmountRevised) {
+                $outcome = $invoiceAmount - $qsInvoiceAmountRevised;
+            }
             // Map QS -> internal structure used below (kept your flow)
             $raw = [
-                'ro_number'        => trim((string)($qs['Work Order #'] ?? '')),
-                'vendor'           => trim((string)($qs['Vendor'] ?? '')),
-                'ro_open_date'     => trim((string)($qs['WO start date'] ?? '')),
-                'ro_close_date'    => trim((string)($qs['WO end date'] ?? '')),
-                'truckid'          => trim((string)($qs['Asset ID'] ?? '')),
-                'repairs_made'     => null,
+                'ro_number' => trim((string) ($qs['Work Order #'] ?? '')),
+                'vendor' => trim((string) ($qs['Vendor'] ?? '')),
+                'ro_open_date' => trim((string) ($qs['WO start date'] ?? '')),
+                'ro_close_date' => trim((string) ($qs['WO end date'] ?? '')),
+                'truckid' => trim((string) ($qs['Asset ID'] ?? '')),
+                'repairs_made' => null,
 
-                'wo_number'        => null,
-                'wo_status'        => '',
+                'wo_number' => null,
+                'wo_status' => '',
 
-                'invoice'          => trim((string)($qs['Invoice #'] ?? '')),
-                'qs_invoice_date'  => trim((string)($qs['Invoice date'] ?? '')),
+                'invoice' => trim((string) ($qs['Invoice #'] ?? '')),
+                'qs_invoice_date' => trim((string) ($qs['Invoice date'] ?? '')),
 
                 // ✅ CHANGED: invoice_amount is revised amount
-                'invoice_amount'   => $invoiceAmount,
+                'invoice_amount' => $invoiceAmount,
                 // ✅ NEW
-                'original_amount'  => $originalAmount,
+                'original_amount' => $originalAmount,
 
                 // defaults
                 'invoice_received' => (!empty($qs['Invoice #']) ? 'yes' : 'no'),
-                'on_qs'            => 'yes',
+                'on_qs' => 'yes',
 
                 // ✅ NEW dispute fields
-                'dispute_review_status'        => $status,
+                'dispute_review_status' => $status,
                 'dispute_review_determination' => $determination,
-                'dispute_outcome'              => $outcome,
+                'dispute_outcome' => $outcome,
 
                 // QS doesn't have areas of concern
                 'area_of_concerns' => '',
@@ -252,19 +255,19 @@ class RepairOrderImportExportService
                 $rowsSkipped++;
                 continue;
             }
-            $raw['ro_close_date']   = $parseFlexDate($raw['ro_close_date'] ?? null);
+            $raw['ro_close_date'] = $parseFlexDate($raw['ro_close_date'] ?? null);
             $raw['qs_invoice_date'] = $parseFlexDate($raw['qs_invoice_date'] ?? null);
 
             // Convert textual booleans to actual booleans / enums
-            $raw['invoice_received'] = strtolower(trim((string)($raw['invoice_received'] ?? 'no'))) === 'yes';
+            $raw['invoice_received'] = strtolower(trim((string) ($raw['invoice_received'] ?? 'no'))) === 'yes';
 
-            $onQsValue = strtolower(trim((string)($raw['on_qs'] ?? 'no')));
+            $onQsValue = strtolower(trim((string) ($raw['on_qs'] ?? 'no')));
             $raw['on_qs'] = $onQsValue === 'yes'
                 ? 'yes'
                 : ($onQsValue === 'not expected' ? 'not expected' : 'no');
 
             // Process truck (truckid -> truck_id)
-            $truckid = trim((string)($raw['truckid'] ?? ''));
+            $truckid = trim((string) ($raw['truckid'] ?? ''));
             if ($truckid === '') {
                 $rowsSkipped++;
                 continue;
@@ -278,7 +281,7 @@ class RepairOrderImportExportService
             unset($raw['truckid']);
 
             // Process vendor (vendor name -> vendor_id)
-            $vendorName = trim((string)($raw['vendor'] ?? ''));
+            $vendorName = trim((string) ($raw['vendor'] ?? ''));
             if ($vendorName === '') {
                 $rowsSkipped++;
                 continue;
@@ -297,7 +300,7 @@ class RepairOrderImportExportService
 
             // Process WO Status (nullable)
             $raw['wo_status_id'] = null;
-            $woStatusName = trim((string)($raw['wo_status'] ?? ''));
+            $woStatusName = trim((string) ($raw['wo_status'] ?? ''));
             if ($woStatusName !== '') {
                 $woStatus = WoStatus::where('name', $woStatusName)->first();
                 if (!$woStatus) {
@@ -348,29 +351,29 @@ class RepairOrderImportExportService
 
             // ✅ CHANGED: updated validation rules for new fields (no disputed)
             $validator = Validator::make($raw, [
-                'ro_number'        => 'nullable|string',
-                'ro_open_date'     => 'required|date',
-                'ro_close_date'    => 'nullable|date',
-                'truck_id'         => 'required|exists:trucks,id',
-                'vendor_id'        => 'required|exists:vendors,id',
+                'ro_number' => 'nullable|string',
+                'ro_open_date' => 'required|date',
+                'ro_close_date' => 'nullable|date',
+                'truck_id' => 'required|exists:trucks,id',
+                'vendor_id' => 'required|exists:vendors,id',
 
-                'wo_number'        => 'nullable|string',
-                'wo_status_id'     => 'nullable|exists:wo_statuses,id',
+                'wo_number' => 'nullable|string',
+                'wo_status_id' => 'nullable|exists:wo_statuses,id',
 
-                'invoice'          => 'nullable|string',
-                'invoice_amount'   => 'nullable|numeric',
-                'original_amount'  => 'nullable|numeric',
+                'invoice' => 'nullable|string',
+                'invoice_amount' => 'nullable|numeric',
+                'original_amount' => 'nullable|numeric',
                 'invoice_received' => 'required|boolean',
-                'on_qs'            => 'required|in:yes,no,not expected',
-                'qs_invoice_date'  => 'nullable|date',
+                'on_qs' => 'required|in:yes,no,not expected',
+                'qs_invoice_date' => 'nullable|date',
 
                 // ✅ NEW dispute fields
-                'dispute_review_status'        => 'required|in:None,Pending,Reviewed,Overcharged',
+                'dispute_review_status' => 'required|in:None,Pending,Reviewed,Overcharged',
                 'dispute_review_determination' => 'nullable|in:Granted,Partially Granted',
-                'dispute_outcome'              => 'nullable|numeric',
+                'dispute_outcome' => 'nullable|numeric',
 
-                'tenant_id'        => 'required|exists:tenants,id',
-                'repairs_made'     => 'nullable|string',
+                'tenant_id' => 'required|exists:tenants,id',
+                'repairs_made' => 'nullable|string',
             ]);
 
             if ($validator->fails()) {
@@ -483,12 +486,13 @@ class RepairOrderImportExportService
 
         $formatCurrency = function ($value) {
             return is_numeric($value)
-                ? '$' . number_format((float)$value, 2)
+                ? '$' . number_format((float) $value, 2)
                 : '';
         };
 
         $properCase = function ($value) {
-            if (!$value) return '';
+            if (!$value)
+                return '';
             return ucwords(strtolower($value));
         };
 
@@ -512,30 +516,30 @@ class RepairOrderImportExportService
                 $ro->ro_number ?? '',
 
                 $ro->ro_open_date
-                    ? Carbon::parse($ro->ro_open_date)->format('m/d/Y')
-                    : '',
+                ? Carbon::parse($ro->ro_open_date)->format('m/d/Y')
+                : '',
 
                 $ro->ro_close_date
-                    ? Carbon::parse($ro->ro_close_date)->format('m/d/Y')
-                    : '',
+                ? Carbon::parse($ro->ro_close_date)->format('m/d/Y')
+                : '',
 
                 $ro->truck?->truckid ?? '—',
 
                 $properCase($ro->repairs_made),
 
                 $ro->vendor
-                    ? ($ro->vendor->trashed()
-                        ? $properCase($ro->vendor->vendor_name) . ' (Deleted)'
-                        : $properCase($ro->vendor->vendor_name))
-                    : '—',
+                ? ($ro->vendor->trashed()
+                    ? $properCase($ro->vendor->vendor_name) . ' (Deleted)'
+                    : $properCase($ro->vendor->vendor_name))
+                : '—',
 
                 $ro->wo_number ?? '',
 
                 $ro->woStatus
-                    ? ($ro->woStatus->trashed()
-                        ? $properCase($ro->woStatus->name) . ' (Deleted)'
-                        : $properCase($ro->woStatus->name))
-                    : '—',
+                ? ($ro->woStatus->trashed()
+                    ? $properCase($ro->woStatus->name) . ' (Deleted)'
+                    : $properCase($ro->woStatus->name))
+                : '—',
 
                 $ro->invoice ?? '',
 
@@ -550,8 +554,8 @@ class RepairOrderImportExportService
                 $properCase($ro->on_qs),
 
                 $ro->qs_invoice_date
-                    ? Carbon::parse($ro->qs_invoice_date)->format('m/d/Y')
-                    : '',
+                ? Carbon::parse($ro->qs_invoice_date)->format('m/d/Y')
+                : '',
 
                 $properCase($ro->dispute_review_status),
 

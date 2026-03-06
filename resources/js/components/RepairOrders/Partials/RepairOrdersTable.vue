@@ -1,32 +1,18 @@
 <template>
-  <Card
-    class="mx-auto max-w-[95vw] md:max-w-[64vw] lg:max-w-full overflow-x-auto shadow-sm border"
-  >
+  <Card class="mx-auto max-w-[95vw] md:max-w-[64vw] lg:max-w-full overflow-x-auto shadow-sm border">
     <CardContent class="p-0">
       <div class="overflow-x-auto">
         <Table class="relative h-[500px] overflow-auto">
           <TableHeader>
-            <TableRow
-              class="sticky top-0 z-10 border-b bg-background hover:bg-background"
-            >
-              <TableHead
-                class="w-12"
-                v-if="permissionNames.includes('repair-orders.delete')"
-              >
+            <TableRow class="sticky top-0 z-10 border-b bg-background hover:bg-background">
+              <TableHead class="w-12" v-if="permissionNames.includes('repair-orders.delete')">
                 <div class="flex items-center justify-center">
-                  <input
-                    type="checkbox"
-                    :checked="allSelected"
-                    @change="$emit('toggleAll', $event)"
-                    class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                  />
+                  <input type="checkbox" :checked="allSelected" @change="$emit('toggleAll', $event)"
+                    class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
                 </div>
               </TableHead>
 
-              <TableHead
-                @click="$emit('sort', 'ro_number')"
-                class="cursor-pointer font-semibold"
-              >
+              <TableHead @click="$emit('sort', 'ro_number')" class="cursor-pointer font-semibold">
                 <div class="flex items-center space-x-1">
                   RO#
                   <SortIndicator column="ro_number" :sortState="sortState" />
@@ -35,20 +21,14 @@
 
               <TableHead v-if="isAdmin" class="font-semibold">Company</TableHead>
 
-              <TableHead
-                @click="$emit('sort', 'ro_open_date')"
-                class="cursor-pointer font-semibold"
-              >
+              <TableHead @click="$emit('sort', 'ro_open_date')" class="cursor-pointer font-semibold">
                 <div class="flex items-center space-x-1">
                   Open Date
                   <SortIndicator column="ro_open_date" :sortState="sortState" />
                 </div>
               </TableHead>
 
-              <TableHead
-                @click="$emit('sort', 'ro_close_date')"
-                class="cursor-pointer font-semibold"
-              >
+              <TableHead @click="$emit('sort', 'ro_close_date')" class="cursor-pointer font-semibold">
                 <div class="flex items-center space-x-1">
                   Close Date
                   <SortIndicator column="ro_close_date" :sortState="sortState" />
@@ -58,9 +38,9 @@
               <TableHead class="font-semibold">Truck</TableHead>
               <TableHead class="font-semibold">Vendor</TableHead>
               <TableHead class="font-semibold">Areas of Concern</TableHead>
-              <TableHead class="font-semibold">WO#</TableHead>
+              <!-- <TableHead class="font-semibold">WO#</TableHead>
               <TableHead class="font-semibold">WO Status</TableHead>
-              <TableHead class="font-semibold">Invoice</TableHead>
+              <TableHead class="font-semibold">Invoice</TableHead> -->
               <TableHead class="font-semibold">Amount</TableHead>
               <TableHead class="font-semibold">Invoice Received</TableHead>
               <TableHead class="font-semibold">On QS</TableHead>
@@ -69,13 +49,10 @@
               <TableHead class="font-semibold">Dispute Status</TableHead>
               <TableHead class="font-semibold">Determination</TableHead>
               <TableHead class="font-semibold">Dispute Outcome</TableHead>
-              <TableHead
-                class="font-semibold"
-                v-if="
-                  permissionNames.includes('repair-orders.delete') ||
-                  permissionNames.includes('repair-orders.update')
-                "
-              >
+              <TableHead class="font-semibold" v-if="
+                permissionNames.includes('repair-orders.delete') ||
+                permissionNames.includes('repair-orders.update')
+              ">
                 Actions
               </TableHead>
             </TableRow>
@@ -84,9 +61,7 @@
           <TableBody>
             <TableRow v-if="!repairOrders.data.length">
               <TableCell :colspan="isAdmin ? 19 : 18" class="py-8 text-center">
-                <div
-                  class="flex flex-col items-center justify-center rounded-lg border bg-muted/20 py-16"
-                >
+                <div class="flex flex-col items-center justify-center rounded-lg border bg-muted/20 py-16">
                   <Icon name="database-x" class="h-16 w-16 mx-auto mb-4 opacity-70" />
                   <h2 class="text-lg font-medium">No repair orders found.</h2>
                   <p class="text-muted-foreground mt-2">
@@ -96,18 +71,10 @@
               </TableCell>
             </TableRow>
 
-            <TableRow
-              v-for="o in repairOrders.data"
-              :key="o.id"
-              class="hover:bg-muted/50 transition-colors"
-            >
+            <TableRow v-for="o in repairOrders.data" :key="o.id" class="hover:bg-muted/50 transition-colors">
               <TableCell v-if="permissionNames.includes('repair-orders.delete')">
-                <input
-                  type="checkbox"
-                  :checked="selectedIds.includes(o.id)"
-                  @change="toggleOne(o.id, $event)"
-                  class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-1 focus:ring-primary"
-                />
+                <input type="checkbox" :checked="selectedIds.includes(o.id)" @change="toggleOne(o.id, $event)"
+                  class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-1 focus:ring-primary" />
               </TableCell>
 
               <TableCell class="whitespace-nowrap font-medium">
@@ -144,7 +111,7 @@
                 <span v-else>—</span>
               </TableCell>
 
-              <TableCell class="whitespace-nowrap">
+              <!-- <TableCell class="whitespace-nowrap">
                 {{ o.wo_number || "—" }}
               </TableCell>
 
@@ -154,7 +121,7 @@
 
               <TableCell class="whitespace-nowrap">
                 {{ o.invoice || "—" }}
-              </TableCell>
+              </TableCell> -->
 
               <TableCell class="whitespace-nowrap">
                 {{ formatCurrency(o.invoice_amount) }}
@@ -181,37 +148,31 @@
               </TableCell>
 
               <TableCell class="whitespace-nowrap">
-                {{ o.dispute_review_determination || "—" }}
+                <span :class="{
+                  'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400': o.dispute_review_determination === 'Granted',
+                  'bg-amber-100 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400': o.dispute_review_determination === 'Partially Granted',
+                  'bg-muted text-muted-foreground': !['Granted', 'Partially Granted'].includes(o.dispute_review_determination)
+                }" class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold capitalize">
+                  {{ o.dispute_review_determination || "—" }}
+                </span>
               </TableCell>
 
               <TableCell class="whitespace-nowrap">
                 {{ o.dispute_outcome ? formatCurrency(o.dispute_outcome) : "—" }}
               </TableCell>
 
-              <TableCell
-                v-if="
-                  permissionNames.includes('repair-orders.update') ||
-                  permissionNames.includes('repair-orders.delete')
-                "
-              >
+              <TableCell v-if="
+                permissionNames.includes('repair-orders.update') ||
+                permissionNames.includes('repair-orders.delete')
+              ">
                 <div class="flex space-x-2">
-                  <Button
-                    size="sm"
-                    variant="warning"
-                    @click="$emit('openEdit', o)"
-                    class="h-8 px-2"
-                    v-if="permissionNames.includes('repair-orders.update')"
-                  >
+                  <Button size="sm" variant="warning" @click="$emit('openEdit', o)" class="h-8 px-2"
+                    v-if="permissionNames.includes('repair-orders.update')">
                     <Icon name="pencil" class="h-4 w-4" />
                   </Button>
 
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    @click="$emit('deleteOne', o.id)"
-                    class="h-8 px-2"
-                    v-if="permissionNames.includes('repair-orders.delete')"
-                  >
+                  <Button size="sm" variant="destructive" @click="$emit('deleteOne', o.id)" class="h-8 px-2"
+                    v-if="permissionNames.includes('repair-orders.delete')">
                     <Icon name="trash" class="h-4 w-4" />
                   </Button>
                 </div>
@@ -223,9 +184,7 @@
     </CardContent>
 
     <!-- Pagination -->
-    <div
-      class="border-t bg-muted/20 px-4 py-3 flex flex-col sm:flex-row justify-between items-center gap-2"
-    >
+    <div class="border-t bg-muted/20 px-4 py-3 flex flex-col sm:flex-row justify-between items-center gap-2">
       <div class="flex items-center gap-4 text-sm text-muted-foreground">
         <span class="flex items-center gap-1">
           <Icon name="list" class="h-4 w-4" />
@@ -238,68 +197,40 @@
         </span>
 
         <div class="relative">
-          <select
-            v-model.number="localPerPageProxy"
-            @change="$emit('changePerPage')"
-            class="h-8 appearance-none rounded-md border bg-background px-2 py-1 text-sm focus:ring-2 focus:ring-ring"
-          >
+          <select v-model.number="localPerPageProxy" @change="$emit('changePerPage')"
+            class="h-8 appearance-none rounded-md border bg-background px-2 py-1 text-sm focus:ring-2 focus:ring-ring">
             <option v-for="n in [10, 25, 50, 100]" :key="n" :value="n">
               {{ n }}
             </option>
           </select>
 
-          <div
-            class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700"
-          >
-            <svg
-              class="h-4 w-4 opacity-50"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fill-rule="evenodd"
+          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+            <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd"
                 d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                clip-rule="evenodd"
-              />
+                clip-rule="evenodd" />
             </svg>
           </div>
         </div>
       </div>
 
       <div class="flex space-x-1">
-        <Button
-          size="sm"
-          variant="ghost"
-          @click="$emit('go', repairOrders.prev_page_url)"
-          :disabled="!repairOrders.prev_page_url"
-          class="flex items-center gap-1"
-        >
+        <Button size="sm" variant="ghost" @click="$emit('go', repairOrders.prev_page_url)"
+          :disabled="!repairOrders.prev_page_url" class="flex items-center gap-1">
           <Icon name="chevron-left" class="h-4 w-4" /> Prev
         </Button>
 
-        <Button
-          v-for="link in repairOrders.links.slice(1, -1)"
-          :key="link.label"
-          size="sm"
-          variant="ghost"
-          @click="$emit('go', link.url)"
-          :disabled="!link.url"
-          :class="{
+        <Button v-for="link in repairOrders.links.slice(1, -1)" :key="link.label" size="sm" variant="ghost"
+          @click="$emit('go', link.url)" :disabled="!link.url" :class="{
             'border-primary bg-primary/10 text-primary font-medium': link.active,
-          }"
-        >
+          }">
           <span v-html="link.label"></span>
         </Button>
 
-        <Button
-          size="sm"
-          variant="ghost"
-          @click="$emit('go', repairOrders.next_page_url)"
-          :disabled="!repairOrders.next_page_url"
-          class="flex items-center gap-1"
-        >
-          Next <Icon name="chevron-right" class="h-4 w-4" />
+        <Button size="sm" variant="ghost" @click="$emit('go', repairOrders.next_page_url)"
+          :disabled="!repairOrders.next_page_url" class="flex items-center gap-1">
+          Next
+          <Icon name="chevron-right" class="h-4 w-4" />
         </Button>
       </div>
     </div>
