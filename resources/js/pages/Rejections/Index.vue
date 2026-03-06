@@ -693,25 +693,25 @@ const ALL_COLUMNS = [
     shared: true,
 
     getValue: (r) => {
-      const isWon = r.disputed === "won";
+      // const isWon = r.disputed === "won";
 
-      const isDriverControllable =
-        r.driver_controllable === true ||
-        r.driver_controllable === 1 ||
-        r.driver_controllable === "1" ||
-        r.driver_controllable === "true";
+      // const isDriverControllable =
+      //   r.driver_controllable === true ||
+      //   r.driver_controllable === 1 ||
+      //   r.driver_controllable === "1" ||
+      //   r.driver_controllable === "true";
 
-      const isCarrierControllable =
-        r.carrier_controllable === true ||
-        r.carrier_controllable === 1 ||
-        r.carrier_controllable === "1" ||
-        r.carrier_controllable === "true";
+      // const isCarrierControllable =
+      //   r.carrier_controllable === true ||
+      //   r.carrier_controllable === 1 ||
+      //   r.carrier_controllable === "1" ||
+      //   r.carrier_controllable === "true";
 
-      // ✅ WON
-      if (isWon) return 0;
+      // // ✅ WON
+      // if (isWon) return 0;
 
-      // ✅ Carrier NOT controllable → always 0
-      if (!isCarrierControllable) return 0;
+      // // ✅ Carrier NOT controllable → always 0
+      // if (!isCarrierControllable) return 0;
 
       return r.penalty != null ? Number(r.penalty) : null;
     },
@@ -719,87 +719,87 @@ const ALL_COLUMNS = [
     render: (r) => {
       const originalPenalty = r.penalty != null ? Number(r.penalty).toFixed(2) : null;
 
-      const isWon = r.disputed === "won";
+      // const isWon = r.disputed === "won";
 
-      const isDriverControllable =
-        r.driver_controllable === true ||
-        r.driver_controllable === 1 ||
-        r.driver_controllable === "1" ||
-        r.driver_controllable === "true";
+      // const isDriverControllable =
+      //   r.driver_controllable === true ||
+      //   r.driver_controllable === 1 ||
+      //   r.driver_controllable === "1" ||
+      //   r.driver_controllable === "true";
 
-      const isCarrierControllable =
-        r.carrier_controllable === true ||
-        r.carrier_controllable === 1 ||
-        r.carrier_controllable === "1" ||
-        r.carrier_controllable === "true";
+      // const isCarrierControllable =
+      //   r.carrier_controllable === true ||
+      //   r.carrier_controllable === 1 ||
+      //   r.carrier_controllable === "1" ||
+      //   r.carrier_controllable === "true";
 
-      if (!originalPenalty && !isWon) {
-        return h("span", { class: "text-muted-foreground" }, "—");
-      }
+      // if (!originalPenalty && !isWon) {
+      //   return h("span", { class: "text-muted-foreground" }, "—");
+      // }
 
-      // ✅ WON + DRIVER CONTROLLABLE
-      if (isWon && isDriverControllable) {
-        return h("div", { class: "flex flex-col leading-tight" }, [
-          h(
-            "span",
-            {
-              class: "font-mono text-xs font-semibold text-green-600 dark:text-green-400",
-            },
-            "0.00"
-          ),
-          h(
-            "span",
-            {
-              class: "self-end text-[10px] opacity-60 font-mono whitespace-nowrap",
-            },
-            `Driver: ${originalPenalty}`
-          ),
-        ]);
-      }
+      // // ✅ WON + DRIVER CONTROLLABLE
+      // if (isWon && isDriverControllable) {
+      //   return h("div", { class: "flex flex-col leading-tight" }, [
+      //     h(
+      //       "span",
+      //       {
+      //         class: "font-mono text-xs font-semibold text-green-600 dark:text-green-400",
+      //       },
+      //       "0.00"
+      //     ),
+      //     h(
+      //       "span",
+      //       {
+      //         class: "self-end text-[10px] opacity-60 font-mono whitespace-nowrap",
+      //       },
+      //       `Driver: ${originalPenalty}`
+      //     ),
+      //   ]);
+      // }
 
-      // ✅ WON (not driver controllable)
-      if (isWon) {
-        return h(
-          "span",
-          {
-            class: "font-mono text-xs font-semibold text-green-600 dark:text-green-400",
-          },
-          "0.00"
-        );
-      }
+      // // ✅ WON (not driver controllable)
+      // if (isWon) {
+      //   return h(
+      //     "span",
+      //     {
+      //       class: "font-mono text-xs font-semibold text-green-600 dark:text-green-400",
+      //     },
+      //     "0.00"
+      //   );
+      // }
 
-      // ✅ Carrier NOT controllable
-      if (!isCarrierControllable) {
-        // If driver IS controllable → show driver note
-        if (isDriverControllable && originalPenalty) {
-          return h("div", { class: "flex flex-col leading-tight" }, [
-            h(
-              "span",
-              {
-                class:
-                  "font-mono text-xs font-semibold text-green-600 dark:text-green-400",
-              },
-              "0.00"
-            ),
-            h(
-              "span",
-              {
-                class: "self-end text-[10px] opacity-60 font-mono whitespace-nowrap",
-              },
-              `Driver: ${originalPenalty}`
-            ),
-          ]);
-        }
+      // // ✅ Carrier NOT controllable
+      // if (!isCarrierControllable) {
+      //   // If driver IS controllable → show driver note
+      //   if (isDriverControllable && originalPenalty) {
+      //     return h("div", { class: "flex flex-col leading-tight" }, [
+      //       h(
+      //         "span",
+      //         {
+      //           class:
+      //             "font-mono text-xs font-semibold text-green-600 dark:text-green-400",
+      //         },
+      //         "0.00"
+      //       ),
+      //       h(
+      //         "span",
+      //         {
+      //           class: "self-end text-[10px] opacity-60 font-mono whitespace-nowrap",
+      //         },
+      //         `Driver: ${originalPenalty}`
+      //       ),
+      //     ]);
+      //   }
 
-        // If both false → just 0
-        return h(
-          "span",
-          {
-            class: "font-mono text-xs font-semibold text-green-600 dark:text-green-400",
-          },
-          "0.00"
-        );
-      }
+      //   // If both false → just 0
+      //   return h(
+      //     "span",
+      //     {
+      //       class: "font-mono text-xs font-semibold text-green-600 dark:text-green-400",
+      //     },
+      //     "0.00"
+      //   );
+      // }
 
       // ✅ Normal case
       return h("span", { class: "font-mono text-xs" }, originalPenalty);
@@ -830,14 +830,14 @@ const ALL_COLUMNS = [
   },
   {
     key: "carrier_controllable",
-    label: "Carrier Ctrl.",
+    label: "Carrier Controllable",
     shared: true,
     getValue: (r) =>
       r.carrier_controllable != null ? (r.carrier_controllable ? "Yes" : "No") : null,
   },
   {
     key: "driver_controllable",
-    label: "Driver Ctrl.",
+    label: "Driver Controllable",
     shared: true,
     getValue: (r) =>
       r.driver_controllable != null ? (r.driver_controllable ? "Yes" : "No") : null,
@@ -852,7 +852,7 @@ const ALL_COLUMNS = [
         ? h(
           "span",
           { class: "block max-w-[180px] truncate", title: r.rejection_reason },
-          r.rejection_reason
+          formatRejectionReason(r.rejection_reason)
         )
         : h("span", { class: "text-muted-foreground" }, "—"),
   },
@@ -902,7 +902,7 @@ const ALL_COLUMNS = [
     key: "b_driver_name",
     label: "Driver Name",
     shared: false,
-    getValue: (r) => rb(r)?.driver_name ?? null,
+    getValue: (r) => formatDriverName(rb(r)?.driver_name) ?? null,
   },
   {
     key: "b_block_start",
@@ -942,7 +942,7 @@ const ALL_COLUMNS = [
     key: "l_driver_name",
     label: "Driver Name",
     shared: false,
-    getValue: (r) => rl(r)?.driver_name ?? null,
+    getValue: (r) => formatDriverName(rl(r)?.driver_name) ?? null,
   },
   {
     key: "l_origin_yard_arrival",
@@ -1000,7 +1000,24 @@ const totalColspan = computed(() => {
     n += 1;
   return n;
 });
+function formatRejectionReason(val) {
+  if (!val) return "—";
 
+  return val
+    .replace(/_/g, " ")      // replace underscores with spaces
+    .toLowerCase()
+    .trim()
+    .replace(/(^\p{L})|(\s+\p{L})/gu, (m) => m.toUpperCase()); // capitalize words
+}
+function formatDriverName(val) {
+  if (!val) return "—";
+
+  return val
+    .toLowerCase()
+    .trim()
+    // capitalize first letter of each word (unicode letters)
+    .replace(/(^\p{L})|(\s+\p{L})/gu, (m) => m.toUpperCase());
+}
 // ─── Sorting ──────────────────────────────────────────────────────────────────
 const sortedRejections = computed(() => {
   const rows = [...(props.rejections.data ?? [])];
