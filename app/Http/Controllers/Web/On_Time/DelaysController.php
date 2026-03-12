@@ -84,7 +84,7 @@ class DelaysController extends Controller
     public function validateImport(Request $request, $tenantSlug = null)
     {
         $request->validate([
-            'file'        => 'required|file|mimes:csv,txt|max:10240',
+            'file' => 'required|file|mimes:csv,txt|max:10240',
             'import_type' => 'required|in:origin,destination',
         ]);
 
@@ -105,9 +105,9 @@ class DelaysController extends Controller
             if (isset($results['header_error'])) {
                 session()->forget(['ontime_import_validation_results', 'ontime_import_file_path', 'ontime_import_type', 'ontime_import_tenant_id']);
                 return back()->with('importValidation', [
-                    'success'      => false,
+                    'success' => false,
                     'header_error' => $results['header_error'],
-                    'results'      => $results,
+                    'results' => $results,
                 ]);
             }
 
@@ -137,9 +137,9 @@ class DelaysController extends Controller
     public function confirmImport(Request $request, $tenantSlug = null)
     {
         try {
-            $filePath      = session('ontime_import_file_path');
-            $importType    = session('ontime_import_type');
-            $isSuperAdmin  = is_null(Auth::user()->tenant_id);
+            $filePath = session('ontime_import_file_path');
+            $importType = session('ontime_import_type');
+            $isSuperAdmin = is_null(Auth::user()->tenant_id);
             $correctedRows = $request->input('corrected_rows', []); // ✅ NEW
 
             if (!$filePath || !Storage::exists($filePath)) {
@@ -166,8 +166,8 @@ class DelaysController extends Controller
             $importRequest = new Request();
             $importRequest->files->set('csv_file', $file);
             $importRequest->merge([
-                'import_type'   => $importType,
-                'tenant_id'     => $tenantId,
+                'import_type' => $importType,
+                'tenant_id' => $tenantId,
                 'corrected_rows' => $correctedRows, // ✅ NEW
             ]);
 

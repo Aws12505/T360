@@ -9,8 +9,6 @@ Route::controller(TruckController::class)
 
         Route::get('/', 'index')->name('truck.index.admin');
         Route::post('/', 'store')->name('truck.store.admin');
-        Route::put('{truck}', 'updateAdmin')->name('truck.update.admin');
-        Route::delete('{truck}', 'destroyAdmin')->name('truck.destroy.admin');
         Route::delete('-bulk', 'destroyBulkAdmin')->name('truck.destroyBulk.admin');
 
         // ✅ NEW: validate + confirm + error report
@@ -19,4 +17,7 @@ Route::controller(TruckController::class)
         Route::get('/download-error-report', 'downloadErrorReport')->name('truck.downloadErrorReport.admin');
 
         Route::get('/export', 'export')->name('truck.export.admin');
+        Route::put('{truck}', 'updateAdmin')->name('truck.update.admin');
+        Route::delete('{truck}', 'destroyAdmin')->name('truck.destroy.admin');
+
     });

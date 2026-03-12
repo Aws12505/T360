@@ -1,7 +1,7 @@
 <template>
   <div class="bg-background rounded-lg border shadow-sm p-2 md:p-4">
     <h3 class="text-base text-center font-semibold mb-4">{{ title }}</h3>
-    
+
     <!-- Display message when no rejections -->
     <div v-if="drivers.length === 0" class="text-center text-sm py-4 text-primary font-medium">
       <template v-if="totalRejections === 0">
@@ -19,7 +19,7 @@
         No delays recorded. You're on track for Fantastic+ !
       </template>
     </div>
-     
+
     <!-- Display drivers list when there are rejections -->
     <template v-else>
       <!-- Column headers -->
@@ -29,8 +29,9 @@
       </div>
       <div class="space-y-3">
         <div v-for="(driver, index) in drivers" :key="index" class="flex justify-between items-center">
-          <span class="text-sm">{{ driver.driver_name }}</span>
-          <span class="text-sm font-medium" :style="{ color: getColor(driver.total_penalty) }">{{ driver.total_penalty }}</span>
+          <span class="text-sm">{{ formatDriverName(driver.driver_name) }}</span>
+          <span class="text-sm font-medium" :style="{ color: getColor(driver.total_penalty) }">{{ driver.total_penalty
+            }}</span>
         </div>
       </div>
     </template>
@@ -76,10 +77,21 @@ const getColor = (penalty) => {
   const sortedPenalties = [...props.drivers]
     .sort((a, b) => b.total_penalty - a.total_penalty)
     .map(driver => driver.total_penalty);
-  
+
   // Find the rank of the current penalty (accounting for ties)
   const rank = sortedPenalties.indexOf(penalty);
-  
+
   return colors[rank] || '#6b7280';
+};
+
+const formatDriverName = (name) => {
+  if (!name || !name.toString().trim()) {
+    return "Unknown Driver";
+  }
+  return name
+    .toLowerCase()
+    .trim()
+    // capitalize first letter of each word (unicode letters)
+    .replace(/(^\p{L})|(\s+\p{L})/gu, (m) => m.toUpperCase());
 };
 </script>

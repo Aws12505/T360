@@ -10,8 +10,6 @@ Route::controller(TruckController::class)
 
         Route::get('/', 'index')->name('index')->middleware('permission:trucks.view');
         Route::post('/', 'store')->name('store')->middleware('permission:trucks.create');
-        Route::put('{truck}', 'update')->name('update')->middleware('permission:trucks.update');
-        Route::delete('{truck}', 'destroy')->name('destroy')->middleware('permission:trucks.delete');
         Route::delete('-bulk', 'destroyBulk')->name('destroyBulk')->middleware('permission:trucks.delete');
 
         // ✅ NEW: validate + confirm + error report
@@ -28,4 +26,7 @@ Route::controller(TruckController::class)
             ->middleware('permission:trucks.import');
 
         Route::get('/export', 'export')->name('export')->middleware('permission:trucks.export');
+        Route::put('{truck}', 'update')->name('update')->middleware('permission:trucks.update');
+        Route::delete('{truck}', 'destroy')->name('destroy')->middleware('permission:trucks.delete');
+
     });
