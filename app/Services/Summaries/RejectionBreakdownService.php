@@ -352,9 +352,9 @@ class RejectionBreakdownService
             ->select(
                 $groupBy,
                 DB::raw("
-                SUM(penalty) as total_penalty,
-                COUNT(*) as total_entries
-            ")
+            COUNT(*) as total_entries,
+            SUM(CASE WHEN carrier_controllable = 1 THEN penalty ELSE 0 END) as carrier_penalty
+        ")
             )
             ->whereBetween('date', [$startDate, $endDate])
             ->groupBy($groupBy)
@@ -384,7 +384,7 @@ class RejectionBreakdownService
 
             if ($item->total_entries > 0) {
 
-                $performance = (1 - ($item->total_penalty / $item->total_entries)) * 100;
+                $performance = (1 - ($item->carrier_penalty / $item->total_entries)) * 100;
 
             } else {
 
