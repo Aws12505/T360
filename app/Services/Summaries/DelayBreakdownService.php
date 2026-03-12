@@ -68,36 +68,28 @@ class DelayBreakdownService
             SUM(CASE WHEN delay_category = '1_60' THEN 1 ELSE 0 END) as category_1_60_count,
             SUM(CASE WHEN delay_category = '61_240' THEN 1 ELSE 0 END) as category_61_240_count,
             SUM(CASE WHEN delay_category = '241_600' THEN 1 ELSE 0 END) as category_241_600_count,
-            SUM(CASE WHEN delay_category = '601_plus' THEN 1 ELSE 0 END) as category_601_plus_count,
-
-            SUM(CASE WHEN delay_category = '1_60' AND delay_type = 'origin' THEN 1 ELSE 0 END) as category_1_60_origin_count,
-            SUM(CASE WHEN delay_category = '1_60' AND delay_type = 'destination' THEN 1 ELSE 0 END) as category_1_60_destination_count,
-
-            SUM(CASE WHEN delay_category = '61_240' AND delay_type = 'origin' THEN 1 ELSE 0 END) as category_61_240_origin_count,
-            SUM(CASE WHEN delay_category = '61_240' AND delay_type = 'destination' THEN 1 ELSE 0 END) as category_61_240_destination_count,
-
-            SUM(CASE WHEN delay_category = '241_600' AND delay_type = 'origin' THEN 1 ELSE 0 END) as category_241_600_origin_count,
-            SUM(CASE WHEN delay_category = '241_600' AND delay_type = 'destination' THEN 1 ELSE 0 END) as category_241_600_destination_count,
-
-            SUM(CASE WHEN delay_category = '601_plus' AND delay_type = 'origin' THEN 1 ELSE 0 END) as category_601_plus_origin_count,
-            SUM(CASE WHEN delay_category = '601_plus' AND delay_type = 'destination' THEN 1 ELSE 0 END) as category_601_plus_destination_count,
-
-            SUM(CASE WHEN delay_type = 'origin' THEN 1 ELSE 0 END) as total_origin_delays,
-            SUM(CASE WHEN delay_type = 'destination' THEN 1 ELSE 0 END) as total_destination_delays
+            SUM(CASE WHEN delay_category = '601_plus' THEN 1 ELSE 0 END) as category_601_plus_count
         ")
             ->whereBetween('date', [$startDate, $endDate]);
 
         $this->applyTenantFilter($query);
         $this->applyCompanyAnalyticsFilter($query);
+        $this->applyDelayTypeFilter($query);
 
         return $query->first();
     }
 
     public function getBottomFiveDriversByPenalty($startDate, $endDate)
     {
-        $base = fn() => DB::table('delays')
-            ->whereBetween('date', [$startDate, $endDate])
-            ->where('driver_controllable', true);
+        $base = function () use ($startDate, $endDate) {
+            $query = DB::table('delays')
+                ->whereBetween('date', [$startDate, $endDate])
+                ->where('driver_controllable', true);
+
+            $this->applyDelayTypeFilter($query);
+
+            return $query;
+        };
 
         $total = $base()
             ->selectRaw('driver_name, SUM(penalty) as total_penalty');
@@ -165,21 +157,7 @@ class DelayBreakdownService
                 'between1_60Count' => (int) $category->category_1_60_count,
                 'between61_240Count' => (int) $category->category_61_240_count,
                 'between241_600Count' => (int) $category->category_241_600_count,
-                'moreThan601Count' => (int) $category->category_601_plus_count,
-                'origin' => [
-                    'totalDelays' => (int) $category->total_origin_delays,
-                    'between1_60Count' => (int) $category->category_1_60_origin_count,
-                    'between61_240Count' => (int) $category->category_61_240_origin_count,
-                    'between241_600Count' => (int) $category->category_241_600_origin_count,
-                    'moreThan601Count' => (int) $category->category_601_plus_origin_count,
-                ],
-                'destination' => [
-                    'totalDelays' => (int) $category->total_destination_delays,
-                    'between1_60Count' => (int) $category->category_1_60_destination_count,
-                    'between61_240Count' => (int) $category->category_61_240_destination_count,
-                    'between241_600Count' => (int) $category->category_241_600_destination_count,
-                    'moreThan601Count' => (int) $category->category_601_plus_destination_count,
-                ],
+                'moreThan601Count' => (int) $category->category_601_plus_count
             ],
 
             'bottom_five_drivers' => $this->getBottomFiveDriversByPenalty($startDate, $endDate),
@@ -208,17 +186,33 @@ class DelayBreakdownService
             ->select(
                 $groupBy,
                 DB::raw("
-                SUM(CASE WHEN delay_type='origin' THEN penalty ELSE 0 END) as origin_penalty,
-                SUM(CASE WHEN delay_type='destination' THEN penalty ELSE 0 END) as destination_penalty,
-                SUM(CASE WHEN delay_type='origin' THEN 1 ELSE 0 END) as origin_count,
-                SUM(CASE WHEN delay_type='destination' THEN 1 ELSE 0 END) as destination_count
-            ")
+            SUM(CASE 
+                WHEN delay_type='origin' AND carrier_controllable = 1 
+                THEN penalty ELSE 0 
+            END) as origin_penalty,
+
+            SUM(CASE 
+                WHEN delay_type='destination' AND carrier_controllable = 1 
+                THEN penalty ELSE 0 
+            END) as destination_penalty,
+
+            SUM(CASE 
+                WHEN delay_type='origin' 
+                THEN 1 ELSE 0 
+            END) as origin_count,
+
+            SUM(CASE 
+                WHEN delay_type='destination' 
+                THEN 1 ELSE 0 
+            END) as destination_count
+        ")
             )
             ->whereBetween('date', [$startDate, $endDate])
             ->groupBy($groupBy)
             ->orderBy($groupBy);
 
         $this->applyTenantFilter($query);
+        $this->applyDelayTypeFilter($query);
         $chartData = $query->get()->map(function ($item) use ($dateFormat, $labelFormat) {
 
             $dateValue = $item->{array_key_first((array) $item)};
@@ -326,5 +320,14 @@ class DelayBreakdownService
     private function applyDriverAnalyticsFilter($query): void
     {
         $query->where('driver_controllable', true);
+    }
+
+    private function applyDelayTypeFilter($query): void
+    {
+        $delayType = request()->input('delayType');
+
+        if (in_array($delayType, ['origin', 'destination'])) {
+            $query->where('delay_type', $delayType);
+        }
     }
 }
