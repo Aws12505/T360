@@ -35,8 +35,8 @@ class DriverImportExportService
         $isSuperAdmin = Auth::user()->tenant_id === null;
 
         $expectedHeaders = $isSuperAdmin
-            ? ['tenant_name', 'first_name', 'last_name', 'email','password','netradyne_user_name', 'mobile_phone', 'hiring_date']
-            : ['first_name', 'last_name', 'email','password','netradyne_user_name', 'mobile_phone', 'hiring_date'];
+            ? ['tenant_name', 'first_name', 'last_name', 'email', 'password', 'netradyne_user_name', 'mobile_phone', 'hiring_date']
+            : ['first_name', 'last_name', 'email', 'password', 'netradyne_user_name', 'mobile_phone', 'hiring_date'];
 
         $headers = fgetcsv($handle, 0, ',');
         if ($headers === false) {
@@ -67,14 +67,16 @@ class DriverImportExportService
             }, $data);
 
             // Convert hiring_date from m/d/Y to Y-m-d (set time to start of day to avoid timezone issues)
-            try {
-                $data['hiring_date'] = Carbon::createFromFormat('m/d/Y', $data['hiring_date'])
-                    ->startOfDay()
-                    ->format('Y-m-d');
-            } catch (\Exception $e) {
-                $rowsSkipped++;
-                $currentRow++;
-                continue;
+            if (!empty($data['hiring_date'])) {
+                try {
+                    $data['hiring_date'] = Carbon::createFromFormat('m/d/Y', $data['hiring_date'])
+                        ->startOfDay()
+                        ->format('Y-m-d');
+                } catch (\Exception $e) {
+                    $rowsSkipped++;
+                    $currentRow++;
+                    continue;
+                }
             }
 
             if (!$isSuperAdmin) {
@@ -91,29 +93,29 @@ class DriverImportExportService
             }
 
             $validator = Validator::make($data, [
-                'tenant_id'    => 'required|exists:tenants,id',
-                'first_name'   => 'required|string',
-                'last_name'    => 'required|string',
-                'email'        => 'required|email',
+                'tenant_id' => 'required|exists:tenants,id',
+                'first_name' => 'required|string',
+                'last_name' => 'required|string',
+                'email' => 'required|email',
                 'mobile_phone' => 'required|string',
-                'hiring_date'  => 'required|date',
+                'hiring_date' => 'nullable|date',
                 'netradyne_user_name' => 'required|string',
-                'password'     => 'nullable|string|min:8',
+                'password' => 'nullable|string|min:8',
             ]);
-            
+
             if ($validator->fails()) {
                 $rowsSkipped++;
                 $currentRow++;
                 continue;
             }
-            
+
             // Handle password
             if (empty($data['password'])) {
                 $data['password'] = \Illuminate\Support\Facades\Hash::make($data['first_name'] . 'password');
             } else {
                 $data['password'] = \Illuminate\Support\Facades\Hash::make($data['password']);
             }
-            
+
             $driver = Driver::where('email', $data['email'])->first();
             if ($driver) {
                 $driver->update($data);
@@ -165,7 +167,7 @@ class DriverImportExportService
                 $driver->password,
                 $driver->netradyne_user_name,
                 $driver->mobile_phone,
-                $driver->hiring_date,
+                $driver->hiring_date ?? '—',
             ]);
         }
         fclose($file);

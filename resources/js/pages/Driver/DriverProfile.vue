@@ -1,28 +1,22 @@
 <template>
+
   <Head title="Driver Profile" />
   <div class="relative min-h-screen bg-background p-4 md:p-6">
     <!-- Logout and Appearance Switcher -->
     <div class="absolute top-4 right-4 flex items-center gap-4">
       <div class="inline-flex gap-1 rounded-lg bg-neutral-100 p-1 dark:bg-neutral-800">
-        <button
-          v-for="{ value, name } in tabs"
-          :key="value"
-          @click="updateAppearance(value)"
-          :class="[
-            'flex items-center rounded-md px-3.5 py-1.5 transition-colors',
-            appearance === value
-              ? 'bg-white shadow-sm dark:bg-neutral-700 dark:text-neutral-100'
-              : 'text-neutral-500 hover:bg-neutral-200/60 hover:text-black dark:text-neutral-400 dark:hover:bg-neutral-700/60',
-          ]"
-        >
+        <button v-for="{ value, name } in tabs" :key="value" @click="updateAppearance(value)" :class="[
+          'flex items-center rounded-md px-3.5 py-1.5 transition-colors',
+          appearance === value
+            ? 'bg-white shadow-sm dark:bg-neutral-700 dark:text-neutral-100'
+            : 'text-neutral-500 hover:bg-neutral-200/60 hover:text-black dark:text-neutral-400 dark:hover:bg-neutral-700/60',
+        ]">
           <component :is="name" class="-ml-1 h-4 w-4" />
         </button>
 
         <!-- Logout -->
-        <button 
-          @click="logout"
-          class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background text-destructive hover:bg-destructive/10 h-9 px-3"
-        >
+        <button @click="logout"
+          class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background text-destructive hover:bg-destructive/10 h-9 px-3">
           <LogOut class="mr-2 h-4 w-4" />
           Logout
         </button>
@@ -49,7 +43,8 @@
           <!-- LEFT: Overview -->
           <div class="md:w-1/3 flex flex-col items-center space-y-4">
             <div class="relative">
-              <div class="w-32 h-32 rounded-full overflow-hidden border-2 border-primary bg-muted/20 flex items-center justify-center">
+              <div
+                class="w-32 h-32 rounded-full overflow-hidden border-2 border-primary bg-muted/20 flex items-center justify-center">
                 <template v-if="driver.image">
                   <img :src="driver.image" alt="Driver" class="w-full h-full object-cover" />
                 </template>
@@ -101,7 +96,8 @@
                     <Clock class="mr-2 h-5 w-5 text-success" />
                     <h3 class="font-semibold text-success">On-Time Score</h3>
                   </div>
-                  <div class="text-2xl font-bold mt-2 text-success" :class="getPerformanceScoreColorClass(driver.on_time_score)">
+                  <div class="text-2xl font-bold mt-2 text-success"
+                    :class="getPerformanceScoreColorClass(driver.on_time_score)">
                     {{ driver.on_time_score }}%
                   </div>
                 </div>
@@ -111,7 +107,8 @@
                     <ThumbsUp class="mr-2 h-5 w-5 text-warning" />
                     <h3 class="font-semibold text-warning">Acceptance Score</h3>
                   </div>
-                  <div class="text-2xl font-bold mt-2 text-warning" :class="getPerformanceScoreColorClass(driver.acceptance_score)">
+                  <div class="text-2xl font-bold mt-2 text-warning"
+                    :class="getPerformanceScoreColorClass(driver.acceptance_score)">
                     {{ driver.acceptance_score }}%
                   </div>
                 </div>
@@ -171,9 +168,11 @@
                   </h3>
                 </div>
                 <div class="p-4 space-y-3">
-                  <div v-for="(value, key) in driver.infractions" :key="key" class="flex justify-between items-center py-2 border-b border-muted/20 last:border-0">
+                  <div v-for="(value, key) in driver.infractions" :key="key"
+                    class="flex justify-between items-center py-2 border-b border-muted/20 last:border-0">
                     <div class="flex items-center">
-                      <div class="bg-destructive/10 text-destructive rounded-full w-8 h-8 flex items-center justify-center mr-3">
+                      <div
+                        class="bg-destructive/10 text-destructive rounded-full w-8 h-8 flex items-center justify-center mr-3">
                         <AlertTriangle class="h-4 w-4" />
                       </div>
                       <span>{{ formatInfractionLabel(key) }}</span>
@@ -185,7 +184,8 @@
             </template>
 
             <template v-else>
-              <div class="border border-dashed border-muted/40 bg-muted/10 text-center text-muted-foreground rounded-lg p-8">
+              <div
+                class="border border-dashed border-muted/40 bg-muted/10 text-center text-muted-foreground rounded-lg p-8">
                 <h2 class="text-xl font-semibold mb-2">No data available</h2>
                 <p>This driver has no performance data for the selected date filter.</p>
               </div>
@@ -221,6 +221,8 @@ const tabs = [
 ]
 
 function formatHireDate(dateString) {
+  if (!dateString) return "—"
+
   const [year, month, day] = dateString.split("-")
   return `${month}/${day}/${year}`
 }
