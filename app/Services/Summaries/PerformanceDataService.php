@@ -51,15 +51,15 @@ class PerformanceDataService
         $now = Carbon::now();
         $isSunday = $now->dayOfWeek === 0;
         $rollingStart = $now->copy()->modify('last sunday');
-                if ($isSunday) {
-                    $rollingStart->subWeek();
-                }
-                $rollingStart->subWeeks(5)->startOfDay();
-                $rollingEnd = $now->copy()->modify('this saturday');
-                if ($isSunday) {
-                    $rollingEnd->subWeek();
-                }
-                $rollingEnd->endOfDay();
+        if ($isSunday) {
+            $rollingStart->subWeek();
+        }
+        $rollingStart->subWeeks(5)->startOfDay();
+        $rollingEnd = $now->copy()->modify('this saturday');
+        if ($isSunday) {
+            $rollingEnd->subWeek();
+        }
+        $rollingEnd->endOfDay();
 
         $query = DB::table('performances')
             ->selectRaw("
@@ -82,10 +82,10 @@ class PerformanceDataService
             ->select('updated_at')
             ->orderBy('updated_at', 'desc')
             ->limit(1);
-            
+
         $this->applyTenantFilter($query);
         $result = $query->first();
-        
+
         return $result ? $result->updated_at : null;
     }
 
@@ -110,37 +110,37 @@ class PerformanceDataService
     {
         return [
             'average_acceptance' => $this->performanceCalculationsService->getRating(
-                $mainData->average_acceptance, 
-                $rule, 
+                $mainData->average_acceptance,
+                $rule,
                 'acceptance'
             ),
             'average_on_time' => $this->performanceCalculationsService->getRating(
-                $mainData->average_on_time, 
-                $rule, 
+                $mainData->average_on_time,
+                $rule,
                 'on_time'
             ),
             'average_maintenance_variance_to_spend' => $this->performanceCalculationsService->getRating(
-                $maintenanceData['qs_MVtS'], 
-                $rule, 
+                $maintenanceData['qs_MVtS'],
+                $rule,
                 'maintenance_variance'
             ),
             'open_boc' => $this->performanceCalculationsService->getRating(
-                $rollingData->sum_open_boc, 
-                $rule, 
+                $rollingData->sum_open_boc,
+                $rule,
                 'open_boc'
             ),
             'vcr_preventable' => $this->performanceCalculationsService->getRating(
-                $rollingData->sum_vcr_preventable, 
-                $rule, 
+                $rollingData->sum_vcr_preventable,
+                $rule,
                 'vcr_preventable'
             ),
             'vmcr_p' => $this->performanceCalculationsService->getRating(
-                $rollingData->sum_vmcr_p, 
-                $rule, 
+                $rollingData->sum_vmcr_p,
+                $rule,
                 'vmcr_p'
             ),
             'meets_safety_bonus_criteria' => $this->performanceCalculationsService->getSafetyBonusRating(
-                $mainData->meets_safety_bonus_criteria, 
+                $mainData->meets_safety_bonus_criteria,
                 $rule
             ),
         ];
@@ -149,45 +149,61 @@ class PerformanceDataService
     /**
      * Get complete performance data for the specified date range
      */
-    public function getPerformanceData($startDate, $endDate, string $label = '',$passedQSMVtS): array
-    {
+    public function getPerformanceData(
+        $startDate,
+        $endDate,
+        string $label = '',
+        $passedQSMVtS = null,
+        ?float $acceptanceOverride = null,
+        ?float $onTimeOverride = null
+    ): array {
         $rule = PerformanceMetricRule::first();
-        
+
         $mainData = $this->getMainPerformanceData($startDate, $endDate);
         $rollingData = $this->getRollingPerformanceData();
         $lastUpdated = $this->getLatestUpdateTimestamp();
         $rollingOGVCRP = $rollingData->sum_vcr_preventable;
+
         $now = Carbon::now();
         $isSunday = $now->dayOfWeek === 0;
         $rollingStart = $now->copy()->modify('last sunday');
-                if ($isSunday) {
-                    $rollingStart->subWeek();
-                }
-                $rollingStart->subWeeks(5)->startOfDay();
-                $rollingEnd = $now->copy()->modify('this saturday');
-                if ($isSunday) {
-                    $rollingEnd->subWeek();
-                }
-                $rollingEnd->endOfDay();
-        
-                $query = DB::table('miles_driven')
-                ->where(function ($q) use ($rollingStart, $rollingEnd) {
-                    $q->whereBetween('week_start_date', [$rollingStart, $rollingEnd])
-                      ->orWhereBetween('week_end_date', [$rollingStart, $rollingEnd]);
-                })
-                ->selectRaw('SUM(miles) as total_miles');
-        
-            // Apply tenant filter if user is authenticated
-            $this->applyTenantFilter($query);
-        
-            // Get the result safely
-            $milesDriven = $query->first()->total_miles;
-
-        if(!is_null($milesDriven) && $milesDriven > 0){
-        $rollingData->sum_vcr_preventable = $rollingData->sum_vcr_preventable/$milesDriven *1000000;
+        if ($isSunday) {
+            $rollingStart->subWeek();
         }
-        // Get QS invoice amount and total miles for MVtS calculation
+        $rollingStart->subWeeks(5)->startOfDay();
+
+        $rollingEnd = $now->copy()->modify('this saturday');
+        if ($isSunday) {
+            $rollingEnd->subWeek();
+        }
+        $rollingEnd->endOfDay();
+
+        $query = DB::table('miles_driven')
+            ->where(function ($q) use ($rollingStart, $rollingEnd) {
+                $q->whereBetween('week_start_date', [$rollingStart, $rollingEnd])
+                    ->orWhereBetween('week_end_date', [$rollingStart, $rollingEnd]);
+            })
+            ->selectRaw('SUM(miles) as total_miles');
+
+        $this->applyTenantFilter($query);
+
+        $milesDriven = optional($query->first())->total_miles;
+
+        if (!is_null($milesDriven) && $milesDriven > 0) {
+            $rollingData->sum_vcr_preventable = $rollingData->sum_vcr_preventable / $milesDriven * 1000000;
+        }
+
         $qsMVtS = $passedQSMVtS;
+
+        // override the values BEFORE ratings are calculated
+        if ($acceptanceOverride !== null) {
+            $mainData->average_acceptance = $acceptanceOverride;
+        }
+
+        if ($onTimeOverride !== null) {
+            $mainData->average_on_time = $onTimeOverride;
+        }
+
         $ratings = $this->calculateRatings($mainData, $rollingData, ['qs_MVtS' => $qsMVtS], $rule);
 
         return [
@@ -203,7 +219,7 @@ class PerformanceDataService
                 'vcr_preventable' => $rollingOGVCRP ?? 0,
                 'vmcr_p' => $rollingData->sum_vmcr_p ?? 0,
                 'meets_safety_bonus_criteria' => $mainData->meets_safety_bonus_criteria ?? 0,
-                'vcr_preventable_per_mile' => $rollingData->sum_vcr_preventable?? 0,
+                'vcr_preventable_per_mile' => $rollingData->sum_vcr_preventable ?? 0,
             ],
             'ratings' => $ratings,
         ];

@@ -187,15 +187,16 @@ class SummariesService
         $milesDriven = $this->getMilesDrivenSum($startDate, $endDate, $dateFilter);
         $averageAcceptance = $this->calculateAverageAcceptance($startDate, $endDate);
         $averageOnTime = $this->calculateAverageOnTime($startDate, $endDate);
+
         $performance = $this->performanceDataService->getPerformanceData(
             $startDate,
             $endDate,
             $label,
-            $maintenaceBreakdown['qs_MVtS'] * 100
+            $maintenaceBreakdown['qs_MVtS'] * 100,
+            $averageAcceptance,
+            $averageOnTime
         );
 
-        $performance['data']['average_acceptance'] = $averageAcceptance;
-        $performance['data']['average_on_time'] = $averageOnTime;
         $isSuperAdmin = Auth::check() && is_null(Auth::user()->tenant_id);
         $tenantSlug = $isSuperAdmin ? null : (Auth::check() ? Auth::user()->tenant->slug : null);
         $tenants = $isSuperAdmin ? Tenant::all() : [];
