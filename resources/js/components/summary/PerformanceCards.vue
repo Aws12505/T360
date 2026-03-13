@@ -13,14 +13,14 @@
           {{ formatRating(performanceRatings.average_acceptance) }}
         </Badge>
       </div>
-      
+
       <div class="text-sm mb-2 flex justify-between">
         <span class="font-semibold">Rejections by Reason</span>
         <span class="font-semibold">Total</span>
       </div>
       <div class="space-y-2 text-sm max-h-40 overflow-y-auto">
         <div v-for="(rejection, index) in topRejections" :key="index" class="flex justify-between">
-          <span>{{ rejection.reason_code }}</span>
+          <span>{{ formatReasons(rejection.reason) }}</span>
           <span>{{ rejection.total_rejections }}</span>
         </div>
       </div>
@@ -44,19 +44,18 @@
       </div>
       <div class="space-y-2 text-sm max-h-40 overflow-y-auto">
         <div v-for="(delay, index) in topDelays" :key="index" class="flex justify-between">
-          <span>{{ delay.code }}</span>
+          <span>{{ formatReasons(delay.reason) }}</span>
           <span>{{ delay.total_delays }}</span>
         </div>
       </div>
-    </div
-    <!-- Maintenance Metrics Card -->
+    </div <!-- Maintenance Metrics Card -->
     <div class="bg-card rounded-lg border shadow-sm p-4">
       <h3 class="text-base font-semibold mb-1">Maintenance</h3>
       <div class="text-xs text-muted-foreground mb-1">MVtS Score</div>
       <div class="flex items-center justify-between gap-3 mb-4">
         <div class="text-4xl font-bold"
           :class="getScoreColorClass(performanceRatings.average_maintenance_variance_to_spend)">
-          {{ formatPercentage(performanceData.average_maintenance_variance_to_spend,1) }}
+          {{ formatPercentage(performanceData.average_maintenance_variance_to_spend, 1) }}
         </div>
         <Badge :variant="getRatingVariant(performanceRatings.average_maintenance_variance_to_spend)" class="text-xs">
           {{ formatRating(performanceRatings.average_maintenance_variance_to_spend) }}
@@ -114,8 +113,8 @@
             <span class="w-16 text-right">{{ formatRate(safetyData.rates?.driver_distraction) }}</span>
           </div>
         </div>
- <!-- Speeding (formerly Speeding Violations) -->
- <div class="flex justify-between items-center">
+        <!-- Speeding (formerly Speeding Violations) -->
+        <div class="flex justify-between items-center">
           <span>Speeding</span>
           <div class="flex items-center gap-2">
             <span class="w-12 text-right">{{ formatDecimal(safetyData.speeding_violations) }}</span>
@@ -142,31 +141,31 @@
         </div>
 
 
-<!-- Following Distance (unchanged name) -->
-<div class="flex justify-between items-center">
-  <span>Following Distance</span>
-  <div class="flex items-center gap-2">
-    <span class="w-12 text-right">{{ formatDecimal(safetyData.following_distance) }}</span>
-    <span class="w-16 text-right">{{ formatRate(safetyData.rates?.following_distance) }}</span>
-  </div>
-</div>
+        <!-- Following Distance (unchanged name) -->
+        <div class="flex justify-between items-center">
+          <span>Following Distance</span>
+          <div class="flex items-center gap-2">
+            <span class="w-12 text-right">{{ formatDecimal(safetyData.following_distance) }}</span>
+            <span class="w-16 text-right">{{ formatRate(safetyData.rates?.following_distance) }}</span>
+          </div>
+        </div>
 
 
-<div class="flex justify-between items-center">
+        <div class="flex justify-between items-center">
           <span>Roadside Parking</span>
           <div class="flex items-center gap-2">
             <span class="w-12 text-right">{{ formatDecimal(safetyData.roadside_parking) }}</span>
             <span class="w-16 text-right">{{ formatRate(safetyData.rates?.roadside_parking) }}</span>
           </div>
         </div>
-        
-</div>
 
-<div class="text-sm text-muted-foreground mt-3">
-<div>Total Hours Analyzed: {{ formatDecimal(safetyData.total_hours || 0) }}</div>
-</div>
-</div>
-</div>
+      </div>
+
+      <div class="text-sm text-muted-foreground mt-3">
+        <div>Total Hours Analyzed: {{ formatDecimal(safetyData.total_hours || 0) }}</div>
+      </div>
+    </div>
+  </div>
 </template>
 <script setup lang="ts">
 import { computed } from 'vue';
@@ -202,17 +201,33 @@ const props = defineProps({
 // Get top 3 delays by count
 const topDelays = computed(() => {
   return [...props.delayBreakdowns]
+    .map(d => ({
+      reason: d.reason ?? d.code,
+      total_delays: d.total_delays ?? 0
+    }))
     .sort((a, b) => b.total_delays - a.total_delays)
     .slice(0, 3);
 });
 
-// Get top 3 rejections by count
 const topRejections = computed(() => {
   return [...props.rejectionBreakdowns]
+    .map(r => ({
+      reason: r.rejection_reason ?? r.reason_code,
+      total_rejections: r.total_rejections ?? 0
+    }))
     .sort((a, b) => b.total_rejections - a.total_rejections)
     .slice(0, 3);
 });
 
+function formatReasons(val) {
+  if (!val) return "—";
+
+  return val
+    .replace(/_/g, " ")      // replace underscores with spaces
+    .toLowerCase()
+    .trim()
+    .replace(/(^\p{L})|(\s+\p{L})/gu, (m) => m.toUpperCase()); // capitalize words
+}
 // Format percentage for display
 const formatPercentage = (value, decimals = 0) => {
   if (value === undefined || value === null || value === '') return '0%';
@@ -390,7 +405,7 @@ const getScoreColorClass = (rating) => {
       return 'text-blue-600';
     case 'fair':
       return 'text-amber-600';
-      case 'poor':
+    case 'poor':
       return 'text-red-600';
     default:
       return 'text-indigo-600';
@@ -399,10 +414,10 @@ const getScoreColorClass = (rating) => {
 
 // Get safety score color class based on rating
 const getSafetyScoreColorClass = (rating) => {
-  
-  if(rating >= 900) return 'text-green-600';
-  if(rating >= 750) return 'text-emerald-600';
-  if(rating >= 600) return 'text-blue-600';
+
+  if (rating >= 900) return 'text-green-600';
+  if (rating >= 750) return 'text-emerald-600';
+  if (rating >= 600) return 'text-blue-600';
 
   return 'text-red-600';
 };

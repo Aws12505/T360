@@ -18,15 +18,15 @@ class UpdateDriverRequest extends FormRequest
     {
         $driverId = $this->route('driver');
         return [
-            'first_name'   => 'required|string',
-            'last_name'    => 'required|string',
-            'email'        => 'required|email|unique:drivers,email,' . $driverId,
+            'first_name' => 'required|string',
+            'last_name' => 'required|string',
+            'email' => 'required|email|unique:drivers,email,' . $driverId,
             'mobile_phone' => 'required|string',
-            'hiring_date'  => 'required|date',
-            'tenant_id'    => 'required|exists:tenants,id',
+            'hiring_date' => 'nullable|date',
+            'tenant_id' => 'required|exists:tenants,id',
             'netradyne_user_name' => 'required|string',
-            'password'     => 'nullable|string',
-            'image'        => 'nullable|image|mimes:jpg,jpeg,png|max:2048', // NEW
+            'password' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048', // NEW
         ];
     }
 

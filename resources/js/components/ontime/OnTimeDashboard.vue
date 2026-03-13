@@ -2,58 +2,33 @@
   <div class="space-y-2 md:space-y-4 lg:space-y-6 mb-2 md:mb-4 lg:mb-6">
     <!-- Metrics Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
-      <TotalLateStops
-        v-if="haveData"
-        v-for="(metric, index) in metrics"
-        :key="index"
-        :title="metric.title"
-        :value="metric.value"
-        class="transition-all duration-300 hover:shadow-md"
-      />
+      <TotalLateStops v-if="haveData" v-for="(metric, index) in metrics" :key="index" :title="metric.title"
+        :value="metric.value" class="transition-all duration-300 hover:shadow-md" />
     </div>
 
     <!-- Bottom Section -->
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-2 md:gap-4 lg:gap-6">
-      <BottomDrivers
-        :title="'Bottom 5 Drivers'"
-        :drivers="bottomDrivers"
-        :delayType="delayType"
-        :totalDelays="totalDelays"
-        :class="{
+      <BottomDrivers :title="'Bottom 5 Drivers'" :drivers="bottomDrivers" :delayType="delayType"
+        :totalDelays="totalDelays" :class="{
           'lg:col-span-1': hasEnoughChartData,
           'lg:col-span-1 md:col-span-1': !hasEnoughChartData,
           'transition-all duration-300 hover:shadow-md': true,
-        }"
-      />
+        }" />
 
       <!-- Line Chart (shown when there's enough data) -->
-      <LineChart
-        v-if="props.currentDateFilter != 'Yesterday' && hasEnoughChartData"
-        :title="'On-Time Score'"
-        :chartData="lineChartData"
-        :averageOntime="averageOntime"
-        class="lg:col-span-3 md:col-span-2 transition-all duration-300 hover:shadow-md"
-      />
+      <LineChart v-if="props.currentDateFilter != 'Yesterday' && hasEnoughChartData" :title="'On-Time Score'"
+        :chartData="lineChartData" :averageOntime="averageOntime"
+        class="lg:col-span-3 md:col-span-2 transition-all duration-300 hover:shadow-md" />
 
       <!-- Score Card (shown when there's not enough data but at least one data point) -->
-      <div
-        v-if="!hasEnoughChartData && hasSomeData"
-        class="bg-background rounded-lg border shadow-sm p-4 md:p-6 lg:col-span-3 md:col-span-2 transition-all duration-300 hover:shadow-md flex flex-col justify-center"
-      >
+      <div v-if="!hasEnoughChartData && hasSomeData"
+        class="bg-background rounded-lg border shadow-sm p-4 md:p-6 lg:col-span-3 md:col-span-2 transition-all duration-300 hover:shadow-md flex flex-col justify-center">
         <h3 class="text-base md:text-lg text-center font-semibold mb-4">On-Time Score</h3>
-        <div
-          class="flex flex-col sm:flex-row items-center justify-center sm:justify-around gap-3 mb-4"
-        >
-          <div
-            class="text-4xl md:text-5xl font-bold text-center"
-            :class="getScoreColorClass(ontimeRating)"
-          >
+        <div class="flex flex-col sm:flex-row items-center justify-center sm:justify-around gap-3 mb-4">
+          <div class="text-4xl md:text-5xl font-bold text-center" :class="getScoreColorClass(ontimeRating)">
             {{ formatPercentage(yesterdayScore) }}
           </div>
-          <Badge
-            :variant="getRatingVariant(ontimeRating)"
-            class="text-xs md:text-sm px-3 py-1"
-          >
+          <Badge :variant="getRatingVariant(ontimeRating)" class="text-xs md:text-sm px-3 py-1">
             {{ formatRating(ontimeRating) }}
           </Badge>
         </div>
@@ -63,10 +38,8 @@
       </div>
 
       <!-- No Data Card (shown when there's absolutely no data) -->
-      <div
-        v-if="!hasSomeData"
-        class="bg-background rounded-lg border shadow-sm p-4 md:p-6 lg:col-span-3 md:col-span-2 transition-all duration-300 hover:shadow-md flex flex-col justify-center items-center"
-      >
+      <div v-if="!hasSomeData"
+        class="bg-background rounded-lg border shadow-sm p-4 md:p-6 lg:col-span-3 md:col-span-2 transition-all duration-300 hover:shadow-md flex flex-col justify-center items-center">
         <h3 class="text-base md:text-lg text-center font-semibold mb-4">On-Time Score</h3>
         <div class="flex flex-col items-center justify-center gap-3 mb-4">
           <Icon name="chart_bar" class="h-16 w-16 text-muted-foreground/50" />
@@ -121,31 +94,22 @@ const props = defineProps({
 
 // Computed properties to use either provided data or default data
 const metrics = computed(() => {
-  if (props.metricsData && props.metricsData.by_category) {
-    // Transform the categories data into the format expected by TotalLateStops component
-    return [
-      { title: "Total Delayed Stops", value: props.metricsData.totalDelays },
-      { title: "Delayed for 1-60 Minutes", value: props.metricsData.between1_60Count },
-      {
-        title: "Delayed for 61-240 Minutes",
-        value: props.metricsData.between61_240Count,
-      },
-      {
-        title: "Delayed for 241-600 Minutes",
-        value: props.metricsData.between241_600Count,
-      },
-      { title: "Delayed for +601 Minutes", value: props.metricsData.moreThan601Count },
-    ];
-  }
-  return [];
+  const cat = props.metricsData?.by_category;
+
+  if (!cat) return [];
+
+  return [
+    { title: "Total Delayed Stops", value: cat.totalDelays },
+    { title: "Delayed for 1-60 Minutes", value: cat.between1_60Count },
+    { title: "Delayed for 61-240 Minutes", value: cat.between61_240Count },
+    { title: "Delayed for 241-600 Minutes", value: cat.between241_600Count },
+    { title: "Delayed for +601 Minutes", value: cat.moreThan601Count },
+  ];
 });
 
 const haveData = computed(() => {
-  return (
-    props.metricsData &&
-    Object.keys(props.metricsData).length > 0 &&
-    props.metricsData.totalDelays > 0
-  );
+  const cat = props.metricsData?.by_category;
+  return cat && cat.totalDelays > 0;
 });
 
 const bottomDrivers = computed(() => {
@@ -156,10 +120,20 @@ const bottomDrivers = computed(() => {
 });
 
 const lineChartData = computed(() => {
-  if (props.chartData && Object.keys(props.chartData).length) {
-    return props.chartData;
-  }
-  return {};
+  if (!Array.isArray(props.chartData)) return {};
+
+  return {
+    labels: props.chartData.map(d => d.date),
+    datasets: [
+      {
+        label: "On-Time Score",
+        data: props.chartData.map(d => d.onTimePerformance),
+        borderWidth: 2,
+        tension: 0.3,
+        fill: false
+      }
+    ]
+  };
 });
 
 // Add a computed property for totalDelays
@@ -169,21 +143,16 @@ const totalDelays = computed(() => {
 
 // Check if there's enough data for the chart (more than 1 data point)
 const hasEnoughChartData = computed(() => {
-  if (!props.chartData || !props.chartData.labels) {
-    return false;
-  }
-  return props.chartData.labels.length > 1;
+  return lineChartData.value?.labels?.length > 1;
 });
 
-// Check if there's at least some data (at least 1 data point)
 const hasSomeData = computed(() => {
-  return props.chartData?.datasets?.[0]?.data?.length > 0;
+  return lineChartData.value?.datasets?.[0]?.data?.length > 0;
 });
 
-// Get yesterday's score from the chart data
 const yesterdayScore = computed(() => {
   if (hasSomeData.value) {
-    return props.chartData.datasets[0].data[0];
+    return lineChartData.value.datasets[0].data[0];
   }
   return 0;
 });

@@ -258,7 +258,7 @@
 
       <!-- On-Time Dashboard -->
       <OnTimeDashboard v-if="!props.isSuperAdmin" :metricsData="props.delay_breakdown ?? {}"
-        :driversData="props.delay_breakdown?.bottom_five_drivers ?? []" :chartData="props.line_chart_data ?? []"
+        :driversData="props.delay_breakdown?.bottom_five_drivers?.total ?? []" :chartData="props.line_chart_data ?? []"
         :averageOntime="props.average_ontime ?? null" :currentDateFilter="props.dateRange?.label || ''"
         :currentFilters="localFilters" />
 

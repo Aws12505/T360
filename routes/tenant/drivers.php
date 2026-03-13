@@ -11,7 +11,7 @@ Route::controller(DriverController::class)
             ->name('index')
             ->middleware('permission:drivers.view');
 
-                    // ✅ MATCH PERFORMANCE IMPORT FLOW
+        // ✅ MATCH PERFORMANCE IMPORT FLOW
         Route::post('/validate-import', 'validateImport')
             ->name('validateImport')
             ->middleware('permission:drivers.import');
@@ -23,18 +23,12 @@ Route::controller(DriverController::class)
         Route::get('/download-error-report', 'downloadErrorReport')
             ->name('downloadErrorReport')
             ->middleware('permission:drivers.import');
-            
+
         Route::post('/', 'store')
             ->name('store')
             ->middleware('permission:drivers.create');
 
-        Route::post('{driver}', 'update')
-            ->name('update')
-            ->middleware('permission:drivers.update');
 
-        Route::delete('{driver}', 'destroy')
-            ->name('destroy')
-            ->middleware('permission:drivers.delete');
 
         Route::delete('-bulk', 'destroyBulk')
             ->name('destroyBulk')
@@ -49,4 +43,11 @@ Route::controller(DriverController::class)
         Route::get('{driver}', 'show')
             ->name('show')
             ->middleware('permission:drivers.profile.view');
+        Route::post('{driver}', 'update')
+            ->name('update')
+            ->middleware('permission:drivers.update');
+
+        Route::delete('{driver}', 'destroy')
+            ->name('destroy')
+            ->middleware('permission:drivers.delete');
     });

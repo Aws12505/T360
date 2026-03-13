@@ -14,18 +14,9 @@
             <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
               <Icon name="search" class="h-4 w-4 text-muted-foreground" />
             </div>
-            <Input 
-              v-model="searchQuery" 
-              placeholder="Search drivers..." 
-              class="pl-10 w-full md:w-[200px]"
-            />
+            <Input v-model="searchQuery" placeholder="Search drivers..." class="pl-10 w-full md:w-[200px]" />
           </div>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            @click="resetFilters"
-            class="hidden md:flex items-center gap-1"
-          >
+          <Button variant="outline" size="sm" @click="resetFilters" class="hidden md:flex items-center gap-1">
             <Icon name="rotate-ccw" class="h-4 w-4" />
             Reset
           </Button>
@@ -45,56 +36,65 @@
               <TableHead @click="sortBy('driver_name')" class="cursor-pointer whitespace-nowrap">
                 <div class="flex items-center gap-1">
                   Driver Name
-                  <Icon 
-                    v-if="sortColumn === 'driver_name'" 
-                    :name="sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'" 
-                    class="h-4 w-4" 
-                  />
+                  <Icon v-if="sortColumn === 'driver_name'" :name="sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'"
+                    class="h-4 w-4" />
                   <Icon v-else name="arrow-up-down" class="h-4 w-4 opacity-50" />
                 </div>
               </TableHead>
               <TableHead @click="sortBy('acceptance_score')" class="cursor-pointer text-right whitespace-nowrap">
                 <div class="flex items-center justify-end gap-1">
                   Acceptance
-                  <Icon 
-                    v-if="sortColumn === 'acceptance_score'" 
-                    :name="sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'" 
-                    class="h-4 w-4" 
-                  />
+                  <Icon v-if="sortColumn === 'acceptance_score'"
+                    :name="sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'" class="h-4 w-4" />
                   <Icon v-else name="arrow-up-down" class="h-4 w-4 opacity-50" />
                 </div>
               </TableHead>
               <TableHead @click="sortBy('on_time_score')" class="cursor-pointer text-right whitespace-nowrap">
                 <div class="flex items-center justify-end gap-1">
                   On-Time
-                  <Icon 
-                    v-if="sortColumn === 'on_time_score'" 
-                    :name="sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'" 
-                    class="h-4 w-4" 
-                  />
+                  <Icon v-if="sortColumn === 'on_time_score'"
+                    :name="sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'" class="h-4 w-4" />
                   <Icon v-else name="arrow-up-down" class="h-4 w-4 opacity-50" />
                 </div>
               </TableHead>
               <TableHead @click="sortBy('safety_score')" class="cursor-pointer text-right whitespace-nowrap">
                 <div class="flex items-center justify-end gap-1">
                   Green Zone Score
-                  <Icon 
-                    v-if="sortColumn === 'safety_score'" 
-                    :name="sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'" 
-                    class="h-4 w-4" 
-                  />
+                  <Icon v-if="sortColumn === 'safety_score'" :name="sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'"
+                    class="h-4 w-4" />
                   <Icon v-else name="arrow-up-down" class="h-4 w-4 opacity-50" />
                 </div>
               </TableHead>
-              
+
+              <TableHead class="text-right whitespace-nowrap">
+                Distracted Driving
+              </TableHead>
+
+              <TableHead class="text-right whitespace-nowrap">
+                Speeding
+              </TableHead>
+
+              <TableHead class="text-right whitespace-nowrap">
+                Sign Violations
+              </TableHead>
+
+              <TableHead class="text-right whitespace-nowrap">
+                Traffic Light Violations
+              </TableHead>
+
+              <TableHead class="text-right whitespace-nowrap">
+                Following Distance
+              </TableHead>
+
+              <TableHead class="text-right whitespace-nowrap">
+                Roadside Parking
+              </TableHead>
+
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow 
-              v-for="(driver, index) in paginatedDrivers" 
-              :key="driver.driver_name"
-              class="hover:bg-muted/20 transition-colors"
-            >
+            <TableRow v-for="(driver, index) in paginatedDrivers" :key="driver.driver_name"
+              class="hover:bg-muted/20 transition-colors">
               <TableCell class="text-center">
                 <Badge variant="outline" class="min-w-[28px] justify-center">
                   {{ startIndex + index + 1 }}
@@ -116,6 +116,41 @@
                   {{ Math.round(driver.raw_safety_score) }}
                 </Badge>
               </TableCell>
+              <TableCell class="text-right">
+                <Badge variant="outline">
+                  {{ driver.driver_distraction }}
+                </Badge>
+              </TableCell>
+
+              <TableCell class="text-right">
+                <Badge variant="outline">
+                  {{ driver.speeding_violations }}
+                </Badge>
+              </TableCell>
+
+              <TableCell class="text-right">
+                <Badge variant="outline">
+                  {{ driver.sign_violations }}
+                </Badge>
+              </TableCell>
+
+              <TableCell class="text-right">
+                <Badge variant="outline">
+                  {{ driver.traffic_light_violation }}
+                </Badge>
+              </TableCell>
+
+              <TableCell class="text-right">
+                <Badge variant="outline">
+                  {{ driver.following_distance }}
+                </Badge>
+              </TableCell>
+
+              <TableCell class="text-right">
+                <Badge variant="outline">
+                  {{ driver.roadside_parking }}
+                </Badge>
+              </TableCell>
               <!-- <TableCell class="text-right font-semibold" :class="getScoreColorClass(driver.overall_score)">
                 <div class="flex items-center justify-end gap-2">
                   <div class="w-16 bg-muted rounded-full h-2 overflow-hidden">
@@ -130,7 +165,7 @@
               </TableCell> -->
             </TableRow>
             <TableRow v-if="filteredDrivers.length === 0">
-              <TableCell colspan="6" class="text-center py-8 text-muted-foreground">
+              <TableCell colspan="11" class="text-center py-8 text-muted-foreground">
                 <div class="flex flex-col items-center justify-center gap-2">
                   <Icon name="users-x" class="h-10 w-10 opacity-50" />
                   <p v-if="searchQuery">No drivers found matching "{{ searchQuery }}"</p>
@@ -144,7 +179,7 @@
           </TableBody>
         </Table>
       </div>
-      
+
       <!-- Pagination Controls -->
       <div class="border-t bg-muted/20 px-4 py-3 flex flex-col sm:flex-row justify-between items-center gap-2">
         <div class="flex items-center gap-4 text-sm text-muted-foreground">
@@ -157,57 +192,39 @@
             Per page:
           </span>
           <div class="relative">
-            <select 
-              v-model.number="pageSize" 
-              class="h-8 appearance-none rounded-md border bg-background px-2 py-1 text-sm focus:ring-2 focus:ring-ring"
-            >
+            <select v-model.number="pageSize"
+              class="h-8 appearance-none rounded-md border bg-background px-2 py-1 text-sm focus:ring-2 focus:ring-ring">
               <option v-for="n in [5, 10, 20, 50]" :key="n" :value="n">{{ n }}</option>
             </select>
             <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-              <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path
-                  fill-rule="evenodd"
+              <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                fill="currentColor">
+                <path fill-rule="evenodd"
                   d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                  clip-rule="evenodd"
-                />
+                  clip-rule="evenodd" />
               </svg>
             </div>
           </div>
         </div>
-        
+
         <div class="flex space-x-1">
-          <Button 
-            size="sm" 
-            variant="ghost" 
-            @click="currentPage--" 
-            :disabled="currentPage === 1"
-            class="flex items-center gap-1"
-          >
+          <Button size="sm" variant="ghost" @click="currentPage--" :disabled="currentPage === 1"
+            class="flex items-center gap-1">
             <Icon name="chevron-left" class="h-4 w-4" /> Prev
           </Button>
-          
-          <Button 
-            v-for="page in visiblePageNumbers" 
-            :key="page" 
-            size="sm" 
-            variant="ghost"
-            @click="page !== -1 ? currentPage = page : null"
-            :class="{ 
+
+          <Button v-for="page in visiblePageNumbers" :key="page" size="sm" variant="ghost"
+            @click="page !== -1 ? currentPage = page : null" :class="{
               'border-primary bg-primary/10 text-primary font-medium': page === currentPage,
               'opacity-50 pointer-events-none': page === -1
-            }"
-          >
+            }">
             {{ page === -1 ? '...' : page }}
           </Button>
-          
-          <Button 
-            size="sm" 
-            variant="ghost" 
-            @click="currentPage++" 
-            :disabled="currentPage === totalPages"
-            class="flex items-center gap-1"
-          >
-            Next <Icon name="chevron-right" class="h-4 w-4" />
+
+          <Button size="sm" variant="ghost" @click="currentPage++" :disabled="currentPage === totalPages"
+            class="flex items-center gap-1">
+            Next
+            <Icon name="chevron-right" class="h-4 w-4" />
           </Button>
         </div>
       </div>
@@ -277,11 +294,11 @@ const resetFilters = () => {
 // Filter drivers by search query
 const filteredDrivers = computed(() => {
   if (!props.driversData || props.driversData.length === 0) return [];
-  
+
   if (!searchQuery.value) return props.driversData;
-  
+
   const query = searchQuery.value.toLowerCase();
-  return props.driversData.filter(driver => 
+  return props.driversData.filter(driver =>
     driver.driver_name.toLowerCase().includes(query)
   );
 });
@@ -289,11 +306,11 @@ const filteredDrivers = computed(() => {
 // Sort filtered drivers
 const sortedDrivers = computed(() => {
   if (filteredDrivers.value.length === 0) return [];
-  
+
   return [...filteredDrivers.value].sort((a, b) => {
     const valueA = a[sortColumn.value];
     const valueB = b[sortColumn.value];
-    
+
     // For string values (like driver_name)
     if (typeof valueA === 'string') {
       if (sortDirection.value === 'asc') {
@@ -302,7 +319,7 @@ const sortedDrivers = computed(() => {
         return valueB.localeCompare(valueA);
       }
     }
-    
+
     // For numeric values
     if (sortDirection.value === 'asc') {
       return valueA - valueB;
@@ -341,26 +358,26 @@ watch([totalPages, currentPage], () => {
 const visiblePageNumbers = computed(() => {
   const total = totalPages.value;
   const current = currentPage.value;
-  
+
   if (total <= 5) {
     // If 5 or fewer pages, show all
     return Array.from({ length: total }, (_, i) => i + 1);
   }
-  
+
   // Always include first, last, current, and one on each side of current if possible
   let pages = [1, total];
-  
+
   // Add current page and neighbors
   const neighbors = [current - 1, current, current + 1].filter(p => p > 1 && p < total);
   pages.push(...neighbors);
-  
+
   // Sort and deduplicate
   pages = [...new Set(pages)].sort((a, b) => a - b);
-  
+
   // Add ellipses where needed
   const result = [];
   let prev = 0;
-  
+
   for (const page of pages) {
     if (page - prev > 1) {
       // Add ellipsis for gaps
@@ -369,7 +386,7 @@ const visiblePageNumbers = computed(() => {
     result.push(page);
     prev = page;
   }
-  
+
   return result;
 });
 

@@ -31,8 +31,8 @@ class DriverImportValidationService
         $isSuperAdmin = $user && $user->tenant_id === null;
 
         $expectedHeaders = $isSuperAdmin
-            ? ['tenant_name','first_name','last_name','email','password','netradyne_user_name','mobile_phone','hiring_date']
-            : ['first_name','last_name','email','password','netradyne_user_name','mobile_phone','hiring_date'];
+            ? ['tenant_name', 'first_name', 'last_name', 'email', 'password', 'netradyne_user_name', 'mobile_phone', 'hiring_date']
+            : ['first_name', 'last_name', 'email', 'password', 'netradyne_user_name', 'mobile_phone', 'hiring_date'];
 
         $this->results['expected_headers'] = $expectedHeaders;
 
@@ -45,7 +45,7 @@ class DriverImportValidationService
             ];
         }
 
-        $headerRow = array_map(fn ($h) => trim((string) $h), $headerRow);
+        $headerRow = array_map(fn($h) => trim((string) $h), $headerRow);
         $this->results['headers'] = $headerRow;
 
         if (count($headerRow) !== count($expectedHeaders)) {
@@ -58,8 +58,8 @@ class DriverImportValidationService
             ];
         }
 
-        $normalizedIncoming = array_map(fn ($h) => strtolower(trim((string) $h)), $headerRow);
-        $normalizedExpected = array_map(fn ($h) => strtolower(trim((string) $h)), $expectedHeaders);
+        $normalizedIncoming = array_map(fn($h) => strtolower(trim((string) $h)), $headerRow);
+        $normalizedExpected = array_map(fn($h) => strtolower(trim((string) $h)), $expectedHeaders);
 
         if ($normalizedIncoming !== $normalizedExpected) {
             fclose($handle);
@@ -108,7 +108,7 @@ class DriverImportValidationService
         }
 
         $data = array_combine($expectedHeaders, $row);
-        $data = collect($data)->map(fn ($v) => is_string($v) ? trim($v) : $v)->toArray();
+        $data = collect($data)->map(fn($v) => is_string($v) ? trim($v) : $v)->toArray();
 
         // SuperAdmin: tenant_name required + must exist
         if ($isSuperAdmin) {
@@ -116,14 +116,15 @@ class DriverImportValidationService
                 $errors[] = 'Tenant name is required';
             } else {
                 $tenant = Tenant::where('name', $data['tenant_name'])->first();
-                if (!$tenant) $errors[] = "Tenant not found: {$data['tenant_name']}";
+                if (!$tenant)
+                    $errors[] = "Tenant not found: {$data['tenant_name']}";
             }
         }
 
         // Required fields
-        foreach (['first_name','last_name','email','netradyne_user_name','mobile_phone','hiring_date'] as $field) {
+        foreach (['first_name', 'last_name', 'email', 'netradyne_user_name', 'mobile_phone'] as $field) {
             if (!isset($data[$field]) || $data[$field] === '') {
-                $errors[] = ucfirst(str_replace('_',' ', $field)) . ' is required';
+                $errors[] = ucfirst(str_replace('_', ' ', $field)) . ' is required';
             }
         }
 
@@ -142,7 +143,7 @@ class DriverImportValidationService
         }
 
         // password is allowed to be empty (service fills default) but if provided, enforce min len
-        if (!empty($data['password']) && strlen((string)$data['password']) < 8) {
+        if (!empty($data['password']) && strlen((string) $data['password']) < 8) {
             $errors[] = "Password must be at least 8 characters if provided";
         }
 
@@ -159,8 +160,8 @@ class DriverImportValidationService
     protected function getRowPreviewWithHeaders(array $data, bool $isSuperAdmin): array
     {
         $previewFields = $isSuperAdmin
-            ? ['tenant_name','email','first_name','last_name']
-            : ['email','first_name','last_name','hiring_date'];
+            ? ['tenant_name', 'email', 'first_name', 'last_name']
+            : ['email', 'first_name', 'last_name', 'hiring_date'];
 
         $labels = [
             'tenant_name' => 'Tenant',
@@ -172,10 +173,12 @@ class DriverImportValidationService
 
         $preview = [];
         foreach ($previewFields as $key) {
-            if (!isset($data[$key]) || $data[$key] === '') continue;
+            if (!isset($data[$key]) || $data[$key] === '')
+                continue;
 
             $value = (string) $data[$key];
-            if (strlen($value) > 30) $value = substr($value, 0, 30) . '...';
+            if (strlen($value) > 30)
+                $value = substr($value, 0, 30) . '...';
 
             $preview[] = [
                 'key' => $key,
@@ -196,7 +199,8 @@ class DriverImportValidationService
         $out = [];
         foreach (array_slice($expectedHeaders, 0, 3) as $i => $h) {
             $val = isset($row[$i]) ? (string) $row[$i] : '';
-            if (strlen($val) > 30) $val = substr($val, 0, 30) . '...';
+            if (strlen($val) > 30)
+                $val = substr($val, 0, 30) . '...';
 
             $out[] = [
                 'key' => $h,
@@ -232,7 +236,8 @@ class DriverImportValidationService
                 foreach ($row['preview'] as $p) {
                     $label = $p['label'] ?? '';
                     $val = $p['value'] ?? '';
-                    if ($label !== '' && $val !== '') $parts[] = "{$label}: {$val}";
+                    if ($label !== '' && $val !== '')
+                        $parts[] = "{$label}: {$val}";
                 }
                 $previewString = !empty($parts) ? implode(' | ', $parts) : '—';
             }

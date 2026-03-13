@@ -1,8 +1,10 @@
 <template>
   <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug" :permissions="props.permissions">
+
     <Head title="Performance Summary Dashboard" />
-    
-    <div class="container w-full md:max-w-2xl lg:max-w-3xl xl:max-w-6xl lg:mx-auto m-0 p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6">
+
+    <div
+      class="container w-full md:max-w-2xl lg:max-w-3xl xl:max-w-6xl lg:mx-auto m-0 p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6">
       <div class="flex items-center justify-between mb-6">
         <!-- Performance Summary Dashboard -->
         <h1 class="text-2xl font-bold"></h1>
@@ -11,49 +13,32 @@
           Last updated: {{ formatLastUpdated }}
         </Badge>
       </div>
-      
+
       <!-- Dashboard Header -->
       <DashboardHeader :operationalExcellenceScore="operationalExcellenceScore" />
-      
-      
-      
+
+
+
       <!-- Time Period Tabs -->
-      <TimePeriodTabs 
-        @tab-change="handleTimePeriodChange" 
-        :dateRangeText="currentDateRangeText"
-        :weekNumber="dateRange?.weekNumber"
-        :startWeekNumber="dateRange?.startWeekNumber"
-        :endWeekNumber="dateRange?.endWeekNumber"
-        :year="dateRange?.year"
-        :activeTabId="currentDateFilter"
-      />
-      
+      <TimePeriodTabs @tab-change="handleTimePeriodChange" :dateRangeText="currentDateRangeText"
+        :weekNumber="dateRange?.weekNumber" :startWeekNumber="dateRange?.startWeekNumber"
+        :endWeekNumber="dateRange?.endWeekNumber" :year="dateRange?.year" :activeTabId="currentDateFilter" />
+
       <!-- Performance Cards -->
-      <PerformanceCards 
-        v-if="summaries"
-        :performanceData="summaries.performance?.data || {}"
-        :performanceRatings="summaries.performance?.ratings || {}"
-        :safetyData="summaries.safety || {}"
-        :delayBreakdowns="delayBreakdowns?.by_code || []"
-        :rejectionBreakdowns="rejectionBreakdowns?.by_reason || []"
-        :maintenanceBreakdowns="maintenanceBreakdowns || {}"
-        :milesDriven="milesDriven"
-      />
-      
+      <PerformanceCards v-if="summaries" :performanceData="summaries.performance?.data || {}"
+        :performanceRatings="summaries.performance?.ratings || {}" :safetyData="summaries.safety || {}"
+        :delayBreakdowns="delayBreakdowns?.by_reason || []" :rejectionBreakdowns="rejectionBreakdowns?.by_reason || []"
+        :maintenanceBreakdowns="maintenanceBreakdowns || {}" :milesDriven="milesDriven" />
+
       <!-- Driver Performance Table -->
       <div class="h-auto">
-        <DriverPerformanceTable 
-          v-if="driversOverallPerformance"
-          :driversData="driversOverallPerformance.drivers || []"
-        />
+        <DriverPerformanceTable v-if="driversOverallPerformance"
+          :driversData="driversOverallPerformance.drivers || []" />
       </div>
-      
+
       <!-- Additional Metrics Card -->
-      <AdditionalMetricsCard 
-        v-if="summaries"
-        :performanceData="summaries.performance?.data || {}"
-        :performanceRatings="summaries.performance?.ratings || {}"
-      />
+      <AdditionalMetricsCard v-if="summaries" :performanceData="summaries.performance?.data || {}"
+        :performanceRatings="summaries.performance?.ratings || {}" />
 
       <!-- Miles Driven Card -->
       <div class="bg-card rounded-lg border shadow-sm p-3 sm:p-4 h-16 sm:h-20">
@@ -70,7 +55,7 @@
     /> -->
       <!-- Tabs Header -->
       <!-- <TabsHeader @tab-change="handleTabChange" /> -->
-      
+
       <!-- Tab Content -->
       <!-- <div>
         <OnTimeContent 
@@ -101,8 +86,8 @@
         />
       </div> -->
     </div>
-    
-    
+
+
   </AppLayout>
 </template>
 
@@ -181,7 +166,7 @@ const formatCurrency = (value) => {
 // const handleOutstandingInvoicesFilter = (filterData) => {
 //   minInvoiceAmount.value = filterData.minInvoiceAmount;
 //   outstandingDate.value = filterData.outstandingDate;
-  
+
 //   router.visit(route('dashboard', {
 //     tenantSlug: props.tenantSlug,
 //     dateFilter: currentDateFilter.value,
@@ -202,7 +187,7 @@ const currentDateRangeText = computed(() => {
     't6w': 'rolling_6_weeks',
     'quarterly': 'quarterly'
   };
-  
+
   const mappedFilter = filterMap[currentDateFilter.value] || currentDateFilter.value;
   return getDateRangeDisplay(mappedFilter);
 });
@@ -215,16 +200,16 @@ const handleTabChange = (tabId: string) => {
 // Handle time period tab change
 const handleTimePeriodChange = (tabId: string) => {
   currentDateFilter.value = tabId;
-  
+
   // Reload the page with the new date filter
-  router.visit(route('dashboard', { 
+  router.visit(route('dashboard', {
     tenantSlug: props.tenantSlug,
     dateFilter: tabId,
     minInvoiceAmount: minInvoiceAmount.value || null,
     outstandingDate: outstandingDate.value || null
   }), {
 
-    only: ['summaries', 'delayBreakdowns', 'rejectionBreakdowns', 'maintenanceBreakdowns', 'dateFilter', 'dateRange','milesDriven', 'driversOverallPerformance']
+    only: ['summaries', 'delayBreakdowns', 'rejectionBreakdowns', 'maintenanceBreakdowns', 'dateFilter', 'dateRange', 'milesDriven', 'driversOverallPerformance']
   });
 };
 
@@ -271,11 +256,11 @@ const getDateRangeDisplay = (range) => {
     const endDate = new Date(props.summaries[range].date_range.end + 'T12:00:00');
     return `${formatDateShort(startDate)} - ${formatDateShort(endDate)}`;
   }
-  
+
   // Fallback to calculated dates if not provided from backend
   const today = new Date()
-  
-  switch(range) {
+
+  switch (range) {
     case 'yesterday': {
       const yesterday = new Date(today)
       yesterday.setDate(yesterday.getDate() - 1)
@@ -322,7 +307,7 @@ const formatNumber = (value) => {
 // Compute operational excellence score based on performance ratings
 const operationalExcellenceScore = computed(() => {
   if (!props.summaries?.performance?.ratings) return 'Not Available';
-  
+
   const ratings = props.summaries.performance.ratings;
   const ratingValues = {
     'fantastic_plus': 5,
@@ -331,7 +316,7 @@ const operationalExcellenceScore = computed(() => {
     'fair': 2,
     'poor': 1
   };
-  
+
   // Get all ratings as an array
   const ratingKeys = [
     'average_acceptance',
@@ -341,7 +326,7 @@ const operationalExcellenceScore = computed(() => {
     'vcr_preventable',
     'vmcr_p'
   ];
-  
+
   // Find the best rating
   let bestRating = 'fantastic_plus';
   for (const key of ratingKeys) {
@@ -349,7 +334,7 @@ const operationalExcellenceScore = computed(() => {
       bestRating = ratings[key];
     }
   }
-  
+
   // Map the rating to a display value
   switch (bestRating) {
     case 'fantastic_plus':
