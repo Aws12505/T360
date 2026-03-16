@@ -94,7 +94,7 @@ const exportScorecard = async () => {
 
                 <Button variant="outline" @click="exportScorecard" :disabled="!hasDrivers">
                     <Icon name="camera" class="mr-2 h-4 w-4" />
-                    Take A Snapshot
+                    Capture Snapshot
                 </Button>
 
             </div>
