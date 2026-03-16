@@ -61,6 +61,7 @@ import {
   ClipboardCheck,
   MessageSquareMore,
   ChartBar,
+  Award,
   // Add these new icons
 } from 'lucide-vue-next';
 
@@ -89,8 +90,8 @@ export type IconName =
   | 'lineChart'
   | 'gauge'
   | 'trash'
-  |'refresh'
-  |'plus'
+  | 'refresh'
+  | 'plus'
   | 'pencil'
   | 'rotate_ccw'
   | 'download'
@@ -122,7 +123,8 @@ export type IconName =
   | 'fingerprint'
   | 'clipboard_check'
   | 'feedback'
-  | 'chart_bar';
+  | 'chart_bar'
+  | 'award'; // New icon for driver scorecard
 
 const ICONS: Record<IconName, Component> = {
   truck: Truck,
@@ -182,6 +184,7 @@ const ICONS: Record<IconName, Component> = {
   clipboard_check: ClipboardCheck,
   feedback: MessageSquareMore,
   chart_bar: ChartBar,
+  award: Award,
 };
 
 // 3. Define props, with defaults for optional values:
@@ -206,11 +209,6 @@ const IconComponent = computed(() => ICONS[props.name]);
 </script>
 
 <template>
-  <component
-    :is="IconComponent"
-    :class="className"
-    :size="props.size"
-    :stroke-width="props.strokeWidth"
-    :color="props.color"
-  />
+  <component :is="IconComponent" :class="className" :size="props.size" :stroke-width="props.strokeWidth"
+    :color="props.color" />
 </template>

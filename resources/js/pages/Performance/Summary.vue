@@ -30,11 +30,11 @@
         :delayBreakdowns="delayBreakdowns?.by_reason || []" :rejectionBreakdowns="rejectionBreakdowns?.by_reason || []"
         :maintenanceBreakdowns="maintenanceBreakdowns || {}" :milesDriven="milesDriven" />
 
-      <!-- Driver Performance Table -->
+      <!-- Driver Performance Table
       <div class="h-auto">
         <DriverPerformanceTable v-if="driversOverallPerformance"
           :driversData="driversOverallPerformance.drivers || []" />
-      </div>
+      </div> -->
 
       <!-- Additional Metrics Card -->
       <AdditionalMetricsCard v-if="summaries" :performanceData="summaries.performance?.data || {}"
@@ -116,7 +116,7 @@ import TimePeriodTabs from '@/components/summary/TimePeriodTabs.vue';
 import PerformanceCards from '@/components/summary/PerformanceCards.vue';
 import AdditionalMetricsCard from '@/components/summary/AdditionalMetricsCard.vue';
 import MilesDrivenTable from '@/components/summary/MilesDrivenTable.vue'
-import DriverPerformanceTable from '@/components/summary/DriverPerformanceTable.vue';
+// import DriverPerformanceTable from '@/components/summary/DriverPerformanceTable.vue';
 
 // Props
 const props = defineProps({
@@ -127,7 +127,7 @@ const props = defineProps({
   maintenanceBreakdowns: Object,
   dateFilter: String,
   dateRange: Object,
-  driversOverallPerformance: Object,
+  // driversOverallPerformance: Object,
   milesDriven: Number,
   permissions: Array,
 });
@@ -209,7 +209,7 @@ const handleTimePeriodChange = (tabId: string) => {
     outstandingDate: outstandingDate.value || null
   }), {
 
-    only: ['summaries', 'delayBreakdowns', 'rejectionBreakdowns', 'maintenanceBreakdowns', 'dateFilter', 'dateRange', 'milesDriven', 'driversOverallPerformance']
+    only: ['summaries', 'delayBreakdowns', 'rejectionBreakdowns', 'maintenanceBreakdowns', 'dateFilter', 'dateRange', 'milesDriven']
   });
 };
 
