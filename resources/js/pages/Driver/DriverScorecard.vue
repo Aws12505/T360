@@ -30,6 +30,10 @@ const drivers = computed(() => {
 const hasDrivers = computed(() => drivers.value.length > 0)
 
 const handleTimePeriodChange = (filter: string) => {
+    if (filter === 'custom') {
+        showCustomDialog.value = true;
+        return;
+    }
     router.visit(route("driver.scorecard", {
         tenantSlug: props.tenantSlug,
         dateFilter: filter
@@ -74,6 +78,22 @@ const exportScorecard = async () => {
     }
 
 }
+const customStartDate = ref<string | null>(null);
+const customEndDate = ref<string | null>(null);
+const showCustomDialog = ref(false);
+const applyCustomRange = () => {
+    if (!customStartDate.value || !customEndDate.value) return;
+
+    showCustomDialog.value = false;
+
+    router.visit(route("driver.scorecard", {
+        tenantSlug: props.tenantSlug,
+        dateFilter: 'custom'
+    }), {
+        preserveScroll: true,
+        only: ["driversOverallPerformance", "dateFilter", "dateRange"]
+    })
+};
 </script>
 
 <template>
@@ -113,6 +133,36 @@ const exportScorecard = async () => {
             </div>
 
         </div>
+        <Dialog v-model:open="showCustomDialog">
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Select Custom Date Range</DialogTitle>
+                    <DialogDescription>
+                        Choose a start and end date for your report.
+                    </DialogDescription>
+                </DialogHeader>
 
+                <div class="space-y-4">
+                    <div>
+                        <Label>Start Date</Label>
+                        <Input type="date" v-model="customStartDate" />
+                    </div>
+
+                    <div>
+                        <Label>End Date</Label>
+                        <Input type="date" v-model="customEndDate" />
+                    </div>
+                </div>
+
+                <DialogFooter>
+                    <Button variant="outline" @click="showCustomDialog = false">
+                        Cancel
+                    </Button>
+                    <Button @click="applyCustomRange">
+                        Apply
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </AppLayout>
 </template>
