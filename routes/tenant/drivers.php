@@ -11,6 +11,10 @@ Route::controller(DriverController::class)
             ->name('index')
             ->middleware('permission:drivers.view');
 
+        Route::get('/scorecard', 'driverScorecard')
+            ->name('scorecard')
+            ->middleware('permission:drivers.view');
+
         // ✅ MATCH PERFORMANCE IMPORT FLOW
         Route::post('/validate-import', 'validateImport')
             ->name('validateImport')

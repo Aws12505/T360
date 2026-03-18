@@ -94,13 +94,23 @@ class SummariesService
 
         return round((1 - ($penalty / $entries)) * 100, 2);
     }
-    public function compileSummaries($dateFilter = null, $minInvoiceAmount = null, $outstandingDate = null): array
-    {
+    public function compileSummaries(
+        $dateFilter = null,
+        $minInvoiceAmount = null,
+        $outstandingDate = null,
+        $customStartDate = null,
+        $customEndDate = null
+    ): array {
         $dateFilter = $dateFilter ?? $this->filteringService->getDateFilter('yesterday');
         $dateRange = [];
         $now = Carbon::now();
         $isSunday = $now->dayOfWeek === 0; // 0 = Sunday in Carbon
 
+        if ($dateFilter === 'custom') {
+            if (!$customStartDate || !$customEndDate) {
+                throw new \InvalidArgumentException('Custom date range requires startDate and endDate');
+            }
+        }
         switch ($dateFilter) {
             case 'yesterday':
                 $startDate = Carbon::yesterday()->startOfDay();
@@ -145,6 +155,12 @@ class SummariesService
                 $label = 'Quarterly';
                 break;
 
+            case 'custom':
+                $startDate = Carbon::parse($customStartDate)->startOfDay();
+                $endDate = Carbon::parse($customEndDate)->endOfDay();
+                $label = 'Custom Range';
+                break;
+
             default:
                 $startDate = Carbon::yesterday()->startOfDay();
                 $endDate = Carbon::yesterday()->endOfDay();
@@ -159,6 +175,10 @@ class SummariesService
         if (in_array($dateFilter, ['yesterday', 'current-week'])) {
             $weekNumber = $this->weekNumberSundayStart($startDate);
             $startWeekNumber = $endWeekNumber = null;
+        } else if ($dateFilter === 'custom') {
+            $weekNumber = null;
+            $startWeekNumber = null;
+            $endWeekNumber = null;
         } else {
             $weekNumber = null;
             $startWeekNumber = $this->weekNumberSundayStart($startDate);
@@ -205,7 +225,7 @@ class SummariesService
         $permissions = Auth::user()->getAllPermissions();
         // Adjust dates for maintenance breakdown (weeks 16-24 instead of 17-25)
 
-        $driverOverAll = $this->getDriversOverallPerformance($startDate, $endDate);
+        // $driverOverAll = $this->getDriversOverallPerformance($startDate, $endDate);
         return [
             'summaries' => [
                 'performance' => $performance,
@@ -220,7 +240,7 @@ class SummariesService
             'maintenanceBreakdowns' => $maintenaceBreakdown,
             'dateFilter' => $dateFilter,
             'dateRange' => $dateRange,
-            'driversOverallPerformance' => $driverOverAll,
+            // 'driversOverallPerformance' => $driverOverAll,
             'permissions' => $permissions,
             'milesDriven' => $milesDriven,
         ];
@@ -578,4 +598,139 @@ class SummariesService
 
         return $result ? (float) $result->total_miles : 0;
     }
+    private function resolveDateRange($dateFilter): array
+    {
+        $now = Carbon::now();
+        $isSunday = $now->dayOfWeek === 0;
+
+        switch ($dateFilter) {
+
+            case 'yesterday':
+                $startDate = Carbon::yesterday()->startOfDay();
+                $endDate = Carbon::yesterday()->endOfDay();
+                $label = 'Yesterday';
+                break;
+
+            case 'current-week':
+                $startDate = $now->copy()->startOfDay()->modify('last sunday');
+                if ($isSunday) {
+                    $startDate->subWeek();
+                }
+
+                $endDate = $startDate->copy()->addDays(6)->endOfDay();
+                $label = 'Current Week';
+                break;
+
+            case 't6w':
+                $startDate = $now->copy()->modify('last sunday');
+
+                if ($isSunday) {
+                    $startDate->subWeek();
+                }
+
+                $startDate->subWeeks(5)->startOfDay();
+
+                $endDate = $now->copy()->modify('this saturday');
+
+                if ($isSunday) {
+                    $endDate->subWeek();
+                }
+
+                $endDate->endOfDay();
+
+                $label = '6 Weeks';
+                break;
+
+            case 'quarterly':
+
+                $startDate = $now->copy()->subMonths(3)->modify('last sunday');
+
+                if ($isSunday) {
+                    $startDate->subWeek();
+                }
+
+                $startDate->startOfDay();
+
+                $endDate = $now->copy()->modify('this saturday');
+
+                if ($isSunday) {
+                    $endDate->subWeek();
+                }
+
+                $endDate->endOfDay();
+
+                $label = 'Quarterly';
+                break;
+
+            default:
+                $startDate = Carbon::yesterday()->startOfDay();
+                $endDate = Carbon::yesterday()->endOfDay();
+                $label = 'Yesterday';
+        }
+
+        $year = $startDate->year;
+
+        if (in_array($dateFilter, ['yesterday', 'current-week'])) {
+
+            $weekNumber = $this->weekNumberSundayStart($startDate);
+
+            $startWeekNumber = null;
+            $endWeekNumber = null;
+
+        } else {
+
+            $weekNumber = null;
+
+            $startWeekNumber = $this->weekNumberSundayStart($startDate);
+            $endWeekNumber = $this->weekNumberSundayStart($endDate);
+        }
+
+        return [
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'dateRange' => [
+                'start' => $startDate->toDateString(),
+                'end' => $endDate->toDateString(),
+                'label' => $label,
+                'weekNumber' => $weekNumber,
+                'startWeekNumber' => $startWeekNumber,
+                'endWeekNumber' => $endWeekNumber,
+                'year' => $year
+            ]
+        ];
+    }
+    public function getDriverScorecardData($dateFilter): array
+    {
+        $dateFilter = $dateFilter ?? 'yesterday';
+
+        $range = $this->resolveDateRange($dateFilter);
+
+        $startDate = $range['startDate'];
+        $endDate = $range['endDate'];
+        $dateRange = $range['dateRange'];
+
+        $drivers = $this->getDriversOverallPerformance($startDate, $endDate);
+
+        $isSuperAdmin = Auth::check() && is_null(Auth::user()->tenant_id);
+
+        $tenantSlug = $isSuperAdmin
+            ? null
+            : (Auth::check() ? Auth::user()->tenant->slug : null);
+
+        $permissions = Auth::user()->getAllPermissions();
+
+        return [
+
+            'driversOverallPerformance' => $drivers,
+
+            'dateFilter' => $dateFilter,
+
+            'dateRange' => $dateRange,
+
+            'tenantSlug' => $tenantSlug,
+
+            'permissions' => $permissions
+        ];
+    }
+
 }

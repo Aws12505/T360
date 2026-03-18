@@ -9,6 +9,8 @@ use App\Http\Requests\Driver\UpdateDriverRequest;
 use App\Services\Driver\DriverDataService;
 use App\Services\Driver\DriverImportExportService;
 use App\Services\Driver\DriverImportValidationService;
+use App\Services\Summaries\SummariesService;
+
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -19,15 +21,18 @@ class DriverController extends Controller
     protected DriverDataService $driverDataService;
     protected DriverImportExportService $driverImportExportService;
     protected DriverImportValidationService $driverImportValidationService;
+    protected SummariesService $summariesService;
 
     public function __construct(
         DriverDataService $driverDataService,
         DriverImportExportService $driverImportExportService,
-        DriverImportValidationService $driverImportValidationService
+        DriverImportValidationService $driverImportValidationService,
+        SummariesService $summariesService
     ) {
         $this->driverDataService = $driverDataService;
         $this->driverImportExportService = $driverImportExportService;
         $this->driverImportValidationService = $driverImportValidationService;
+        $this->summariesService = $summariesService;
     }
 
     /**
@@ -213,7 +218,7 @@ class DriverController extends Controller
         $this->driverDataService->deleteMultipleDrivers($ids);
         return redirect()->back()->with('success', 'Drivers deleted successfully.');
     }
-    
+
     /**
      * Delete multiple driver entries as Admin.
      *
@@ -232,7 +237,7 @@ class DriverController extends Controller
         $driver = Auth::guard('driver')->user();
         // Get data for the dashboard
         $dateFilter = $request->input('dateFilter', 'full');
-        $dashboardData = $this->driverDataService->getProfileData($driver,$dateFilter);
+        $dashboardData = $this->driverDataService->getProfileData($driver, $dateFilter);
 
         // Return Inertia page
         return Inertia::render('Driver/DriverProfile', [
@@ -240,7 +245,7 @@ class DriverController extends Controller
         ]);
     }
 
-     /**
+    /**
      * Tenant: show a single driver's profile.
      */
     public function show(Request $request, string $tenantSlug, int $id)
@@ -251,14 +256,14 @@ class DriverController extends Controller
         if (Auth::user()->tenant_id && Auth::user()->tenant->slug !== $tenantSlug) {
             abort(403);
         }
-$dateFilter = $request->input('dateFilter', 'full');
+        $dateFilter = $request->input('dateFilter', 'full');
         // Get data for the dashboard
         $profile = $this->driverDataService->getProfileData($driver, $dateFilter);
         return Inertia::render('Driver/Show', [
             // matches props in Show.vue
-            'driver'     => $profile,
+            'driver' => $profile,
             'tenantSlug' => Auth::user()->tenant_id ? $tenantSlug : null,
-            'permissions'=> Auth::user()->getAllPermissions(),
+            'permissions' => Auth::user()->getAllPermissions(),
             'driverID' => $id,
         ]);
     }
@@ -268,14 +273,24 @@ $dateFilter = $request->input('dateFilter', 'full');
      */
     public function showAdmin(Request $request, int $id)
     {
-        $driver  = Driver::findOrFail($id);
+        $driver = Driver::findOrFail($id);
         $dateFilter = $request->input('dateFilter', 'full');
-        $profile = $this->driverDataService->getProfileData($driver,$dateFilter);
+        $profile = $this->driverDataService->getProfileData($driver, $dateFilter);
         return Inertia::render('Driver/Show', [
-            'driver'     => $profile,
+            'driver' => $profile,
             'tenantSlug' => null,
-            'permissions'=> Auth::user()->getAllPermissions(),
+            'permissions' => Auth::user()->getAllPermissions(),
             'driverID' => $id,
         ]);
     }
+
+    public function driverScorecard(Request $request)
+    {
+        $dateFilter = $request->input('dateFilter', 'yesterday');
+
+        $data = $this->summariesService
+            ->getDriverScorecardData($dateFilter);
+        return Inertia::render('Driver/DriverScorecard', $data);
+    }
+
 }

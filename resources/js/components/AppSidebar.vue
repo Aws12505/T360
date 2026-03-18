@@ -9,19 +9,19 @@ import AppLogo from './AppLogo.vue';
 import { computed } from 'vue';
 
 interface Props {
-    breadcrumbs?: BreadcrumbItemType[];
-    tenantSlug?: string | null;
-    permissions: string[];
+  breadcrumbs?: BreadcrumbItemType[];
+  tenantSlug?: string | null;
+  permissions: string[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
-    breadcrumbs: () => [],
-    tenantSlug: null, 
-    permissions: [],
+  breadcrumbs: () => [],
+  tenantSlug: null,
+  permissions: [],
 });
 const permissionNames = computed(() =>
-      props.permissions.map(p => p.name)
-    );
+  props.permissions.map(p => p.name)
+);
 const mainNavItems = computed<NavItem[]>(() => [
   {
     title: props.tenantSlug ? 'Dashboard' : 'Admin Dashboard',
@@ -30,80 +30,89 @@ const mainNavItems = computed<NavItem[]>(() => [
       : route('admin.dashboard'),
     icon: 'layoutGrid',
   },
+  ...(props.tenantSlug && permissionNames.value.includes('drivers.view')
+    ? [
+      {
+        title: 'Driver Scorecard',
+        href: route('driver.scorecard', { tenantSlug: props.tenantSlug }),
+        icon: 'award',
+      },
+    ]
+    : []),
   // Only show this for global Admin
   ...(!props.tenantSlug
     ? [
-        {
-          title: 'Metrics Management',
-          href: route('performance-metrics.edit'),
-          icon: 'gauge',
-        },
-      ]
+      {
+        title: 'Metrics Management',
+        href: route('performance-metrics.edit'),
+        icon: 'gauge',
+      },
+    ]
     : []),
   // Only show Performance if user has performance.view permission
   ...(permissionNames.value.includes('performance.view')
     ? [
-        {
-          title: 'Performance',
-          href: props.tenantSlug
-            ? route('performance.index', { tenantSlug: props.tenantSlug })
-            : route('performance.index.admin'),
-          icon: 'barChart',
-        },
-      ]
+      {
+        title: 'Performance',
+        href: props.tenantSlug
+          ? route('performance.index', { tenantSlug: props.tenantSlug })
+          : route('performance.index.admin'),
+        icon: 'barChart',
+      },
+    ]
     : []),
-    ...(permissionNames.value.includes('acceptance.view')
+  ...(permissionNames.value.includes('acceptance.view')
     ? [
-    {
-    title: 'Acceptance',
-    href: props.tenantSlug
-      ? route('acceptance.index', { tenantSlug: props.tenantSlug })
-      : route('acceptance.index.admin'),
-    icon: 'checkCircle',
-  },]
-  : []),
+      {
+        title: 'Acceptance',
+        href: props.tenantSlug
+          ? route('acceptance.index', { tenantSlug: props.tenantSlug })
+          : route('acceptance.index.admin'),
+        icon: 'checkCircle',
+      },]
+    : []),
   ...(permissionNames.value.includes('delays.view')
-  ? [
-  {
-    title: 'On-Time',
-    href: props.tenantSlug
-      ? route('ontime.index', { tenantSlug: props.tenantSlug })
-      : route('ontime.index.admin'),
-    icon: 'clock',
-  },]
-  : []),
+    ? [
+      {
+        title: 'On-Time',
+        href: props.tenantSlug
+          ? route('ontime.index', { tenantSlug: props.tenantSlug })
+          : route('ontime.index.admin'),
+        icon: 'clock',
+      },]
+    : []),
   ...(permissionNames.value.includes('safety-data.view')
-  ? [
-  {
-    title: 'Safety',
-    href: props.tenantSlug
-      ? route('safety.index', { tenantSlug: props.tenantSlug })
-      : route('safety.index.admin'),
-    icon: 'shieldCheck',
-  },]
-  : []),
-  ...(permissionNames.value.includes('trucks.view') || 
-      permissionNames.value.includes('repair-orders.view') || 
-      permissionNames.value.includes('miles-driven.view')
-  ? [
-  {
-    title: 'Asset Maintenance',
-    href: props.tenantSlug
-      ? route('repair_orders.index', { tenantSlug: props.tenantSlug })
-      : route('repair_orders.index.admin'),
-    icon: 'wrench',
-  },]
-  : []),
+    ? [
+      {
+        title: 'Safety',
+        href: props.tenantSlug
+          ? route('safety.index', { tenantSlug: props.tenantSlug })
+          : route('safety.index.admin'),
+        icon: 'shieldCheck',
+      },]
+    : []),
+  ...(permissionNames.value.includes('trucks.view') ||
+    permissionNames.value.includes('repair-orders.view') ||
+    permissionNames.value.includes('miles-driven.view')
+    ? [
+      {
+        title: 'Asset Maintenance',
+        href: props.tenantSlug
+          ? route('repair_orders.index', { tenantSlug: props.tenantSlug })
+          : route('repair_orders.index.admin'),
+        icon: 'wrench',
+      },]
+    : []),
   ...(permissionNames.value.includes('drivers.view')
-  ? [
-  {
-    title: 'Drivers',
-    href: props.tenantSlug
-      ? route('driver.index', { tenantSlug: props.tenantSlug })
-      : route('driver.index.admin'),
-    icon: 'users',
-  },]
-  : []),
+    ? [
+      {
+        title: 'Drivers',
+        href: props.tenantSlug
+          ? route('driver.index', { tenantSlug: props.tenantSlug })
+          : route('driver.index.admin'),
+        icon: 'users',
+      },]
+    : []),
 
 ]);
 
@@ -132,28 +141,29 @@ const footerNavItems: NavItem[] = [
 </script>
 
 <template>
-    <Sidebar collapsible="icon" variant="inset">
-        <SidebarHeader>
-            <SidebarMenu>
-                <SidebarMenuItem>
-                    <SidebarMenuButton size="lg" as-child>
-                        <!-- Updated link using route() helper -->
-                        <Link :href="props.tenantSlug ? route('dashboard', { tenantSlug: props.tenantSlug }) : route('admin.dashboard')">
-                            <AppLogo />
-                        </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-            </SidebarMenu>
-        </SidebarHeader>
+  <Sidebar collapsible="icon" variant="inset">
+    <SidebarHeader>
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton size="lg" as-child>
+            <!-- Updated link using route() helper -->
+            <Link
+              :href="props.tenantSlug ? route('dashboard', { tenantSlug: props.tenantSlug }) : route('admin.dashboard')">
+              <AppLogo />
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    </SidebarHeader>
 
-        <SidebarContent>
-            <NavMain :items="mainNavItems" />
-        </SidebarContent>
+    <SidebarContent>
+      <NavMain :items="mainNavItems" />
+    </SidebarContent>
 
-        <SidebarFooter class="border-t border-sidebar-border/30 pt-2 ">
-             <NavFooter :items="footerNavItems" class="mb-2 " />  
-            <NavUser :tenantSlug="props.tenantSlug" />
-        </SidebarFooter>
-    </Sidebar>
-    <slot />
+    <SidebarFooter class="border-t border-sidebar-border/30 pt-2 ">
+      <NavFooter :items="footerNavItems" class="mb-2 " />
+      <NavUser :tenantSlug="props.tenantSlug" />
+    </SidebarFooter>
+  </Sidebar>
+  <slot />
 </template>

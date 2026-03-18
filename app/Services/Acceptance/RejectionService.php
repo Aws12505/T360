@@ -45,11 +45,11 @@ class RejectionService
      */
     public function getRejectionsIndex(): array
     {
-        $user         = Auth::user();
+        $user = Auth::user();
         $isSuperAdmin = is_null($user->tenant_id);
 
         $dateFilter = $this->filteringService->getDateFilter();
-        $perPage    = $this->filteringService->getPerPage();
+        $perPage = $this->filteringService->getPerPage();
 
         $query = Rejection::with([
             'tenant',
@@ -90,7 +90,7 @@ class RejectionService
         // Applies to the matching sub-table depending on rejection type
         if ($request->filled('rejectionBucket')) {
             $bucket = $request->input('rejectionBucket');
-            $type   = $request->input('rejectionType', '');
+            $type = $request->input('rejectionType', '');
 
             if ($type === 'load' || $type === '') {
                 $query->whereHas('rejectedLoad', function ($sq) use ($bucket) {
@@ -112,14 +112,14 @@ class RejectionService
                 $q->whereHas('rejectedBlock', function ($sq) use ($search) {
                     $sq->where(function ($inner) use ($search) {
                         $inner->whereRaw('LOWER(driver_name) LIKE ?', ["%{$search}%"])
-                            ->orWhereRaw('LOWER(block_id) LIKE ?',  ["%{$search}%"]);
+                            ->orWhereRaw('LOWER(block_id) LIKE ?', ["%{$search}%"]);
                     });
                 })
                     // Rejected loads — driver name OR load ID
                     ->orWhereHas('rejectedLoad', function ($sq) use ($search) {
                         $sq->where(function ($inner) use ($search) {
                             $inner->whereRaw('LOWER(driver_name) LIKE ?', ["%{$search}%"])
-                                ->orWhereRaw('LOWER(load_id) LIKE ?',   ["%{$search}%"]);
+                                ->orWhereRaw('LOWER(load_id) LIKE ?', ["%{$search}%"]);
                         });
                     })
                     // Advanced blocks — advance block rejection ID
@@ -162,24 +162,28 @@ class RejectionService
         $rejections = $query->latest()->paginate($perPage);
 
         // Week numbers
-        $weekNumber      = null;
+        $weekNumber = null;
         $startWeekNumber = null;
-        $endWeekNumber   = null;
-        $year            = null;
+        $endWeekNumber = null;
+        $year = null;
 
         if (!empty($dateRange) && isset($dateRange['start'])) {
             $startDate = Carbon::parse($dateRange['start']);
-            $year      = $startDate->year;
+            $year = $startDate->year;
 
             if (in_array($dateFilter, ['current-week'])) {
-                $weekNumber      = $this->weekNumberSundayStart($startDate);
+                $weekNumber = $this->weekNumberSundayStart($startDate);
                 $startWeekNumber = $endWeekNumber = null;
             } elseif (in_array($dateFilter, ['6w', 'quarterly'])) {
-                $weekNumber      = null;
+                $weekNumber = null;
                 $startWeekNumber = $this->weekNumberSundayStart($startDate);
-                $endWeekNumber   = isset($dateRange['end'])
+                $endWeekNumber = isset($dateRange['end'])
                     ? $this->weekNumberSundayStart(Carbon::parse($dateRange['end']))
                     : $startWeekNumber;
+            } elseif ($dateFilter === 'custom') {
+                $weekNumber = null;
+                $startWeekNumber = null;
+                $endWeekNumber = null;
             }
         }
 
@@ -194,36 +198,36 @@ class RejectionService
         );
 
         $filters = [
-            'search'                => (string) $request->input('search', ''),
-            'rejectionType'         => (string) $request->input('rejectionType', ''),
-            'rejectionBucket'       => (string) $request->input('rejectionBucket', ''),
-            'disputed'              => (string) $request->input('disputed', ''),
-            'carrierControllable'   => (string) $request->input('carrierControllable', ''),
-            'driverControllable'    => (string) $request->input('driverControllable', ''),
-            'penaltyMin'            => (string) $request->input('penaltyMin', ''),
-            'penaltyMax'            => (string) $request->input('penaltyMax', ''),
+            'search' => (string) $request->input('search', ''),
+            'rejectionType' => (string) $request->input('rejectionType', ''),
+            'rejectionBucket' => (string) $request->input('rejectionBucket', ''),
+            'disputed' => (string) $request->input('disputed', ''),
+            'carrierControllable' => (string) $request->input('carrierControllable', ''),
+            'driverControllable' => (string) $request->input('driverControllable', ''),
+            'penaltyMin' => (string) $request->input('penaltyMin', ''),
+            'penaltyMax' => (string) $request->input('penaltyMax', ''),
             'rejectionReasonFilter' => (string) $request->input('rejectionReasonFilter', 'with_reason'),
         ];
 
         $permissions = Auth::user()->getAllPermissions();
 
         return [
-            'rejections'          => $rejections,
-            'tenantSlug'          => $isSuperAdmin ? null : $user->tenant->slug,
-            'isSuperAdmin'        => $isSuperAdmin,
-            'tenants'             => $isSuperAdmin ? Tenant::all() : [],
-            'dateFilter'          => $dateFilter,
-            'dateRange'           => $dateRange,
-            'perPage'             => $perPage,
-            'weekNumber'          => $weekNumber,
-            'startWeekNumber'     => $startWeekNumber,
-            'endWeekNumber'       => $endWeekNumber,
-            'year'                => $year,
+            'rejections' => $rejections,
+            'tenantSlug' => $isSuperAdmin ? null : $user->tenant->slug,
+            'isSuperAdmin' => $isSuperAdmin,
+            'tenants' => $isSuperAdmin ? Tenant::all() : [],
+            'dateFilter' => $dateFilter,
+            'dateRange' => $dateRange,
+            'perPage' => $perPage,
+            'weekNumber' => $weekNumber,
+            'startWeekNumber' => $startWeekNumber,
+            'endWeekNumber' => $endWeekNumber,
+            'year' => $year,
             'rejection_breakdown' => $rejectionBreakdown,
-            'line_chart_data'     => $lineChartData['chartData'] ?? [],
-            'average_acceptance'  => $lineChartData['averageAcceptance'] ?? null,
-            'filters'             => $filters,
-            'permissions'         => $permissions,
+            'line_chart_data' => $lineChartData['chartData'] ?? [],
+            'average_acceptance' => $lineChartData['averageAcceptance'] ?? null,
+            'filters' => $filters,
+            'permissions' => $permissions,
         ];
     }
 
@@ -238,7 +242,7 @@ class RejectionService
     {
 
         // 1..366
-        $dayOfYear   = $date->dayOfYear;
+        $dayOfYear = $date->dayOfYear;
 
         // 0=Sunday, …, 6=Saturday for Jan 1
         $firstDayDow = $date->copy()
@@ -264,13 +268,13 @@ class RejectionService
         $data['penalty'] = $this->calculatePenalty($type, $data);
 
         $rejection = Rejection::create([
-            'tenant_id'            => $data['tenant_id'],
-            'date'                 => $data['date'],
-            'penalty'              => $data['penalty'],
-            'disputed'             => $data['disputed'],
+            'tenant_id' => $data['tenant_id'],
+            'date' => $data['date'],
+            'penalty' => $data['penalty'],
+            'disputed' => $data['disputed'],
             'carrier_controllable' => $data['carrier_controllable'],
-            'driver_controllable'  => $data['driver_controllable'],
-            'rejection_reason'     => $data['rejection_reason'] ?? null,
+            'driver_controllable' => $data['driver_controllable'],
+            'rejection_reason' => $data['rejection_reason'] ?? null,
         ]);
 
         $this->createSubRecord($rejection, $type, $data);
@@ -296,13 +300,13 @@ class RejectionService
         $rejection = Rejection::findOrFail($id);
 
         $rejection->fill([
-            'tenant_id'            => $data['tenant_id'],
-            'date'                 => $data['date'],
-            'penalty'              => $data['penalty'],
-            'disputed'             => $data['disputed'],
+            'tenant_id' => $data['tenant_id'],
+            'date' => $data['date'],
+            'penalty' => $data['penalty'],
+            'disputed' => $data['disputed'],
             'carrier_controllable' => $data['carrier_controllable'],
-            'driver_controllable'  => $data['driver_controllable'],
-            'rejection_reason'     => $data['rejection_reason'] ?? null,
+            'driver_controllable' => $data['driver_controllable'],
+            'rejection_reason' => $data['rejection_reason'] ?? null,
         ]);
 
         // 🚫 Explicitly skip controllable enforcement
@@ -361,9 +365,9 @@ class RejectionService
         }
 
         if ($type === 'block') {
-            $blockStart        = Carbon::parse($data['block_start']);
+            $blockStart = Carbon::parse($data['block_start']);
             $rejectionDatetime = Carbon::parse($data['rejection_datetime']);
-            $hoursBeforeStart  = $rejectionDatetime->diffInHours($blockStart, false);
+            $hoursBeforeStart = $rejectionDatetime->diffInHours($blockStart, false);
 
             // If rejection happened after block start, treat as 0 hours (edge case)
             if ($hoursBeforeStart < 0) {
@@ -375,10 +379,10 @@ class RejectionService
 
         if ($type === 'load') {
             return match ($data['load_rejection_bucket']) {
-                'rejected_after_start_time'                => 8,
-                'rejected_0_6_hours_before_start_time'     => 4,
-                'rejected_6_plus_hours_before_start_time'  => 1,
-                default                                    => 1,
+                'rejected_after_start_time' => 8,
+                'rejected_0_6_hours_before_start_time' => 4,
+                'rejected_6_plus_hours_before_start_time' => 1,
+                default => 1,
             };
         }
 
@@ -389,19 +393,19 @@ class RejectionService
     {
         if ($type === 'advanced_block') {
             $rejection->advancedRejectedBlock()->create([
-                'week_start'      => $data['week_start'],
-                'week_end'        => $data['week_end'],
+                'week_start' => $data['week_start'],
+                'week_end' => $data['week_end'],
                 'impacted_blocks' => $data['impacted_blocks'],
                 'expected_blocks' => $data['expected_blocks'],
                 'advance_block_rejection_id' => $data['advance_block_rejection_id'],
             ]);
         } elseif ($type === 'block') {
             $rejection->rejectedBlock()->create([
-                'driver_name'        => $data['block_driver_name'] ?? null,
-                'block_start'        => $data['block_start'],
-                'block_end'          => $data['block_end'],
+                'driver_name' => $data['block_driver_name'] ?? null,
+                'block_start' => $data['block_start'],
+                'block_end' => $data['block_end'],
                 'rejection_datetime' => $data['rejection_datetime'],
-                'rejection_bucket'   => Carbon::parse($data['rejection_datetime'])
+                'rejection_bucket' => Carbon::parse($data['rejection_datetime'])
                     ->diffInHours(Carbon::parse($data['block_start']), false) < 24
                     ? 'less_than_24'
                     : 'more_than_24',
@@ -409,10 +413,10 @@ class RejectionService
             ]);
         } elseif ($type === 'load') {
             $rejection->rejectedLoad()->create([
-                'driver_name'          => $data['load_driver_name'] ?? null,
-                'origin_yard_arrival'  => $data['origin_yard_arrival'],
-                'rejection_bucket'     => $data['load_rejection_bucket'],
-                'load_id'             => $data['load_id'],
+                'driver_name' => $data['load_driver_name'] ?? null,
+                'origin_yard_arrival' => $data['origin_yard_arrival'],
+                'rejection_bucket' => $data['load_rejection_bucket'],
+                'load_id' => $data['load_id'],
             ]);
         }
     }
