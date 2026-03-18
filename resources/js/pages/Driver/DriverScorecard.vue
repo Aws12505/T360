@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { ref, computed } from "vue"
 import { Head, router } from "@inertiajs/vue3"
-
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import AppLayout from "@/layouts/AppLayout.vue"
 import TimePeriodTabs from "@/components/summary/TimePeriodTabs.vue"
 import DriverScoreTable from "@/components/driver/DriverScoreTable.vue"
 import { Button } from "@/components/ui/button"
 import Icon from "@/components/Icon.vue"
-
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { toPng } from "html-to-image"
 
 const props = defineProps({
