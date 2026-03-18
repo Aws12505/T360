@@ -77,6 +77,11 @@
               }">
                 Quarterly
               </Button>
+              <Button @click="selectDateFilter('custom')" variant="outline" size="sm" :class="{
+                'border-primary bg-primary/10 text-primary': activeTab === 'custom',
+              }">
+                Custom
+              </Button>
             </div>
             <div v-if="props.dateRange" class="text-sm text-muted-foreground">
               <span v-if="activeTab === 'yesterday' && props.dateRange.start">
@@ -438,6 +443,37 @@
       <ImportDelayModal v-model:open="showImportModal" :is-super-admin="props.isSuperAdmin"
         :tenant-slug="props.tenantSlug" :tenants="props.tenants" @success="onImportSuccess" @error="onImportError" />
     </div>
+    <Dialog v-model:open="showCustomDialog">
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Select Custom Date Range</DialogTitle>
+          <DialogDescription>
+            Choose a start and end date.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div class="space-y-4">
+          <div>
+            <Label>Start Date</Label>
+            <Input type="date" v-model="customStartDate" />
+          </div>
+
+          <div>
+            <Label>End Date</Label>
+            <Input type="date" v-model="customEndDate" />
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" @click="showCustomDialog = false">
+            Cancel
+          </Button>
+          <Button @click="applyCustomRange">
+            Apply
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </AppLayout>
 </template>
 
@@ -504,7 +540,9 @@ const permissionNames = computed(() =>
 const page = usePage();
 const successMessage = ref("");
 const errorMessage = ref("");
-
+const customStartDate = ref(null);
+const customEndDate = ref(null);
+const showCustomDialog = ref(false);
 watch(
   () => page.props?.flash,
   (flash) => {
@@ -781,7 +819,18 @@ function sortBy(key) {
 }
 
 // ─── Selection ────────────────────────────────────────────────────────────────
+const applyCustomRange = () => {
+  if (!customStartDate.value || !customEndDate.value) return;
 
+  activeTab.value = 'custom';
+  showCustomDialog.value = false;
+
+  getIndexRoute({
+    dateFilter: 'custom',
+    startDate: customStartDate.value,
+    endDate: customEndDate.value
+  });
+};
 const selectedDelays = ref([]);
 
 const isAllSelected = computed(
@@ -896,7 +945,10 @@ function getIndexRoute() {
   const routeParams = props.isSuperAdmin ? {} : { tenantSlug: props.tenantSlug };
   router.get(
     route(routeName, routeParams),
-    { ...localFilters.value, dateFilter: activeTab.value, perPage: localPerPage.value },
+    {
+      ...localFilters.value, dateFilter: activeTab.value, perPage: localPerPage.value, startDate: customStartDate.value,
+      endDate: customEndDate.value,
+    },
     { preserveState: true, preserveScroll: true }
   );
 }
@@ -919,8 +971,13 @@ function visitPage(url) {
 const activeTab = ref(props.dateFilter ?? "full");
 
 function selectDateFilter(filter) {
+  if (filter === 'custom') {
+    showCustomDialog.value = true;
+    return;
+  }
+
   activeTab.value = filter;
-  getIndexRoute();
+  getIndexRoute({ dateFilter: filter });
 }
 
 const weekNumberText = computed(() => {

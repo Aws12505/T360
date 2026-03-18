@@ -18,15 +18,15 @@ class FilteringService
     public function getPerPage(?int $perPage = null, array $allowedPerPageValues = [10, 25, 50, 100]): int
     {
         $requestedPerPage = $perPage ?? (int) Request::input('perPage', 10);
-        
+
         // Validate perPage to only allow specific values
         if (!in_array($requestedPerPage, $allowedPerPageValues)) {
             return $allowedPerPageValues[0]; // Default to first allowed value if invalid
         }
-        
+
         return $requestedPerPage;
     }
-    
+
     /**
      * Apply date filtering to a query.
      *
@@ -40,10 +40,10 @@ class FilteringService
     {
         $now = Carbon::now();
         $isSunday = $now->dayOfWeek === 0; // 0 = Sunday in Carbon
-        
+
         $currentWeekStart = $now->copy()->startOfWeek(Carbon::SUNDAY);
         $currentWeekEnd = $now->copy()->endOfWeek(Carbon::SATURDAY);
-        
+
         // Adjust dates if today is Sunday
         if ($isSunday) {
             $currentWeekStart->subWeek();
@@ -51,7 +51,7 @@ class FilteringService
         }
         $rollingStart = $currentWeekStart->copy()->subWeeks(5);
         $rollingEnd = $currentWeekEnd;
-        
+
         switch ($dateFilter) {
             case 'yesterday':
                 $yesterday = Carbon::yesterday()->format('Y-m-d');
@@ -61,7 +61,7 @@ class FilteringService
                     'label' => 'Yesterday'
                 ];
                 return $query->whereDate($dateColumn, $yesterday);
-                
+
             case 'current-week':
                 $dateRange = [
                     'start' => $currentWeekStart->format('Y-m-d'),
@@ -69,8 +69,8 @@ class FilteringService
                     'label' => 'Current Week'
                 ];
                 return $query->whereDate($dateColumn, '>=', $currentWeekStart->format('Y-m-d'))
-                             ->whereDate($dateColumn, '<=', $currentWeekEnd->format('Y-m-d'));
-                
+                    ->whereDate($dateColumn, '<=', $currentWeekEnd->format('Y-m-d'));
+
             case '6w':
                 $dateRange = [
                     'start' => $rollingStart->format('Y-m-d'),
@@ -78,29 +78,53 @@ class FilteringService
                     'label' => '6 Weeks'
                 ];
                 return $query->whereDate($dateColumn, '>=', $rollingStart->format('Y-m-d'))
-                             ->whereDate($dateColumn, '<=', $rollingEnd->format('Y-m-d'));
-                
+                    ->whereDate($dateColumn, '<=', $rollingEnd->format('Y-m-d'));
+
             case 'quarterly':
                 $quarterStart = $now->copy()->subMonths(3);
                 if ($isSunday) {
                     $quarterStart->subWeek();
                 }
                 $quarterStart = $quarterStart->format('Y-m-d');
-                
+
                 $endDate = $now;
                 if ($isSunday) {
                     $endDate = $endDate->copy()->subDay();
                 }
                 $endDate = $endDate->format('Y-m-d');
-                
+
                 $dateRange = [
                     'start' => $quarterStart,
                     'end' => $endDate,
                     'label' => 'Quarterly'
                 ];
                 return $query->whereDate($dateColumn, '>=', $quarterStart)
-                             ->whereDate($dateColumn, '<=', $endDate);
-                
+                    ->whereDate($dateColumn, '<=', $endDate);
+
+            case 'custom':
+                $start = request()->input('startDate');
+                $end = request()->input('endDate');
+
+                if ($start && $end) {
+                    $startDate = Carbon::parse($start)->startOfDay();
+                    $endDate = Carbon::parse($end)->endOfDay();
+
+                    // ✅ HARD GUARD HERE
+                    if ($startDate->gt($endDate)) {
+                        return $query->whereRaw('1 = 0'); // no results
+                    }
+
+                    $dateRange = [
+                        'start' => $startDate->toDateString(),
+                        'end' => $endDate->toDateString(),
+                        'label' => 'Custom Range'
+                    ];
+
+                    return $query->whereBetween($dateColumn, [$startDate, $endDate]);
+                }
+
+                return $query;
+
             case 'full':
                 $dateRange = [
                     'label' => 'All Time'
@@ -116,7 +140,7 @@ class FilteringService
                 return $query;
         }
     }
-    
+
     /**
      * Get the date filter from request.
      *

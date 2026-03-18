@@ -184,6 +184,10 @@ class DelayService
             if (in_array($dateFilter, ['yesterday', 'current-week'])) {
                 $weekNumber = $this->weekNumberSundayStart($startDate);
                 $startWeekNumber = $endWeekNumber = null;
+            } elseif ($dateFilter === 'custom') {
+                $weekNumber = null;
+                $startWeekNumber = null;
+                $endWeekNumber = null;
             } else {
                 $weekNumber = null;
                 $startWeekNumber = $this->weekNumberSundayStart($startDate);

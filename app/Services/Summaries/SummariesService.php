@@ -94,13 +94,23 @@ class SummariesService
 
         return round((1 - ($penalty / $entries)) * 100, 2);
     }
-    public function compileSummaries($dateFilter = null, $minInvoiceAmount = null, $outstandingDate = null): array
-    {
+    public function compileSummaries(
+        $dateFilter = null,
+        $minInvoiceAmount = null,
+        $outstandingDate = null,
+        $customStartDate = null,
+        $customEndDate = null
+    ): array {
         $dateFilter = $dateFilter ?? $this->filteringService->getDateFilter('yesterday');
         $dateRange = [];
         $now = Carbon::now();
         $isSunday = $now->dayOfWeek === 0; // 0 = Sunday in Carbon
 
+        if ($dateFilter === 'custom') {
+            if (!$customStartDate || !$customEndDate) {
+                throw new \InvalidArgumentException('Custom date range requires startDate and endDate');
+            }
+        }
         switch ($dateFilter) {
             case 'yesterday':
                 $startDate = Carbon::yesterday()->startOfDay();
@@ -145,6 +155,12 @@ class SummariesService
                 $label = 'Quarterly';
                 break;
 
+            case 'custom':
+                $startDate = Carbon::parse($customStartDate)->startOfDay();
+                $endDate = Carbon::parse($customEndDate)->endOfDay();
+                $label = 'Custom Range';
+                break;
+
             default:
                 $startDate = Carbon::yesterday()->startOfDay();
                 $endDate = Carbon::yesterday()->endOfDay();
@@ -159,6 +175,10 @@ class SummariesService
         if (in_array($dateFilter, ['yesterday', 'current-week'])) {
             $weekNumber = $this->weekNumberSundayStart($startDate);
             $startWeekNumber = $endWeekNumber = null;
+        } else if ($dateFilter === 'custom') {
+            $weekNumber = null;
+            $startWeekNumber = null;
+            $endWeekNumber = null;
         } else {
             $weekNumber = null;
             $startWeekNumber = $this->weekNumberSundayStart($startDate);

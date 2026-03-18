@@ -86,7 +86,37 @@
         />
       </div> -->
     </div>
+    <Dialog v-model:open="showCustomDialog">
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Select Custom Date Range</DialogTitle>
+          <DialogDescription>
+            Choose a start and end date for your report.
+          </DialogDescription>
+        </DialogHeader>
 
+        <div class="space-y-4">
+          <div>
+            <Label>Start Date</Label>
+            <Input type="date" v-model="customStartDate" />
+          </div>
+
+          <div>
+            <Label>End Date</Label>
+            <Input type="date" v-model="customEndDate" />
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" @click="showCustomDialog = false">
+            Cancel
+          </Button>
+          <Button @click="applyCustomRange">
+            Apply
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
 
   </AppLayout>
 </template>
@@ -139,9 +169,27 @@ const currentDateFilter = ref(props.dateFilter || 't6w');
 // Outstanding invoices filter state
 const minInvoiceAmount = ref(null);
 const outstandingDate = ref(null);
+const customStartDate = ref<string | null>(null);
+const customEndDate = ref<string | null>(null);
+const showCustomDialog = ref(false);
 
+const applyCustomRange = () => {
+  if (!customStartDate.value || !customEndDate.value) return;
 
+  currentDateFilter.value = 'custom';
+  showCustomDialog.value = false;
 
+  router.visit(route('dashboard', {
+    tenantSlug: props.tenantSlug,
+    dateFilter: 'custom',
+    startDate: customStartDate.value,
+    endDate: customEndDate.value,
+    minInvoiceAmount: minInvoiceAmount.value || null,
+    outstandingDate: outstandingDate.value || null
+  }), {
+    only: ['summaries', 'delayBreakdowns', 'rejectionBreakdowns', 'maintenanceBreakdowns', 'dateFilter', 'dateRange', 'milesDriven']
+  });
+};
 
 // Initialize the outstanding date to null (removing the 30 days ago default)
 onMounted(() => {
@@ -181,6 +229,12 @@ const formatCurrency = (value) => {
 
 // Compute the current date range text based on the selected filter
 const currentDateRangeText = computed(() => {
+  if (currentDateFilter.value === 'custom') {
+    if (customStartDate.value && customEndDate.value) {
+      return `${customStartDate.value} - ${customEndDate.value}`;
+    }
+  }
+
   const filterMap = {
     'yesterday': 'yesterday',
     'current-week': 'current_week',
@@ -199,16 +253,19 @@ const handleTabChange = (tabId: string) => {
 
 // Handle time period tab change
 const handleTimePeriodChange = (tabId: string) => {
+  if (tabId === 'custom') {
+    showCustomDialog.value = true;
+    return;
+  }
+
   currentDateFilter.value = tabId;
 
-  // Reload the page with the new date filter
   router.visit(route('dashboard', {
     tenantSlug: props.tenantSlug,
     dateFilter: tabId,
     minInvoiceAmount: minInvoiceAmount.value || null,
     outstandingDate: outstandingDate.value || null
   }), {
-
     only: ['summaries', 'delayBreakdowns', 'rejectionBreakdowns', 'maintenanceBreakdowns', 'dateFilter', 'dateRange', 'milesDriven']
   });
 };

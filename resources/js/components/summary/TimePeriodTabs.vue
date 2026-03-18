@@ -2,13 +2,9 @@
   <div class="mb-6">
     <div class="border-b">
       <div class="flex -mb-px space-x-8">
-        <button 
-          v-for="tab in tabs" 
-          :key="tab.id"
-          @click="handleTabChange(tab.id)"
+        <button v-for="tab in tabs" :key="tab.id" @click="handleTabChange(tab.id)"
           class="py-2 px-1 border-b-2 text-sm font-medium transition-colors"
-          :class="activeTab === tab.id ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground'"
-        >
+          :class="activeTab === tab.id ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground'">
           {{ tab.label }}
         </button>
       </div>
@@ -54,7 +50,8 @@ const tabs = [
   { id: 'yesterday', label: 'Yesterday' },
   { id: 'current-week', label: 'WTD' },
   { id: 't6w', label: 'T6W Scores' },
-  { id: 'quarterly', label: 'Quarterly Scores' }
+  { id: 'quarterly', label: 'Quarterly Scores' },
+  { id: 'custom', label: 'Custom' }
 ];
 
 const activeTab = ref(props.activeTabId);
@@ -65,13 +62,13 @@ const weekNumberText = computed(() => {
   if ((activeTab.value === 'yesterday' || activeTab.value === 'current-week') && props.weekNumber && props.year) {
     return `Week ${props.weekNumber}, ${props.year}`;
   }
-  
+
   // For t6w and quarterly, show start-end week range if available
-  if ((activeTab.value === 't6w' || activeTab.value === 'quarterly') && 
-      props.startWeekNumber && props.endWeekNumber && props.year) {
+  if ((activeTab.value === 't6w' || activeTab.value === 'quarterly') &&
+    props.startWeekNumber && props.endWeekNumber && props.year) {
     return `Weeks ${props.startWeekNumber}-${props.endWeekNumber}, ${props.year}`;
   }
-  
+
   return '';
 });
 

@@ -81,6 +81,11 @@
               }">
                 Quarterly
               </Button>
+              <Button @click="selectDateFilter('custom')" variant="outline" size="sm" :class="{
+                'border-primary bg-primary/10 text-primary': activeTab === 'custom',
+              }">
+                Custom
+              </Button>
             </div>
 
             <div v-if="props.dateRange" class="text-sm text-muted-foreground">
@@ -466,6 +471,38 @@
       <ImportRejectionModal v-model:open="showImportModal" :is-super-admin="props.isSuperAdmin"
         :tenant-slug="props.tenantSlug" :tenants="props.tenants" @success="onImportSuccess" @error="onImportError" />
     </div>
+
+    <Dialog v-model:open="showCustomDialog">
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Select Custom Date Range</DialogTitle>
+          <DialogDescription>
+            Choose a start and end date.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div class="space-y-4">
+          <div>
+            <Label>Start Date</Label>
+            <Input type="date" v-model="customStartDate" />
+          </div>
+
+          <div>
+            <Label>End Date</Label>
+            <Input type="date" v-model="customEndDate" />
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" @click="showCustomDialog = false">
+            Cancel
+          </Button>
+          <Button @click="applyCustomRange">
+            Apply
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </AppLayout>
 </template>
 
@@ -550,7 +587,9 @@ const showFilters = ref(false);
 const showImportModal = ref(false);
 const sortColumn = ref("date");
 const sortDirection = ref("desc");
-
+const customStartDate = ref(null);
+const customEndDate = ref(null);
+const showCustomDialog = ref(false);
 // Local filters — hydrated from props so they survive page refreshes
 const localFilters = ref({
   search: props.filters?.search ?? "",
@@ -988,7 +1027,18 @@ const visibleColumns = computed(() => {
     });
   });
 });
+const applyCustomRange = () => {
+  if (!customStartDate.value || !customEndDate.value) return;
 
+  activeTab.value = 'custom';
+  showCustomDialog.value = false;
+
+  getIndexRoute({
+    dateFilter: 'custom',
+    startDate: customStartDate.value,
+    endDate: customEndDate.value
+  });
+};
 const totalColspan = computed(() => {
   let n = visibleColumns.value.length;
   if (props.isSuperAdmin) n += 1;
@@ -1149,12 +1199,15 @@ function setReasonFilter(value) {
 function getIndexRoute(extra = {}) {
   const routeName = props.tenantSlug ? "acceptance.index" : "acceptance.index.admin";
   const routeParams = props.tenantSlug ? { tenantSlug: props.tenantSlug } : {};
+
   return router.get(
     route(routeName, routeParams),
     {
       ...localFilters.value,
       perPage: localPerPage.value,
       dateFilter: activeTab.value,
+      startDate: customStartDate.value,
+      endDate: customEndDate.value,
       ...extra,
     },
     { preserveState: true, preserveScroll: true }
@@ -1165,6 +1218,11 @@ function applyFilters() {
   getIndexRoute();
 }
 function selectDateFilter(filter) {
+  if (filter === 'custom') {
+    showCustomDialog.value = true;
+    return;
+  }
+
   activeTab.value = filter;
   getIndexRoute({ dateFilter: filter });
 }

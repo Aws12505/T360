@@ -1,15 +1,11 @@
 <template>
   <!-- Main layout wrapped in AppLayout with breadcrumbs and tenantSlug props -->
-  <AppLayout
-    :breadcrumbs="breadcrumbs"
-    :tenantSlug="tenantSlug"
-    :permissions="props.permissions"
-  >
+  <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug" :permissions="props.permissions">
+
     <Head title="Safety" />
     <!-- responsive here -->
     <div
-      class="w-full md:max-w-2xl lg:max-w-3xl xl:max-w-6xl lg:mx-auto m-0 p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6"
-    >
+      class="w-full md:max-w-2xl lg:max-w-3xl xl:max-w-6xl lg:mx-auto m-0 p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6">
       <!-- Success message notification -->
       <Alert v-if="successMessage" variant="success">
         <AlertTitle>Success</AlertTitle>
@@ -22,45 +18,30 @@
       </Alert>
       <!-- Actions Section -->
       <!-- responsive here -->
-      <div
-        class="flex flex-col sm:flex-row justify-between items-center px-2 mb-2 md:mb-4 lg:mb-6"
-      >
-        <h1
-          class="text-lg md:text-xl lg:text-2xl font-bold text-gray-800 dark:text-gray-200"
-        >
+      <div class="flex flex-col sm:flex-row justify-between items-center px-2 mb-2 md:mb-4 lg:mb-6">
+        <h1 class="text-lg md:text-xl lg:text-2xl font-bold text-gray-800 dark:text-gray-200">
           Safety Management
         </h1>
         <div class="flex flex-wrap gap-3 ml-3">
           <!-- Create New Entry button -->
-          <Button
-            class="px-2 py-0 md:px-4 md:py-2"
-            @click="openCreateModal"
-            variant="default"
-            v-if="permissionNames.includes('safety-data.create')"
-          >
+          <Button class="px-2 py-0 md:px-4 md:py-2" @click="openCreateModal" variant="default"
+            v-if="permissionNames.includes('safety-data.create')">
             <Icon name="plus" class="mr-1 h-4 w-4 md:mr-2" />
             Create New Entry
           </Button>
 
           <!-- Delete Selected button - only shows when items are selected -->
-          <Button
-            class="px-2 py-0 md:px-4 md:py-2"
-            v-if="
-              selectedEntries.length > 0 && permissionNames.includes('safety-data.delete')
-            "
-            @click="confirmDeleteSelected()"
-            variant="destructive"
-          >
+          <Button class="px-2 py-0 md:px-4 md:py-2" v-if="
+            selectedEntries.length > 0 && permissionNames.includes('safety-data.delete')
+          " @click="confirmDeleteSelected()" variant="destructive">
             <Icon name="trash" class="mr-1 h-4 w-4 md:mr-2" />
             Delete Selected ({{ selectedEntries.length }})
           </Button>
 
           <!-- Tenant selection for SuperAdmin (only visible if SuperAdmin) -->
           <div v-if="SuperAdmin" class="flex items-center gap-2">
-            <select
-              v-model="importForm.tenant_id"
-              class="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
-            >
+            <select v-model="importForm.tenant_id"
+              class="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm">
               <option disabled value="">Select Company Name</option>
               <option v-for="tenant in tenants" :key="tenant.id" :value="tenant.id">
                 {{ tenant.name }}
@@ -69,26 +50,14 @@
           </div>
 
           <!-- Date input for the import file -->
-          <div
-            class="flex items-center gap-2"
-            v-if="permissionNames.includes('safety-data.import')"
-          >
-            <Input
-              v-model="importForm.date"
-              type="date"
-              required
-              placeholder="Date for Import"
-            />
+          <div class="flex items-center gap-2" v-if="permissionNames.includes('safety-data.import')">
+            <Input v-model="importForm.date" type="date" required placeholder="Date for Import" />
           </div>
 
           <!-- Import XLSX button -->
           <label class="cursor-pointer">
-            <Button
-              class="px-2 py-0 md:px-4 md:py-2"
-              variant="secondary"
-              as="span"
-              v-if="permissionNames.includes('safety-data.import')"
-            >
+            <Button class="px-2 py-0 md:px-4 md:py-2" variant="secondary" as="span"
+              v-if="permissionNames.includes('safety-data.import')">
               <Icon name="upload" class="mr-1 h-4 w-4 md:mr-2" />
               Upload XLSX
             </Button>
@@ -96,12 +65,8 @@
           </label>
 
           <!-- Export CSV button -->
-          <Button
-            class="px-2 py-0 md:px-4 md:py-2"
-            @click.prevent="exportCSV"
-            variant="outline"
-            v-if="permissionNames.includes('safety-data.export')"
-          >
+          <Button class="px-2 py-0 md:px-4 md:py-2" @click.prevent="exportCSV" variant="outline"
+            v-if="permissionNames.includes('safety-data.export')">
             <Icon name="download" class="mr-1 h-4 w-4 md:mr-2" />
             Download CSV
           </Button>
@@ -113,46 +78,31 @@
         <CardContent class="p-2 md:p-4 lg:p-6">
           <div class="flex flex-col items-center md:items-start gap-2">
             <div class="flex flex-wrap gap-1 md:gap-2">
-              <Button
-                @click="selectDateFilter('yesterday')"
-                variant="outline"
-                size="sm"
-                :class="{
-                  'border-primary bg-primary/10 text-primary': activeTab === 'yesterday',
-                }"
-              >
+              <Button @click="selectDateFilter('yesterday')" variant="outline" size="sm" :class="{
+                'border-primary bg-primary/10 text-primary': activeTab === 'yesterday',
+              }">
                 Yesterday
               </Button>
-              <Button
-                @click="selectDateFilter('current-week')"
-                variant="outline"
-                size="sm"
-                :class="{
-                  'border-primary bg-primary/10 text-primary':
-                    activeTab === 'current-week',
-                }"
-              >
+              <Button @click="selectDateFilter('current-week')" variant="outline" size="sm" :class="{
+                'border-primary bg-primary/10 text-primary':
+                  activeTab === 'current-week',
+              }">
                 WTD
               </Button>
-              <Button
-                @click="selectDateFilter('6w')"
-                variant="outline"
-                size="sm"
-                :class="{
-                  'border-primary bg-primary/10 text-primary': activeTab === '6w',
-                }"
-              >
+              <Button @click="selectDateFilter('6w')" variant="outline" size="sm" :class="{
+                'border-primary bg-primary/10 text-primary': activeTab === '6w',
+              }">
                 T6W
               </Button>
-              <Button
-                @click="selectDateFilter('quarterly')"
-                variant="outline"
-                size="sm"
-                :class="{
-                  'border-primary bg-primary/10 text-primary': activeTab === 'quarterly',
-                }"
-              >
+              <Button @click="selectDateFilter('quarterly')" variant="outline" size="sm" :class="{
+                'border-primary bg-primary/10 text-primary': activeTab === 'quarterly',
+              }">
                 Quarterly
+              </Button>
+              <Button @click="selectDateFilter('custom')" variant="outline" size="sm" :class="{
+                'border-primary bg-primary/10 text-primary': activeTab === 'custom',
+              }">
+                Custom
               </Button>
               <!-- <Button 
                 @click="selectDateFilter('full')" 
@@ -184,195 +134,129 @@
         </CardContent>
       </Card>
 
-      <div
-        v-if="props.entries.data.length === 0"
-        class="flex flex-col items-center justify-center rounded-lg border bg-muted/20 py-16"
-      >
+      <div v-if="props.entries.data.length === 0"
+        class="flex flex-col items-center justify-center rounded-lg border bg-muted/20 py-16">
         <Icon name="database-x" class="mb-4 h-16 w-16 text-muted-foreground" />
         <h2 class="text-center text-2xl font-bold text-muted-foreground">
           There is No Data to give Information about.
         </h2>
       </div>
       <div v-else>
-        <SafetySummary
-          v-if="!SuperAdmin"
-          :data="safetyDataWithLabel"
-          :activeTab="activeTab"
-        />
+        <SafetySummary v-if="!SuperAdmin" :data="safetyDataWithLabel" :activeTab="activeTab" />
 
         <!-- Data Table Section -->
         <!-- Toggle Freeze Column Button -->
-        <Button
-          @click="toggleFreezeColumn"
-          variant="outline"
-          size="sm"
-          class="my-2 md:my-4"
-          :class="{ 'border-primary bg-primary/10 text-primary': freezeColumns }"
-        >
+        <Button @click="toggleFreezeColumn" variant="outline" size="sm" class="my-2 md:my-4"
+          :class="{ 'border-primary bg-primary/10 text-primary': freezeColumns }">
           <Icon :name="freezeColumns ? 'lock' : 'unlock'" class="mr-2 h-4 w-4" />
           {{ freezeColumns ? "Unfreeze Names" : "Freeze Names" }}
         </Button>
         <Card class="mx-auto max-w-[95vw] md:max-w-[64vw] lg:max-w-full overflow-x-auto">
           <CardContent class="p-0">
-            <div
-              class="overflow-x-auto border-t border-border bg-background dark:bg-background"
-            >
+            <div class="overflow-x-auto border-t border-border bg-background dark:bg-background">
               <Table class="relative h-[500px] overflow-auto">
                 <TableHeader>
-                  <TableRow
-                    class="sticky top-0 z-10 border-b bg-background hover:bg-background"
-                  >
+                  <TableRow class="sticky top-0 z-10 border-b bg-background hover:bg-background">
                     <!-- Checkbox column for selecting all -->
-                    <TableHead
-                      v-if="permissionNames.includes('safety-data.delete')"
-                      class="w-[50px]"
-                      :class="{ 'sticky left-0 z-20 bg-background': freezeColumns }"
-                    >
+                    <TableHead v-if="permissionNames.includes('safety-data.delete')" class="w-[50px]"
+                      :class="{ 'sticky left-0 z-20 bg-background': freezeColumns }">
                       <div class="flex items-center justify-center">
-                        <input
-                          type="checkbox"
-                          @change="toggleSelectAll"
-                          :checked="isAllSelected"
-                          class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                        />
+                        <input type="checkbox" @change="toggleSelectAll" :checked="isAllSelected"
+                          class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
                       </div>
                     </TableHead>
                     <!-- If SuperAdmin, show Tenant column -->
-                    <TableHead
-                      v-if="SuperAdmin"
-                      :class="{ 'sticky left-[50px] z-20 bg-background': freezeColumns }"
-                      >Company Name</TableHead
-                    >
+                    <TableHead v-if="SuperAdmin" :class="{ 'sticky left-[50px] z-20 bg-background': freezeColumns }">
+                      Company Name</TableHead>
                     <!-- Dynamically render table columns from the tableColumns array -->
                     <!-- here where we filter out the user_name, group, and group_hierarchy columns and the impact columns -->
-                    <TableHead
-                      v-for="col in tableColumns.filter(
-                        (col) =>
-                          ![
-                            'user_name',
-                            'group',
-                            'group_hierarchy',
-                            'requested_video',
-                            'safety_normalisation_factor',
-                          ].includes(col) && !col.toLowerCase().includes('impact')
-                      )"
-                      :key="col"
-                      class="whitespace-nowrap"
-                      :class="{
-                        'sticky z-20 bg-background':
-                          freezeColumns && col === 'driver_name',
-                        'left-[50px]':
-                          freezeColumns && col === 'driver_name' && !SuperAdmin,
-                        'left-[150px]':
-                          freezeColumns && col === 'driver_name' && SuperAdmin,
-                      }"
-                    >
+                    <TableHead v-for="col in tableColumns.filter(
+                      (col) =>
+                        ![
+                          'user_name',
+                          'group',
+                          'group_hierarchy',
+                          'requested_video',
+                          'safety_normalisation_factor',
+                        ].includes(col) && !col.toLowerCase().includes('impact')
+                    )" :key="col" class="whitespace-nowrap" :class="{
+                      'sticky z-20 bg-background':
+                        freezeColumns && col === 'driver_name',
+                      'left-[50px]':
+                        freezeColumns && col === 'driver_name' && !SuperAdmin,
+                      'left-[150px]':
+                        freezeColumns && col === 'driver_name' && SuperAdmin,
+                    }">
                       {{
                         col.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
                       }}
                     </TableHead>
                     <!-- Actions column - removed freezing -->
-                    <TableHead
-                      v-if="
-                        permissionNames.includes('safety-data.update') ||
-                        permissionNames.includes('safety-data.delete')
-                      "
-                      >Actions</TableHead
-                    >
+                    <TableHead v-if="
+                      permissionNames.includes('safety-data.update') ||
+                      permissionNames.includes('safety-data.delete')
+                    ">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   <TableRow v-if="entries.data.length === 0">
-                    <TableCell
-                      :colspan="
-                        SuperAdmin ? tableColumns.length + 3 : tableColumns.length + 2
-                      "
-                      class="py-8 text-center"
-                    >
+                    <TableCell :colspan="SuperAdmin ? tableColumns.length + 3 : tableColumns.length + 2
+                      " class="py-8 text-center">
                       No entries found
                     </TableCell>
                   </TableRow>
-                  <TableRow
-                    v-for="item in entries.data"
-                    :key="item.id"
-                    class="hover:bg-muted/50"
-                  >
+                  <TableRow v-for="item in entries.data" :key="item.id" class="hover:bg-muted/50">
                     <!-- Checkbox for selecting individual row -->
-                    <TableCell
-                      v-if="permissionNames.includes('safety-data.delete')"
-                      class="text-center"
-                      :class="{ 'sticky left-0 z-10 bg-background': freezeColumns }"
-                    >
-                      <input
-                        type="checkbox"
-                        :value="item.id"
-                        v-model="selectedEntries"
-                        class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                      />
+                    <TableCell v-if="permissionNames.includes('safety-data.delete')" class="text-center"
+                      :class="{ 'sticky left-0 z-10 bg-background': freezeColumns }">
+                      <input type="checkbox" :value="item.id" v-model="selectedEntries"
+                        class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
                     </TableCell>
                     <!-- Display Tenant name for SuperAdmin -->
-                    <TableCell
-                      v-if="SuperAdmin"
-                      :class="{ 'sticky left-[50px] z-10 bg-background': freezeColumns }"
-                      >{{ item.tenant?.name ?? "—" }}</TableCell
-                    >
+                    <TableCell v-if="SuperAdmin" :class="{ 'sticky left-[50px] z-10 bg-background': freezeColumns }">{{
+                      item.tenant?.name ?? "—" }}</TableCell>
                     <!-- Render each field for the entry -->
-                    <TableCell
-                      v-for="col in tableColumns.filter(
-                        (col) =>
-                          ![
-                            'user_name',
-                            'group',
-                            'group_hierarchy',
-                            'requested_video',
-                            'safety_normalisation_factor',
-                          ].includes(col) && !col.toLowerCase().includes('impact')
-                      )"
-                      :key="col"
-                      class="whitespace-nowrap"
-                      :class="{
-                        'sticky z-10 bg-background':
-                          freezeColumns && col === 'driver_name',
-                        'left-[50px]':
-                          freezeColumns && col === 'driver_name' && !SuperAdmin,
-                        'left-[150px]':
-                          freezeColumns && col === 'driver_name' && SuperAdmin,
-                      }"
-                    >
+                    <TableCell v-for="col in tableColumns.filter(
+                      (col) =>
+                        ![
+                          'user_name',
+                          'group',
+                          'group_hierarchy',
+                          'requested_video',
+                          'safety_normalisation_factor',
+                        ].includes(col) && !col.toLowerCase().includes('impact')
+                    )" :key="col" class="whitespace-nowrap" :class="{
+                      'sticky z-10 bg-background':
+                        freezeColumns && col === 'driver_name',
+                      'left-[50px]':
+                        freezeColumns && col === 'driver_name' && !SuperAdmin,
+                      'left-[150px]':
+                        freezeColumns && col === 'driver_name' && SuperAdmin,
+                    }">
                       {{
                         typeof item[col] === "string" &&
-                        /^\d{4}-\d{2}-\d{2}/.test(item[col])
+                          /^\d{4}-\d{2}-\d{2}/.test(item[col])
                           ? formatDate(item[col])
                           : typeof item[col] === "string" && !isNaN(parseFloat(item[col]))
-                          ? Math.round(parseFloat(item[col]))
-                          : typeof item[col] === "number"
-                          ? Math.round(item[col])
-                          : item[col]
+                            ? Math.round(parseFloat(item[col]))
+                            : typeof item[col] === "number"
+                              ? Math.round(item[col])
+                              : item[col]
                       }}
                     </TableCell>
                     <!-- Actions for each entry - removed freezing -->
-                    <TableCell
-                      v-if="
-                        permissionNames.includes('safety-data.delete') ||
-                        permissionNames.includes('safety-data.update')
-                      "
-                    >
+                    <TableCell v-if="
+                      permissionNames.includes('safety-data.delete') ||
+                      permissionNames.includes('safety-data.update')
+                    ">
                       <div class="flex space-x-2">
-                        <Button
-                          @click="openEditModal(item)"
-                          variant="warning"
-                          size="sm"
-                          v-if="permissionNames.includes('safety-data.update')"
-                        >
+                        <Button @click="openEditModal(item)" variant="warning" size="sm"
+                          v-if="permissionNames.includes('safety-data.update')">
                           <Icon name="pencil" class="mr-1 h-4 w-4" />
                           Edit
                         </Button>
-                        <Button
-                          @click="confirmDelete(item.id)"
-                          variant="destructive"
-                          size="sm"
-                          v-if="permissionNames.includes('safety-data.delete')"
-                        >
+                        <Button @click="confirmDelete(item.id)" variant="destructive" size="sm"
+                          v-if="permissionNames.includes('safety-data.delete')">
                           <Icon name="trash" class="mr-1 h-4 w-4" />
                           Delete
                         </Button>
@@ -389,17 +273,11 @@
                 <div class="text-sm text-muted-foreground">
                   Showing {{ entries.data.length }} entries
                 </div>
-                <div
-                  class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 w-full sm:w-auto"
-                >
+                <div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 w-full sm:w-auto">
                   <div class="flex items-center gap-2">
                     <Label for="perPage" class="text-sm">Per page:</Label>
-                    <select
-                      id="perPage"
-                      v-model="perPage"
-                      @change="changePerPage"
-                      class="h-8 rounded-md border border-input bg-background px-2 py-1 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
+                    <select id="perPage" v-model="perPage" @change="changePerPage"
+                      class="h-8 rounded-md border border-input bg-background px-2 py-1 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                       <option value="10">10</option>
                       <option value="25">25</option>
                       <option value="50">50</option>
@@ -407,18 +285,10 @@
                     </select>
                   </div>
                   <div class="flex flex-wrap">
-                    <Button
-                      v-for="link in entries.links"
-                      :key="link.label"
-                      @click="visitPage(link.url)"
-                      :disabled="!link.url"
-                      variant="ghost"
-                      size="sm"
-                      class="mx-1"
-                      :class="{
+                    <Button v-for="link in entries.links" :key="link.label" @click="visitPage(link.url)"
+                      :disabled="!link.url" variant="ghost" size="sm" class="mx-1" :class="{
                         'border-primary bg-primary/10 text-primary': link.active,
-                      }"
-                    >
+                      }">
                       <span v-html="link.label"></span>
                     </Button>
                   </div>
@@ -439,18 +309,10 @@
               </DialogDescription>
             </DialogHeader>
             <DialogFooter class="mt-4">
-              <Button
-                type="button"
-                @click="showDeleteSelectedModal = false"
-                variant="outline"
-              >
+              <Button type="button" @click="showDeleteSelectedModal = false" variant="outline">
                 Cancel
               </Button>
-              <Button
-                type="button"
-                @click="deleteSelectedEntries()"
-                variant="destructive"
-              >
+              <Button type="button" @click="deleteSelectedEntries()" variant="destructive">
                 Delete Selected
               </Button>
             </DialogFooter>
@@ -471,20 +333,12 @@
           </DialogDescription>
         </DialogHeader>
         <DialogFooter class="px-4 sm:px-6">
-          <Button
-            type="button"
-            @click="showDeleteModal = false"
-            variant="outline"
-            class="h-9 px-4 py-1 text-xs sm:h-10 sm:text-sm"
-          >
+          <Button type="button" @click="showDeleteModal = false" variant="outline"
+            class="h-9 px-4 py-1 text-xs sm:h-10 sm:text-sm">
             Cancel
           </Button>
-          <Button
-            type="button"
-            @click="deleteEntry(entryToDelete)"
-            variant="destructive"
-            class="h-9 px-4 py-1 text-xs sm:h-10 sm:text-sm"
-          >
+          <Button type="button" @click="deleteEntry(entryToDelete)" variant="destructive"
+            class="h-9 px-4 py-1 text-xs sm:h-10 sm:text-sm">
             Delete
           </Button>
         </DialogFooter>
@@ -501,38 +355,24 @@
           </DialogDescription>
         </DialogHeader>
 
-        <form
-          @submit.prevent="submitForm"
-          class="grid max-h-[70vh] gap-6 overflow-y-auto p-1"
-        >
+        <form @submit.prevent="submitForm" class="grid max-h-[70vh] gap-6 overflow-y-auto p-1">
           <!-- Tenant dropdown for SuperAdmin users -->
           <div v-if="SuperAdmin" class="col-span-full">
             <Label for="tenant">Company Name</Label>
             <div class="relative">
-              <select
-                id="tenant"
-                v-model="form.tenant_id"
-                class="flex h-10 w-full appearance-none items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              >
+              <select id="tenant" v-model="form.tenant_id"
+                class="flex h-10 w-full appearance-none items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                 <option disabled value="">Select Company</option>
                 <option v-for="tenant in tenants" :key="tenant.id" :value="tenant.id">
                   {{ tenant.name }}
                 </option>
               </select>
-              <div
-                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700"
-              >
-                <svg
-                  class="h-4 w-4 opacity-50"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fill-rule="evenodd"
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                  fill="currentColor">
+                  <path fill-rule="evenodd"
                     d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                    clip-rule="evenodd"
-                  />
+                    clip-rule="evenodd" />
                 </svg>
               </div>
             </div>
@@ -551,25 +391,15 @@
               <h3 class="text-md border-b pb-1 font-semibold">Driver Information</h3>
             </div>
 
-            <div
-              v-for="col in [
-                'driver_name',
-                'user_name',
-                'group',
-                'group_hierarchy',
-                'vehicle_type',
-              ]"
-              :key="col"
-              class="space-y-1"
-            >
+            <div v-for="col in [
+              'driver_name',
+              'user_name',
+              'group',
+              'group_hierarchy',
+              'vehicle_type',
+            ]" :key="col" class="space-y-1">
               <Label :for="col" class="capitalize">{{ col.replace(/_/g, " ") }}</Label>
-              <Input
-                :id="col"
-                v-model="form[col]"
-                :type="getInputType(col)"
-                :step="getStep(col)"
-                :min="getMin(col)"
-              />
+              <Input :id="col" v-model="form[col]" :type="getInputType(col)" :step="getStep(col)" :min="getMin(col)" />
             </div>
 
             <!-- Performance Metrics Section -->
@@ -577,25 +407,15 @@
               <h3 class="text-md border-b pb-1 font-semibold">Performance Metrics</h3>
             </div>
 
-            <div
-              v-for="col in [
-                'minutes_analyzed',
-                'green_minutes_percent',
-                'overspeeding_percent',
-                'driver_score',
-                'safety_normalisation_factor',
-              ]"
-              :key="col"
-              class="space-y-1"
-            >
+            <div v-for="col in [
+              'minutes_analyzed',
+              'green_minutes_percent',
+              'overspeeding_percent',
+              'driver_score',
+              'safety_normalisation_factor',
+            ]" :key="col" class="space-y-1">
               <Label :for="col" class="capitalize">{{ col.replace(/_/g, " ") }}</Label>
-              <Input
-                :id="col"
-                v-model="form[col]"
-                :type="getInputType(col)"
-                :step="getStep(col)"
-                :min="getMin(col)"
-              />
+              <Input :id="col" v-model="form[col]" :type="getInputType(col)" :step="getStep(col)" :min="getMin(col)" />
             </div>
 
             <!-- Events Section -->
@@ -604,48 +424,32 @@
             </div>
 
             <!-- Remaining fields in a grid -->
-            <div
-              v-for="col in formColumns.filter(
-                (c) =>
-                  ![
-                    'driver_name',
-                    'user_name',
-                    'group',
-                    'group_hierarchy',
-                    'vehicle_type',
-                    'minutes_analyzed',
-                    'green_minutes_percent',
-                    'overspeeding_percent',
-                    'driver_score',
-                    'safety_normalisation_factor',
-                    'date',
-                  ].includes(c)
-              )"
-              :key="col"
-              class="space-y-1"
-            >
+            <div v-for="col in formColumns.filter(
+              (c) =>
+                ![
+                  'driver_name',
+                  'user_name',
+                  'group',
+                  'group_hierarchy',
+                  'vehicle_type',
+                  'minutes_analyzed',
+                  'green_minutes_percent',
+                  'overspeeding_percent',
+                  'driver_score',
+                  'safety_normalisation_factor',
+                  'date',
+                ].includes(c)
+            )" :key="col" class="space-y-1">
               <Label :for="col" class="text-sm capitalize">{{
                 col.replace(/_/g, " ")
               }}</Label>
-              <Input
-                :id="col"
-                v-model="form[col]"
-                :type="getInputType(col)"
-                :step="getStep(col)"
-                :min="getMin(col)"
-              />
+              <Input :id="col" v-model="form[col]" :type="getInputType(col)" :step="getStep(col)" :min="getMin(col)" />
             </div>
           </div>
 
           <DialogFooter
-            class="mt-6 flex-col space-y-2 border-t pt-4 sm:flex-row sm:justify-end sm:space-x-2 sm:space-y-0"
-          >
-            <Button
-              type="button"
-              @click="closeModal"
-              variant="outline"
-              class="w-full sm:w-auto"
-            >
+            class="mt-6 flex-col space-y-2 border-t pt-4 sm:flex-row sm:justify-end sm:space-x-2 sm:space-y-0">
+            <Button type="button" @click="closeModal" variant="outline" class="w-full sm:w-auto">
               Cancel
             </Button>
             <Button type="submit" variant="default" class="w-full sm:w-auto">
@@ -653,6 +457,37 @@
             </Button>
           </DialogFooter>
         </form>
+      </DialogContent>
+    </Dialog>
+    <Dialog v-model:open="showCustomDialog">
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Select Custom Date Range</DialogTitle>
+          <DialogDescription>
+            Choose a start and end date.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div class="space-y-4">
+          <div>
+            <Label>Start Date</Label>
+            <Input type="date" v-model="customStartDate" />
+          </div>
+
+          <div>
+            <Label>End Date</Label>
+            <Input type="date" v-model="customEndDate" />
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" @click="showCustomDialog = false">
+            Cancel
+          </Button>
+          <Button @click="applyCustomRange">
+            Apply
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   </AppLayout>
@@ -753,7 +588,9 @@ const breadcrumbs = [
       : route("safety.index.admin"),
   },
 ];
-
+const customStartDate = ref(null);
+const customEndDate = ref(null);
+const showCustomDialog = ref(false);
 // Toggle column freezing function
 function toggleFreezeColumn() {
   freezeColumns.value = !freezeColumns.value;
@@ -912,8 +749,8 @@ function submitForm() {
       ? route("safety.store.admin")
       : route("safety.store", props.tenantSlug)
     : props.SuperAdmin
-    ? route("safety.update.admin", [form.id])
-    : route("safety.update", [props.tenantSlug, form.id]);
+      ? route("safety.update.admin", [form.id])
+      : route("safety.update", [props.tenantSlug, form.id]);
   const method = isCreate ? "post" : "put";
   form[method](routeName, {
     onSuccess: () => {
@@ -941,7 +778,27 @@ function deleteEntry(id) {
     },
   });
 }
+const applyCustomRange = () => {
+  if (!customStartDate.value || !customEndDate.value) return;
 
+  activeTab.value = 'custom';
+  showCustomDialog.value = false;
+
+  const routeName = props.tenantSlug
+    ? route("safety.index", { tenantSlug: props.tenantSlug })
+    : route("safety.index.admin");
+
+  router.get(
+    routeName,
+    {
+      dateFilter: 'custom',
+      perPage: perPage.value,
+      startDate: customStartDate.value,
+      endDate: customEndDate.value,
+    },
+    { preserveState: true }
+  );
+};
 // Handle file import for XLSX file.
 function handleImport(e) {
   const file = e.target.files?.[0];
@@ -1004,7 +861,10 @@ watch(successMessage, (newValue) => {
 // Function to handle date filter selection
 function selectDateFilter(filter) {
   activeTab.value = filter;
-
+  if (filter === 'custom') {
+    showCustomDialog.value = true;
+    return;
+  }
   const routeName = props.tenantSlug
     ? route("safety.index", { tenantSlug: props.tenantSlug })
     : route("safety.index.admin");
@@ -1165,7 +1025,8 @@ const permissionNames = computed(() => props.permissions.map((p) => p.name));
 :deep(table) {
   border-collapse: separate;
   border-spacing: 0;
-  width: 100%; /* Ensure table takes full width */
+  width: 100%;
+  /* Ensure table takes full width */
   background-color: hsl(var(--background));
 }
 
@@ -1226,8 +1087,10 @@ const permissionNames = computed(() => props.permissions.map((p) => p.name));
 :deep(.h-[500px]) {
   overflow: auto;
   position: relative;
-  min-height: 500px; /* Ensure minimum height */
-  background-color: hsl(var(--background)); /* Match table background */
+  min-height: 500px;
+  /* Ensure minimum height */
+  background-color: hsl(var(--background));
+  /* Match table background */
 }
 
 /* Ensure the table container fills available space */

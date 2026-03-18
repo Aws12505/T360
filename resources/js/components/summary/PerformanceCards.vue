@@ -7,7 +7,7 @@
       <div class="text-xs text-muted-foreground mb-1">Total Score</div>
       <div class="flex items-center justify-between gap-3 mb-4">
         <div class="text-4xl font-bold" :class="getScoreColorClass(performanceRatings.average_acceptance)">
-          {{ formatPercentage(performanceData.average_acceptance) }}
+          {{ formatPercentage(performanceData.average_acceptance, 1) }}
         </div>
         <Badge :variant="getRatingVariant(performanceRatings.average_acceptance)" class="text-xs">
           {{ formatRating(performanceRatings.average_acceptance) }}
@@ -31,7 +31,7 @@
       <div class="text-xs text-muted-foreground mb-1">Total Score</div>
       <div class="flex items-center justify-between gap-3 mb-4">
         <div class="text-4xl font-bold" :class="getScoreColorClass(performanceRatings.average_on_time)">
-          {{ formatPercentage(performanceData.average_on_time) }}
+          {{ formatPercentage(performanceData.average_on_time, 1) }}
         </div>
         <Badge :variant="getRatingVariant(performanceRatings.average_on_time)" class="text-xs">
           {{ formatRating(performanceRatings.average_on_time) }}
