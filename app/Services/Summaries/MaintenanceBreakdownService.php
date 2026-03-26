@@ -27,9 +27,11 @@ class MaintenanceBreakdownService
             ->whereBetween('ro_open_date', [$startDate, $endDate])
             ->leftJoin('wo_statuses', 'repair_orders.wo_status_id', '=', 'wo_statuses.id')
             ->where(function ($query) {
-                $query->where('wo_statuses.name', '!=', 'Canceled');
+                $query->where('wo_statuses.name', '!=', 'Canceled')
+                    ->orWhereNull('repair_orders.wo_status_id'); // Allowing the WO status ID to be null
             })
-            ->whereRaw('LOWER(wo_number) != ?', ['not expected']);
+            ->whereRaw('LOWER(wo_number) != ?', ['not expected'])
+            ->orWhereNull('repair_orders.wo_number'); // WO number is NULL
 
         $this->applyTenantFilter($query);
 
@@ -45,8 +47,9 @@ class MaintenanceBreakdownService
             ->whereBetween('ro_open_date', [$startDate, $endDate])
             ->leftJoin('wo_statuses', 'repair_orders.wo_status_id', '=', 'wo_statuses.id')
             ->where(function ($query) {
-                $query->where('wo_statuses.name', '!=', 'Canceled');
-            })->whereRaw('LOWER(wo_number) != ?', ['not expected']);
+                $query->where('wo_statuses.name', '!=', 'Canceled')
+                    ->orWhereNull('repair_orders.wo_status_id'); // Allowing the WO status ID to be null
+            })->whereRaw('LOWER(wo_number) != ?', ['not expected'])->orWhereNull('repair_orders.wo_number'); // WO number is NULL
 
         $this->applyTenantFilter($query);
 
@@ -62,7 +65,7 @@ class MaintenanceBreakdownService
             ->where('on_qs', 'yes')
             ->whereBetween('qs_invoice_date', [$startDate, $endDate])
             ->leftJoin('wo_statuses', 'repair_orders.wo_status_id', '=', 'wo_statuses.id')
-            ->whereRaw('LOWER(wo_number) != ?', ['not expected']);
+            ->whereRaw('LOWER(wo_number) != ?', ['not expected'])->orWhereNull('repair_orders.wo_number'); // WO number is NULL
 
         $this->applyTenantFilter($query);
 
@@ -79,8 +82,8 @@ class MaintenanceBreakdownService
             ->where('invoice_received', false)
             ->leftJoin('wo_statuses', 'repair_orders.wo_status_id', '=', 'wo_statuses.id')
             ->where(function ($query) {
-                $query->where('wo_statuses.name', '!=', 'Canceled');
-            })->whereRaw('LOWER(wo_number) != ?', ['not expected']);
+                $query->where('wo_statuses.name', '!=', 'Canceled')->orWhereNull('repair_orders.wo_status_id'); // Allowing the WO status ID to be null
+            })->whereRaw('LOWER(wo_number) != ?', ['not expected'])->orWhereNull('repair_orders.wo_number'); // WO number is NULL
 
         $this->applyTenantFilter($query);
 
@@ -147,9 +150,10 @@ class MaintenanceBreakdownService
             ->where(function ($query) {
                 // Ensure the wo_status is not 'Canceled' or NULL
                 $query->where('wo_statuses.name', '!=', 'Canceled')
-                    ->orWhereNull('wo_statuses.name');
+                    ->orWhereNull('repair_orders.wo_status_id'); // Allowing the WO status ID to be null
             })
-            ->whereRaw('LOWER(repair_orders.wo_number) != ?', ['not expected']);
+            ->whereRaw('LOWER(repair_orders.wo_number) != ?', ['not expected']) // WO number not equal to "not expected"
+            ->orWhereNull('repair_orders.wo_number'); // WO number is NULL
 
         // Apply tenant filtering if needed
         if (Auth::check() && Auth::user()->tenant_id !== null) {
@@ -178,10 +182,11 @@ class MaintenanceBreakdownService
             ->leftJoin('wo_statuses', 'repair_orders.wo_status_id', '=', 'wo_statuses.id')
             ->where(function ($query) {
                 $query->where('wo_statuses.name', '!=', 'Canceled')
-                    ->orWhereNull('wo_statuses.name');
+                    ->orWhereNull('repair_orders.wo_status_id'); // Allowing the WO status ID to be null
             })
             ->whereBetween('repair_orders.ro_open_date', [$startDate, $endDate])
-            ->whereRaw('LOWER(wo_number) != ?', ['not expected'])
+            ->whereRaw('LOWER(wo_number) != ?', ['not expected']) // WO number not equal to "not expected"
+            ->orWhereNull('repair_orders.wo_number') // WO number is NULL
             ->groupBy('trucks.truckid')
             ->orderBy('work_order_count', 'desc');
 
@@ -191,7 +196,6 @@ class MaintenanceBreakdownService
 
         return $query->get();
     }
-
     /**
      * Calculate QS MVtS value
      */
@@ -243,7 +247,7 @@ class MaintenanceBreakdownService
                 DB::raw('WEEK(repair_orders.ro_open_date) as week_number')
             )
             ->join('vendors', 'repair_orders.vendor_id', '=', 'vendors.id')
-            ->where('repair_orders.on_qs', 'no')->whereRaw('LOWER(wo_number) != ?', ['not expected']);
+            ->where('repair_orders.on_qs', 'no')->whereRaw('LOWER(wo_number) != ?', ['not expected'])->orWhereNull('repair_orders.wo_number');// WO number is NULL;
 
         // Apply invoice amount filter if provided
         if ($minInvoiceAmount !== null) {
@@ -374,7 +378,7 @@ class MaintenanceBreakdownService
                 DB::raw('WEEK(repair_orders.ro_open_date) as week_number')
             )
             ->join('vendors', 'repair_orders.vendor_id', '=', 'vendors.id')
-            ->whereRaw('LOWER(repair_orders.wo_number) = ?', ['not expected'])
+            ->whereRaw('LOWER(repair_orders.wo_number) = ?', ['not expected'])->orWhereNull('repair_orders.wo_number') // WO number is NULL
             ->where('repair_orders.on_qs', 'yes');
 
         if (Auth::check() && Auth::user()->tenant_id !== null) {
