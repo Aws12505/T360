@@ -25,7 +25,8 @@ class ImportValidationService
     public function validateRepairOrdersCsv($file, string $importType = 'quicksight', ?int $tenantId = null): array
     {
         $handle = fopen($file->getRealPath(), 'r');
-        if (!$handle) throw new \Exception('Unable to open CSV file.');
+        if (!$handle)
+            throw new \Exception('Unable to open CSV file.');
 
         $user = Auth::user();
         $isSuperAdmin = $user && $user->tenant_id === null;
@@ -304,7 +305,7 @@ class ImportValidationService
                 'warnings' => [],
                 'data' => $row,
                 'preview' => [
-                    ['key' => 'col1', 'label' => 'Column 1', 'value' => (string)($row[0] ?? '')],
+                    ['key' => 'col1', 'label' => 'Column 1', 'value' => (string) ($row[0] ?? '')],
                 ],
             ];
         }
@@ -316,39 +317,46 @@ class ImportValidationService
         }
 
         // Dates (flex)
-        $roOpen = $this->parseDateFlex(trim((string)($qs['WO start date'] ?? '')), 'RO Open Date', $errors);
-        $roClose = $this->parseDateFlexNullable(trim((string)($qs['WO end date'] ?? '')), 'RO Close Date', $errors);
-        $invoiceDate = $this->parseDateFlexNullable(trim((string)($qs['Invoice date'] ?? '')), 'Invoice Date', $errors);
+        $roOpen = $this->parseDateFlex(trim((string) ($qs['WO start date'] ?? '')), 'RO Open Date', $errors);
+        $roClose = $this->parseDateFlexNullable(trim((string) ($qs['WO end date'] ?? '')), 'RO Close Date', $errors);
+        $invoiceDate = $this->parseDateFlexNullable(trim((string) ($qs['Invoice date'] ?? '')), 'Invoice Date', $errors);
 
         // Required
-        $roNumber = trim((string)($qs['Work Order #'] ?? ''));
-        $truckid  = trim((string)($qs['Asset ID'] ?? ''));
-        $vendor   = trim((string)($qs['Vendor'] ?? ''));
+        $roNumber = trim((string) ($qs['Work Order #'] ?? ''));
+        $truckid = trim((string) ($qs['Asset ID'] ?? ''));
+        $vendor = trim((string) ($qs['Vendor'] ?? ''));
 
-        if ($roNumber === '') $errors[] = 'RO Number is required';
-        if ($truckid === '') $errors[] = 'Truck ID is required';
-        if ($vendor === '') $errors[] = 'Vendor is required';
-        if (empty($roOpen)) $errors[] = 'RO Open Date is required';
+        if ($roNumber === '')
+            $errors[] = 'RO Number is required';
+        if ($truckid === '')
+            $errors[] = 'Truck ID is required';
+        if ($vendor === '')
+            $errors[] = 'Vendor is required';
+        if (empty($roOpen))
+            $errors[] = 'RO Open Date is required';
 
         // Validate truck exists
         if ($truckid !== '') {
             $truck = Truck::where('truckid', $truckid)->first();
-            if (!$truck) $errors[] = "Truck not found: {$truckid}";
+            if (!$truck)
+                $errors[] = "Truck not found: {$truckid}";
         }
 
         // Validate vendor exists
         if ($vendor !== '') {
             $v = Vendor::where('vendor_name', $vendor)->first();
-            if (!$v) $errors[] = "Vendor not found: {$vendor}";
-            elseif (method_exists($v, 'trashed') && $v->trashed()) $errors[] = "Vendor is deleted: {$vendor}";
+            if (!$v)
+                $errors[] = "Vendor not found: {$vendor}";
+            elseif (method_exists($v, 'trashed') && $v->trashed())
+                $errors[] = "Vendor is deleted: {$vendor}";
         }
 
         /*
     ✅ CHANGED: invoice_amount is QS "Invoice revised amount"
     ✅ NEW: original_amount derived from QS "Invoice amount" when they differ
     */
-        $origStr = trim((string)($qs['Invoice amount'] ?? ''));
-        $revStr  = trim((string)($qs['Invoice revised amount'] ?? ''));
+        $origStr = trim((string) ($qs['Invoice amount'] ?? ''));
+        $revStr = trim((string) ($qs['Invoice revised amount'] ?? ''));
 
         if ($revStr !== '' && !is_numeric($revStr)) {
             $errors[] = "Invoice revised amount must be numeric: {$revStr}";
@@ -359,24 +367,24 @@ class ImportValidationService
 
         $originalAmount = null;
         if ($origStr !== '' && is_numeric($origStr) && $revStr !== '' && is_numeric($revStr)) {
-            if ((float)$origStr != (float)$revStr) {
-                $originalAmount = (float)$origStr;
+            if ((float) $origStr != (float) $revStr) {
+                $originalAmount = (float) $origStr;
             }
         }
 
         /*
     ✅ NEW: dispute fields validation
     */
-        $status = trim((string)($qs['Dispute/Review status'] ?? 'None'));
-        $determination = trim((string)($qs['Dispute/Review determination'] ?? ''));
-        $outcome = trim((string)($qs['Dispute outcome'] ?? ''));
+        $status = trim((string) ($qs['Dispute/Review status'] ?? 'None'));
+        $determination = trim((string) ($qs['Dispute/Review determination'] ?? ''));
+        $outcome = trim((string) ($qs['Dispute outcome'] ?? ''));
 
         $allowedStatuses = ['None', 'Pending', 'Reviewed', 'Overcharged'];
         if ($status !== '' && !in_array($status, $allowedStatuses, true)) {
             $errors[] = "Dispute/Review status invalid: {$status}";
         }
 
-        $allowedDeterminations = ['Granted', 'Partially Granted'];
+        $allowedDeterminations = ['Granted', 'Partially Granted', 'Valid', 'Valid Charge'];
         if ($determination !== '' && !in_array($determination, $allowedDeterminations, true)) {
             $errors[] = "Dispute/Review determination invalid: {$determination}";
         }
@@ -390,9 +398,9 @@ class ImportValidationService
             ['key' => 'ro_number', 'label' => 'RO#', 'value' => $roNumber],
             ['key' => 'truckid', 'label' => 'Truck', 'value' => $truckid],
             ['key' => 'vendor', 'label' => 'Vendor', 'value' => $vendor],
-            ['key' => 'ro_open_date', 'label' => 'Open Date', 'value' => (string)($qs['WO start date'] ?? '')],
+            ['key' => 'ro_open_date', 'label' => 'Open Date', 'value' => (string) ($qs['WO start date'] ?? '')],
             ['key' => 'invoice_revised', 'label' => 'Revised Amt', 'value' => $revStr],
-            ['key' => 'original_amount', 'label' => 'Original Amt', 'value' => $originalAmount !== null ? (string)$originalAmount : '—'],
+            ['key' => 'original_amount', 'label' => 'Original Amt', 'value' => $originalAmount !== null ? (string) $originalAmount : '—'],
             ['key' => 'dispute_status', 'label' => 'Dispute Status', 'value' => $status ?: 'None'],
         ];
 
@@ -403,7 +411,7 @@ class ImportValidationService
             'ro_open_date' => $roOpen,
             'ro_close_date' => $roClose,
             'truckid' => $truckid,
-            'invoice' => trim((string)($qs['Invoice #'] ?? '')),
+            'invoice' => trim((string) ($qs['Invoice #'] ?? '')),
             'qs_invoice_date' => $invoiceDate,
 
             // in-system meaning
@@ -445,10 +453,12 @@ class ImportValidationService
 
         $preview = [];
         foreach ($fields as $key) {
-            if (!isset($data[$key]) || $data[$key] === '') continue;
+            if (!isset($data[$key]) || $data[$key] === '')
+                continue;
 
-            $value = (string)$data[$key];
-            if (strlen($value) > 30) $value = substr($value, 0, 30) . '...';
+            $value = (string) $data[$key];
+            if (strlen($value) > 30)
+                $value = substr($value, 0, 30) . '...';
 
             $preview[] = [
                 'key' => $key,
@@ -488,11 +498,12 @@ class ImportValidationService
                 foreach ($row['preview'] as $p) {
                     $label = $p['label'] ?? '';
                     $val = $p['value'] ?? '';
-                    if ($label !== '' && $val !== '') $parts[] = "{$label}: {$val}";
+                    if ($label !== '' && $val !== '')
+                        $parts[] = "{$label}: {$val}";
                 }
                 $previewString = implode(' | ', $parts);
             } else {
-                $previewString = (string)($row['preview'] ?? '');
+                $previewString = (string) ($row['preview'] ?? '');
             }
 
             fputcsv($file, [
@@ -510,7 +521,8 @@ class ImportValidationService
     protected function parseDateFlex(string $val, string $label, array &$errors): ?string
     {
         $val = trim($val);
-        if ($val === '') return null;
+        if ($val === '')
+            return null;
 
         try {
             // try m/d/Y
@@ -536,7 +548,8 @@ class ImportValidationService
     protected function parseDateFlexNullable(string $val, string $label, array &$errors): ?string
     {
         $val = trim($val);
-        if ($val === '') return null;
+        if ($val === '')
+            return null;
         return $this->parseDateFlex($val, $label, $errors);
     }
 }

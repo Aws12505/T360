@@ -129,19 +129,29 @@ class MaintenanceBreakdownService
      */
     public function getAreasOfConcern(Carbon $startDate, Carbon $endDate)
     {
+        // Make sure dates are in the correct format for comparison
+        $startDate = $startDate->startOfDay()->toDateTimeString(); // Ensure it's the beginning of the day
+        $endDate = $endDate->endOfDay()->toDateTimeString();       // Ensure it's the end of the day (23:59:59)
+
+        // Query to get areas of concern with repair order counts
         $query = DB::table('area_of_concerns')
             ->select('area_of_concerns.id', 'area_of_concerns.concern', DB::raw('COUNT(area_of_concern_repair_order.repair_order_id) as count'))
             ->leftJoin('area_of_concern_repair_order', 'area_of_concerns.id', '=', 'area_of_concern_repair_order.area_of_concern_id')
             ->leftJoin('repair_orders', 'area_of_concern_repair_order.repair_order_id', '=', 'repair_orders.id')
             ->leftJoin('wo_statuses', 'repair_orders.wo_status_id', '=', 'wo_statuses.id')
             ->where(function ($query) use ($startDate, $endDate) {
-                $query->whereBetween('repair_orders.ro_open_date', [$startDate, $endDate])
-                    ->orWhereNull('repair_orders.ro_open_date');
+                // Use separate 'where' conditions for the start and end dates
+                $query->where('repair_orders.ro_open_date', '>=', $startDate)
+                    ->where('repair_orders.ro_open_date', '<=', $endDate);
             })
             ->where(function ($query) {
-                $query->where('wo_statuses.name', '!=', 'Canceled');
-            })->whereRaw('LOWER(repair_orders.wo_number) != ?', ['not expected']);
+                // Ensure the wo_status is not 'Canceled' or NULL
+                $query->where('wo_statuses.name', '!=', 'Canceled')
+                    ->orWhereNull('wo_statuses.name');
+            })
+            ->whereRaw('LOWER(repair_orders.wo_number) != ?', ['not expected']);
 
+        // Apply tenant filtering if needed
         if (Auth::check() && Auth::user()->tenant_id !== null) {
             $query->where(function ($query) {
                 $query->where('repair_orders.tenant_id', Auth::user()->tenant_id)
@@ -149,11 +159,14 @@ class MaintenanceBreakdownService
             });
         }
 
-        return $query->groupBy('area_of_concerns.id', 'area_of_concerns.concern')
+        // Return the results grouped by area_of_concerns and ordered by count
+        $results = $query->groupBy('area_of_concerns.id', 'area_of_concerns.concern')
             ->orderBy('count', 'desc')
             ->get();
-    }
 
+        // Return the results
+        return $results;
+    }
     /**
      * Get work orders by truck
      */
@@ -164,7 +177,8 @@ class MaintenanceBreakdownService
             ->join('trucks', 'repair_orders.truck_id', '=', 'trucks.id')
             ->leftJoin('wo_statuses', 'repair_orders.wo_status_id', '=', 'wo_statuses.id')
             ->where(function ($query) {
-                $query->where('wo_statuses.name', '!=', 'Canceled');
+                $query->where('wo_statuses.name', '!=', 'Canceled')
+                    ->orWhereNull('wo_statuses.name');
             })
             ->whereBetween('repair_orders.ro_open_date', [$startDate, $endDate])
             ->whereRaw('LOWER(wo_number) != ?', ['not expected'])
@@ -413,7 +427,7 @@ class MaintenanceBreakdownService
     /**
      * Get maintenance breakdown data for the specified date range.
      */
-    public function getMaintenanceBreakdown(Carbon $startDate, Carbon $endDate, $minInvoiceAmount = null,  $outstandingDate = null): array
+    public function getMaintenanceBreakdown(Carbon $startDate, Carbon $endDate, $minInvoiceAmount = null, $outstandingDate = null): array
     {
         $totalRepairOrders = $this->getTotalRepairOrders($startDate, $endDate);
         $totalInvoiceAmount = $this->getTotalInvoiceAmount($startDate, $endDate);

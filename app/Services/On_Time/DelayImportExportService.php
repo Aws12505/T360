@@ -17,16 +17,18 @@ class DelayImportExportService
     private function detectDelimiter(string $filePath): string
     {
         $handle = fopen($filePath, 'r');
-        if (!$handle) return "\t";
+        if (!$handle)
+            return "\t";
         $firstLine = fgets($handle);
         fclose($handle);
-        if ($firstLine === false) return "\t";
+        if ($firstLine === false)
+            return "\t";
 
         $delimiters = [
-            ','  => substr_count($firstLine, ','),
+            ',' => substr_count($firstLine, ','),
             "\t" => substr_count($firstLine, "\t"),
-            ';'  => substr_count($firstLine, ';'),
-            '|'  => substr_count($firstLine, '|'),
+            ';' => substr_count($firstLine, ';'),
+            '|' => substr_count($firstLine, '|'),
         ];
         arsort($delimiters);
         return array_key_first($delimiters);
@@ -115,16 +117,17 @@ class DelayImportExportService
     private function parseDurationToMinutes(string $raw): ?int
     {
         $raw = trim($raw);
-        if ($raw === '') return null;
+        if ($raw === '')
+            return null;
 
         $totalMinutes = 0;
-        $matched      = 0;
-        $remaining    = $raw;
+        $matched = 0;
+        $remaining = $raw;
 
         // Match tokens like "3D", "4h", "59m" — greedy left-to-right
         while (preg_match('/^(\d+)\s*([DdHhMm])(.*)$/s', $remaining, $m)) {
-            $value     = (int) $m[1];
-            $unit      = strtolower($m[2]);
+            $value = (int) $m[1];
+            $unit = strtolower($m[2]);
             $remaining = $m[3];
             $matched++;
 
@@ -136,7 +139,8 @@ class DelayImportExportService
         }
 
         // If there's leftover non-whitespace content we couldn't parse → invalid
-        if (trim($remaining) !== '') return null;
+        if (trim($remaining) !== '')
+            return null;
 
         // Must have matched at least one token and produced > 0 minutes
         return ($matched > 0 && $totalMinutes > 0) ? $totalMinutes : null;
@@ -149,21 +153,21 @@ class DelayImportExportService
     private function categoryFromMinutes(int $minutes): string
     {
         return match (true) {
-            $minutes <= 60  => '1_60',
+            $minutes <= 60 => '1_60',
             $minutes <= 240 => '61_240',
             $minutes <= 600 => '241_600',
-            default         => '601_plus',
+            default => '601_plus',
         };
     }
 
     private function penaltyFromCategory(string $category): int
     {
         return match ($category) {
-            '1_60'     => 1,
-            '61_240'   => 2,
-            '241_600'  => 4,
+            '1_60' => 1,
+            '61_240' => 2,
+            '241_600' => 4,
             '601_plus' => 8,
-            default    => 0,
+            default => 0,
         };
     }
 
@@ -174,10 +178,11 @@ class DelayImportExportService
     private function parseDatetime(string $raw): ?Carbon
     {
         $raw = trim($raw);
-        if ($raw === '') return null;
+        if ($raw === '')
+            return null;
 
-        if (preg_match('/^(\d{1,2}\/\d{1,2}\/\d{4}\s+\d{1,2}:\d{2})\s*(CST|EST)?$/i', $raw, $m)) {
-            $dt       = Carbon::createFromFormat('m/d/Y H:i', trim($m[1]));
+        if (preg_match('/^(\d{1,2}\/\d{1,2}\/\d{4}\s+\d{1,2}:\d{2})\s*(CST|EST|CDT|EDT|MST|MDT|PST|PDT|AKST|AKDT|HST|AST)?$/i', $raw, $m)) {
+            $dt = Carbon::createFromFormat('m/d/Y H:i', trim($m[1]));
             $timezone = strtoupper($m[2] ?? 'EST');
 
             if ($timezone === 'CST') {
@@ -207,23 +212,23 @@ class DelayImportExportService
     public function importDelays($request): void
     {
         $request->validate([
-            'csv_file'    => 'required|file|mimes:csv,txt',
+            'csv_file' => 'required|file|mimes:csv,txt',
             'import_type' => 'required|in:origin,destination',
         ]);
 
-        $importType   = $request->input('import_type');
-        $corrected    = $request->input('corrected_rows', []); // ✅ NEW
+        $importType = $request->input('import_type');
+        $corrected = $request->input('corrected_rows', []); // ✅ NEW
         $isSuperAdmin = Auth::user()->tenant_id === null;
 
         $tenantId = $isSuperAdmin
             ? $request->input('tenant_id')
             : Auth::user()->tenant_id;
 
-        $file            = $request->file('csv_file');
-        $filePath        = $file->getRealPath();
-        $delimiter       = $this->detectDelimiter($filePath);
+        $file = $request->file('csv_file');
+        $filePath = $file->getRealPath();
+        $delimiter = $this->detectDelimiter($filePath);
         $expectedHeaders = $this->getExpectedHeaders();
-        $expectedCount   = count($expectedHeaders);
+        $expectedCount = count($expectedHeaders);
 
         // ✅ Build corrected row map
         $correctedMap = [];
@@ -245,7 +250,8 @@ class DelayImportExportService
         while (($rawRow = fgetcsv($handle, 0, $delimiter)) !== false) {
             $rowNumber++;
 
-            if ($this->isBlankRow($rawRow)) continue;
+            if ($this->isBlankRow($rawRow))
+                continue;
 
             $row = $this->sanitizeRow($rawRow, $expectedCount);
 
@@ -281,14 +287,15 @@ class DelayImportExportService
 
     private function processOriginRow(array $row, ?int $tenantId, ?string $manualDate = null): void
     {
-        if ($tenantId === null) return;
+        if ($tenantId === null)
+            return;
 
-        $loadId      = trim($row[1]  ?? '');
-        $driverName  = trim($row[4]  ?? '');
+        $loadId = trim($row[1] ?? '');
+        $driverName = trim($row[4] ?? '');
         $rawDatetime = $row[11] ?? '';
-        $rawReason   = trim($row[12] ?? '');
+        $rawReason = trim($row[12] ?? '');
         $rawDuration = trim($row[14] ?? '');
-        $rawPenalty  = trim($row[16] ?? '');
+        $rawPenalty = trim($row[16] ?? '');
 
         $date = $this->parseDatetime($rawDatetime);
 
@@ -297,43 +304,44 @@ class DelayImportExportService
             $date = Carbon::parse($manualDate);
 
             $this->upsertDelay([
-                'tenant_id'            => $tenantId,
-                'delay_type'           => 'origin',
-                'date'                 => $date,
-                'load_id'              => $loadId ?: null,
-                'driver_name'          => $driverName ?: null,
-                'delay_reason'         => null,
-                'delay_duration'       => null,
-                'delay_category'       => null,
-                'penalty'              => 0,
-                'disputed'             => 'none',
-                'driver_controllable'  => false,
+                'tenant_id' => $tenantId,
+                'delay_type' => 'origin',
+                'date' => $date,
+                'load_id' => $loadId ?: null,
+                'driver_name' => $driverName ?: null,
+                'delay_reason' => null,
+                'delay_duration' => null,
+                'delay_category' => null,
+                'penalty' => 0,
+                'disputed' => 'none',
+                'driver_controllable' => false,
                 'carrier_controllable' => false,
             ]);
 
             return;
         }
 
-        if (!$date) return;
+        if (!$date)
+            return;
 
-        $totalMinutes   = $this->parseDurationToMinutes($rawDuration);
-        $category       = $totalMinutes ? $this->categoryFromMinutes($totalMinutes) : null;
-        $penalty        = $category ? $this->penaltyFromCategory($category) : 0;
+        $totalMinutes = $this->parseDurationToMinutes($rawDuration);
+        $category = $totalMinutes ? $this->categoryFromMinutes($totalMinutes) : null;
+        $penalty = $category ? $this->penaltyFromCategory($category) : 0;
         $isControllable = $this->resolveControllable($rawPenalty);
-        $delayReason    = $rawReason !== '' ? $rawReason : null;
+        $delayReason = $rawReason !== '' ? $rawReason : null;
 
         $this->upsertDelay([
-            'tenant_id'            => $tenantId,
-            'delay_type'           => 'origin',
-            'date'                 => $date,
-            'load_id'              => $loadId ?: null,
-            'driver_name'          => $driverName ?: null,
-            'delay_reason'         => $delayReason,
-            'delay_duration'       => $totalMinutes,
-            'delay_category'       => $category,
-            'penalty'              => $penalty,
-            'disputed'             => 'none',
-            'driver_controllable'  => $isControllable,
+            'tenant_id' => $tenantId,
+            'delay_type' => 'origin',
+            'date' => $date,
+            'load_id' => $loadId ?: null,
+            'driver_name' => $driverName ?: null,
+            'delay_reason' => $delayReason,
+            'delay_duration' => $totalMinutes,
+            'delay_category' => $category,
+            'penalty' => $penalty,
+            'disputed' => 'none',
+            'driver_controllable' => $isControllable,
             'carrier_controllable' => $isControllable,
         ]);
     }
@@ -353,14 +361,15 @@ class DelayImportExportService
 
     private function processDestinationRow(array $row, ?int $tenantId, ?string $manualDate = null): void
     {
-        if ($tenantId === null) return;
+        if ($tenantId === null)
+            return;
 
-        $loadId      = trim($row[1]  ?? '');
-        $driverName  = trim($row[4]  ?? '');
+        $loadId = trim($row[1] ?? '');
+        $driverName = trim($row[4] ?? '');
         $rawDatetime = $row[20] ?? '';
-        $rawReason   = trim($row[21] ?? '');
+        $rawReason = trim($row[21] ?? '');
         $rawDuration = trim($row[23] ?? '');
-        $rawPenalty  = trim($row[25] ?? '');
+        $rawPenalty = trim($row[25] ?? '');
 
         $date = $this->parseDatetime($rawDatetime);
 
@@ -369,43 +378,44 @@ class DelayImportExportService
             $date = Carbon::parse($manualDate);
 
             $this->upsertDelay([
-                'tenant_id'            => $tenantId,
-                'delay_type'           => 'destination',
-                'date'                 => $date,
-                'load_id'              => $loadId ?: null,
-                'driver_name'          => $driverName ?: null,
-                'delay_reason'         => null,
-                'delay_duration'       => null,
-                'delay_category'       => null,
-                'penalty'              => 0,
-                'disputed'             => 'none',
-                'driver_controllable'  => false,
+                'tenant_id' => $tenantId,
+                'delay_type' => 'destination',
+                'date' => $date,
+                'load_id' => $loadId ?: null,
+                'driver_name' => $driverName ?: null,
+                'delay_reason' => null,
+                'delay_duration' => null,
+                'delay_category' => null,
+                'penalty' => 0,
+                'disputed' => 'none',
+                'driver_controllable' => false,
                 'carrier_controllable' => false,
             ]);
 
             return;
         }
 
-        if (!$date) return;
+        if (!$date)
+            return;
 
-        $totalMinutes   = $this->parseDurationToMinutes($rawDuration);
-        $category       = $totalMinutes ? $this->categoryFromMinutes($totalMinutes) : null;
-        $penalty        = $category ? $this->penaltyFromCategory($category) : 0;
+        $totalMinutes = $this->parseDurationToMinutes($rawDuration);
+        $category = $totalMinutes ? $this->categoryFromMinutes($totalMinutes) : null;
+        $penalty = $category ? $this->penaltyFromCategory($category) : 0;
         $isControllable = $this->resolveControllable($rawPenalty);
-        $delayReason    = $rawReason !== '' ? $rawReason : null;
+        $delayReason = $rawReason !== '' ? $rawReason : null;
 
         $this->upsertDelay([
-            'tenant_id'            => $tenantId,
-            'delay_type'           => 'destination',
-            'date'                 => $date,
-            'load_id'              => $loadId ?: null,
-            'driver_name'          => $driverName ?: null,
-            'delay_reason'         => $delayReason,
-            'delay_duration'       => $totalMinutes,
-            'delay_category'       => $category,
-            'penalty'              => $penalty,
-            'disputed'             => 'none',
-            'driver_controllable'  => $isControllable,
+            'tenant_id' => $tenantId,
+            'delay_type' => 'destination',
+            'date' => $date,
+            'load_id' => $loadId ?: null,
+            'driver_name' => $driverName ?: null,
+            'delay_reason' => $delayReason,
+            'delay_duration' => $totalMinutes,
+            'delay_category' => $category,
+            'penalty' => $penalty,
+            'disputed' => 'none',
+            'driver_controllable' => $isControllable,
             'carrier_controllable' => $isControllable,
         ]);
     }
@@ -416,9 +426,9 @@ class DelayImportExportService
 
     private function upsertDelay(array $data): void
     {
-        $loadId   = $data['load_id']   ?? null;
+        $loadId = $data['load_id'] ?? null;
         $tenantId = $data['tenant_id'] ?? null;
-        $type     = $data['delay_type'];
+        $type = $data['delay_type'];
 
         $existing = null;
 
@@ -430,28 +440,28 @@ class DelayImportExportService
         }
 
         if ($existing) {
-            $hadReason    = !empty($existing->delay_reason);
+            $hadReason = !empty($existing->delay_reason);
             $hasNewReason = !empty($data['delay_reason']);
- $hadPenalty    = (bool) $existing->carrier_controllable;
-        $hasNewPenalty = (bool) $data['carrier_controllable'];
+            $hadPenalty = (bool) $existing->carrier_controllable;
+            $hasNewPenalty = (bool) $data['carrier_controllable'];
 
-        $reasonRemoved  = $hadReason && !$hasNewReason;
-        $penaltyRemoved = $hadPenalty && !$hasNewPenalty;
-            if ($reasonRemoved || $penaltyRemoved)  {
+            $reasonRemoved = $hadReason && !$hasNewReason;
+            $penaltyRemoved = $hadPenalty && !$hasNewPenalty;
+            if ($reasonRemoved || $penaltyRemoved) {
                 // Had a reason before, now cleared → auto-win
                 $existing->update([
                     'carrier_controllable' => false,
-                    'disputed'             => 'won',
+                    'disputed' => 'won',
                 ]);
             } else {
                 $existing->update([
-                    'date'                 => $data['date'],
-                    'driver_name'          => $data['driver_name'],
-                    'delay_reason'         => $data['delay_reason'],
-                    'delay_duration'       => $data['delay_duration'],
-                    'delay_category'       => $data['delay_category'],
-                    'penalty'              => $data['penalty'],
-                    'driver_controllable'  => $data['driver_controllable'],
+                    'date' => $data['date'],
+                    'driver_name' => $data['driver_name'],
+                    'delay_reason' => $data['delay_reason'],
+                    'delay_duration' => $data['delay_duration'],
+                    'delay_category' => $data['delay_category'],
+                    'penalty' => $data['penalty'],
+                    'driver_controllable' => $data['driver_controllable'],
                     'carrier_controllable' => $data['carrier_controllable'],
                     // disputed stays as-is on normal updates
                 ]);
@@ -483,13 +493,14 @@ class DelayImportExportService
 
         $fileName = 'delays_' . Str::random(8) . '.csv';
         $filePath = public_path($fileName);
-        $file     = fopen($filePath, 'w');
+        $file = fopen($filePath, 'w');
 
         // UTF-8 BOM for Excel
         fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
         $headers = [];
-        if ($isSuperAdmin) $headers[] = 'Company Name';
+        if ($isSuperAdmin)
+            $headers[] = 'Company Name';
 
         $headers = array_merge($headers, [
             'Date',
@@ -509,19 +520,20 @@ class DelayImportExportService
 
         foreach ($delays as $delay) {
             $row = [];
-            if ($isSuperAdmin) $row[] = $delay->tenant->name ?? '';
+            if ($isSuperAdmin)
+                $row[] = $delay->tenant->name ?? '';
 
             $row = array_merge($row, [
                 $delay->date ? Carbon::parse($delay->date)->format('m/d/Y H:i') : '',
                 $this->formatDelayType($delay),
-                $delay->load_id      ?? '',
-                $delay->driver_name  ?? '',
+                $delay->load_id ?? '',
+                $delay->driver_name ?? '',
                 $delay->delay_duration ?? '',
                 $this->formatDelayCategory($delay->delay_category),
                 $delay->penalty ?? '',
                 $delay->delay_reason ?? '',
                 $this->formatDisputeStatus($delay->disputed),
-                $delay->driver_controllable  === null ? 'N/A' : ($delay->driver_controllable  ? 'Yes' : 'No'),
+                $delay->driver_controllable === null ? 'N/A' : ($delay->driver_controllable ? 'Yes' : 'No'),
                 $delay->carrier_controllable === null ? 'N/A' : ($delay->carrier_controllable ? 'Yes' : 'No'),
             ]);
 
@@ -542,31 +554,31 @@ class DelayImportExportService
         $hasReason = !empty($delay->delay_reason);
 
         return match ($delay->delay_type) {
-            'origin'      => $hasReason ? 'Origin'      : 'Origin',
+            'origin' => $hasReason ? 'Origin' : 'Origin',
             'destination' => $hasReason ? 'Destination' : 'Destination',
-            default       => ucfirst($delay->delay_type),
+            default => ucfirst($delay->delay_type),
         };
     }
 
     private function formatDelayCategory(?string $category): string
     {
         return match ($category) {
-            '1_60'     => '1–60 minutes late',
-            '61_240'   => '61–240 minutes late',
-            '241_600'  => '241–600 minutes late',
+            '1_60' => '1–60 minutes late',
+            '61_240' => '61–240 minutes late',
+            '241_600' => '241–600 minutes late',
             '601_plus' => '601+ minutes late',
-            default    => '',
+            default => '',
         };
     }
 
     private function formatDisputeStatus(?string $disputed): string
     {
         return match ($disputed) {
-            'none'    => 'None',
+            'none' => 'None',
             'pending' => 'Pending',
-            'won'     => 'Won',
-            'lost'    => 'Lost',
-            default   => 'None',
+            'won' => 'Won',
+            'lost' => 'Lost',
+            default => 'None',
         };
     }
 }

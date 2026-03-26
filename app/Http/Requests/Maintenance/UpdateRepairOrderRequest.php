@@ -15,26 +15,26 @@ class UpdateRepairOrderRequest extends FormRequest
     public function rules()
     {
         return [
-            'ro_number'           => 'nullable|string',
-            'ro_open_date'        => 'required|date',
-            'ro_close_date'       => 'nullable|date',
-            'truck_id'            => 'required|exists:trucks,id',
-            'area_of_concerns'    => 'nullable|array', // Changed from required to nullable
-            'area_of_concerns.*'  => 'exists:area_of_concerns,id',
-            'repairs_made'        => 'nullable|string',
-            'vendor_id'           => 'required|exists:vendors,id',
-            'wo_number'           => 'nullable|string',
-            'wo_status_id'        => 'nullable|exists:wo_statuses,id', // Changed from enum validation to foreign key
-            'invoice'             => 'nullable|string',
-            'invoice_amount'      => 'nullable|numeric',
-            'invoice_received'    => 'required|boolean',
-            'on_qs'               => 'required|in:yes,no,not expected',
-            'qs_invoice_date'     => 'nullable|date',
+            'ro_number' => 'nullable|string',
+            'ro_open_date' => 'required|date',
+            'ro_close_date' => 'nullable|date',
+            'truck_id' => 'required|exists:trucks,id',
+            'area_of_concerns' => 'nullable|array', // Changed from required to nullable
+            'area_of_concerns.*' => 'exists:area_of_concerns,id',
+            'repairs_made' => 'nullable|string',
+            'vendor_id' => 'required|exists:vendors,id',
+            'wo_number' => 'nullable|string',
+            'wo_status_id' => 'nullable|exists:wo_statuses,id', // Changed from enum validation to foreign key
+            'invoice' => 'nullable|string',
+            'invoice_amount' => 'nullable|numeric',
+            'invoice_received' => 'required|boolean',
+            'on_qs' => 'required|in:yes,no,not expected',
+            'qs_invoice_date' => 'nullable|date',
             'dispute_review_status' => 'required|in:None,Pending,Reviewed,Overcharged',
-            'dispute_review_determination' => 'nullable|in:Granted,Partially Granted',
+            'dispute_review_determination' => 'nullable|in:Granted,Partially Granted,Valid,Valid Charge',
             'dispute_outcome' => 'nullable|numeric',
             'original_amount' => 'nullable|numeric',
-            'tenant_id'           => 'required|exists:tenants,id',
+            'tenant_id' => 'required|exists:tenants,id',
         ];
     }
 

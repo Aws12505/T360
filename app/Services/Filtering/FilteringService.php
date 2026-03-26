@@ -51,7 +51,6 @@ class FilteringService
         }
         $rollingStart = $currentWeekStart->copy()->subWeeks(5);
         $rollingEnd = $currentWeekEnd;
-
         switch ($dateFilter) {
             case 'yesterday':
                 $yesterday = Carbon::yesterday()->format('Y-m-d');

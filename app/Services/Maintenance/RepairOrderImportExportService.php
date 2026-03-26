@@ -200,7 +200,7 @@ class RepairOrderImportExportService
                 $status = 'None';
             }
 
-            $allowedDeterminations = ['Granted', 'Partially Granted'];
+            $allowedDeterminations = ['Granted', 'Partially Granted', 'Valid', 'Valid Charge'];
             if ($determination === '' || !in_array($determination, $allowedDeterminations, true)) {
                 $determination = null;
             }
@@ -369,7 +369,7 @@ class RepairOrderImportExportService
 
                 // ✅ NEW dispute fields
                 'dispute_review_status' => 'required|in:None,Pending,Reviewed,Overcharged',
-                'dispute_review_determination' => 'nullable|in:Granted,Partially Granted',
+                'dispute_review_determination' => 'nullable|in:Granted,Partially Granted,Valid,Valid Charge',
                 'dispute_outcome' => 'nullable|numeric',
 
                 'tenant_id' => 'required|exists:tenants,id',

@@ -9,10 +9,10 @@ use Illuminate\Support\Facades\Storage;
 class DelayImportValidationService
 {
     protected array $results = [
-        'valid'            => [],
-        'invalid'          => [],
-        'summary'          => ['total' => 0, 'valid' => 0, 'invalid' => 0],
-        'headers'          => [],
+        'valid' => [],
+        'invalid' => [],
+        'summary' => ['total' => 0, 'valid' => 0, 'invalid' => 0],
+        'headers' => [],
         'expected_headers' => [],
     ];
 
@@ -23,16 +23,18 @@ class DelayImportValidationService
     private function detectDelimiter(string $filePath): string
     {
         $handle = fopen($filePath, 'r');
-        if (!$handle) return "\t";
+        if (!$handle)
+            return "\t";
         $firstLine = fgets($handle);
         fclose($handle);
-        if ($firstLine === false) return "\t";
+        if ($firstLine === false)
+            return "\t";
 
         $delimiters = [
-            ','  => substr_count($firstLine, ','),
+            ',' => substr_count($firstLine, ','),
             "\t" => substr_count($firstLine, "\t"),
-            ';'  => substr_count($firstLine, ';'),
-            '|'  => substr_count($firstLine, '|'),
+            ';' => substr_count($firstLine, ';'),
+            '|' => substr_count($firstLine, '|'),
         ];
         arsort($delimiters);
         return array_key_first($delimiters);
@@ -123,7 +125,7 @@ class DelayImportValidationService
 
     public function validateDelaysCsv($file, string $importType): array
     {
-        $filePath  = $file->getRealPath();
+        $filePath = $file->getRealPath();
         $delimiter = $this->detectDelimiter($filePath);
 
         $handle = fopen($filePath, 'r');
@@ -131,7 +133,7 @@ class DelayImportValidationService
             throw new \Exception('Unable to open CSV file.');
         }
 
-        $isSuperAdmin    = Auth::user() && Auth::user()->tenant_id === null;
+        $isSuperAdmin = Auth::user() && Auth::user()->tenant_id === null;
         $expectedHeaders = $this->getExpectedHeaders($importType);
 
         $this->results['expected_headers'] = $expectedHeaders;
@@ -169,7 +171,8 @@ class DelayImportValidationService
         while (($rawRow = fgetcsv($handle, 0, $delimiter)) !== false) {
             $rowNumber++;
 
-            if ($this->isBlankRow($rawRow)) continue;
+            if ($this->isBlankRow($rawRow))
+                continue;
 
             $this->results['summary']['total']++;
 
@@ -203,7 +206,7 @@ class DelayImportValidationService
 
     private function validateOriginRow(array $row, array $headers, int $rowNumber, bool $isSuperAdmin): array
     {
-        $errors   = [];
+        $errors = [];
         $warnings = [];
 
         $row = $this->sanitizeRow($row, count($headers));
@@ -220,14 +223,14 @@ class DelayImportValidationService
         // ✅ NEW: Missing date handled as "needs input"
         if ($rawDate === '') {
             return [
-                'rowNumber'       => $rowNumber,
-                'isValid'         => false,
-                'needsDateInput'  => true,
-                'missing_field'   => 'Origin Yard Arrival Time',
-                'errors'          => [],
-                'warnings'        => [],
-                'data'            => $data,
-                'preview'         => $this->buildPreview($data, [
+                'rowNumber' => $rowNumber,
+                'isValid' => false,
+                'needsDateInput' => true,
+                'missing_field' => 'Origin Yard Arrival Time',
+                'errors' => [],
+                'warnings' => [],
+                'data' => $data,
+                'preview' => $this->buildPreview($data, [
                     'Load ID',
                     'Drivers',
                 ]),
@@ -250,11 +253,11 @@ class DelayImportValidationService
 
         return [
             'rowNumber' => $rowNumber,
-            'isValid'   => empty($errors),
-            'errors'    => $errors,
-            'warnings'  => $warnings,
-            'data'      => $data,
-            'preview'   => $this->buildPreview($data, [
+            'isValid' => empty($errors),
+            'errors' => $errors,
+            'warnings' => $warnings,
+            'data' => $data,
+            'preview' => $this->buildPreview($data, [
                 'Load ID',
                 'Drivers',
                 'Origin Yard Arrival Time',
@@ -272,7 +275,7 @@ class DelayImportValidationService
 
     private function validateDestinationRow(array $row, array $headers, int $rowNumber, bool $isSuperAdmin): array
     {
-        $errors   = [];
+        $errors = [];
         $warnings = [];
 
         $row = $this->sanitizeRow($row, count($headers));
@@ -297,20 +300,19 @@ class DelayImportValidationService
         // ✅ NEW: Missing date handled as "needs input"
         if ($rawDate === '') {
             return [
-                'rowNumber'       => $rowNumber,
-                'isValid'         => false,
-                'needsDateInput'  => true,
-                'missing_field'   => 'Destination Yard Arrival Time',
-                'errors'          => [],
-                'warnings'        => [],
-                'data'            => $data,
-                'preview'         => $this->buildPreview($data, [
+                'rowNumber' => $rowNumber,
+                'isValid' => false,
+                'needsDateInput' => true,
+                'missing_field' => 'Destination Yard Arrival Time',
+                'errors' => [],
+                'warnings' => [],
+                'data' => $data,
+                'preview' => $this->buildPreview($data, [
                     'Load ID',
                     'Drivers',
                 ]),
             ];
         }
-
         if (!$this->parseDatetime($rawDate)) {
             $errors[] = "Destination Yard Arrival Time format invalid: {$rawDate}";
         }
@@ -327,11 +329,11 @@ class DelayImportValidationService
 
         return [
             'rowNumber' => $rowNumber,
-            'isValid'   => empty($errors),
-            'errors'    => $errors,
-            'warnings'  => $warnings,
-            'data'      => $data,
-            'preview'   => $this->buildPreview($data, [
+            'isValid' => empty($errors),
+            'errors' => $errors,
+            'warnings' => $warnings,
+            'data' => $data,
+            'preview' => $this->buildPreview($data, [
                 'Load ID',
                 'Drivers',
                 'Destination Yard Arrival Time',
@@ -348,7 +350,7 @@ class DelayImportValidationService
     public function generateErrorReport(array $invalidRows): string
     {
         $fileName = 'delays_import_errors_' . date('Y-m-d_His') . '.csv';
-        $dir      = 'temp-imports';
+        $dir = 'temp-imports';
         Storage::makeDirectory($dir);
 
         $path = $dir . '/' . $fileName;
@@ -373,7 +375,7 @@ class DelayImportValidationService
             fputcsv($file, [
                 $row['rowNumber'] ?? '—',
                 $previewString,
-                !empty($row['errors'])   ? implode('; ', $row['errors'])   : '—',
+                !empty($row['errors']) ? implode('; ', $row['errors']) : '—',
                 !empty($row['warnings']) ? implode('; ', $row['warnings']) : '—',
             ]);
         }
@@ -389,9 +391,10 @@ class DelayImportValidationService
     private function parseDatetime(string $raw): ?Carbon
     {
         $raw = trim($raw);
-        if ($raw === '') return null;
+        if ($raw === '')
+            return null;
 
-        if (preg_match('/^(\d{1,2}\/\d{1,2}\/\d{4}\s+\d{1,2}:\d{2})\s*(CST|EST)?$/i', $raw, $m)) {
+        if (preg_match('/^(\d{1,2}\/\d{1,2}\/\d{4}\s+\d{1,2}:\d{2})\s*(CST|EST|CDT|EDT|MST|MDT|PST|PDT|AKST|AKDT|HST|AST)?$/i', $raw, $m)) {
             try {
                 return Carbon::createFromFormat('m/d/Y H:i', trim($m[1]));
             } catch (\Exception $e) {
@@ -405,15 +408,16 @@ class DelayImportValidationService
     private function parseDurationToMinutes(string $raw): ?int
     {
         $raw = trim($raw);
-        if ($raw === '') return null;
+        if ($raw === '')
+            return null;
 
         $totalMinutes = 0;
-        $matched      = 0;
-        $remaining    = $raw;
+        $matched = 0;
+        $remaining = $raw;
 
         while (preg_match('/^(\d+)\s*([DdHhMm])(.*)$/s', $remaining, $m)) {
-            $value     = (int) $m[1];
-            $unit      = strtolower($m[2]);
+            $value = (int) $m[1];
+            $unit = strtolower($m[2]);
             $remaining = $m[3];
             $matched++;
 
@@ -425,7 +429,8 @@ class DelayImportValidationService
         }
 
         // Leftover non-whitespace → unrecognised format → invalid
-        if (trim($remaining) !== '') return null;
+        if (trim($remaining) !== '')
+            return null;
 
         return ($matched > 0 && $totalMinutes > 0) ? $totalMinutes : null;
     }
@@ -435,8 +440,10 @@ class DelayImportValidationService
         $preview = [];
         foreach ($fields as $field) {
             $val = $data[$field] ?? '';
-            if ($val === '') continue;
-            if (strlen($val) > 30) $val = substr($val, 0, 30) . '...';
+            if ($val === '')
+                continue;
+            if (strlen($val) > 30)
+                $val = substr($val, 0, 30) . '...';
             $preview[] = ['key' => $field, 'label' => $field, 'value' => $val];
         }
 
@@ -447,11 +454,11 @@ class DelayImportValidationService
     {
         return [
             'rowNumber' => $rowNumber,
-            'isValid'   => false,
-            'errors'    => ['Column count mismatch. Expected ' . count($headers) . ', got ' . count($row)],
-            'warnings'  => [],
-            'data'      => $row,
-            'preview'   => $this->buildRawPreview($row, $headers),
+            'isValid' => false,
+            'errors' => ['Column count mismatch. Expected ' . count($headers) . ', got ' . count($row)],
+            'warnings' => [],
+            'data' => $row,
+            'preview' => $this->buildRawPreview($row, $headers),
         ];
     }
 
@@ -460,7 +467,8 @@ class DelayImportValidationService
         $out = [];
         foreach (array_slice($headers, 0, 3) as $i => $h) {
             $val = isset($row[$i]) ? (string) $row[$i] : '';
-            if (strlen($val) > 30) $val = substr($val, 0, 30) . '...';
+            if (strlen($val) > 30)
+                $val = substr($val, 0, 30) . '...';
             $out[] = ['key' => $h, 'label' => $h, 'value' => $val];
         }
         return !empty($out) ? $out : [['key' => 'row', 'label' => 'Row', 'value' => '(empty)']];

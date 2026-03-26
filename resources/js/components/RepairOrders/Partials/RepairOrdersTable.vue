@@ -151,7 +151,9 @@
                 <span :class="{
                   'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400': o.dispute_review_determination === 'Granted',
                   'bg-amber-100 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400': o.dispute_review_determination === 'Partially Granted',
-                  'bg-muted text-muted-foreground': !['Granted', 'Partially Granted'].includes(o.dispute_review_determination)
+                  'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400': o.dispute_review_determination === 'Valid',
+                  'bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400': o.dispute_review_determination === 'Valid Charge',
+                  'bg-muted text-muted-foreground': !['Granted', 'Partially Granted', 'Valid', 'Valid Charge'].includes(o.dispute_review_determination)
                 }" class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold capitalize">
                   {{ o.dispute_review_determination || "—" }}
                 </span>

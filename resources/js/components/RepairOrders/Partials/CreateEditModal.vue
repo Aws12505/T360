@@ -14,10 +14,7 @@
       </DialogHeader>
 
       <div class="max-h-[70vh] overflow-y-auto px-4 sm:px-6">
-        <form
-          @submit.prevent="$emit('submitForm')"
-          class="grid grid-cols-1 gap-3 p-3 sm:grid-cols-2 sm:gap-4 sm:p-4"
-        >
+        <form @submit.prevent="$emit('submitForm')" class="grid grid-cols-1 gap-3 p-3 sm:grid-cols-2 sm:gap-4 sm:p-4">
           <!-- Company (Admin only) -->
           <div v-if="isAdmin" class="col-span-2 mb-1">
             <Label class="flex items-center gap-1.5 mb-1 text-sm font-medium">
@@ -25,30 +22,19 @@
               Company
             </Label>
             <div class="relative">
-              <select
-                v-model="form.tenant_id"
-                required
-                class="flex h-9 w-full appearance-none rounded-md border bg-background px-3 py-1 text-sm ring-offset-background focus-visible:ring-2"
-              >
+              <select v-model="form.tenant_id" required
+                class="flex h-9 w-full appearance-none rounded-md border bg-background px-3 py-1 text-sm ring-offset-background focus-visible:ring-2">
                 <option disabled value="">Select</option>
                 <option v-for="t in tenants" :key="t.id" :value="t.id">
                   {{ t.name }}
                 </option>
               </select>
-              <div
-                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700"
-              >
-                <svg
-                  class="h-4 w-4 opacity-50"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fill-rule="evenodd"
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                  fill="currentColor">
+                  <path fill-rule="evenodd"
                     d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                    clip-rule="evenodd"
-                  />
+                    clip-rule="evenodd" />
                 </svg>
               </div>
             </div>
@@ -75,30 +61,19 @@
                 Truck
               </Label>
               <div class="relative">
-                <select
-                  v-model="form.truck_id"
-                  required
-                  class="flex h-9 w-full appearance-none rounded-md border bg-background px-3 py-1 text-sm"
-                >
+                <select v-model="form.truck_id" required
+                  class="flex h-9 w-full appearance-none rounded-md border bg-background px-3 py-1 text-sm">
                   <option disabled value="">Select</option>
                   <option v-for="t in trucks" :key="t.id" :value="t.id">
                     {{ t.truckid }}
                   </option>
                 </select>
-                <div
-                  class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700"
-                >
-                  <svg
-                    class="h-4 w-4 opacity-50"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fill-rule="evenodd"
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                  <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                    fill="currentColor">
+                    <path fill-rule="evenodd"
                       d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                      clip-rule="evenodd"
-                    />
+                      clip-rule="evenodd" />
                   </svg>
                 </div>
               </div>
@@ -109,12 +84,7 @@
                 <Icon name="calendar" class="h-4 w-4 text-muted-foreground" />
                 Open Date
               </Label>
-              <Input
-                type="date"
-                v-model="form.ro_open_date"
-                required
-                class="h-9 w-full"
-              />
+              <Input type="date" v-model="form.ro_open_date" required class="h-9 w-full" />
             </div>
 
             <div>
@@ -138,56 +108,35 @@
               Areas of Concern
             </Label>
 
-            <div
-              class="flex flex-wrap gap-1 mb-2 bg-muted/30 p-2 rounded-md min-h-[40px]"
-            >
-              <span
-                v-for="id in form.area_of_concerns"
-                :key="id"
-                class="badge bg-primary/10 text-primary px-2 py-1 rounded-md flex items-center"
-              >
+            <div class="flex flex-wrap gap-1 mb-2 bg-muted/30 p-2 rounded-md min-h-[40px]">
+              <span v-for="id in form.area_of_concerns" :key="id"
+                class="badge bg-primary/10 text-primary px-2 py-1 rounded-md flex items-center">
                 {{ areasMap[id] }}
-                <button
-                  type="button"
-                  @click="$emit('removeArea', id)"
-                  class="ml-1 hover:text-red-500 focus:outline-none"
-                >
+                <button type="button" @click="$emit('removeArea', id)"
+                  class="ml-1 hover:text-red-500 focus:outline-none">
                   ×
                 </button>
               </span>
 
-              <span
-                v-if="!form.area_of_concerns.length"
-                class="text-muted-foreground text-sm italic"
-              >
+              <span v-if="!form.area_of_concerns.length" class="text-muted-foreground text-sm italic">
                 No areas selected
               </span>
             </div>
 
             <div class="relative">
-              <select
-                @change="$emit('addArea', $event)"
-                class="flex h-9 w-full appearance-none rounded-md border bg-background px-3 py-1 text-sm"
-              >
+              <select @change="$emit('addArea', $event)"
+                class="flex h-9 w-full appearance-none rounded-md border bg-background px-3 py-1 text-sm">
                 <option value="">Select an area to add</option>
                 <option v-for="a in availableAreas" :key="a.id" :value="a.id">
                   {{ a.concern }}
                 </option>
               </select>
-              <div
-                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700"
-              >
-                <svg
-                  class="h-4 w-4 opacity-50"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fill-rule="evenodd"
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                  fill="currentColor">
+                  <path fill-rule="evenodd"
                     d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                    clip-rule="evenodd"
-                  />
+                    clip-rule="evenodd" />
                 </svg>
               </div>
             </div>
@@ -198,11 +147,9 @@
               <Icon name="clipboard-check" class="h-4 w-4 text-muted-foreground" />
               Repairs Made
             </Label>
-            <textarea
-              v-model="form.repairs_made"
+            <textarea v-model="form.repairs_made"
               class="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              rows="2"
-            ></textarea>
+              rows="2"></textarea>
           </div>
 
           <!-- Vendor & Invoice Information -->
@@ -220,30 +167,19 @@
                 Vendor
               </Label>
               <div class="relative">
-                <select
-                  v-model="form.vendor_id"
-                  required
-                  class="flex h-9 w-full appearance-none rounded-md border bg-background px-3 py-1 text-sm"
-                >
+                <select v-model="form.vendor_id" required
+                  class="flex h-9 w-full appearance-none rounded-md border bg-background px-3 py-1 text-sm">
                   <option disabled value="">Select</option>
                   <option v-for="v in vendors" :key="v.id" :value="v.id">
                     {{ v.vendor_name }}
                   </option>
                 </select>
-                <div
-                  class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700"
-                >
-                  <svg
-                    class="h-4 w-4 opacity-50"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fill-rule="evenodd"
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                  <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                    fill="currentColor">
+                    <path fill-rule="evenodd"
                       d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                      clip-rule="evenodd"
-                    />
+                      clip-rule="evenodd" />
                   </svg>
                 </div>
               </div>
@@ -264,30 +200,20 @@
               </Label>
 
               <div class="relative">
-                <select
-                  v-model="form.wo_status_id"
-                  class="flex h-9 w-full appearance-none rounded-md border bg-background px-3 py-1 text-sm"
-                >
+                <select v-model="form.wo_status_id"
+                  class="flex h-9 w-full appearance-none rounded-md border bg-background px-3 py-1 text-sm">
                   <option :value="null">— None —</option>
                   <option v-for="s in woStatuses" :key="s.id" :value="s.id">
                     {{ s.name }}
                   </option>
                 </select>
 
-                <div
-                  class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700"
-                >
-                  <svg
-                    class="h-4 w-4 opacity-50"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fill-rule="evenodd"
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                  <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                    fill="currentColor">
+                    <path fill-rule="evenodd"
                       d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                      clip-rule="evenodd"
-                    />
+                      clip-rule="evenodd" />
                   </svg>
                 </div>
               </div>
@@ -299,29 +225,18 @@
                 On QS
               </Label>
               <div class="relative">
-                <select
-                  v-model="form.on_qs"
-                  required
-                  class="flex h-9 w-full appearance-none rounded-md border bg-background px-3 py-1 text-sm"
-                >
+                <select v-model="form.on_qs" required
+                  class="flex h-9 w-full appearance-none rounded-md border bg-background px-3 py-1 text-sm">
                   <option value="yes">Yes</option>
                   <option value="no">No</option>
                   <option value="not expected">Not Expected</option>
                 </select>
-                <div
-                  class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700"
-                >
-                  <svg
-                    class="h-4 w-4 opacity-50"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fill-rule="evenodd"
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                  <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                    fill="currentColor">
+                    <path fill-rule="evenodd"
                       d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                      clip-rule="evenodd"
-                    />
+                      clip-rule="evenodd" />
                   </svg>
                 </div>
               </div>
@@ -343,25 +258,14 @@
                 Amount
               </Label>
               <div class="relative">
-                <span
-                  class="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground"
-                  >$</span
-                >
-                <Input
-                  type="number"
-                  step="0.01"
-                  v-model="form.invoice_amount"
-                  class="pl-7 h-9 w-full"
-                />
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">$</span>
+                <Input type="number" step="0.01" v-model="form.invoice_amount" class="pl-7 h-9 w-full" />
               </div>
             </div>
 
             <div class="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                v-model="form.invoice_received"
-                class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-1 focus:ring-primary"
-              />
+              <input type="checkbox" v-model="form.invoice_received"
+                class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-1 focus:ring-primary" />
               <Label class="flex items-center gap-1.5 text-sm font-medium">
                 <Icon name="inbox" class="h-4 w-4 text-muted-foreground" />
                 Invoice Received
@@ -386,10 +290,7 @@
             <!-- Status -->
             <div>
               <Label class="mb-1 text-sm font-medium">Dispute / Review Status</Label>
-              <select
-                v-model="form.dispute_review_status"
-                class="flex h-9 w-full rounded-md border px-3 text-sm"
-              >
+              <select v-model="form.dispute_review_status" class="flex h-9 w-full rounded-md border px-3 text-sm">
                 <option value="None">None</option>
                 <option value="Pending">Pending</option>
                 <option value="Reviewed">Reviewed</option>
@@ -400,13 +301,13 @@
             <!-- Determination -->
             <div>
               <Label class="mb-1 text-sm font-medium">Determination</Label>
-              <select
-                v-model="form.dispute_review_determination"
-                class="flex h-9 w-full rounded-md border px-3 text-sm"
-              >
+              <select v-model="form.dispute_review_determination"
+                class="flex h-9 w-full rounded-md border px-3 text-sm">
                 <option value="">—</option>
                 <option value="Granted">Granted</option>
                 <option value="Partially Granted">Partially Granted</option>
+                <option value="Valid">Valid</option>
+                <option value="Valid Charge">Valid Charge</option>
               </select>
             </div>
 
@@ -414,16 +315,8 @@
             <div>
               <Label class="mb-1 text-sm font-medium">Original Amount</Label>
               <div class="relative">
-                <span
-                  class="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground"
-                  >$</span
-                >
-                <Input
-                  type="number"
-                  step="0.01"
-                  v-model="form.original_amount"
-                  class="pl-7 h-9 w-full"
-                />
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">$</span>
+                <Input type="number" step="0.01" v-model="form.original_amount" class="pl-7 h-9 w-full" />
               </div>
             </div>
 
@@ -431,16 +324,8 @@
             <div>
               <Label class="mb-1 text-sm font-medium">Dispute Outcome</Label>
               <div class="relative">
-                <span
-                  class="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground"
-                  >$</span
-                >
-                <Input
-                  type="number"
-                  step="0.01"
-                  v-model="form.dispute_outcome"
-                  class="pl-7 h-9 w-full"
-                />
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">$</span>
+                <Input type="number" step="0.01" v-model="form.dispute_outcome" class="pl-7 h-9 w-full" />
               </div>
             </div>
           </div>
@@ -448,18 +333,10 @@
       </div>
 
       <DialogFooter class="px-4 sm:px-6 flex justify-end gap-2 mt-2 pt-3 border-t">
-        <Button
-          variant="outline"
-          @click="$emit('closeModal')"
-          class="h-9 px-4 py-1 text-xs sm:text-sm"
-        >
+        <Button variant="outline" @click="$emit('closeModal')" class="h-9 px-4 py-1 text-xs sm:text-sm">
           Cancel
         </Button>
-        <Button
-          type="button"
-          @click="$emit('submitForm')"
-          class="h-9 px-4 py-1 text-xs sm:text-sm"
-        >
+        <Button type="button" @click="$emit('submitForm')" class="h-9 px-4 py-1 text-xs sm:text-sm">
           {{ formAction }}
         </Button>
       </DialogFooter>
