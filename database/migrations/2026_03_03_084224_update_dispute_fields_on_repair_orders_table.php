@@ -23,7 +23,9 @@ class UpdateDisputeFieldsOnRepairOrdersTable extends Migration
 
             $table->enum('dispute_review_determination', [
                 'Granted',
-                'Partially Granted'
+                'Partially Granted',
+                'Valid',
+                'Valid Charge'
             ])->nullable()->after('dispute_review_status');
 
             $table->decimal('dispute_outcome', 15, 2)
