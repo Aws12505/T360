@@ -1,214 +1,130 @@
 <template>
-  <div
-    class="w-full pt-6 md:max-w-2xl lg:max-w-3xl xl:max-w-6xl lg:mx-auto p-1 space-y-6"
-  >
+  <div class="w-full pt-6 md:max-w-2xl lg:max-w-3xl xl:max-w-6xl lg:mx-auto p-1 space-y-6">
     <!-- Alerts -->
     <AlertsSection :successMessage="successMessage" :errorMessage="errorMessage" />
 
     <!-- Actions -->
-    <ActionsBar
-      :permissionNames="permissionNames"
-      :selectedIds="selectedIds"
-      :isAdmin="isAdmin"
-      @openCreateModal="openCreateModal"
-      @confirmBulkDelete="confirmBulkDelete"
-      @openAreasModal="openAreasModal"
-      @openVendorsModal="openVendorsModal"
-      @openStatusModal="openStatusModal"
-      @openImportModal="openImportModal"
-      @exportCsv="exportCsv"
-    />
+    <ActionsBar :permissionNames="permissionNames" :selectedIds="selectedIds" :isAdmin="isAdmin"
+      @openCreateModal="openCreateModal" @confirmBulkDelete="confirmBulkDelete" @openAreasModal="openAreasModal"
+      @openVendorsModal="openVendorsModal" @openStatusModal="openStatusModal" @openImportModal="openImportModal"
+      @exportCsv="exportCsv" />
 
     <!-- Canceled QS Invoices Alert -->
-    <CanceledQSInvoicesAlert
-      :hasCanceledQSInvoices="hasCanceledQSInvoices"
-      :SuperAdmin="props.SuperAdmin"
-      :permissionNames="permissionNames"
-      :canceledQSInvoices="props.canceledQSInvoices"
-      @openDialog="showCanceledQSInvoicesDialog = true"
-    />
+    <CanceledQSInvoicesAlert :hasCanceledQSInvoices="hasCanceledQSInvoices" :SuperAdmin="props.SuperAdmin"
+      :permissionNames="permissionNames" :canceledQSInvoices="props.canceledQSInvoices"
+      @openDialog="showCanceledQSInvoicesDialog = true" />
 
     <!-- Date Filter Tabs -->
-    <DateFilterTabs
-      :dateOptions="dateOptions"
-      :filter="filter"
-      :dateRange="props.dateRange"
-      :dateFilter="props.dateFilter"
-      :weekNumberText="weekNumberText"
-      :formatDate="formatDate"
-      @selectDate="selectDate"
-    />
+    <DateFilterTabs :dateOptions="dateOptions" :filter="filter" :dateRange="props.dateRange"
+      :dateFilter="props.dateFilter" :weekNumberText="weekNumberText" :formatDate="formatDate" @selectDate="selectDate"
+      @openCustom="showCustomDialog = true" />
 
     <!-- Top Panels (Quarterly / 6w) -->
-    <TopPanels
-      v-if="(dateFilter === 'quarterly' || dateFilter === '6w') && !props.SuperAdmin"
-      :topAreasOfConcern="topAreasOfConcern"
-      :topWorkOrdersByTruck="topWorkOrdersByTruck"
-    />
+    <TopPanels v-if="(dateFilter === 'quarterly' || dateFilter === '6w') && !props.SuperAdmin"
+      :topAreasOfConcern="topAreasOfConcern" :topWorkOrdersByTruck="topWorkOrdersByTruck" />
 
     <!-- Outstanding Invoices Filter -->
-    <OutstandingInvoicesFilter
-      v-if="!props.SuperAdmin"
-      v-model:minInvoiceAmount="minInvoiceAmount"
-      v-model:outstandingDate="outstandingDate"
-    />
+    <OutstandingInvoicesFilter v-if="!props.SuperAdmin" v-model:minInvoiceAmount="minInvoiceAmount"
+      v-model:outstandingDate="outstandingDate" />
 
     <!-- Outstanding Invoices Section -->
-    <OutstandingInvoicesSection
-      v-if="!props.SuperAdmin"
-      :filteredOutstandingInvoices="filteredOutstandingInvoices"
+    <OutstandingInvoicesSection v-if="!props.SuperAdmin" :filteredOutstandingInvoices="filteredOutstandingInvoices"
       :totalFilteredOutstanding="totalFilteredOutstanding"
-      :showOutstandingInvoicesSection="showOutstandingInvoicesSection"
-      :formatCurrency="formatCurrency"
-      @toggleShow="showOutstandingInvoicesSection = !showOutstandingInvoicesSection"
-    />
+      :showOutstandingInvoicesSection="showOutstandingInvoicesSection" :formatCurrency="formatCurrency"
+      @toggleShow="showOutstandingInvoicesSection = !showOutstandingInvoicesSection" />
 
     <!-- Filters Card -->
-    <FiltersCard
-      :showFilters="showFilters"
-      :activeFilterBadges="activeFilterBadges"
-      :filter="filter"
-      :vendors="props.vendors"
-      :woStatuses="props.woStatuses"
-      @toggleShowFilters="showFilters = !showFilters"
-      @resetFilters="resetFilters"
-      @applyFilters="applyFilters"
-    />
+    <FiltersCard :showFilters="showFilters" :activeFilterBadges="activeFilterBadges" :filter="filter"
+      :vendors="props.vendors" :woStatuses="props.woStatuses" @toggleShowFilters="showFilters = !showFilters"
+      @resetFilters="resetFilters" @applyFilters="applyFilters" />
 
     <!-- Table -->
     <template v-if="hasData">
-      <RepairOrdersTable
-        :repairOrders="props.repairOrders"
-        :permissionNames="permissionNames"
-        :isAdmin="isAdmin"
-        v-model:selectedIds="selectedIds"
-        :allSelected="allSelected"
-        :sortState="sortState"
-        v-model:localPerPage="localPerPage"
-        :tenantSlug="props.tenantSlug"
-        :filter="filter"
-        :formatDate="formatDate"
-        :formatCurrency="formatCurrency"
-        @toggleAll="toggleAll"
-        @sort="sort"
-        @openEdit="openEdit"
-        @deleteOne="deleteOne"
-        @changePerPage="changePerPage"
-        @go="go"
-      />
+      <RepairOrdersTable :repairOrders="props.repairOrders" :permissionNames="permissionNames" :isAdmin="isAdmin"
+        v-model:selectedIds="selectedIds" :allSelected="allSelected" :sortState="sortState"
+        v-model:localPerPage="localPerPage" :tenantSlug="props.tenantSlug" :filter="filter" :formatDate="formatDate"
+        :formatCurrency="formatCurrency" @toggleAll="toggleAll" @sort="sort" @openEdit="openEdit" @deleteOne="deleteOne"
+        @changePerPage="changePerPage" @go="go" />
     </template>
 
-    <div
-      v-else
-      class="flex flex-col items-center justify-center rounded-lg border bg-muted/20 py-16"
-    >
+    <div v-else class="flex flex-col items-center justify-center rounded-lg border bg-muted/20 py-16">
       <Icon name="database-x" class="h-16 w-16 mx-auto mb-4 opacity-70" />
       <h2 class="text-lg font-medium">There is No Data to give Information about.</h2>
     </div>
 
     <!-- Create/Edit Modal -->
-    <CreateEditModal
-      v-model:open="showModal"
-      :isAdmin="isAdmin"
-      :tenants="props.tenants"
-      :trucks="props.trucks"
-      :vendors="props.vendors"
-      :woStatuses="props.woStatuses"
-      :areasOfConcern="props.areasOfConcern"
-      :form="form"
-      :formAction="formAction"
-      :areasMap="areasMap"
-      :availableAreas="availableAreas"
-      @submitForm="submitForm"
-      @closeModal="closeModal"
-      @addArea="addArea"
-      @removeArea="removeArea"
-    />
+    <CreateEditModal v-model:open="showModal" :isAdmin="isAdmin" :tenants="props.tenants" :trucks="props.trucks"
+      :vendors="props.vendors" :woStatuses="props.woStatuses" :areasOfConcern="props.areasOfConcern" :form="form"
+      :formAction="formAction" :areasMap="areasMap" :availableAreas="availableAreas" @submitForm="submitForm"
+      @closeModal="closeModal" @addArea="addArea" @removeArea="removeArea" />
 
     <!-- Delete One -->
-    <DeleteOneDialog
-      v-model:open="showDeleteModal"
-      @confirmDelete="confirmDelete"
-      @cancel="showDeleteModal = false"
-    />
+    <DeleteOneDialog v-model:open="showDeleteModal" @confirmDelete="confirmDelete" @cancel="showDeleteModal = false" />
 
     <!-- Bulk Delete -->
-    <BulkDeleteDialog
-      v-model:open="showBulkDeleteModal"
-      :selectedCount="selectedIds.length"
-      @deleteBulk="deleteBulk"
-      @cancel="showBulkDeleteModal = false"
-    />
+    <BulkDeleteDialog v-model:open="showBulkDeleteModal" :selectedCount="selectedIds.length" @deleteBulk="deleteBulk"
+      @cancel="showBulkDeleteModal = false" />
 
     <!-- Areas Modal -->
-    <AreasModal
-      v-model:open="showAreasModal"
-      :areasOfConcern="props.areasOfConcern"
-      :areas="areasOfConcern"
-      :areaForm="areaForm"
-      @submitArea="submitArea"
-      @deleteArea="deleteArea"
-      @restoreArea="restoreArea"
-      @close="showAreasModal = false"
-    />
+    <AreasModal v-model:open="showAreasModal" :areasOfConcern="props.areasOfConcern" :areas="areasOfConcern"
+      :areaForm="areaForm" @submitArea="submitArea" @deleteArea="deleteArea" @restoreArea="restoreArea"
+      @close="showAreasModal = false" />
 
     <!-- Vendors Modal -->
-    <VendorsModal
-      v-model:open="showVendorsModal"
-      :vendors="vendors"
-      :vendorForm="vendorForm"
-      @submitVendor="submitVendor"
-      @deleteVendor="deleteVendor"
-      @restoreVendor="restoreVendor"
-      @forceDeleteVendor="forceDeleteVendor"
-      @close="showVendorsModal = false"
-    />
+    <VendorsModal v-model:open="showVendorsModal" :vendors="vendors" :vendorForm="vendorForm"
+      @submitVendor="submitVendor" @deleteVendor="deleteVendor" @restoreVendor="restoreVendor"
+      @forceDeleteVendor="forceDeleteVendor" @close="showVendorsModal = false" />
 
     <!-- Statuses Modal -->
-    <StatusesModal
-      v-model:open="showStatusModal"
-      :woStatuses="props.woStatuses"
-      :statusForm="statusForm"
-      @submitStatus="submitStatus"
-      @deleteStatus="deleteStatus"
-      @restoreStatus="restoreStatus"
-      @forceDeleteStatus="forceDeleteStatus"
-      @close="showStatusModal = false"
-    />
+    <StatusesModal v-model:open="showStatusModal" :woStatuses="props.woStatuses" :statusForm="statusForm"
+      @submitStatus="submitStatus" @deleteStatus="deleteStatus" @restoreStatus="restoreStatus"
+      @forceDeleteStatus="forceDeleteStatus" @close="showStatusModal = false" />
 
     <!-- Dialog for Canceled QS Invoices -->
-    <CanceledQSInvoicesDialog
-      v-model:open="showCanceledQSInvoicesDialog"
-      :canceledQSInvoices="props.canceledQSInvoices"
-      :formatCurrency="formatCurrency"
-      @editInvoice="openEditFromCanceled"
-    />
+    <CanceledQSInvoicesDialog v-model:open="showCanceledQSInvoicesDialog" :canceledQSInvoices="props.canceledQSInvoices"
+      :formatCurrency="formatCurrency" @editInvoice="openEditFromCanceled" />
   </div>
 
   <!-- Import Modal -->
-  <ImportModal
-    v-model:open="showImportModal"
-    v-model:importType="importType"
-    v-model:importTenantId="importTenantId"
-    :importValidationResults="importValidationResults"
-    :isValidating="isValidating"
-    :isImporting="isImporting"
-    :isAdmin="isAdmin"
-    :tenants="props.tenants"
-    :templateUrl="templateUrl"
-    :isDragging="isDragging"
-    :hasWarnings="hasWarnings"
-    @openImportModal="openImportModal"
-    @closeImportModal="closeImportModal"
-    @confirmImport="confirmImport"
-    @downloadErrorReport="downloadErrorReport"
-    @onImportInputChange="onImportInputChange"
-    @onDragEnter="onDragEnter"
-    @onDragOver="onDragOver"
-    @onDragLeave="onDragLeave"
-    @onDrop="onDrop"
-    :formatCurrency="formatCurrency"
-  />
+  <ImportModal v-model:open="showImportModal" v-model:importType="importType" v-model:importTenantId="importTenantId"
+    :importValidationResults="importValidationResults" :isValidating="isValidating" :isImporting="isImporting"
+    :isAdmin="isAdmin" :tenants="props.tenants" :templateUrl="templateUrl" :isDragging="isDragging"
+    :hasWarnings="hasWarnings" @openImportModal="openImportModal" @closeImportModal="closeImportModal"
+    @confirmImport="confirmImport" @downloadErrorReport="downloadErrorReport" @onImportInputChange="onImportInputChange"
+    @onDragEnter="onDragEnter" @onDragOver="onDragOver" @onDragLeave="onDragLeave" @onDrop="onDrop"
+    :formatCurrency="formatCurrency" />
+
+  <Dialog v-model:open="showCustomDialog">
+    <DialogContent>
+      <DialogHeader>
+        <DialogTitle>Select Custom Date Range</DialogTitle>
+        <DialogDescription>
+          Choose a start and end date.
+        </DialogDescription>
+      </DialogHeader>
+
+      <div class="space-y-4">
+        <div>
+          <Label>Start Date</Label>
+          <Input type="date" v-model="customStartDate" />
+        </div>
+
+        <div>
+          <Label>End Date</Label>
+          <Input type="date" v-model="customEndDate" />
+        </div>
+      </div>
+
+      <DialogFooter>
+        <Button variant="outline" @click="showCustomDialog = false">
+          Cancel
+        </Button>
+        <Button @click="applyCustomRange">
+          Apply
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
 </template>
 
 <script setup lang="ts">
@@ -235,6 +151,17 @@ import VendorsModal from "./Partials/VendorsModal.vue";
 import StatusesModal from "./Partials/StatusesModal.vue";
 import CanceledQSInvoicesDialog from "./Partials/CanceledQSInvoicesDialog.vue";
 import ImportModal from "./Partials/ImportModal.vue";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import Label from "../ui/label/Label.vue";
+import Button from "../ui/button/Button.vue";
+import Input from "../ui/input/Input.vue";
 
 const props = defineProps({
   repairOrders: { type: Object, default: () => ({ data: [], links: [] }) },
@@ -309,7 +236,9 @@ onMounted(() => {
     window.removeEventListener("drop", prevent);
   });
 });
-
+const showCustomDialog = ref(false);
+const customStartDate = ref<string | null>(null);
+const customEndDate = ref<string | null>(null);
 const formAction = ref<"Create" | "Update">("Create");
 const form = useForm({
   id: null,
@@ -353,6 +282,7 @@ const dateOptions = [
   { label: "WTD", value: "current-week" },
   { label: "T6W", value: "6w" },
   { label: "Quarterly", value: "quarterly" },
+  { label: "Custom", value: "custom" }, // ✅ ADD THIS
 ];
 
 const templateUrl = "";
@@ -394,6 +324,14 @@ function applyFilters() {
     perPage: localPerPage.value,
     dateFilter: filter.value.dateFilter,
     openedComponent: "repairOrders",
+
+    // ✅ ADD THESE
+    ...(filter.value.dateFilter === "custom"
+      ? {
+        startDate: customStartDate.value,
+        endDate: customEndDate.value,
+      }
+      : {}),
   };
 
   router.visit(route(routeName, params), {
@@ -482,7 +420,38 @@ function openImportModal() {
   isDragging.value = false;
   dragDepth = 0;
 }
+function applyCustomRange() {
+  if (!customStartDate.value || !customEndDate.value) return;
 
+  filter.value.dateFilter = "custom";
+
+  showCustomDialog.value = false;
+
+  router.visit(
+    route(
+      props.SuperAdmin
+        ? "repair_orders.index.admin"
+        : "repair_orders.index",
+      {
+        ...(props.SuperAdmin ? {} : { tenantSlug: props.tenantSlug }),
+        ...filter.value,
+        startDate: customStartDate.value,
+        endDate: customEndDate.value,
+        perPage: localPerPage.value,
+        openedComponent: "repairOrders",
+      }
+    ),
+    {
+      only: [
+        "repairOrders",
+        "filters",
+        "dateRange",
+        "openedComponent",
+        "dateFilter"
+      ],
+    }
+  );
+}
 // Create/Edit handlers
 function openCreateModal() {
   form.reset();
@@ -536,8 +505,8 @@ function submitForm() {
         ? route("repair_orders.update", [props.tenantSlug, form.id])
         : route("repair_orders.update.admin", form.id)
       : props.tenantSlug
-      ? route("repair_orders.store", { tenantSlug: props.tenantSlug })
-      : route("repair_orders.store.admin");
+        ? route("repair_orders.store", { tenantSlug: props.tenantSlug })
+        : route("repair_orders.store.admin");
 
   form[formAction.value === "Update" ? "put" : "post"](endpoint, {
     onSuccess: () => {

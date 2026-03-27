@@ -2,16 +2,9 @@
   <Card class="shadow-sm border bg-card">
     <CardContent class="p-3 md:p-4">
       <div class="flex flex-wrap gap-2">
-        <Button
-          v-for="opt in dateOptions"
-          :key="opt.value"
-          size="sm"
-          variant="outline"
-          :class="{
-            'border-primary bg-primary/10 text-primary': filter.dateFilter === opt.value,
-          }"
-          @click="$emit('selectDate', opt.value)"
-        >
+        <Button v-for="opt in dateOptions" :key="opt.value" size="sm" variant="outline" :class="{
+          'border-primary bg-primary/10 text-primary': filter.dateFilter === opt.value,
+        }" @click="handleClick(opt.value)">
           {{ opt.label }}
         </Button>
       </div>
@@ -45,7 +38,17 @@ defineProps<{
   formatDate: (d: string) => string;
 }>();
 
-defineEmits<{
+
+const emit = defineEmits<{
   (e: "selectDate", v: string): void;
+  (e: "openCustom"): void;
 }>();
+
+function handleClick(val: string) {
+  if (val === "custom") {
+    emit("openCustom");
+  } else {
+    emit("selectDate", val);
+  }
+}
 </script>

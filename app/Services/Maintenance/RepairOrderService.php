@@ -50,11 +50,17 @@ class RepairOrderService
     public function getIndexData(): array
     {
         // Properly load the areasOfConcern relationship with withPivot to get all pivot data
-        $query = RepairOrder::with(['truck', 'vendor' => function ($query) {
-            $query->withTrashed();
-        }, 'areasOfConcern' => function ($query) {
-            $query->withTrashed()->get();
-        }, 'woStatus', 'tenant']);
+        $query = RepairOrder::with([
+            'truck',
+            'vendor' => function ($query) {
+                $query->withTrashed();
+            },
+            'areasOfConcern' => function ($query) {
+                $query->withTrashed()->get();
+            },
+            'woStatus',
+            'tenant'
+        ]);
 
         // Apply date filtering if requested
         $dateFilter = $this->filteringService->getDateFilter();
@@ -63,6 +69,8 @@ class RepairOrderService
         if ($dateFilter !== 'full') {
             $query = $this->filteringService->applyDateFilter($query, $dateFilter, 'ro_open_date', $dateRange);
         }
+        // ✅ ADD THIS HERE
+
         $request = request();
         if ($request->filled('search')) {
             $search = strtolower($request->input('search'));
@@ -169,7 +177,7 @@ class RepairOrderService
     private function weekNumberSundayStart(Carbon $date): int
     {
         // 1..366
-        $dayOfYear   = $date->dayOfYear;
+        $dayOfYear = $date->dayOfYear;
 
         // 0=Sunday, …, 6=Saturday for Jan 1
         $firstDayDow = $date->copy()
