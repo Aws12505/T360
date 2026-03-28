@@ -56,6 +56,8 @@ class RestructureDelaysTable extends Migration
 
             // load_id string, nullable
             $table->string('load_id')->nullable()->comment('Load ID associated with the delay');
+
+            $table->unique(['load_id', 'delay_type']);
         });
 
         // Step 3: Drop delay_codes table
@@ -100,6 +102,7 @@ class RestructureDelaysTable extends Migration
 
             // Re-add delay_code_id
             $table->foreignId('delay_code_id')->constrained()->onDelete('cascade')->comment('References the delay code');
+            $table->dropUnique(['load_id', 'delay_type']);
         });
     }
 }
