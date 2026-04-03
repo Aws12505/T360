@@ -1,170 +1,100 @@
 <template>
-  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-6">
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 mb-6">
 
-    <!-- Acceptance Score Card -->
-    <div class="bg-card rounded-lg border shadow-sm p-4">
+    <!-- Acceptance -->
+    <div class="bg-card rounded-xl border shadow-sm p-5 transition-all hover:shadow-md">
       <h3 class="text-base font-semibold mb-1">Acceptance</h3>
-      <div class="text-xs text-muted-foreground mb-1">Total Score</div>
-      <div class="flex items-center justify-between gap-3 mb-4">
-        <div class="text-4xl font-bold" :class="getScoreColorClass(performanceRatings.average_acceptance)">
+      <div class="text-xs text-muted-foreground mb-2">Total Score</div>
+
+      <div class="flex items-center justify-between mb-4">
+        <div class="text-3xl sm:text-4xl font-bold leading-none"
+          :class="getScoreColorClass(performanceRatings.average_acceptance)">
           {{ formatPercentage(performanceData.average_acceptance, 1) }}
         </div>
+
         <Badge :variant="getRatingVariant(performanceRatings.average_acceptance)" class="text-xs">
           {{ formatRating(performanceRatings.average_acceptance) }}
         </Badge>
       </div>
 
-      <div class="text-sm mb-2 flex justify-between">
-        <span class="font-semibold">Rejections by Reason</span>
-        <span class="font-semibold">Total</span>
+      <div class="text-sm mb-2 flex justify-between font-semibold">
+        <span>Rejections</span>
+        <span>Total</span>
       </div>
-      <div class="space-y-2 text-sm max-h-40 overflow-y-auto">
-        <div v-for="(rejection, index) in topRejections" :key="index" class="flex justify-between">
-          <span>{{ formatReasons(rejection.reason) }}</span>
-          <span>{{ rejection.total_rejections }}</span>
+
+      <div class="space-y-2 text-sm max-h-44 overflow-y-auto pr-1">
+        <div v-for="(r, i) in topRejections" :key="i" class="flex justify-between">
+          <span>{{ formatReasons(r.reason) }}</span>
+          <span>{{ r.total_rejections }}</span>
         </div>
       </div>
     </div>
-    <!-- On-Time Score Card -->
-    <div class="bg-card rounded-lg border shadow-sm p-4">
+
+    <!-- On Time -->
+    <div class="bg-card rounded-xl border shadow-sm p-5 transition-all hover:shadow-md">
       <h3 class="text-base font-semibold mb-1">On-Time</h3>
-      <div class="text-xs text-muted-foreground mb-1">Total Score</div>
-      <div class="flex items-center justify-between gap-3 mb-4">
-        <div class="text-4xl font-bold" :class="getScoreColorClass(performanceRatings.average_on_time)">
+      <div class="text-xs text-muted-foreground mb-2">Total Score</div>
+
+      <div class="flex items-center justify-between mb-4">
+        <div class="text-3xl sm:text-4xl font-bold leading-none"
+          :class="getScoreColorClass(performanceRatings.average_on_time)">
           {{ formatPercentage(performanceData.average_on_time, 1) }}
         </div>
+
         <Badge :variant="getRatingVariant(performanceRatings.average_on_time)" class="text-xs">
           {{ formatRating(performanceRatings.average_on_time) }}
         </Badge>
       </div>
 
-      <div class="text-sm mb-2 flex justify-between">
-        <span class="font-semibold">Delays by Reason</span>
-        <span class="font-semibold">Total</span>
+      <div class="text-sm mb-2 flex justify-between font-semibold">
+        <span>Delays</span>
+        <span>Total</span>
       </div>
-      <div class="space-y-2 text-sm max-h-40 overflow-y-auto">
-        <div v-for="(delay, index) in topDelays" :key="index" class="flex justify-between">
-          <span>{{ formatReasons(delay.reason) }}</span>
-          <span>{{ delay.total_delays }}</span>
+
+      <div class="space-y-2 text-sm max-h-44 overflow-y-auto pr-1">
+        <div v-for="(d, i) in topDelays" :key="i" class="flex justify-between">
+          <span>{{ formatReasons(d.reason) }}</span>
+          <span>{{ d.total_delays }}</span>
         </div>
       </div>
-    </div <!-- Maintenance Metrics Card -->
-    <div class="bg-card rounded-lg border shadow-sm p-4">
+    </div>
+
+    <!-- Maintenance -->
+    <div class="bg-card rounded-xl border shadow-sm p-5 transition-all hover:shadow-md">
       <h3 class="text-base font-semibold mb-1">Maintenance</h3>
-      <div class="text-xs text-muted-foreground mb-1">MVtS Score</div>
-      <div class="flex items-center justify-between gap-3 mb-4">
-        <div class="text-4xl font-bold"
+      <div class="text-xs text-muted-foreground mb-2">MVtS Score</div>
+
+      <div class="flex items-center justify-between mb-4">
+        <div class="text-3xl sm:text-4xl font-bold leading-none"
           :class="getScoreColorClass(performanceRatings.average_maintenance_variance_to_spend)">
           {{ formatPercentage(performanceData.average_maintenance_variance_to_spend, 1) }}
         </div>
+
         <Badge :variant="getRatingVariant(performanceRatings.average_maintenance_variance_to_spend)" class="text-xs">
           {{ formatRating(performanceRatings.average_maintenance_variance_to_spend) }}
         </Badge>
       </div>
 
-      <div class="text-sm mb-2 space-y-2">
+      <div class="space-y-2 text-sm">
         <div class="flex justify-between">
-          <span>Cost per mile</span>
+          <span>Cost / Mile</span>
           <span>${{ formatCurrency(maintenanceBreakdowns.qs_cpm) }}</span>
         </div>
         <div class="flex justify-between">
-          <span>Num of WOs</span>
+          <span>Work Orders</span>
           <span>{{ maintenanceBreakdowns.total_repair_orders }}</span>
         </div>
         <div class="flex justify-between">
-          <span>Current Costs</span>
+          <span>Total Cost</span>
           <span>${{ formatCurrency(maintenanceBreakdowns.total_invoice_amount) }}</span>
         </div>
         <div class="flex justify-between">
-          <span>Missing Invoices</span>
+          <span>Missing</span>
           <span>{{ maintenanceBreakdowns.missing_invoices_count || 0 }}</span>
         </div>
       </div>
     </div>
 
-    <!-- Safety Score Card -->
-    <div class="bg-card rounded-lg border shadow-sm p-4">
-      <h3 class="text-base font-semibold mb-1">Netradyne Alerts Bonus Criteria</h3>
-      <div class="text-xs text-muted-foreground mb-1">Green Zone Score</div>
-      <div class="flex items-center justify-between gap-3 mb-4">
-        <div class="text-4xl font-bold " :class="getSafetyScoreColorClass(safetyData.average_driver_score)">
-          {{ formatDecimal(safetyData.average_driver_score || 'N/A') }}
-        </div>
-        <Badge :variant="getSafetyBadgeVariant(overallSafetyRating)" class="text-xs">
-          {{ formatRating(overallSafetyRating) }}
-        </Badge>
-      </div>
-
-      <!-- Column headers -->
-      <div class="flex justify-between items-center text-sm font-semibold mb-2">
-        <span>Alert Type</span>
-        <div class="flex items-center gap-2">
-          <span class="w-12 text-right">Total</span>
-          <span class="w-16 text-right">P1KH</span>
-        </div>
-      </div>
-
-      <div class="space-y-2 text-sm">
-        <!-- Distracted Driving (formerly Driver Distraction) -->
-        <div class="flex justify-between items-center">
-          <span>Distracted Driving</span>
-          <div class="flex items-center gap-2">
-            <span class="w-12 text-right">{{ formatDecimal(safetyData.driver_distraction) }}</span>
-            <span class="w-16 text-right">{{ formatRate(safetyData.rates?.driver_distraction) }}</span>
-          </div>
-        </div>
-        <!-- Speeding (formerly Speeding Violations) -->
-        <div class="flex justify-between items-center">
-          <span>Speeding</span>
-          <div class="flex items-center gap-2">
-            <span class="w-12 text-right">{{ formatDecimal(safetyData.speeding_violations) }}</span>
-            <span class="w-16 text-right">{{ formatRate(safetyData.rates?.speeding_violations) }}</span>
-          </div>
-        </div>
-
-        <!-- Sign Violation (formerly Sign Violations) -->
-        <div class="flex justify-between items-center">
-          <span>Sign Violation</span>
-          <div class="flex items-center gap-2">
-            <span class="w-12 text-right">{{ formatDecimal(safetyData.sign_violations) }}</span>
-            <span class="w-16 text-right">{{ formatRate(safetyData.rates?.sign_violations) }}</span>
-          </div>
-        </div>
-
-        <!-- Traffic Light Violation (unchanged name) -->
-        <div class="flex justify-between items-center">
-          <span>Traffic Light Violation</span>
-          <div class="flex items-center gap-2">
-            <span class="w-12 text-right">{{ formatDecimal(safetyData.traffic_light_violation) }}</span>
-            <span class="w-16 text-right">{{ formatRate(safetyData.rates?.traffic_light_violation) }}</span>
-          </div>
-        </div>
-
-
-        <!-- Following Distance (unchanged name) -->
-        <div class="flex justify-between items-center">
-          <span>Following Distance</span>
-          <div class="flex items-center gap-2">
-            <span class="w-12 text-right">{{ formatDecimal(safetyData.following_distance) }}</span>
-            <span class="w-16 text-right">{{ formatRate(safetyData.rates?.following_distance) }}</span>
-          </div>
-        </div>
-
-
-        <div class="flex justify-between items-center">
-          <span>Roadside Parking</span>
-          <div class="flex items-center gap-2">
-            <span class="w-12 text-right">{{ formatDecimal(safetyData.roadside_parking) }}</span>
-            <span class="w-16 text-right">{{ formatRate(safetyData.rates?.roadside_parking) }}</span>
-          </div>
-        </div>
-
-      </div>
-
-      <div class="text-sm text-muted-foreground mt-3">
-        <div>Total Hours Analyzed: {{ formatDecimal(safetyData.total_hours || 0) }}</div>
-      </div>
-    </div>
   </div>
 </template>
 <script setup lang="ts">
@@ -238,28 +168,6 @@ const formatPercentage = (value, decimals = 0) => {
   return `${num.toFixed(decimals)}%`;
 };
 
-// Format decimal for display
-const formatDecimal = (value) => {
-
-  // Convert string values to numbers
-  if (typeof value === 'string') {
-    value = parseFloat(value);
-  }
-  if (value === undefined || value === null || isNaN(value)) return '0';
-  return Math.round(value).toString();
-};
-
-// Format rate values with 2 decimal places
-const formatRate = (value) => {
-  // Convert string values to numbers
-  if (typeof value === 'string') {
-    value = parseFloat(value);
-  }
-
-  if (value === undefined || value === null || isNaN(value)) return '0.00';
-  return value.toFixed(2);
-};
-
 // Format currency for display
 const formatCurrency = (value) => {
   // Convert string values to numbers
@@ -320,71 +228,7 @@ const getRatingVariant = (rating) => {
       return 'outline';
   }
 };
-// Get custom badge class for safety ratings
-const getSafetyBadgeClass = (rating) => {
-  if (!rating) return 'bg-transparent border border-gray-300 text-gray-500';
 
-  switch (rating) {
-    case 'gold':
-      return 'bg-transparent border border-amber-400 text-amber-600';
-    case 'silver':
-      return 'bg-transparent border border-gray-400 text-gray-600';
-    case 'not_eligible':
-      return 'bg-transparent border border-red-400 text-red-600';
-    default:
-      return 'bg-transparent border border-gray-300 text-gray-500';
-  }
-};
-
-// Get badge variant based on safety rating
-const getSafetyBadgeVariant = (rating) => {
-  if (!rating) return 'outline';
-
-  if (rating === 'Gold Tier') return 'gold';
-  if (rating === 'Silver Tier') return 'silver';
-  if (rating === 'Not Eligible') return 'not-eligible';
-
-  return 'outline';
-};
-// Calculate overall safety rating based on safety metrics
-const overallSafetyRating = computed(() => {
-  if (!props.safetyData?.ratings) return null;
-
-  const ratings = props.safetyData.ratings;
-  const ratingValues = {
-    'gold': 3,
-    'silver': 2,
-    'not_eligible': 1,
-  };
-
-  // Get all safety ratings as an array
-  const safetyRatingKeys = [
-    'traffic_light_violation',
-    'speeding_violations',
-    'following_distance',
-    'driver_distraction',
-    'sign_violations',
-    'roadside_parking',
-  ];
-
-  // Find the best rating
-  let bestRating = 'gold';
-  for (const key of safetyRatingKeys) {
-    if (ratings[key] && ratingValues[ratings[key]] < ratingValues[bestRating]) {
-      bestRating = ratings[key];
-    }
-  }
-  switch (bestRating) {
-    case 'gold':
-      return 'Gold Tier';
-    case 'silver':
-      return 'Silver Tier';
-    case 'not_eligible':
-      return 'Not Eligible';
-    default:
-      return 'Not Available';
-  }
-});
 
 // Get score color class based on rating
 const getScoreColorClass = (rating) => {
@@ -412,13 +256,4 @@ const getScoreColorClass = (rating) => {
   }
 };
 
-// Get safety score color class based on rating
-const getSafetyScoreColorClass = (rating) => {
-
-  if (rating >= 900) return 'text-green-600';
-  if (rating >= 750) return 'text-emerald-600';
-  if (rating >= 600) return 'text-blue-600';
-
-  return 'text-red-600';
-};
 </script>

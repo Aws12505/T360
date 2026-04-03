@@ -1,8 +1,19 @@
 <template>
-  <div class="mb-6">
-    <h2 class="text-4xl font-bold tracking-tight" :class="[scoreColorClass, 'transition-colors duration-300']">
-      {{ operationalExcellenceScore }}
-    </h2>
+  <div class="bg-card border rounded-xl p-5 sm:p-6 flex items-center justify-between transition-all hover:shadow-md">
+    <div>
+      <p class="text-sm text-muted-foreground mb-1">
+        Operational Excellence
+      </p>
+
+      <h2 class="text-3xl sm:text-4xl font-bold tracking-tight"
+        :class="[scoreColorClass, 'transition-colors duration-300']">
+        {{ operationalExcellenceScore }}
+      </h2>
+    </div>
+
+    <div class="hidden sm:block text-xs text-muted-foreground">
+      Overall Rating
+    </div>
   </div>
 </template>
 

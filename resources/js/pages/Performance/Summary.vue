@@ -4,22 +4,28 @@
     <Head title="Performance Summary Dashboard" />
 
     <div
-      class="container w-full md:max-w-2xl lg:max-w-3xl xl:max-w-6xl lg:mx-auto m-0 p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6">
-      <div class="flex items-center justify-between mb-6">
-        <!-- Performance Summary Dashboard -->
-        <h1 class="text-2xl font-bold"></h1>
-        <Badge variant="outline" class="text-sm">
+      class="w-full max-w-[1400px] mx-auto px-3 sm:px-4 lg:px-6 pt-4 sm:pt-5 lg:pt-6 space-y-6 lg:space-y-8 pb-6 sm:pb-8 lg:pb-10">
+      <!-- Header -->
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">
+            Performance Summary
+          </h1>
+          <p class="text-sm text-muted-foreground">
+            Operational overview and key metrics
+          </p>
+        </div>
+
+        <Badge variant="outline" class="text-xs sm:text-sm whitespace-nowrap">
           <Icon name="calendar" class="mr-1 h-4 w-4" />
-          Last updated: {{ formatLastUpdated }}
+          {{ formatLastUpdated }}
         </Badge>
       </div>
 
       <!-- Dashboard Header -->
       <DashboardHeader :operationalExcellenceScore="operationalExcellenceScore" />
 
-
-
-      <!-- Time Period Tabs -->
+      <!-- Tabs -->
       <TimePeriodTabs @tab-change="handleTimePeriodChange" :dateRangeText="currentDateRangeText"
         :weekNumber="dateRange?.weekNumber" :startWeekNumber="dateRange?.startWeekNumber"
         :endWeekNumber="dateRange?.endWeekNumber" :year="dateRange?.year" :activeTabId="currentDateFilter" />
@@ -30,64 +36,56 @@
         :delayBreakdowns="delayBreakdowns?.by_reason || []" :rejectionBreakdowns="rejectionBreakdowns?.by_reason || []"
         :maintenanceBreakdowns="maintenanceBreakdowns || {}" :milesDriven="milesDriven" />
 
-      <!-- Driver Performance Table
-      <div class="h-auto">
-        <DriverPerformanceTable v-if="driversOverallPerformance"
-          :driversData="driversOverallPerformance.drivers || []" />
-      </div> -->
+      <!-- Base + Safety Combined Section -->
+      <!-- Operational Metrics -->
+      <div class="space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-lg sm:text-xl font-semibold tracking-tight">
+            Operational Metrics
+          </h2>
+        </div>
 
-      <!-- Additional Metrics Card -->
-      <AdditionalMetricsCard v-if="summaries" :performanceData="summaries.performance?.data || {}"
-        :performanceRatings="summaries.performance?.ratings || {}" />
+        <div class="bg-card rounded-xl border shadow-sm p-4 sm:p-5 lg:p-6">
 
-      <!-- Miles Driven Card -->
-      <div class="bg-card rounded-lg border shadow-sm p-3 sm:p-4 h-16 sm:h-20">
-        <div class="flex items-center justify-between h-full">
-          <h3 class="text-base font-semibold">Miles Driven</h3>
-          <div class="text-xl sm:text-2xl font-bold text-indigo-600">
-            {{ formatNumber(milesDriven) }} Mile
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 lg:divide-x">
+
+            <!-- Base Metrics -->
+            <div class="lg:pr-6">
+              <BaseMetricsCard :performanceData="summaries.performance?.data || {}"
+                :performanceRatings="summaries.performance?.ratings || {}" />
+            </div>
+
+            <!-- Safety Metrics -->
+            <div class="lg:pl-6">
+              <SafetyMetricsCard :safetyData="summaries.safety || {}" />
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Miles Driven -->
+      <div class="bg-card rounded-xl border shadow-sm px-4 py-4 sm:py-5 transition-all hover:shadow-md">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-muted-foreground">Miles Driven</p>
+            <p class="text-2xl sm:text-3xl font-bold">
+              {{ formatNumber(milesDriven) }}
+            </p>
+          </div>
+
+          <div class="text-indigo-500 text-sm font-medium">
+            Total Distance
           </div>
         </div>
       </div>
-      <!-- <MilesDrivenTable
-      :milesEntries="milesEntries"
-      :tenantSlug="tenantSlug"
-    /> -->
-      <!-- Tabs Header -->
-      <!-- <TabsHeader @tab-change="handleTabChange" /> -->
 
-      <!-- Tab Content -->
-      <!-- <div>
-        <OnTimeContent 
-          v-if="activeTab === 'on-time'" 
-          :delayBreakdownsByDriver="delayBreakdowns?.by_driver || []"
-          :delayBreakdownsByCode="delayBreakdowns?.by_code || []"
-          :tenantSlug="tenantSlug"
-        />
-        <AcceptanceContent 
-          v-if="activeTab === 'acceptance'" 
-          :rejectionBreakdownsByDriver="rejectionBreakdowns?.by_driver || []"
-          :rejectionBreakdownsByReason="rejectionBreakdowns?.by_reason || []"
-          :tenantSlug="tenantSlug"
-        />
-        <SafetyContent 
-          v-if="activeTab === 'safety'" 
-          :safetyData="summaries?.safety || {}"
-          :tenantSlug="tenantSlug"
-        />
-        <MaintenanceContent 
-          v-if="activeTab === 'maintenance'" 
-          :maintenanceData="maintenanceBreakdowns || {}"
-          :tenantSlug="tenantSlug"
-          :showOutstandingInvoicesSection="showOutstandingInvoicesSection"
-          :initialMinInvoiceAmount="minInvoiceAmount"
-          :initialOutstandingDate="outstandingDate"
-          @filter-applied="handleOutstandingInvoicesFilter"
-        />
-      </div> -->
     </div>
+
+    <!-- Dialog (unchanged UI, slightly spaced) -->
     <Dialog v-model:open="showCustomDialog">
-      <DialogContent>
+      <DialogContent class="space-y-4">
         <DialogHeader>
           <DialogTitle>Select Custom Date Range</DialogTitle>
           <DialogDescription>
@@ -131,22 +129,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table';
 
-// Import tab components
-import TabsHeader from '@/components/summary/TabsHeader.vue';
-import OnTimeContent from '@/components/summary/OnTimeContent.vue';
-import AcceptanceContent from '@/components/summary/AcceptanceContent.vue';
-import SafetyContent from '@/components/summary/SafetyContent.vue';
-import MaintenanceContent from '@/components/summary/MaintenanceContent.vue';
 
 // Import new dashboard components
 import DashboardHeader from '@/components/summary/DashboardHeader.vue';
 import TimePeriodTabs from '@/components/summary/TimePeriodTabs.vue';
 import PerformanceCards from '@/components/summary/PerformanceCards.vue';
-import AdditionalMetricsCard from '@/components/summary/AdditionalMetricsCard.vue';
-import MilesDrivenTable from '@/components/summary/MilesDrivenTable.vue'
-// import DriverPerformanceTable from '@/components/summary/DriverPerformanceTable.vue';
+import BaseMetricsCard from '@/components/summary/BaseMetricsCard.vue';
+import SafetyMetricsCard from '@/components/summary/SafetyMetricsCard.vue';
 
 // Props
 const props = defineProps({
@@ -157,13 +147,11 @@ const props = defineProps({
   maintenanceBreakdowns: Object,
   dateFilter: String,
   dateRange: Object,
-  // driversOverallPerformance: Object,
   milesDriven: Number,
   permissions: Array,
 });
 
 // Active tab state
-const activeTab = ref('on-time');
 const currentDateFilter = ref(props.dateFilter || 't6w');
 
 // Outstanding invoices filter state
@@ -191,42 +179,6 @@ const applyCustomRange = () => {
   });
 };
 
-// Initialize the outstanding date to null (removing the 30 days ago default)
-onMounted(() => {
-  // No default date initialization
-});
-
-// Format date for input field (YYYY-MM-DD)
-const formatDateForInput = (date) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
-// Format currency for display
-const formatCurrency = (value) => {
-  if (value === undefined || value === null) return '0.00';
-  return Number(value).toFixed(2);
-};
-
-// // Apply outstanding invoices filter (updated to handle event from MaintenanceContent)
-// const handleOutstandingInvoicesFilter = (filterData) => {
-//   minInvoiceAmount.value = filterData.minInvoiceAmount;
-//   outstandingDate.value = filterData.outstandingDate;
-
-//   router.visit(route('dashboard', {
-//     tenantSlug: props.tenantSlug,
-//     dateFilter: currentDateFilter.value,
-//     minInvoiceAmount: filterData.minInvoiceAmount || null,
-//     outstandingDate: filterData.outstandingDate || null
-//   }), {
-//     preserveState: true,
-//     preserveScroll: true,
-//     only: ['maintenanceBreakdowns']
-//   });
-// };
-
 // Compute the current date range text based on the selected filter
 const currentDateRangeText = computed(() => {
   if (currentDateFilter.value === 'custom') {
@@ -246,10 +198,6 @@ const currentDateRangeText = computed(() => {
   return getDateRangeDisplay(mappedFilter);
 });
 
-// Handle tab change
-const handleTabChange = (tabId: string) => {
-  activeTab.value = tabId;
-};
 
 // Handle time period tab change
 const handleTimePeriodChange = (tabId: string) => {

@@ -1,18 +1,24 @@
 <template>
-  <div class="mb-6">
-    <div class="border-b">
-      <div class="flex -mb-px space-x-8">
+  <div class="mb-4">
+
+    <!-- Tabs -->
+    <div class="overflow-x-auto">
+      <div class="flex gap-2 border-b pb-2 min-w-max">
         <button v-for="tab in tabs" :key="tab.id" @click="handleTabChange(tab.id)"
-          class="py-2 px-1 border-b-2 text-sm font-medium transition-colors"
-          :class="activeTab === tab.id ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground'">
+          class="px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all" :class="activeTab === tab.id
+            ? 'bg-primary text-white shadow-sm'
+            : 'text-muted-foreground hover:bg-muted'">
           {{ tab.label }}
         </button>
       </div>
     </div>
+
+    <!-- Date -->
     <div v-if="dateRangeText" class="mt-2 text-sm text-muted-foreground">
       <span>{{ dateRangeText }}</span>
       <span v-if="weekNumberText" class="ml-1">({{ weekNumberText }})</span>
     </div>
+
   </div>
 </template>
 
