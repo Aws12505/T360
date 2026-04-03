@@ -14,14 +14,14 @@ class StoreTruckRequest extends FormRequest
     public function rules()
     {
         return [
-            'truckid'  => 'required|integer',
-            'type'      => 'required|in:daycab,sleepercab',
-            'make'      => 'required|in:international,kenworth,peterbilt,volvo,freightliner',
-            'fuel'      => 'required|in:cng,diesel',
-            'license'   => 'required|integer',
-            'vin'       => 'required|string|unique:trucks,vin',
+            'truckid' => 'required|integer',
+            'type' => 'required|in:daycab,sleepercab',
+            'make' => 'required|in:international,kenworth,peterbilt,volvo,freightliner',
+            'fuel' => 'required|in:cng,diesel',
+            'license' => 'required|integer',
+            'vin' => 'required|string|unique:trucks,vin',
             'tenant_id' => 'required|exists:tenants,id',
-            'status'    => 'required|in:active,inactive,Returned to AMZ', // Changed from is_active to status
+            'status' => 'required|in:active,inactive,Returned to AMZ', // Changed from is_active to status
             'inspection_status' => 'required|in:good,expired',
             'inspection_expiry_date' => 'required|date',
         ];

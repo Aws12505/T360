@@ -21,16 +21,18 @@ class RejectionImportExportService
     private function detectDelimiter(string $filePath): string
     {
         $handle = fopen($filePath, 'r');
-        if (!$handle) return ',';
+        if (!$handle)
+            return ',';
         $firstLine = fgets($handle);
         fclose($handle);
-        if ($firstLine === false) return ',';
+        if ($firstLine === false)
+            return ',';
 
         $delimiters = [
-            ','  => substr_count($firstLine, ','),
+            ',' => substr_count($firstLine, ','),
             "\t" => substr_count($firstLine, "\t"),
-            ';'  => substr_count($firstLine, ';'),
-            '|'  => substr_count($firstLine, '|'),
+            ';' => substr_count($firstLine, ';'),
+            '|' => substr_count($firstLine, '|'),
         ];
         arsort($delimiters);
         return array_key_first($delimiters);
@@ -68,7 +70,7 @@ class RejectionImportExportService
      */
     private function isBlankRow(array $row): bool
     {
-        return empty(array_filter($row, fn($v) => trim((string)$v) !== ''));
+        return empty(array_filter($row, fn($v) => trim((string) $v) !== ''));
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -77,15 +79,16 @@ class RejectionImportExportService
 
     public function importAdvancedBlocks($request, ?int $tenantId = null): array
     {
-        $isSuperAdmin     = Auth::user()->tenant_id === null;
+        $isSuperAdmin = Auth::user()->tenant_id === null;
         $resolvedTenantId = $isSuperAdmin ? $tenantId : Auth::user()->tenant_id;
 
-        $file      = $request->file('csv_file');
-        $filePath  = $file->getRealPath();
+        $file = $request->file('csv_file');
+        $filePath = $file->getRealPath();
         $delimiter = $this->detectDelimiter($filePath);
 
         $handle = fopen($filePath, 'r');
-        if (!$handle) throw new \Exception('Could not open the CSV file.');
+        if (!$handle)
+            throw new \Exception('Could not open the CSV file.');
 
         $expectedHeaders = [
             'Advance block rejection ID',
@@ -106,10 +109,11 @@ class RejectionImportExportService
         // (header already validated — just skip it cleanly)
 
         $imported = 0;
-        $skipped  = 0;
+        $skipped = 0;
 
         while (($rawRow = fgetcsv($handle, 0, $delimiter)) !== false) {
-            if ($this->isBlankRow($rawRow)) continue;
+            if ($this->isBlankRow($rawRow))
+                continue;
 
             $row = $this->sanitizeRow($rawRow, count($expectedHeaders));
 
@@ -123,17 +127,17 @@ class RejectionImportExportService
 
             try {
                 $weekStart = Carbon::parse($data['Week Start Date']);
-                $weekEnd   = Carbon::parse($data['Week End Date']);
+                $weekEnd = Carbon::parse($data['Week End Date']);
             } catch (\Exception $e) {
                 $skipped++;
                 continue;
             }
 
             $blockRejectionId = $data['Advance block rejection ID'];
-            $impactedBlocks   = (int) $data['Impacted blocks'];
-            $expectedBlocks   = (int) $data['Expected blocks'];
-            $reason           = $data['Reason(s)'] ?? null;
-            $hasReason        = !empty($reason);
+            $impactedBlocks = (int) $data['Impacted blocks'];
+            $expectedBlocks = (int) $data['Expected blocks'];
+            $reason = $data['Reason(s)'] ?? null;
+            $hasReason = !empty($reason);
 
             $penalty = $hasReason ? round(0.85 * $impactedBlocks, 2) : 0;
 
@@ -141,12 +145,12 @@ class RejectionImportExportService
 
             if ($existingRejectedBlock) {
                 $existingRejection = $existingRejectedBlock->rejection;
-                $hadReason         = !empty($existingRejection->rejection_reason);
+                $hadReason = !empty($existingRejection->rejection_reason);
 
                 if ($hadReason && !$hasReason) {
                     $existingRejection->update([
                         'carrier_controllable' => false,
-                        'disputed'             => 'won',
+                        'disputed' => 'won',
                     ]);
                     $imported++;
                     continue;
@@ -157,22 +161,22 @@ class RejectionImportExportService
             }
 
             $rejection = Rejection::create([
-                'tenant_id'            => $resolvedTenantId,
-                'date'                 => $weekStart->toDateString(),
-                'penalty'              => $penalty,
-                'disputed'             => 'none',
+                'tenant_id' => $resolvedTenantId,
+                'date' => $weekStart->toDateString(),
+                'penalty' => $penalty,
+                'disputed' => 'none',
                 'carrier_controllable' => $hasReason,
-                'driver_controllable'  => $hasReason,
-                'rejection_reason'     => $hasReason ? $reason : null,
+                'driver_controllable' => $hasReason,
+                'rejection_reason' => $hasReason ? $reason : null,
             ]);
 
             AdvancedRejectedBlock::create([
-                'rejection_id'               => $rejection->id,
+                'rejection_id' => $rejection->id,
                 'advance_block_rejection_id' => $blockRejectionId,
-                'week_start'                 => $weekStart,
-                'week_end'                   => $weekEnd,
-                'impacted_blocks'            => $impactedBlocks,
-                'expected_blocks'            => $expectedBlocks,
+                'week_start' => $weekStart,
+                'week_end' => $weekEnd,
+                'impacted_blocks' => $impactedBlocks,
+                'expected_blocks' => $expectedBlocks,
             ]);
 
             $imported++;
@@ -188,15 +192,16 @@ class RejectionImportExportService
 
     public function importBlocks($request, ?int $tenantId = null): array
     {
-        $isSuperAdmin     = Auth::user()->tenant_id === null;
+        $isSuperAdmin = Auth::user()->tenant_id === null;
         $resolvedTenantId = $isSuperAdmin ? $tenantId : Auth::user()->tenant_id;
 
-        $file      = $request->file('csv_file');
-        $filePath  = $file->getRealPath();
+        $file = $request->file('csv_file');
+        $filePath = $file->getRealPath();
         $delimiter = $this->detectDelimiter($filePath);
 
         $handle = fopen($filePath, 'r');
-        if (!$handle) throw new \Exception('Could not open the CSV file.');
+        if (!$handle)
+            throw new \Exception('Could not open the CSV file.');
 
         $expectedHeaders = [
             'Block ID',
@@ -211,12 +216,11 @@ class RejectionImportExportService
 
         // Consume header
         fgetcsv($handle, 0, $delimiter);
-
         $imported = 0;
-        $skipped  = 0;
-
+        $skipped = 0;
         while (($rawRow = fgetcsv($handle, 0, $delimiter)) !== false) {
-            if ($this->isBlankRow($rawRow)) continue;
+            if ($this->isBlankRow($rawRow))
+                continue;
 
             $row = $this->sanitizeRow($rawRow, count($expectedHeaders));
 
@@ -229,19 +233,19 @@ class RejectionImportExportService
             $data = collect($data)->map(fn($v) => is_string($v) ? trim($v) : $v)->toArray();
 
             // ✅ Import ALL rows regardless of acceptance status
-            $blockId   = $data['Block ID'];
+            $blockId = $data['Block ID'];
             $hasReason = !empty($data['Block Rejection Reason']);
 
             try {
                 $blockStart = Carbon::parse($data['Block start time']);
-                $blockEnd   = Carbon::parse($data['Block end time']);
+                $blockEnd = Carbon::parse($data['Block end time']);
             } catch (\Exception $e) {
                 $skipped++;
                 continue;
             }
 
             $rejectionDatetime = null;
-            $rejectionBucket   = null;
+            $rejectionBucket = null;
 
             if ($hasReason) {
                 try {
@@ -252,8 +256,8 @@ class RejectionImportExportService
                 }
 
                 $hoursBeforeStart = $rejectionDatetime->diffInHours($blockStart, false);
-                $rejectionBucket  = $hoursBeforeStart < 24 ? 'less_than_24' : 'more_than_24';
-                $penalty          = $rejectionBucket === 'less_than_24' ? 4 : 1;
+                $rejectionBucket = $hoursBeforeStart < 24 ? 'less_than_24' : 'more_than_24';
+                $penalty = $rejectionBucket === 'less_than_24' ? 4 : 1;
             } else {
                 $penalty = 0;
             }
@@ -262,12 +266,12 @@ class RejectionImportExportService
 
             if ($existingBlock) {
                 $existingRejection = $existingBlock->rejection;
-                $hadReason         = !empty($existingRejection->rejection_reason);
+                $hadReason = !empty($existingRejection->rejection_reason);
 
                 if ($hadReason && !$hasReason) {
                     $existingRejection->update([
                         'carrier_controllable' => false,
-                        'disputed'             => 'won',
+                        'disputed' => 'won',
                     ]);
                     $imported++;
                     continue;
@@ -277,29 +281,27 @@ class RejectionImportExportService
                 continue;
             }
 
+            $blocktime = $data['Block rejection time'] ?: $data['Block start time'] ?: null;
             $rejection = Rejection::create([
-                'tenant_id'            => $resolvedTenantId,
-                'date'                 => $blockStart->toDateString(),
-                'penalty'              => $penalty,
-                'disputed'             => 'none',
+                'tenant_id' => $resolvedTenantId,
+                'date' => Carbon::parse($blocktime)->toDateString(),
+                'penalty' => $penalty,
+                'disputed' => 'none',
                 'carrier_controllable' => $hasReason,
-                'driver_controllable'  => $hasReason,
-                'rejection_reason'     => $hasReason ? $data['Block Rejection Reason'] : null,
+                'driver_controllable' => $hasReason,
+                'rejection_reason' => $hasReason ? $data['Block Rejection Reason'] : null,
             ]);
-
             RejectedBlock::create([
-                'rejection_id'       => $rejection->id,
-                'block_id'           => $blockId,
-                'driver_name'        => null,
-                'block_start'        => $blockStart,
-                'block_end'          => $blockEnd,
+                'rejection_id' => $rejection->id,
+                'block_id' => $blockId,
+                'driver_name' => null,
+                'block_start' => $blockStart,
+                'block_end' => $blockEnd,
                 'rejection_datetime' => $rejectionDatetime,
-                'rejection_bucket'   => $rejectionBucket,
+                'rejection_bucket' => $rejectionBucket,
             ]);
-
             $imported++;
         }
-
         fclose($handle);
         return ['imported' => $imported, 'skipped' => $skipped];
     }
@@ -310,7 +312,7 @@ class RejectionImportExportService
 
     public function importLoads($request, ?int $tenantId = null): array
     {
-        $isSuperAdmin     = Auth::user()->tenant_id === null;
+        $isSuperAdmin = Auth::user()->tenant_id === null;
         $resolvedTenantId = $isSuperAdmin ? $tenantId : Auth::user()->tenant_id;
 
         $loadsFile = $request->file('csv_file');
@@ -318,11 +320,12 @@ class RejectionImportExportService
 
         $driverLookup = $tripsFile ? $this->buildDriverLookup($tripsFile) : [];
 
-        $filePath  = $loadsFile->getRealPath();
+        $filePath = $loadsFile->getRealPath();
         $delimiter = $this->detectDelimiter($filePath);
 
         $handle = fopen($filePath, 'r');
-        if (!$handle) throw new \Exception('Could not open loads CSV file.');
+        if (!$handle)
+            throw new \Exception('Could not open loads CSV file.');
 
         $expectedHeaders = [
             'Trip ID',
@@ -343,10 +346,11 @@ class RejectionImportExportService
         fgetcsv($handle, 0, $delimiter);
 
         $imported = 0;
-        $skipped  = 0;
+        $skipped = 0;
 
         while (($rawRow = fgetcsv($handle, 0, $delimiter)) !== false) {
-            if ($this->isBlankRow($rawRow)) continue;
+            if ($this->isBlankRow($rawRow))
+                continue;
 
             $row = $this->sanitizeRow($rawRow, count($expectedHeaders));
 
@@ -359,7 +363,7 @@ class RejectionImportExportService
             $data = collect($data)->map(fn($v) => is_string($v) ? trim($v) : $v)->toArray();
 
             // ✅ Import ALL rows regardless of load status
-            $loadId    = $data['Loads'];
+            $loadId = $data['Loads'];
             $hasReason = !empty($data['Rejection Reason']);
 
             try {
@@ -370,10 +374,10 @@ class RejectionImportExportService
             }
 
             $rejectionBucket = null;
-            $penalty         = 0;
+            $penalty = 0;
 
             if ($hasReason) {
-                $rawBucket       = strtolower(trim($data['Rejection Bucket'] ?? ''));
+                $rawBucket = strtolower(trim($data['Rejection Bucket'] ?? ''));
                 $rejectionBucket = $this->normalizeLoadRejectionBucket($rawBucket);
 
                 if (!$rejectionBucket) {
@@ -382,10 +386,10 @@ class RejectionImportExportService
                 }
 
                 $penalty = match ($rejectionBucket) {
-                    'rejected_after_start_time'               => 8,
-                    'rejected_0_6_hours_before_start_time'    => 4,
+                    'rejected_after_start_time' => 8,
+                    'rejected_0_6_hours_before_start_time' => 4,
                     'rejected_6_plus_hours_before_start_time' => 1,
-                    default                                   => 0,
+                    default => 0,
                 };
             }
 
@@ -395,12 +399,12 @@ class RejectionImportExportService
 
             if ($existingLoad) {
                 $existingRejection = $existingLoad->rejection;
-                $hadReason         = !empty($existingRejection->rejection_reason);
+                $hadReason = !empty($existingRejection->rejection_reason);
 
                 if ($hadReason && !$hasReason) {
                     $existingRejection->update([
                         'carrier_controllable' => false,
-                        'disputed'             => 'won',
+                        'disputed' => 'won',
                     ]);
                     $imported++;
                     continue;
@@ -415,21 +419,21 @@ class RejectionImportExportService
             }
 
             $rejection = Rejection::create([
-                'tenant_id'            => $resolvedTenantId,
-                'date'                 => $originYardArrival->toDateString(),
-                'penalty'              => $penalty,
-                'disputed'             => 'none',
+                'tenant_id' => $resolvedTenantId,
+                'date' => $originYardArrival->toDateString(),
+                'penalty' => $penalty,
+                'disputed' => 'none',
                 'carrier_controllable' => $hasReason,
-                'driver_controllable'  => $hasReason,
-                'rejection_reason'     => $hasReason ? $data['Rejection Reason'] : null,
+                'driver_controllable' => $hasReason,
+                'rejection_reason' => $hasReason ? $data['Rejection Reason'] : null,
             ]);
 
             RejectedLoad::create([
-                'rejection_id'        => $rejection->id,
-                'load_id'             => $loadId,
-                'driver_name'         => $driverName,
+                'rejection_id' => $rejection->id,
+                'load_id' => $loadId,
+                'driver_name' => $driverName,
                 'origin_yard_arrival' => $originYardArrival,
-                'rejection_bucket'    => $rejectionBucket,
+                'rejection_bucket' => $rejectionBucket,
             ]);
 
             $imported++;
@@ -445,11 +449,11 @@ class RejectionImportExportService
 
     public function importTripsOnly($request, ?int $tenantId = null): array
     {
-        $isSuperAdmin     = Auth::user()->tenant_id === null;
+        $isSuperAdmin = Auth::user()->tenant_id === null;
         $resolvedTenantId = $isSuperAdmin ? $tenantId : Auth::user()->tenant_id;
 
         $driverLookup = $this->buildDriverLookup($request->file('trips_file'));
-        $updated      = $this->backfillDriverNamesFromLookup($driverLookup, $resolvedTenantId);
+        $updated = $this->backfillDriverNamesFromLookup($driverLookup, $resolvedTenantId);
         return ['updated' => $updated];
     }
 
@@ -459,11 +463,12 @@ class RejectionImportExportService
 
     private function buildDriverLookup($tripsFile): array
     {
-        $filePath  = $tripsFile->getRealPath();
+        $filePath = $tripsFile->getRealPath();
         $delimiter = $this->detectDelimiter($filePath);
 
         $handle = fopen($filePath, 'r');
-        if (!$handle) return [];
+        if (!$handle)
+            return [];
 
         $rawHeader = fgetcsv($handle, 0, $delimiter);
         if ($rawHeader === false) {
@@ -473,9 +478,9 @@ class RejectionImportExportService
 
         // Sanitize header
         $headerRow = $this->sanitizeHeaders($rawHeader);
-        $idx       = array_flip($headerRow);
+        $idx = array_flip($headerRow);
 
-        $loadIdIdx     = $idx['Load ID']    ?? null;
+        $loadIdIdx = $idx['Load ID'] ?? null;
         $driverNameIdx = $idx['Driver Name'] ?? null;
         $operatorIdIdx = $idx['Operator ID'] ?? null;
 
@@ -487,7 +492,8 @@ class RejectionImportExportService
 
         $allRows = [];
         while (($rawRow = fgetcsv($handle, 0, $delimiter)) !== false) {
-            if ($this->isBlankRow($rawRow)) continue;
+            if ($this->isBlankRow($rawRow))
+                continue;
             $allRows[] = $this->sanitizeRow($rawRow, count($headerRow));
         }
         fclose($handle);
@@ -496,7 +502,8 @@ class RejectionImportExportService
 
         foreach ($allRows as $i => $row) {
             $loadId = isset($row[$loadIdIdx]) ? trim($row[$loadIdIdx]) : '';
-            if (empty($loadId)) continue;
+            if (empty($loadId))
+                continue;
 
             $driverName = isset($row[$driverNameIdx]) ? trim($row[$driverNameIdx]) : '';
 
@@ -507,17 +514,19 @@ class RejectionImportExportService
             }
 
             // ✅ Fallback: look backward for same Operator ID with ANY driver name
-            if ($operatorIdIdx === null) continue;
+            if ($operatorIdIdx === null)
+                continue;
 
             $operatorId = isset($row[$operatorIdIdx]) ? trim($row[$operatorIdIdx]) : '';
-            if (empty($operatorId)) continue;
+            if (empty($operatorId))
+                continue;
 
             $resolvedDriver = null;
 
             for ($j = $i - 1; $j >= 0; $j--) {
-                $prevRow      = $allRows[$j];
+                $prevRow = $allRows[$j];
                 $prevOperator = isset($prevRow[$operatorIdIdx]) ? trim($prevRow[$operatorIdIdx]) : '';
-                $prevDriver   = isset($prevRow[$driverNameIdx]) ? trim($prevRow[$driverNameIdx]) : '';
+                $prevDriver = isset($prevRow[$driverNameIdx]) ? trim($prevRow[$driverNameIdx]) : '';
 
                 if ($prevOperator === $operatorId && !empty($prevDriver)) {
                     $resolvedDriver = $prevDriver;
@@ -560,16 +569,21 @@ class RejectionImportExportService
         $normalized = strtolower(trim($raw));
 
         // ── Exact DB enum passthrough (re-import safe) ──────────
-        if ($normalized === 'rejected_after_start_time')               return 'rejected_after_start_time';
-        if ($normalized === 'rejected_0_6_hours_before_start_time')    return 'rejected_0_6_hours_before_start_time';
-        if ($normalized === 'rejected_6_plus_hours_before_start_time') return 'rejected_6_plus_hours_before_start_time';
+        if ($normalized === 'rejected_after_start_time')
+            return 'rejected_after_start_time';
+        if ($normalized === 'rejected_0_6_hours_before_start_time')
+            return 'rejected_0_6_hours_before_start_time';
+        if ($normalized === 'rejected_6_plus_hours_before_start_time')
+            return 'rejected_6_plus_hours_before_start_time';
 
         // ── "After start time" ───────────────────────────────────
-        if (str_contains($normalized, 'after start')) return 'rejected_after_start_time';
+        if (str_contains($normalized, 'after start'))
+            return 'rejected_after_start_time';
 
         // ── "0-6 hours" — must check before 6+ to avoid false match ──
         // Matches: "0-6 hours", "0 - 6 hours", "0–6 hours"
-        if (preg_match('/0\s*[-–]\s*6/', $normalized)) return 'rejected_0_6_hours_before_start_time';
+        if (preg_match('/0\s*[-–]\s*6/', $normalized))
+            return 'rejected_0_6_hours_before_start_time';
 
         // ── "6+ hours" ───────────────────────────────────────────
         // Matches: "6+ hours", "6 + hours", "6 plus hours", "6plus"
@@ -613,7 +627,8 @@ class RejectionImportExportService
         fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
         $headers = [];
-        if ($isSuperAdmin) $headers[] = 'Company Name';
+        if ($isSuperAdmin)
+            $headers[] = 'Company Name';
 
         $headers = array_merge($headers, [
             'Date',
@@ -649,7 +664,8 @@ class RejectionImportExportService
             $exportPenalty = $rejection->disputed === 'won' ? 0 : $rejection->penalty;
 
             $baseRow = [];
-            if ($isSuperAdmin) $baseRow[] = $rejection->tenant->name ?? '';
+            if ($isSuperAdmin)
+                $baseRow[] = $rejection->tenant->name ?? '';
 
             $baseRow = array_merge($baseRow, [
                 Carbon::parse($rejection->date)->format('m/d/Y'),
@@ -657,13 +673,13 @@ class RejectionImportExportService
                 $exportPenalty,
                 $this->humanDisputed($rejection->disputed),
                 $rejection->carrier_controllable ? 'Yes' : 'No',
-                $rejection->driver_controllable  ? 'Yes' : 'No',
+                $rejection->driver_controllable ? 'Yes' : 'No',
                 $rejection->rejection_reason ?? '',   // ✅ empty string instead of em-dash
             ]);
 
             $advBlock = $rejection->advancedRejectedBlock->first();
-            $block    = $rejection->rejectedBlock->first();
-            $load     = $rejection->rejectedLoad->first();
+            $block = $rejection->rejectedBlock->first();
+            $load = $rejection->rejectedLoad->first();
 
             if ($advBlock) {
                 fputcsv($file, array_merge($baseRow, [
@@ -691,12 +707,12 @@ class RejectionImportExportService
                     '',
                     '',
                     '',
-                    $block->block_id           ?? '',
-                    $block->driver_name        ?? '',    // ✅ empty string, not em-dash
-                    $block->block_start        ? Carbon::parse($block->block_start)->format('m/d/Y H:i')        : '',
-                    $block->block_end          ? Carbon::parse($block->block_end)->format('m/d/Y H:i')          : '',
+                    $block->block_id ?? '',
+                    $block->driver_name ?? '',    // ✅ empty string, not em-dash
+                    $block->block_start ? Carbon::parse($block->block_start)->format('m/d/Y H:i') : '',
+                    $block->block_end ? Carbon::parse($block->block_end)->format('m/d/Y H:i') : '',
                     $block->rejection_datetime ? Carbon::parse($block->rejection_datetime)->format('m/d/Y H:i') : '',
-                    $block->rejection_bucket   ? $this->humanBlockBucket($block->rejection_bucket)              : '',
+                    $block->rejection_bucket ? $this->humanBlockBucket($block->rejection_bucket) : '',
                     '',
                     '',
                     '',
@@ -715,9 +731,9 @@ class RejectionImportExportService
                     '',
                     '',
                     '',
-                    $load->load_id             ?? '',
+                    $load->load_id ?? '',
                     $load->origin_yard_arrival ? Carbon::parse($load->origin_yard_arrival)->format('m/d/Y H:i') : '',
-                    $load->rejection_bucket    ? $this->humanLoadBucket($load->rejection_bucket)                : '',
+                    $load->rejection_bucket ? $this->humanLoadBucket($load->rejection_bucket) : '',
                 ]));
             } else {
                 fputcsv($file, array_merge($baseRow, array_fill(0, 15, '')));
@@ -755,28 +771,28 @@ class RejectionImportExportService
         return match ($bucket) {
             'more_than_24' => '24+ hours before start',
             'less_than_24' => 'Less than 24 hours before start',
-            default        => $bucket ?? '',
+            default => $bucket ?? '',
         };
     }
 
     private function humanLoadBucket(?string $bucket): string
     {
         return match ($bucket) {
-            'rejected_after_start_time'               => 'After start time',
-            'rejected_0_6_hours_before_start_time'    => '0-6 hours before start',
+            'rejected_after_start_time' => 'After start time',
+            'rejected_0_6_hours_before_start_time' => '0-6 hours before start',
             'rejected_6_plus_hours_before_start_time' => '6+ hours before start',
-            default                                   => $bucket ?? '',
+            default => $bucket ?? '',
         };
     }
 
     private function humanDisputed(?string $disputed): string
     {
         return match ($disputed) {
-            'none'    => 'None',
+            'none' => 'None',
             'pending' => 'Pending',
-            'won'     => 'Won',
-            'lost'    => 'Lost',
-            default   => '',
+            'won' => 'Won',
+            'lost' => 'Lost',
+            default => '',
         };
     }
 }
