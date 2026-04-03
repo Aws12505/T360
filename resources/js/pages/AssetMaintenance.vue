@@ -1,39 +1,23 @@
 <template>
-  <AppLayout
-    :breadcrumbs="breadcrumbs"
-    :tenantSlug="tenantSlug"
-    :permissions="props.permissions"
-  >
+  <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug" :permissions="props.permissions">
+
     <Head title="Asset Maintenance" />
 
     <div
-      class="w-full md:max-w-2xl lg:max-w-3xl xl:max-w-6xl lg:mx-auto m-0 p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6"
-    >
+      class="w-full md:max-w-2xl lg:max-w-3xl xl:max-w-6xl lg:mx-auto m-0 p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6">
       <!-- Success/Error Messages -->
-      <Alert
-        v-if="successMessage"
-        variant="success"
-        class="animate-in fade-in duration-300"
-      >
+      <Alert v-if="successMessage" variant="success" class="animate-in fade-in duration-300">
         <AlertTitle>Success</AlertTitle>
         <AlertDescription>{{ successMessage }}</AlertDescription>
       </Alert>
-      <Alert
-        v-if="errorMessage"
-        variant="destructive"
-        class="animate-in fade-in duration-300"
-      >
+      <Alert v-if="errorMessage" variant="destructive" class="animate-in fade-in duration-300">
         <AlertTitle>Error</AlertTitle>
         <AlertDescription>{{ errorMessage }}</AlertDescription>
       </Alert>
 
       <!-- Page Header -->
-      <div
-        class="flex flex-col sm:flex-row justify-between items-center px-2 mb-2 md:mb-4 lg:mb-6"
-      >
-        <h1
-          class="text-lg md:text-xl lg:text-2xl font-bold text-gray-800 dark:text-gray-200"
-        >
+      <div class="flex flex-col sm:flex-row justify-between items-center px-2 mb-2 md:mb-4 lg:mb-6">
+        <h1 class="text-lg md:text-xl lg:text-2xl font-bold text-gray-800 dark:text-gray-200">
           Asset Maintenance
         </h1>
         <div class="flex flex-wrap gap-3 mt-2 sm:mt-0">
@@ -46,45 +30,33 @@
         <CardContent class="p-0">
           <div class="border-b">
             <div class="flex justify-center space-x-8 px-0 pt-4">
-              <Button
-                v-if="permissionNames.includes('repair-orders.view')"
-                @click="switchComponent('repairOrders')"
-                variant="ghost"
-                :class="[
+              <Button v-if="permissionNames.includes('repair-orders.view')" @click="switchComponent('repairOrders')"
+                variant="ghost" :class="[
                   activeTab === 'repairOrders'
                     ? 'border-b-2 border-primary text-primary'
                     : 'text-muted-foreground hover:text-foreground',
                 ]"
-                class="py-2 px-0 -mb-px font-medium text-sm rounded-none transition-colors duration-200 inline-flex items-center"
-              >
+                class="py-2 px-0 -mb-px font-medium text-sm rounded-none transition-colors duration-200 inline-flex items-center">
                 <Icon name="clipboardList" class="mr-2 h-4 w-4" />
                 <span>Repair Orders</span>
               </Button>
-              <Button
-                v-if="permissionNames.includes('miles-driven.view')"
-                @click="switchComponent('milesDriven')"
-                variant="ghost"
-                :class="[
+              <Button v-if="permissionNames.includes('miles-driven.view')" @click="switchComponent('milesDriven')"
+                variant="ghost" :class="[
                   activeTab === 'milesDriven'
                     ? 'border-b-2 border-primary text-primary'
                     : 'text-muted-foreground hover:text-foreground',
                 ]"
-                class="py-2 px-3 -mb-px font-medium text-sm rounded-none transition-colors duration-200 inline-flex items-center"
-              >
+                class="py-2 px-3 -mb-px font-medium text-sm rounded-none transition-colors duration-200 inline-flex items-center">
                 <Icon name="gauge" class="mr-2 h-4 w-4" />
                 <span>Miles Driven</span>
               </Button>
-              <Button
-                v-if="permissionNames.includes('trucks.view')"
-                @click="switchComponent('trucks')"
-                variant="ghost"
+              <Button v-if="permissionNames.includes('trucks.view')" @click="switchComponent('trucks')" variant="ghost"
                 :class="[
                   activeTab === 'trucks'
                     ? 'border-b-2 border-primary text-primary'
                     : 'text-muted-foreground hover:text-foreground',
                 ]"
-                class="py-2 px-3 -mb-px font-medium text-sm rounded-none transition-colors duration-200 inline-flex items-center"
-              >
+                class="py-2 px-3 -mb-px font-medium text-sm rounded-none transition-colors duration-200 inline-flex items-center">
                 <Icon name="truck" class="mr-2 h-4 w-4" />
                 <span>Trucks</span>
               </Button>
@@ -93,9 +65,7 @@
 
           <!-- Loading State -->
           <div v-if="isLoading" class="flex justify-center items-center p-12">
-            <div
-              class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"
-            ></div>
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
 
           <!-- Dynamic Component -->
@@ -179,15 +149,15 @@ const currentComponent = computed(() =>
   activeTab.value === "trucks"
     ? TrucksComponent
     : activeTab.value === "milesDriven"
-    ? MilesDrivenComponent
-    : RepairOrdersComponent
+      ? MilesDrivenComponent
+      : RepairOrdersComponent
 );
 const permissionNames = computed(() => props.permissions.map((p) => p.name));
 // build props for that component
 const currentProps = computed(() => {
   if (activeTab.value === "trucks") {
     return {
-      entries: props.entries,
+      entries: props.trucks,
       tenantSlug: props.tenantSlug,
       SuperAdmin: props.SuperAdmin,
       tenants: props.tenants,

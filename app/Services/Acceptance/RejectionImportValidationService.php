@@ -9,10 +9,10 @@ use Illuminate\Support\Facades\Storage;
 class RejectionImportValidationService
 {
     protected array $results = [
-        'valid'            => [],
-        'invalid'          => [],
-        'summary'          => ['total' => 0, 'valid' => 0, 'invalid' => 0],
-        'headers'          => [],
+        'valid' => [],
+        'invalid' => [],
+        'summary' => ['total' => 0, 'valid' => 0, 'invalid' => 0],
+        'headers' => [],
         'expected_headers' => [],
     ];
 
@@ -23,16 +23,18 @@ class RejectionImportValidationService
     private function detectDelimiter(string $filePath): string
     {
         $handle = fopen($filePath, 'r');
-        if (!$handle) return ',';
+        if (!$handle)
+            return ',';
         $firstLine = fgets($handle);
         fclose($handle);
-        if ($firstLine === false) return ',';
+        if ($firstLine === false)
+            return ',';
 
         $delimiters = [
-            ','  => substr_count($firstLine, ','),
+            ',' => substr_count($firstLine, ','),
             "\t" => substr_count($firstLine, "\t"),
-            ';'  => substr_count($firstLine, ';'),
-            '|'  => substr_count($firstLine, '|'),
+            ';' => substr_count($firstLine, ';'),
+            '|' => substr_count($firstLine, '|'),
         ];
         arsort($delimiters);
         return array_key_first($delimiters);
@@ -64,9 +66,10 @@ class RejectionImportValidationService
         $out = [];
         foreach (array_slice($headers, 0, 3) as $i => $h) {
             $val = isset($row[$i]) ? (string) $row[$i] : '';
-            if (strlen($val) > 30) $val = substr($val, 0, 30) . '...';
+            if (strlen($val) > 30)
+                $val = substr($val, 0, 30) . '...';
             $out[] = [
-                'key'   => $h,
+                'key' => $h,
                 'label' => ucwords(str_replace('_', ' ', (string) $h)),
                 'value' => $val,
             ];
@@ -86,15 +89,20 @@ class RejectionImportValidationService
         $normalized = strtolower(trim($raw));
 
         // Exact DB enum passthrough (re-import safe)
-        if ($normalized === 'rejected_after_start_time')               return 'rejected_after_start_time';
-        if ($normalized === 'rejected_0_6_hours_before_start_time')    return 'rejected_0_6_hours_before_start_time';
-        if ($normalized === 'rejected_6_plus_hours_before_start_time') return 'rejected_6_plus_hours_before_start_time';
+        if ($normalized === 'rejected_after_start_time')
+            return 'rejected_after_start_time';
+        if ($normalized === 'rejected_0_6_hours_before_start_time')
+            return 'rejected_0_6_hours_before_start_time';
+        if ($normalized === 'rejected_6_plus_hours_before_start_time')
+            return 'rejected_6_plus_hours_before_start_time';
 
         // "After start time"
-        if (str_contains($normalized, 'after start')) return 'rejected_after_start_time';
+        if (str_contains($normalized, 'after start'))
+            return 'rejected_after_start_time';
 
         // "0-6 hours" — must check before 6+ to avoid false match
-        if (preg_match('/0\s*[-–]\s*6/', $normalized)) return 'rejected_0_6_hours_before_start_time';
+        if (preg_match('/0\s*[-–]\s*6/', $normalized))
+            return 'rejected_0_6_hours_before_start_time';
 
         // "6+ hours"
         if (preg_match('/6\s*\+/', $normalized) || str_contains($normalized, '6 plus') || str_contains($normalized, '6plus')) {
@@ -107,7 +115,7 @@ class RejectionImportValidationService
     public function generateErrorReport(array $invalidRows): string
     {
         $fileName = 'rejections_import_errors_' . date('Y-m-d_His') . '.csv';
-        $dir      = 'temp-imports';
+        $dir = 'temp-imports';
         Storage::makeDirectory($dir);
         $path = $dir . '/' . $fileName;
         $full = Storage::path($path);
@@ -121,8 +129,9 @@ class RejectionImportValidationService
                 $parts = [];
                 foreach ($row['preview'] as $p) {
                     $label = $p['label'] ?? '';
-                    $val   = $p['value'] ?? '';
-                    if ($label !== '' && $val !== '') $parts[] = "{$label}: {$val}";
+                    $val = $p['value'] ?? '';
+                    if ($label !== '' && $val !== '')
+                        $parts[] = "{$label}: {$val}";
                 }
                 $previewString = !empty($parts) ? implode(' | ', $parts) : '—';
             } elseif (isset($row['preview'])) {
@@ -132,7 +141,7 @@ class RejectionImportValidationService
             fputcsv($file, [
                 $row['rowNumber'] ?? '—',
                 $previewString,
-                !empty($row['errors'])   ? implode('; ', $row['errors'])   : '—',
+                !empty($row['errors']) ? implode('; ', $row['errors']) : '—',
                 !empty($row['warnings']) ? implode('; ', $row['warnings']) : '—',
             ]);
         }
@@ -148,18 +157,19 @@ class RejectionImportValidationService
     public function validateAdvancedBlockCsv($file, ?int $tenantId = null): array
     {
         $this->results = [
-            'valid'            => [],
-            'invalid'          => [],
-            'summary'          => ['total' => 0, 'valid' => 0, 'invalid' => 0],
-            'headers'          => [],
+            'valid' => [],
+            'invalid' => [],
+            'summary' => ['total' => 0, 'valid' => 0, 'invalid' => 0],
+            'headers' => [],
             'expected_headers' => [],
         ];
 
-        $filePath  = $file->getRealPath();
+        $filePath = $file->getRealPath();
         $delimiter = $this->detectDelimiter($filePath);
 
         $handle = fopen($filePath, 'r');
-        if (!$handle) throw new \Exception('Unable to open CSV file.');
+        if (!$handle)
+            throw new \Exception('Unable to open CSV file.');
 
         $isSuperAdmin = Auth::user()->tenant_id === null;
 
@@ -198,7 +208,7 @@ class RejectionImportValidationService
         }
 
         $normalizedIncoming = array_map(fn($h) => strtolower(trim($h)), $headerRow);
-        $normalizedExpected  = array_map(fn($h) => strtolower(trim($h)), $expectedHeaders);
+        $normalizedExpected = array_map(fn($h) => strtolower(trim($h)), $expectedHeaders);
 
         if ($normalizedIncoming !== $normalizedExpected) {
             fclose($handle);
@@ -213,14 +223,15 @@ class RejectionImportValidationService
         $rowNumber = 1;
         while (($rawRow = fgetcsv($handle, 0, $delimiter)) !== false) {
             $rowNumber++;
-            if (empty(array_filter($rawRow, fn($v) => trim((string)$v) !== ''))) continue;
+            if (empty(array_filter($rawRow, fn($v) => trim((string) $v) !== '')))
+                continue;
 
             $this->results['summary']['total']++;
-            $row    = $this->sanitizeRow($rawRow, count($expectedHeaders));
+            $row = $this->sanitizeRow($rawRow, count($expectedHeaders));
             $result = $this->validateAdvancedBlockRow($row, $expectedHeaders, $rowNumber);
 
             if ($result['isValid']) {
-                $this->results['valid'][]  = $result;
+                $this->results['valid'][] = $result;
                 $this->results['summary']['valid']++;
             } else {
                 $this->results['invalid'][] = $result;
@@ -239,11 +250,11 @@ class RejectionImportValidationService
         if (count($row) !== count($headers)) {
             return [
                 'rowNumber' => $rowNumber,
-                'isValid'   => false,
-                'errors'    => ['Column count mismatch. Expected ' . count($headers) . ', got ' . count($row)],
-                'warnings'  => [],
-                'data'      => $row,
-                'preview'   => $this->getRawPreview($row, $headers),
+                'isValid' => false,
+                'errors' => ['Column count mismatch. Expected ' . count($headers) . ', got ' . count($row)],
+                'warnings' => [],
+                'data' => $row,
+                'preview' => $this->getRawPreview($row, $headers),
             ];
         }
 
@@ -276,26 +287,26 @@ class RejectionImportValidationService
 
         if (!isset($data['Impacted blocks']) || $data['Impacted blocks'] === '') {
             $errors[] = 'Impacted blocks is required';
-        } elseif (!is_numeric($data['Impacted blocks']) || (int)$data['Impacted blocks'] < 0) {
+        } elseif (!is_numeric($data['Impacted blocks']) || (int) $data['Impacted blocks'] < 0) {
             $errors[] = 'Impacted blocks must be a non-negative integer';
         }
 
         if (!isset($data['Expected blocks']) || $data['Expected blocks'] === '') {
             $errors[] = 'Expected blocks is required';
-        } elseif (!is_numeric($data['Expected blocks']) || (int)$data['Expected blocks'] < 0) {
+        } elseif (!is_numeric($data['Expected blocks']) || (int) $data['Expected blocks'] < 0) {
             $errors[] = 'Expected blocks must be a non-negative integer';
         }
 
         return [
             'rowNumber' => $rowNumber,
-            'isValid'   => empty($errors),
-            'errors'    => $errors,
-            'warnings'  => [],
-            'data'      => $data,
-            'preview'   => [
-                ['key' => 'id',      'label' => 'Block Rejection ID', 'value' => substr((string)($data['Advance block rejection ID'] ?? ''), 0, 30)],
-                ['key' => 'week',    'label' => 'Week',               'value' => (string)($data['Week'] ?? '')],
-                ['key' => 'impacts', 'label' => 'Impacted Blocks',    'value' => (string)($data['Impacted blocks'] ?? '')],
+            'isValid' => empty($errors),
+            'errors' => $errors,
+            'warnings' => [],
+            'data' => $data,
+            'preview' => [
+                ['key' => 'id', 'label' => 'Block Rejection ID', 'value' => substr((string) ($data['Advance block rejection ID'] ?? ''), 0, 30)],
+                ['key' => 'week', 'label' => 'Week', 'value' => (string) ($data['Week'] ?? '')],
+                ['key' => 'impacts', 'label' => 'Impacted Blocks', 'value' => (string) ($data['Impacted blocks'] ?? '')],
             ],
         ];
     }
@@ -307,18 +318,19 @@ class RejectionImportValidationService
     public function validateBlockCsv($file, ?int $tenantId = null): array
     {
         $this->results = [
-            'valid'            => [],
-            'invalid'          => [],
-            'summary'          => ['total' => 0, 'valid' => 0, 'invalid' => 0],
-            'headers'          => [],
+            'valid' => [],
+            'invalid' => [],
+            'summary' => ['total' => 0, 'valid' => 0, 'invalid' => 0],
+            'headers' => [],
             'expected_headers' => [],
         ];
 
-        $filePath  = $file->getRealPath();
+        $filePath = $file->getRealPath();
         $delimiter = $this->detectDelimiter($filePath);
 
         $handle = fopen($filePath, 'r');
-        if (!$handle) throw new \Exception('Unable to open CSV file.');
+        if (!$handle)
+            throw new \Exception('Unable to open CSV file.');
 
         $isSuperAdmin = Auth::user()->tenant_id === null;
 
@@ -359,7 +371,7 @@ class RejectionImportValidationService
         }
 
         $normalizedIncoming = array_map(fn($h) => strtolower(trim($h)), $headerRow);
-        $normalizedExpected  = array_map(fn($h) => strtolower(trim($h)), $expectedHeaders);
+        $normalizedExpected = array_map(fn($h) => strtolower(trim($h)), $expectedHeaders);
 
         if ($normalizedIncoming !== $normalizedExpected) {
             fclose($handle);
@@ -369,14 +381,15 @@ class RejectionImportValidationService
         $rowNumber = 1;
         while (($rawRow = fgetcsv($handle, 0, $delimiter)) !== false) {
             $rowNumber++;
-            if (empty(array_filter($rawRow, fn($v) => trim((string)$v) !== ''))) continue;
+            if (empty(array_filter($rawRow, fn($v) => trim((string) $v) !== '')))
+                continue;
 
             $this->results['summary']['total']++;
-            $row    = $this->sanitizeRow($rawRow, count($expectedHeaders));
+            $row = $this->sanitizeRow($rawRow, count($expectedHeaders));
             $result = $this->validateBlockRow($row, $expectedHeaders, $rowNumber);
 
             if ($result['isValid']) {
-                $this->results['valid'][]  = $result;
+                $this->results['valid'][] = $result;
                 $this->results['summary']['valid']++;
             } else {
                 $this->results['invalid'][] = $result;
@@ -395,11 +408,11 @@ class RejectionImportValidationService
         if (count($row) !== count($headers)) {
             return [
                 'rowNumber' => $rowNumber,
-                'isValid'   => false,
-                'errors'    => ['Column count mismatch. Expected ' . count($headers) . ', got ' . count($row)],
-                'warnings'  => [],
-                'data'      => $row,
-                'preview'   => $this->getRawPreview($row, $headers),
+                'isValid' => false,
+                'errors' => ['Column count mismatch. Expected ' . count($headers) . ', got ' . count($row)],
+                'warnings' => [],
+                'data' => $row,
+                'preview' => $this->getRawPreview($row, $headers),
             ];
         }
 
@@ -409,7 +422,8 @@ class RejectionImportValidationService
         // ✅ Block bucket column is informational only — bucket is calculated
         // from timestamps during import, so we do NOT validate it here.
 
-        if (empty($data['Block ID'])) $errors[] = 'Block ID is required';
+        if (empty($data['Block ID']))
+            $errors[] = 'Block ID is required';
 
         if (empty($data['Block start time'])) {
             $errors[] = 'Block start time is required';
@@ -444,15 +458,15 @@ class RejectionImportValidationService
 
         return [
             'rowNumber' => $rowNumber,
-            'isValid'   => empty($errors),
-            'skip'      => false,
-            'errors'    => $errors,
-            'warnings'  => [],
-            'data'      => $data,
-            'preview'   => [
-                ['key' => 'block_id', 'label' => 'Block ID',   'value' => substr((string)($data['Block ID'] ?? ''), 0, 30)],
-                ['key' => 'start',    'label' => 'Start Time', 'value' => (string)($data['Block start time'] ?? '')],
-                ['key' => 'reason',   'label' => 'Reason',     'value' => (string)($data['Block Rejection Reason'] ?? '—')],
+            'isValid' => empty($errors),
+            'skip' => false,
+            'errors' => $errors,
+            'warnings' => [],
+            'data' => $data,
+            'preview' => [
+                ['key' => 'block_id', 'label' => 'Block ID', 'value' => substr((string) ($data['Block ID'] ?? ''), 0, 30)],
+                ['key' => 'start', 'label' => 'Start Time', 'value' => (string) ($data['Block start time'] ?? '')],
+                ['key' => 'reason', 'label' => 'Reason', 'value' => (string) ($data['Block Rejection Reason'] ?? '—')],
             ],
         ];
     }
@@ -464,18 +478,19 @@ class RejectionImportValidationService
     public function validateLoadCsv($loadsFile, ?int $tenantId = null): array
     {
         $this->results = [
-            'valid'            => [],
-            'invalid'          => [],
-            'summary'          => ['total' => 0, 'valid' => 0, 'invalid' => 0],
-            'headers'          => [],
+            'valid' => [],
+            'invalid' => [],
+            'summary' => ['total' => 0, 'valid' => 0, 'invalid' => 0],
+            'headers' => [],
             'expected_headers' => [],
         ];
 
-        $filePath  = $loadsFile->getRealPath();
+        $filePath = $loadsFile->getRealPath();
         $delimiter = $this->detectDelimiter($filePath);
 
         $handle = fopen($filePath, 'r');
-        if (!$handle) throw new \Exception('Unable to open loads CSV file.');
+        if (!$handle)
+            throw new \Exception('Unable to open loads CSV file.');
 
         $isSuperAdmin = Auth::user()->tenant_id === null;
 
@@ -520,7 +535,7 @@ class RejectionImportValidationService
         }
 
         $normalizedIncoming = array_map(fn($h) => strtolower(trim($h)), $headerRow);
-        $normalizedExpected  = array_map(fn($h) => strtolower(trim($h)), $expectedHeaders);
+        $normalizedExpected = array_map(fn($h) => strtolower(trim($h)), $expectedHeaders);
 
         if ($normalizedIncoming !== $normalizedExpected) {
             fclose($handle);
@@ -530,14 +545,15 @@ class RejectionImportValidationService
         $rowNumber = 1;
         while (($rawRow = fgetcsv($handle, 0, $delimiter)) !== false) {
             $rowNumber++;
-            if (empty(array_filter($rawRow, fn($v) => trim((string)$v) !== ''))) continue;
+            if (empty(array_filter($rawRow, fn($v) => trim((string) $v) !== '')))
+                continue;
 
             $this->results['summary']['total']++;
-            $row    = $this->sanitizeRow($rawRow, count($expectedHeaders));
+            $row = $this->sanitizeRow($rawRow, count($expectedHeaders));
             $result = $this->validateLoadRow($row, $expectedHeaders, $rowNumber);
 
             if ($result['isValid']) {
-                $this->results['valid'][]  = $result;
+                $this->results['valid'][] = $result;
                 $this->results['summary']['valid']++;
             } else {
                 $this->results['invalid'][] = $result;
@@ -556,18 +572,19 @@ class RejectionImportValidationService
         if (count($row) !== count($headers)) {
             return [
                 'rowNumber' => $rowNumber,
-                'isValid'   => false,
-                'errors'    => ['Column count mismatch. Expected ' . count($headers) . ', got ' . count($row)],
-                'warnings'  => [],
-                'data'      => $row,
-                'preview'   => $this->getRawPreview($row, $headers),
+                'isValid' => false,
+                'errors' => ['Column count mismatch. Expected ' . count($headers) . ', got ' . count($row)],
+                'warnings' => [],
+                'data' => $row,
+                'preview' => $this->getRawPreview($row, $headers),
             ];
         }
 
         $data = array_combine($headers, $row);
         $data = collect($data)->map(fn($v) => is_string($v) ? trim($v) : $v)->toArray();
 
-        if (empty($data['Loads'])) $errors[] = 'Load ID (Loads column) is required';
+        if (empty($data['Loads']))
+            $errors[] = 'Load ID (Loads column) is required';
 
         if (empty($data['Origin Yard Arrival Time'])) {
             $errors[] = 'Origin Yard Arrival Time is required';
@@ -599,15 +616,15 @@ class RejectionImportValidationService
 
         return [
             'rowNumber' => $rowNumber,
-            'isValid'   => empty($errors),
-            'skip'      => false,
-            'errors'    => $errors,
-            'warnings'  => [],
-            'data'      => $data,
-            'preview'   => [
-                ['key' => 'load_id', 'label' => 'Load ID', 'value' => substr((string)($data['Loads'] ?? ''), 0, 30)],
-                ['key' => 'origin',  'label' => 'Origin',  'value' => (string)($data['Origin'] ?? '')],
-                ['key' => 'reason',  'label' => 'Reason',  'value' => (string)($data['Rejection Reason'] ?? '—')],
+            'isValid' => empty($errors),
+            'skip' => false,
+            'errors' => $errors,
+            'warnings' => [],
+            'data' => $data,
+            'preview' => [
+                ['key' => 'load_id', 'label' => 'Load ID', 'value' => substr((string) ($data['Loads'] ?? ''), 0, 30)],
+                ['key' => 'origin', 'label' => 'Origin', 'value' => (string) ($data['Origin'] ?? '')],
+                ['key' => 'reason', 'label' => 'Reason', 'value' => (string) ($data['Rejection Reason'] ?? '—')],
             ],
         ];
     }

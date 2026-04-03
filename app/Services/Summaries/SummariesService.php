@@ -91,7 +91,7 @@ class SummariesService
         if ($entries == 0) {
             return 100;
         }
-
+        dd($penalty, $entries);
         return round((1 - ($penalty / $entries)) * 100, 2);
     }
     public function compileSummaries(

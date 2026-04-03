@@ -141,7 +141,6 @@ class RepairOrderService
         $trucks = Truck::with('tenant')->get();
         $milesEntries = MilesDriven::where('tenant_id', Auth::user()->tenant_id)->latest('week_start_date')->get();
         $permissions = Auth::user()->getAllPermissions();
-
         return [
             'repairOrders' => $repairOrders,
             'tenantSlug' => $tenantSlug,
