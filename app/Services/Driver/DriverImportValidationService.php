@@ -88,6 +88,42 @@ class DriverImportValidationService
         fclose($handle);
         return $this->results;
     }
+    protected function normalizeAndValidateUsPhoneNumber(?string $phone): ?string
+    {
+        if ($phone === null) {
+            return null;
+        }
+
+        $phone = trim($phone);
+
+        if ($phone === '') {
+            return null;
+        }
+
+        // Remove everything that is not a digit:
+        // +1 (555) 123-4567 -> 15551234567
+        // (555) 123-4567 -> 5551234567
+        $digits = preg_replace('/\D+/', '', $phone);
+
+        if ($digits === null || $digits === '') {
+            return null;
+        }
+
+        $length = strlen($digits);
+
+        // Case 1: already a 10-digit US number
+        if ($length === 10) {
+            return $digits;
+        }
+
+        // Case 2: 11 digits with leading country code 1
+        if ($length === 11 && $digits[0] === '1') {
+            return substr($digits, -10);
+        }
+
+        // Anything else is invalid
+        return null;
+    }
 
     protected function validateRow(array $row, array $expectedHeaders, int $rowNumber, bool $isSuperAdmin): array
     {
@@ -116,8 +152,9 @@ class DriverImportValidationService
                 $errors[] = 'Tenant name is required';
             } else {
                 $tenant = Tenant::where('name', $data['tenant_name'])->first();
-                if (!$tenant)
+                if (!$tenant) {
                     $errors[] = "Tenant not found: {$data['tenant_name']}";
+                }
             }
         }
 
@@ -131,6 +168,18 @@ class DriverImportValidationService
         // Email format
         if (!empty($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
             $errors[] = "Email is invalid: {$data['email']}";
+        }
+
+        // Mobile phone normalize + validate
+        if (!empty($data['mobile_phone'])) {
+            $normalizedPhone = $this->normalizeAndValidateUsPhoneNumber($data['mobile_phone']);
+
+            if ($normalizedPhone === null) {
+                $errors[] = "Mobile phone is invalid: {$data['mobile_phone']}";
+            } else {
+                // Save as plain 10-digit US number, no +1
+                $data['mobile_phone'] = $normalizedPhone;
+            }
         }
 
         // hiring_date format m/d/Y

@@ -29,7 +29,7 @@
       <div class="space-y-3">
         <div v-for="(driver, index) in drivers" :key="index" class="flex justify-between items-center">
           <span class="text-sm">{{ formatDriverName(driver.driver_name) }}</span> <span class="text-sm font-medium"
-            :style="{ color: getColor(driver.total_penalty) }">{{ driver.total_penalty
+            :style="{ color: getColor(driver.total_penalty) }">{{ formatPenalty(driver.total_penalty)
             }}</span>
         </div>
       </div>
@@ -71,7 +71,15 @@ const getColor = (penalty) => {
 
   return colors[rank] || '#6b7280';
 };
+const formatPenalty = (penalty) => {
+  const num = Number(penalty)
 
+  if (!Number.isFinite(num)) return penalty
+
+  return Number.isInteger(num)
+    ? num.toString()
+    : parseFloat(num.toFixed(2)).toString()
+}
 const formatDriverName = (name) => {
   if (!name || !name.toString().trim()) {
     return "Unknown Driver";

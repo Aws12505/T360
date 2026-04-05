@@ -175,69 +175,120 @@ class DelayBreakdownService
 
         $dateFilter = $this->determineDateFilterType($start, $end);
 
-        [$groupBy, $dateFormat, $labelFormat] = match ($dateFilter) {
-            'yesterday' => [DB::raw('DATE_FORMAT(date, "%Y-%m-%d")'), 'Y-m-d', 'Y-m-d'],
-            'current-week' => [DB::raw('DATE(date)'), 'Y-m-d', 'D'],
-            '6w' => [DB::raw('YEARWEEK(date, 6)'), 'Y-W', 'W'],
-            default => [DB::raw('DATE_FORMAT(date, "%Y-%m")'), 'Y-m', 'M'],
-        };
+        if ($dateFilter === 'yesterday') {
 
-        $query = DB::table('delays')
-            ->select(
-                $groupBy,
+            $groupBy = 'DATE_FORMAT(date, "%Y-%m-%d")';
+            $selectDate = DB::raw("$groupBy as grouped_date");
+            $labelType = 'date';
+
+        } elseif ($dateFilter === 'current-week') {
+
+            $groupBy = 'DATE(date)';
+            $selectDate = DB::raw("$groupBy as grouped_date");
+            $labelType = 'day';
+
+        } elseif ($dateFilter === '6w') {
+
+            $groupBy = 'DATE(DATE_SUB(date, INTERVAL DAYOFWEEK(date) - 1 DAY))';
+            $selectDate = DB::raw("$groupBy as grouped_date");
+
+            $selectWeekNumber = DB::raw("WEEK($groupBy, 0) + 1 as week_number");
+            $labelType = 'week';
+
+        } else {
+
+            $groupBy = 'DATE_FORMAT(date, "%Y-%m")';
+            $selectDate = DB::raw("$groupBy as grouped_date");
+            $labelType = 'month';
+        }
+
+        $query = DB::table('delays');
+
+        if ($dateFilter === '6w') {
+            $query->select(
+                $selectDate,
+                $selectWeekNumber,
                 DB::raw("
-            SUM(CASE 
-                WHEN delay_type='origin' AND carrier_controllable = 1 
-                THEN penalty ELSE 0 
-            END) as origin_penalty,
+                SUM(CASE 
+                    WHEN delay_type = 'origin' AND carrier_controllable = 1 
+                    THEN penalty ELSE 0 
+                END) as origin_penalty,
 
-            SUM(CASE 
-                WHEN delay_type='destination' AND carrier_controllable = 1 
-                THEN penalty ELSE 0 
-            END) as destination_penalty,
+                SUM(CASE 
+                    WHEN delay_type = 'destination' AND carrier_controllable = 1 
+                    THEN penalty ELSE 0 
+                END) as destination_penalty,
 
-            SUM(CASE 
-                WHEN delay_type='origin' 
-                THEN 1 ELSE 0 
-            END) as origin_count,
+                SUM(CASE 
+                    WHEN delay_type = 'origin' 
+                    THEN 1 ELSE 0 
+                END) as origin_count,
 
-            SUM(CASE 
-                WHEN delay_type='destination' 
-                THEN 1 ELSE 0 
-            END) as destination_count
-        ")
-            )
-            ->whereBetween('date', [$startDate, $endDate])
-            ->groupBy($groupBy)
-            ->orderBy($groupBy);
+                SUM(CASE 
+                    WHEN delay_type = 'destination' 
+                    THEN 1 ELSE 0 
+                END) as destination_count
+            ")
+            );
+        } else {
+            $query->select(
+                $selectDate,
+                DB::raw("
+                SUM(CASE 
+                    WHEN delay_type = 'origin' AND carrier_controllable = 1 
+                    THEN penalty ELSE 0 
+                END) as origin_penalty,
+
+                SUM(CASE 
+                    WHEN delay_type = 'destination' AND carrier_controllable = 1 
+                    THEN penalty ELSE 0 
+                END) as destination_penalty,
+
+                SUM(CASE 
+                    WHEN delay_type = 'origin' 
+                    THEN 1 ELSE 0 
+                END) as origin_count,
+
+                SUM(CASE 
+                    WHEN delay_type = 'destination' 
+                    THEN 1 ELSE 0 
+                END) as destination_count
+            ")
+            );
+        }
+
+        $query->whereBetween('date', [$startDate, $endDate])
+            ->groupBy('grouped_date');
+
+        if ($dateFilter === '6w') {
+            $query->groupBy('week_number')->orderBy('grouped_date');
+        } else {
+            $query->orderBy('grouped_date');
+        }
 
         $this->applyTenantFilter($query);
         $this->applyDelayTypeFilter($query);
-        $chartData = $query->get()->map(function ($item) use ($dateFormat, $labelFormat) {
 
-            $dateValue = $item->{array_key_first((array) $item)};
+        $results = $query->get();
 
-            $formattedDate = match ($dateFormat) {
-                'Y-W' => 'W' . substr($dateValue, 4),
-                'Y-m' => Carbon::parse($dateValue . '-01')->format($labelFormat),
-                default => Carbon::parse($dateValue)->format($labelFormat),
-            };
-
-            $originPerformance = null;
-            $destinationPerformance = null;
-            if ($item->origin_count > 0) {
-                $originPerformance = (1 - ($item->origin_penalty / $item->origin_count)) * 100;
+        $chartData = $results->map(function ($item) use ($labelType) {
+            if ($labelType === 'week') {
+                $formattedDate = 'W' . $item->week_number;
+            } elseif ($labelType === 'month') {
+                $formattedDate = Carbon::parse($item->grouped_date . '-01')->format('M');
+            } elseif ($labelType === 'day') {
+                $formattedDate = Carbon::parse($item->grouped_date)->format('D');
             } else {
-                $originPerformance = 100;
+                $formattedDate = $item->grouped_date;
             }
 
-            if ($item->destination_count > 0) {
-                $destinationPerformance = (1 - ($item->destination_penalty / $item->destination_count)) * 100;
-            } else {
-                $destinationPerformance = 100;
-            }
+            $originPerformance = $item->origin_count > 0
+                ? (1 - ($item->origin_penalty / $item->origin_count)) * 100
+                : 100;
 
-            $finalPerformance = null;
+            $destinationPerformance = $item->destination_count > 0
+                ? (1 - ($item->destination_penalty / $item->destination_count)) * 100
+                : 100;
 
             $finalPerformance =
                 ($originPerformance * 0.375) +
@@ -245,9 +296,7 @@ class DelayBreakdownService
 
             return [
                 'date' => $formattedDate,
-                'onTimePerformance' => $finalPerformance !== null
-                    ? round($finalPerformance, 1)
-                    : null
+                'onTimePerformance' => round($finalPerformance, 1),
             ];
         })->toArray();
 

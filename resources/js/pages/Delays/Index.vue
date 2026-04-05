@@ -455,12 +455,46 @@
         <div class="space-y-4">
           <div>
             <Label>Start Date</Label>
-            <Input type="date" v-model="customStartDate" />
+
+            <Popover v-model:open="startDateOpen">
+              <PopoverTrigger as-child>
+                <Button variant="outline" class="w-full justify-start text-left font-normal">
+                  <CalendarIcon class="mr-2 h-4 w-4" />
+                  {{
+                    startDatePicker
+                      ? df.format(startDatePicker.toDate(getLocalTimeZone()))
+                      : 'Pick a start date'
+                  }}
+                </Button>
+              </PopoverTrigger>
+
+              <PopoverContent class="w-auto p-0">
+                <Calendar :model-value="startDatePicker" layout="month-and-year"
+                  @update:model-value="handleStartDateSelect" />
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div>
             <Label>End Date</Label>
-            <Input type="date" v-model="customEndDate" />
+
+            <Popover v-model:open="endDateOpen">
+              <PopoverTrigger as-child>
+                <Button variant="outline" class="w-full justify-start text-left font-normal">
+                  <CalendarIcon class="mr-2 h-4 w-4" />
+                  {{
+                    endDatePicker
+                      ? df.format(endDatePicker.toDate(getLocalTimeZone()))
+                      : 'Pick an end date'
+                  }}
+                </Button>
+              </PopoverTrigger>
+
+              <PopoverContent class="w-auto p-0">
+                <Calendar :model-value="endDatePicker" layout="month-and-year"
+                  @update:model-value="handleEndDateSelect" />
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
 
@@ -486,7 +520,14 @@ import DelayForm from "@/components/DelayForm.vue";
 import ImportDelayModal from "@/components/onTime/ImportDelayModal.vue";
 import OnTimeDashboard from "@/components/onTime/OnTimeDashboard.vue";
 import Icon from "@/components/Icon.vue";
-
+import { CalendarIcon } from "lucide-vue-next";
+import { DateFormatter, getLocalTimeZone } from "@internationalized/date";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import Button from "@/components/ui/button/Button.vue";
 import Input from "@/components/ui/input/Input.vue";
@@ -536,7 +577,12 @@ const permissionNames = computed(() =>
 );
 
 // ─── Flash messages ───────────────────────────────────────────────────────────
+const startDatePicker = ref(null);
+const endDatePicker = ref(null);
+const startDateOpen = ref(false);
+const endDateOpen = ref(false);
 
+const df = new DateFormatter("en-US", { dateStyle: "medium" });
 const page = usePage();
 const successMessage = ref("");
 const errorMessage = ref("");
@@ -558,7 +604,23 @@ watch(
   },
   { immediate: true, deep: true }
 );
+const handleStartDateSelect = (val) => {
+  startDatePicker.value = val ?? null;
+  customStartDate.value = val
+    ? val.toDate(getLocalTimeZone()).toISOString().split("T")[0]
+    : null;
 
+  startDateOpen.value = false;
+};
+
+const handleEndDateSelect = (val) => {
+  endDatePicker.value = val ?? null;
+  customEndDate.value = val
+    ? val.toDate(getLocalTimeZone()).toISOString().split("T")[0]
+    : null;
+
+  endDateOpen.value = false;
+};
 function onFormSuccess() {
   successMessage.value = "Delay saved successfully.";
 }
@@ -597,6 +659,18 @@ const ALL_COLUMNS = [
     render: (d) => h("span", {}, formatDate(d.date)),
   },
   {
+    key: "driver_name",
+    label: "Driver",
+    getValue: (d) => d.driver_name ?? "",
+    render: (d) => h("span", {}, formatDriverName(d.driver_name) || "—"),
+  },
+  {
+    key: "load_id",
+    label: "Load ID",
+    getValue: (d) => d.load_id ?? "",
+    render: (d) => h("span", {}, d.load_id || "—"),
+  },
+  {
     key: "delay_type",
     label: "Type",
     getValue: (d) => d.delay_type ?? "",
@@ -622,28 +696,17 @@ const ALL_COLUMNS = [
     },
   },
   {
-    key: "load_id",
-    label: "Load ID",
-    getValue: (d) => d.load_id ?? "",
-    render: (d) => h("span", {}, d.load_id || "—"),
-  },
-  {
-    key: "driver_name",
-    label: "Driver",
-    getValue: (d) => d.driver_name ?? "",
-    render: (d) => h("span", {}, formatDriverName(d.driver_name) || "—"),
-  },
-  {
     key: "delay_duration",
     label: "Duration",
     getValue: (d) => d.delay_duration ?? 0,
     render: (d) => h("span", {}, formatDuration(d.delay_duration)),
   },
   {
-    key: "delay_category",
-    label: "Category",
-    getValue: (d) => d.delay_category ?? "",
-    render: (d) => h("span", {}, formatDelayCategory(d.delay_category) || "—"),
+    key: "delay_reason",
+    label: "Reason",
+    getValue: (d) => d.delay_reason ?? "",
+    render: (d) =>
+      h("span", { class: "max-w-[200px] truncate block" }, formatDelayReason(d.delay_reason) || "—"),
   },
   {
     key: "penalty",
@@ -657,95 +720,17 @@ const ALL_COLUMNS = [
     },
     render: (d) => {
       const originalPenalty = d.penalty != null ? Number(d.penalty).toFixed(2) : null;
-      // const isWon = d.disputed === "won";
-      // const isDriverCtrl = isControllable(d.driver_controllable);
-      // const isCarrierCtrl = isControllable(d.carrier_controllable);
-
       // No penalty and not won → dash
       if (!originalPenalty) {
         return h("span", { class: "text-muted-foreground" }, "—");
       }
 
-      // // WON + driver controllable → show 0.00 with original as driver note
-      // if (isWon && isDriverCtrl) {
-      //   return h("div", { class: "flex flex-col leading-tight" }, [
-      //     h(
-      //       "span",
-      //       {
-      //         class: "font-mono text-xs font-semibold text-green-600 dark:text-green-400",
-      //       },
-      //       "0.00"
-      //     ),
-      //     h(
-      //       "span",
-      //       { class: "self-end text-[10px] opacity-60 font-mono whitespace-nowrap" },
-      //       `Driver: ${originalPenalty}`
-      //     ),
-      //   ]);
-      // }
-
-      // // WON (not driver controllable) → just 0.00
-      // if (isWon) {
-      //   return h(
-      //     "span",
-      //     { class: "font-mono text-xs font-semibold text-green-600 dark:text-green-400" },
-      //     "0.00"
-      //   );
-      // }
-
-      // // Carrier NOT controllable + driver IS controllable → 0.00 with driver note
-      // if (!isCarrierCtrl && isDriverCtrl && originalPenalty) {
-      //   return h("div", { class: "flex flex-col leading-tight" }, [
-      //     h(
-      //       "span",
-      //       {
-      //         class: "font-mono text-xs font-semibold text-green-600 dark:text-green-400",
-      //       },
-      //       "0.00"
-      //     ),
-      //     h(
-      //       "span",
-      //       { class: "self-end text-[10px] opacity-60 font-mono whitespace-nowrap" },
-      //       `Driver: ${originalPenalty}`
-      //     ),
-      //   ]);
-      // }
-
-      // // Carrier NOT controllable (both false) → just 0.00
-      // if (!isCarrierCtrl) {
-      //   return h(
-      //     "span",
-      //     { class: "font-mono text-xs font-semibold text-green-600 dark:text-green-400" },
-      //     "0.00"
-      //   );
-      // }
-
       // Normal case
       return h("span", { class: "font-mono text-xs" }, originalPenalty);
     },
   },
-  {
-    key: "delay_reason",
-    label: "Reason",
-    getValue: (d) => d.delay_reason ?? "",
-    render: (d) =>
-      h("span", { class: "max-w-[200px] truncate block" }, formatDelayReason(d.delay_reason) || "—"),
-  },
-  {
-    key: "disputed",
-    label: "Disputed",
-    getValue: (d) => d.disputed ?? "none",
-    render: (d) =>
-      h(
-        "span",
-        {
-          class: `inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold capitalize ${disputedBadgeClass(
-            d.disputed
-          )}`,
-        },
-        formatDisputed(d.disputed)
-      ),
-  },
+
+
   {
     key: "driver_controllable",
     label: "Driver Controllable",
@@ -774,6 +759,21 @@ const ALL_COLUMNS = [
           : isControllable(d.carrier_controllable)
             ? "Yes"
             : "No"
+      ),
+  },
+  {
+    key: "disputed",
+    label: "Disputed",
+    getValue: (d) => d.disputed ?? "none",
+    render: (d) =>
+      h(
+        "span",
+        {
+          class: `inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold capitalize ${disputedBadgeClass(
+            d.disputed
+          )}`,
+        },
+        formatDisputed(d.disputed)
       ),
   },
 ];
@@ -982,7 +982,10 @@ function selectDateFilter(filter) {
 
 const weekNumberText = computed(() => {
   const { year, weekNumber, startWeekNumber, endWeekNumber } = props;
-
+  if (["yesterday"].includes(activeTab.value)) {
+    // Yesterday
+    return "Yesterday";
+  }
   // Yesterday / current-week
   if (["yesterday", "current-week"].includes(activeTab.value) && weekNumber && year) {
     return `Week ${weekNumber}, ${year}`;
@@ -1027,12 +1030,12 @@ function isControllable(val) {
   return val === true || val === 1 || val === "1" || val === "true";
 }
 
-function formatDate(val) {
-  if (!val) return "—";
-  const d = new Date(val);
-  return isNaN(d.getTime())
-    ? val
-    : d.toLocaleDateString("en-US", { month: "numeric", day: "numeric", year: "numeric" });
+function formatDate(d) {
+  if (!d) return "—";
+  const str = String(d).split(" ")[0];
+  const [y, m, day] = str.split("-");
+  if (!y || !m || !day) return d;
+  return `${Number(m)}/${Number(day)}/${y}`;
 }
 function formatDelayReason(val) {
   if (!val) return "—";

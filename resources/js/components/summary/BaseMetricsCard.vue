@@ -12,7 +12,7 @@
 
       <!-- VCR -->
       <div
-        class="p-4 rounded-lg border bg-background/40 hover:bg-muted/30 transition-colors flex items-center justify-between flex-1 min-h-[90px]">
+        class="p-4 rounded-lg border bg-background/40 hover:bg-accent hover:border-border hover:shadow-sm transition-all duration-200 flex items-center justify-between flex-1 min-h-[90px]">
         <div class="space-y-1">
           <h4 class="text-base sm:text-lg font-semibold leading-tight">VCR-P</h4>
           <div class="text-sm text-muted-foreground leading-none">Count</div>
@@ -32,7 +32,7 @@
 
       <!-- VMCR -->
       <div
-        class="p-4 rounded-lg border bg-background/40 hover:bg-muted/30 transition-colors flex items-center justify-between flex-1 min-h-[90px]">
+        class="p-4 rounded-lg border bg-background/40 hover:bg-accent hover:border-border hover:shadow-sm transition-all duration-200 flex items-center justify-between flex-1 min-h-[90px]">
         <div class="space-y-1">
           <h4 class="text-base sm:text-lg font-semibold leading-tight">VMCR-P</h4>
           <div class="text-sm text-muted-foreground leading-none">Count</div>
@@ -52,7 +52,7 @@
 
       <!-- BOC -->
       <div
-        class="p-4 rounded-lg border bg-background/40 hover:bg-muted/30 transition-colors flex items-center justify-between flex-1 min-h-[90px]">
+        class="p-4 rounded-lg border bg-background/40 hover:bg-accent hover:border-border hover:shadow-sm transition-all duration-200 flex items-center justify-between flex-1 min-h-[90px]">
         <div class="space-y-1">
           <h4 class="text-base sm:text-lg font-semibold leading-tight">Open BOC</h4>
           <div class="text-sm text-muted-foreground leading-none">Count</div>

@@ -1,142 +1,87 @@
 <template>
-  <div
-    class="bg-card rounded-lg border shadow-sm p-4 md:p-6 mb-6"
-  >
+  <div class="bg-card rounded-lg border shadow-sm p-4 md:p-6 mb-6">
     <!-- Header with Add button -->
     <div class="flex justify-between items-center mb-4">
       <h3 class="text-base md:text-xl font-semibold">
         Miles Driven
       </h3>
-      <Button
-        v-if="permissionNames.includes('miles-driven.create')"
-        @click="openModal()"
-        variant="default"
-      >
-        <Icon
-          name="plus"
-          class="mr-2 h-4 w-4"
-        />
+      <Button v-if="permissionNames.includes('miles-driven.create')" @click="openModal()" variant="default">
+        <Icon name="plus" class="mr-2 h-4 w-4" />
         <span>Add Miles Driven</span>
       </Button>
     </div>
 
-        <!-- Table -->
-        <div class="overflow-x-auto max-h-80">
-      <Table class="w-full table-auto">
+    <!-- Table -->
+    <div class="h-80 overflow-y-auto overflow-x-auto">
+      <Table class="relative h-80 overflow-auto">
         <TableHeader>
-          <TableRow
-            class="sticky top-0 z-10 border-b bg-background"
-          >
-            <TableHead
-              class="cursor-pointer px-4 py-2 text-left"
-              @click="sortBy('week_start_date')"
-            >
+          <TableRow class="sticky top-0 z-10 border-b bg-background hover:bg-background">
+            <TableHead class="cursor-pointer px-4 py-2 text-left" @click="sortBy('week_start_date')">
               Week Start
               <span>
-                <Icon
-                  v-if="sortColumn==='week_start_date'&&sortDirection==='asc'"
-                  name="chevron-up"
-                />
-                <Icon
-                  v-else-if="sortColumn==='week_start_date'&&sortDirection==='desc'"
-                  name="chevron-down"
-                />
-                <Icon
-                  v-else
-                  name="chevron-up-down"
-                  class="opacity-50"
-                />
+                <Icon v-if="sortColumn === 'week_start_date' && sortDirection === 'asc'" name="chevron-up" />
+                <Icon v-else-if="sortColumn === 'week_start_date' && sortDirection === 'desc'" name="chevron-down" />
+                <Icon v-else name="chevron-up-down" class="opacity-50" />
               </span>
             </TableHead>
 
-            <TableHead
-              class="cursor-pointer px-4 py-2 text-left"
-              @click="sortBy('week_end_date')"
-            >
+            <TableHead class="cursor-pointer px-4 py-2 text-left" @click="sortBy('week_end_date')">
               Week End
               <span>
-                <Icon
-                  v-if="sortColumn==='week_end_date'&&sortDirection==='asc'"
-                  name="chevron-up"
-                />
-                <Icon
-                  v-else-if="sortColumn==='week_end_date'&&sortDirection==='desc'"
-                  name="chevron-down"
-                />
-                <Icon
-                  v-else
-                  name="chevron-up-down"
-                  class="opacity-50"
-                />
+                <Icon v-if="sortColumn === 'week_end_date' && sortDirection === 'asc'" name="chevron-up" />
+                <Icon v-else-if="sortColumn === 'week_end_date' && sortDirection === 'desc'" name="chevron-down" />
+                <Icon v-else name="chevron-up-down" class="opacity-50" />
               </span>
             </TableHead>
-
-            <TableHead
-              class="cursor-pointer px-4 py-2 text-left"
-              @click="sortBy('miles')"
-            >
+            <TableHead class="cursor-pointer px-4 py-2 text-left" @click="sortBy('week_start_date')">
+              Week # / Year
+              <span>
+                <Icon v-if="sortColumn === 'week_start_date' && sortDirection === 'asc'" name="chevron-up" />
+                <Icon v-else-if="sortColumn === 'week_start_date' && sortDirection === 'desc'" name="chevron-down" />
+                <Icon v-else name="chevron-up-down" class="opacity-50" />
+              </span>
+            </TableHead>
+            <TableHead class="cursor-pointer px-4 py-2 text-left" @click="sortBy('miles')">
               Miles
               <span>
-                <Icon
-                  v-if="sortColumn==='miles'&&sortDirection==='asc'"
-                  name="chevron-up"
-                />
-                <Icon
-                  v-else-if="sortColumn==='miles'&&sortDirection==='desc'"
-                  name="chevron-down"
-                />
-                <Icon
-                  v-else
-                  name="chevron-up-down"
-                  class="opacity-50"
-                />
+                <Icon v-if="sortColumn === 'miles' && sortDirection === 'asc'" name="chevron-up" />
+                <Icon v-else-if="sortColumn === 'miles' && sortDirection === 'desc'" name="chevron-down" />
+                <Icon v-else name="chevron-up-down" class="opacity-50" />
               </span>
             </TableHead>
 
             <TableHead
-              v-if="permissionNames.includes('miles-driven.update')||permissionNames.includes('miles-driven.delete')"
-              class="text-center px-4 py-2"
-            >
+              v-if="permissionNames.includes('miles-driven.update') || permissionNames.includes('miles-driven.delete')"
+              class="text-center px-4 py-2">
               Actions
             </TableHead>
           </TableRow>
         </TableHeader>
-
         <TableBody>
-          <TableRow
-            v-for="item in paginatedEntries"
-            :key="item.id"
-            class="border-b hover:bg-muted/20"
-          >
+          <TableRow v-for="item in paginatedEntries" :key="item.id" class="border-b hover:bg-muted/20">
             <TableCell class="px-4 py-3">
               {{ formatDate(item.week_start_date) }}
             </TableCell>
             <TableCell class="px-4 py-3">
               {{ formatDate(item.week_end_date) }}
             </TableCell>
+            <TableCell class="px-4 py-3 whitespace-nowrap">
+              {{ formatWeekYear(item.week_start_date) }}
+            </TableCell>
             <TableCell class="px-4 py-3">
               {{ formatNumber(item.miles) }}
             </TableCell>
             <TableCell
-              v-if="permissionNames.includes('miles-driven.update')||permissionNames.includes('miles-driven.delete')"
-              class="text-center px-4 py-3"
-            >
+              v-if="permissionNames.includes('miles-driven.update') || permissionNames.includes('miles-driven.delete')"
+              class="text-center px-4 py-3">
               <div class="flex justify-center space-x-2">
-                <Button
-                  v-if="permissionNames.includes('miles-driven.update')"
-                  variant="outline"
-                  size="sm"
-                  @click="openModal(item)"
-                >
+                <Button v-if="permissionNames.includes('miles-driven.update')" variant="outline" size="sm"
+                  @click="openModal(item)">
                   <Icon name="pencil" class="mr-1 h-4 w-4" />
                   <span>Edit</span>
                 </Button>
-                <Button
-                  v-if="permissionNames.includes('miles-driven.delete')"
-                  variant="destructive"
-                  size="sm"
-                  @click="confirmDelete(item)"
-                >
+                <Button v-if="permissionNames.includes('miles-driven.delete')" variant="destructive" size="sm"
+                  @click="confirmDelete(item)">
                   <Icon name="trash" class="mr-1 h-4 w-4" />
                   <span>Delete</span>
                 </Button>
@@ -144,10 +89,7 @@
             </TableCell>
           </TableRow>
           <TableRow v-if="!milesEntries.length">
-            <TableCell
-              :colspan="5"
-              class="py-4 text-center text-muted-foreground"
-            >
+            <TableCell :colspan="6" class="py-4 text-center text-muted-foreground">
               No miles driven records found
             </TableCell>
           </TableRow>
@@ -156,41 +98,21 @@
     </div>
 
     <!-- Pagination -->
-    <div
-      class="border-t mt-4 px-4 py-3 bg-muted/20"
-      v-if="totalPages > 1"
-    >
+    <div class="border-t mt-4 px-4 py-3 bg-muted/20" v-if="totalPages > 1">
       <div class="flex flex-col sm:flex-row items-center justify-between gap-2">
         <div class="text-sm text-muted-foreground">
           Showing {{ paginatedEntries.length }} of {{ milesEntries.length }} entries
         </div>
         <div class="flex flex-wrap gap-2">
-          <Button
-            @click="goToPage(currentPage - 1)"
-            :disabled="currentPage === 1"
-            variant="ghost"
-            size="sm"
-          >
+          <Button @click="goToPage(currentPage - 1)" :disabled="currentPage === 1" variant="ghost" size="sm">
             Previous
           </Button>
-          <Button
-            v-for="page in paginationRange"
-            :key="page"
-            @click="goToPage(page)"
-            variant="ghost"
-            size="sm"
-            :class="{
-              'border-primary bg-primary/10 text-primary': currentPage === page
-            }"
-          >
+          <Button v-for="page in paginationRange" :key="page" @click="goToPage(page)" variant="ghost" size="sm" :class="{
+            'border-primary bg-primary/10 text-primary': currentPage === page
+          }">
             {{ page }}
           </Button>
-          <Button
-            @click="goToPage(currentPage + 1)"
-            :disabled="currentPage === totalPages"
-            variant="ghost"
-            size="sm"
-          >
+          <Button @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages" variant="ghost" size="sm">
             Next
           </Button>
         </div>
@@ -199,9 +121,7 @@
 
     <!-- Add / Edit Modal -->
     <Dialog v-model:open="isModalOpen">
-      <DialogContent
-        class="sm:max-w-md w-full max-h-[90vh] overflow-auto"
-      >
+      <DialogContent class="sm:max-w-md w-full max-h-[90vh] overflow-auto">
         <DialogHeader>
           <DialogTitle>
             {{ form.id ? 'Edit Miles Driven' : 'Add Miles Driven' }}
@@ -218,33 +138,18 @@
           <div class="grid grid-cols-2 gap-4">
             <div>
               <Label for="year">Year</Label>
-              <Input
-                id="year"
-                type="number"
-                v-model.number="form.year"
-                min="2000"
-                max="2100"
-                @input="computeWeekSpan"
-              />
+              <Input id="year" type="number" v-model.number="form.year" min="2000" max="2100"
+                @input="computeWeekSpan" />
             </div>
             <div>
               <Label for="week_number">Week #</Label>
-              <Input
-                id="week_number"
-                type="number"
-                v-model.number="form.week_number"
-                min="1"
-                max="53"
-                @input="computeWeekSpan"
-              />
+              <Input id="week_number" type="number" v-model.number="form.week_number" min="1" max="53"
+                @input="computeWeekSpan" />
             </div>
           </div>
 
           <!-- Computed Sunday–Saturday -->
-          <div
-            v-if="form.week_start_date"
-            class="grid grid-cols-2 gap-4"
-          >
+          <div v-if="form.week_start_date" class="grid grid-cols-2 gap-4">
             <div>
               <Label>Start (Sun)</Label>
               <p class="mt-1">{{ formatDate(form.week_start_date) }}</p>
@@ -258,19 +163,12 @@
           <!-- Miles -->
           <div>
             <Label for="miles">Miles</Label>
-            <Input
-              id="miles"
-              v-model="form.miles"
-              type="number"
-              step="0.0001"
-              min="0"
-              max="999999.9999"
-            />
+            <Input id="miles" v-model="form.miles" type="number" step="0.0001" min="0" max="999999.9999" />
           </div>
 
           <DialogFooter class="mt-4">
-            <Button variant="outline" type="button" @click="isModalOpen = false">   
-            Cancel
+            <Button variant="outline" type="button" @click="isModalOpen = false">
+              Cancel
             </Button>
             <Button type="submit" :disabled="form.processing">Submit</Button>
           </DialogFooter>
@@ -278,38 +176,29 @@
       </DialogContent>
     </Dialog>
     <!-- Delete Confirmation Dialog -->
-<Dialog v-model:open="showDeleteModal">
-  <DialogContent class="max-w-[95vw] sm:max-w-md">
-    <DialogHeader class="px-4 sm:px-6">
-      <DialogTitle class="text-lg sm:text-xl">Confirm Deletion</DialogTitle>
-      <DialogDescription class="text-xs sm:text-sm">
-        Are you sure you want to delete this miles driven record? This action cannot be undone.
-      </DialogDescription>
-    </DialogHeader>
-    <DialogFooter class="px-4 sm:px-6">
-      <Button 
-        type="button" 
-        @click="showDeleteModal = false" 
-        variant="outline" 
-        class="h-9 px-4 py-1 text-xs sm:h-10 sm:text-sm"
-      >
-        Cancel
-      </Button>
-      <Button 
-        type="button" 
-        @click="deleteRecord" 
-        variant="destructive" 
-        class="h-9 px-4 py-1 text-xs sm:h-10 sm:text-sm"
-      >
-        Delete
-      </Button>
-    </DialogFooter>
-  </DialogContent>
-</Dialog>
+    <Dialog v-model:open="showDeleteModal">
+      <DialogContent class="max-w-[95vw] sm:max-w-md">
+        <DialogHeader class="px-4 sm:px-6">
+          <DialogTitle class="text-lg sm:text-xl">Confirm Deletion</DialogTitle>
+          <DialogDescription class="text-xs sm:text-sm">
+            Are you sure you want to delete this miles driven record? This action cannot be undone.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter class="px-4 sm:px-6">
+          <Button type="button" @click="showDeleteModal = false" variant="outline"
+            class="h-9 px-4 py-1 text-xs sm:h-10 sm:text-sm">
+            Cancel
+          </Button>
+          <Button type="button" @click="deleteRecord" variant="destructive"
+            class="h-9 px-4 py-1 text-xs sm:h-10 sm:text-sm">
+            Delete
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>
 
-  
 <script setup lang="ts">
 import {
   Button,
@@ -388,7 +277,7 @@ const paginatedEntries = computed(() => {
 const paginationRange = computed(() => {
   const range = []
   const maxVisiblePages = 5
-  
+
   if (totalPages.value <= maxVisiblePages) {
     // Show all pages if there are few
     for (let i = 1; i <= totalPages.value; i++) {
@@ -398,17 +287,17 @@ const paginationRange = computed(() => {
     // Show a subset of pages with current page in the middle when possible
     let start = Math.max(1, currentPage.value - Math.floor(maxVisiblePages / 2))
     let end = Math.min(totalPages.value, start + maxVisiblePages - 1)
-    
+
     // Adjust start if we're near the end
     if (end === totalPages.value) {
       start = Math.max(1, end - maxVisiblePages + 1)
     }
-    
+
     for (let i = start; i <= end; i++) {
       range.push(i)
     }
   }
-  
+
   return range
 })
 
@@ -462,7 +351,7 @@ function computeWeekSpan() {
   const day = d.getUTCDay() || 7
   d.setUTCDate(d.getUTCDate() + (W - 1) * 7 + (1 - day))
   const sunday = new Date(d)
-  sunday.setUTCDate(d.getUTCDate() -1)
+  sunday.setUTCDate(d.getUTCDate() - 1)
   const saturday = new Date(sunday)
   saturday.setUTCDate(sunday.getUTCDate() + 6)
   form.week_start_date = sunday.toISOString().slice(0, 10)
@@ -476,7 +365,7 @@ function submitForm() {
     ? { tenantSlug: props.tenantSlug, milesDriven: form.id }
     : { tenantSlug: props.tenantSlug }
 
-  form[ form.id ? 'put' : 'post' ](
+  form[form.id ? 'put' : 'post'](
     route(routeName, params),
     {
       preserveScroll: true,
@@ -486,7 +375,24 @@ function submitForm() {
     }
   )
 }
+function getWeekYearFromStartDate(startDate: string) {
+  if (!startDate) return { week: '', year: '' }
 
+  const sd = new Date(startDate)
+  const tmp = new Date(Date.UTC(sd.getUTCFullYear(), sd.getUTCMonth(), sd.getUTCDate()))
+  tmp.setUTCDate(tmp.getUTCDate() + 4 - (tmp.getUTCDay() || 7))
+
+  const year = tmp.getUTCFullYear()
+  const week = Math.ceil(((tmp.getTime() - Date.UTC(year, 0, 1)) / 86400000 + 1) / 7) + 1
+
+  return { week, year }
+}
+
+function formatWeekYear(startDate: string) {
+  const { week, year } = getWeekYearFromStartDate(startDate)
+  if (!week || !year) return '—'
+  return `W${String(week).padStart(2, '0')} • ${year}`
+}
 // delete
 const toDelete = ref(null)
 function confirmDelete(item) {
@@ -496,7 +402,7 @@ function confirmDelete(item) {
 
 function deleteRecord() {
   if (!toDelete.value) return
-  
+
   const name = 'miles_driven.destroy'
   const params = { tenantSlug: props.tenantSlug, milesDriven: toDelete.value.id }
 
@@ -521,15 +427,12 @@ function formatDate(s) {
 }
 function formatNumber(n: any) {
   return Number(n).toLocaleString(undefined, {
-    minimumFractionDigits: 4,
-    maximumFractionDigits: 4,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
   })
 }
-function truncateText(t: string, m: number) {
-  return t?.length > m ? t.slice(0, m) + '…' : t || ''
-}
+
 const permissionNames = computed(() =>
-      props.permissions.map(p => p.name)
-    );
+  props.permissions.map(p => p.name)
+);
 </script>
-  

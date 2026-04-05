@@ -92,6 +92,10 @@
           <span>Missing</span>
           <span>{{ maintenanceBreakdowns.missing_invoices_count || 0 }}</span>
         </div>
+        <div class="flex justify-between">
+          <span>Miles Driven</span>
+          <span>{{ formatNumber(maintenanceBreakdowns.miles_driven || 0) }}</span>
+        </div>
       </div>
     </div>
 
@@ -255,5 +259,8 @@ const getScoreColorClass = (rating) => {
       return 'text-indigo-600';
   }
 };
-
+const formatNumber = (value) => {
+  if (value === undefined || value === null) return '0';
+  return new Intl.NumberFormat().format(Math.round(value));
+};
 </script>

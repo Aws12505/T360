@@ -65,21 +65,6 @@
         </div>
       </div>
 
-      <!-- Miles Driven -->
-      <div class="bg-card rounded-xl border shadow-sm px-4 py-4 sm:py-5 transition-all hover:shadow-md">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm text-muted-foreground">Miles Driven</p>
-            <p class="text-2xl sm:text-3xl font-bold">
-              {{ formatNumber(milesDriven) }}
-            </p>
-          </div>
-
-          <div class="text-indigo-500 text-sm font-medium">
-            Total Distance
-          </div>
-        </div>
-      </div>
 
     </div>
 
@@ -94,14 +79,50 @@
         </DialogHeader>
 
         <div class="space-y-4">
+          <!-- Start Date -->
           <div>
             <Label>Start Date</Label>
-            <Input type="date" v-model="customStartDate" />
+
+            <Popover v-model:open="startDateOpen">
+              <PopoverTrigger as-child>
+                <Button variant="outline" class="w-full justify-start text-left font-normal">
+                  <CalendarIcon class="mr-2 h-4 w-4" />
+                  {{
+                    startDatePicker
+                      ? df.format(startDatePicker.toDate(getLocalTimeZone()))
+                      : 'Pick a start date'
+                  }}
+                </Button>
+              </PopoverTrigger>
+
+              <PopoverContent class="w-auto p-0">
+                <Calendar :model-value="startDatePicker" layout="month-and-year"
+                  @update:model-value="handleStartDateSelect" />
+              </PopoverContent>
+            </Popover>
           </div>
 
+          <!-- End Date -->
           <div>
             <Label>End Date</Label>
-            <Input type="date" v-model="customEndDate" />
+
+            <Popover v-model:open="endDateOpen">
+              <PopoverTrigger as-child>
+                <Button variant="outline" class="w-full justify-start text-left font-normal">
+                  <CalendarIcon class="mr-2 h-4 w-4" />
+                  {{
+                    endDatePicker
+                      ? df.format(endDatePicker.toDate(getLocalTimeZone()))
+                      : 'Pick an end date'
+                  }}
+                </Button>
+              </PopoverTrigger>
+
+              <PopoverContent class="w-auto p-0">
+                <Calendar :model-value="endDatePicker" layout="month-and-year"
+                  @update:model-value="handleEndDateSelect" />
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
 
@@ -120,16 +141,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, computed } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import Icon from '@/components/Icon.vue';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-
+import type { DateValue } from '@internationalized/date'
+import { CalendarIcon } from 'lucide-vue-next'
+import { DateFormatter, getLocalTimeZone } from '@internationalized/date'
+import { Calendar } from '@/components/ui/calendar'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 
 // Import new dashboard components
 import DashboardHeader from '@/components/summary/DashboardHeader.vue';
@@ -160,7 +188,31 @@ const outstandingDate = ref(null);
 const customStartDate = ref<string | null>(null);
 const customEndDate = ref<string | null>(null);
 const showCustomDialog = ref(false);
+const startDatePicker = ref<DateValue | null>(null)
+const endDatePicker = ref<DateValue | null>(null)
 
+const startDateOpen = ref(false)
+const endDateOpen = ref(false)
+
+const df = new DateFormatter('en-US', { dateStyle: 'medium' })
+
+const handleStartDateSelect = (val: DateValue | undefined) => {
+  startDatePicker.value = val ?? null
+  customStartDate.value = val
+    ? val.toDate(getLocalTimeZone()).toISOString().split('T')[0]
+    : null
+
+  startDateOpen.value = false
+}
+
+const handleEndDateSelect = (val: DateValue | undefined) => {
+  endDatePicker.value = val ?? null
+  customEndDate.value = val
+    ? val.toDate(getLocalTimeZone()).toISOString().split('T')[0]
+    : null
+
+  endDateOpen.value = false
+}
 const applyCustomRange = () => {
   if (!customStartDate.value || !customEndDate.value) return;
 
@@ -182,9 +234,16 @@ const applyCustomRange = () => {
 // Compute the current date range text based on the selected filter
 const currentDateRangeText = computed(() => {
   if (currentDateFilter.value === 'custom') {
-    if (customStartDate.value && customEndDate.value) {
-      return `${customStartDate.value} - ${customEndDate.value}`;
+    const start = props.dateRange?.start || customStartDate.value
+    const end = props.dateRange?.end || customEndDate.value
+
+    if (start && end) {
+      const startDate = new Date(`${start}T12:00:00`)
+      const endDate = new Date(`${end}T12:00:00`)
+      return `${formatDateShort(startDate)} - ${formatDateShort(endDate)}`
     }
+
+    return 'Custom Range'
   }
 
   const filterMap = {
@@ -356,4 +415,6 @@ const operationalExcellenceScore = computed(() => {
       return 'Not Available';
   }
 });
+
+
 </script>

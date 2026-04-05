@@ -106,15 +106,46 @@
       <div class="space-y-4">
         <div>
           <Label>Start Date</Label>
-          <Input type="date" v-model="customStartDate" />
+
+          <Popover v-model:open="startDateOpen">
+            <PopoverTrigger as-child>
+              <Button variant="outline" class="w-full justify-start text-left font-normal">
+                <CalendarIcon class="mr-2 h-4 w-4" />
+                {{
+                  startDatePicker
+                    ? df.format(startDatePicker.toDate(getLocalTimeZone()))
+                    : 'Pick a start date'
+                }}
+              </Button>
+            </PopoverTrigger>
+
+            <PopoverContent class="w-auto p-0">
+              <Calendar :model-value="startDatePicker" @update:model-value="handleStartDateSelect" />
+            </PopoverContent>
+          </Popover>
         </div>
 
         <div>
           <Label>End Date</Label>
-          <Input type="date" v-model="customEndDate" />
+
+          <Popover v-model:open="endDateOpen">
+            <PopoverTrigger as-child>
+              <Button variant="outline" class="w-full justify-start text-left font-normal">
+                <CalendarIcon class="mr-2 h-4 w-4" />
+                {{
+                  endDatePicker
+                    ? df.format(endDatePicker.toDate(getLocalTimeZone()))
+                    : 'Pick an end date'
+                }}
+              </Button>
+            </PopoverTrigger>
+
+            <PopoverContent class="w-auto p-0">
+              <Calendar :model-value="endDatePicker" @update:model-value="handleEndDateSelect" />
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
-
       <DialogFooter>
         <Button variant="outline" @click="showCustomDialog = false">
           Cancel
@@ -161,8 +192,14 @@ import {
 } from "@/components/ui/dialog";
 import Label from "../ui/label/Label.vue";
 import Button from "../ui/button/Button.vue";
-import Input from "../ui/input/Input.vue";
-
+import { CalendarIcon } from "lucide-vue-next";
+import { DateFormatter, getLocalTimeZone } from "@internationalized/date";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 const props = defineProps({
   repairOrders: { type: Object, default: () => ({ data: [], links: [] }) },
   tenantSlug: { type: String, default: null },
@@ -220,7 +257,12 @@ const isImporting = ref(false);
 // Import type + tenant selection for QS
 const importType = "quicksight";
 const importTenantId = ref<string | number>("");
+const startDatePicker = ref(null);
+const endDatePicker = ref(null);
+const startDateOpen = ref(false);
+const endDateOpen = ref(false);
 
+const df = new DateFormatter("en-US", { dateStyle: "medium" });
 // ✅ NEW: drag state (same as your working template)
 const isDragging = ref(false);
 let dragDepth = 0;
@@ -262,7 +304,23 @@ const form = useForm({
   repairs_made: "",
   area_of_concerns: [],
 });
+const handleStartDateSelect = (val) => {
+  startDatePicker.value = val ?? null;
+  customStartDate.value = val
+    ? val.toDate(getLocalTimeZone()).toISOString().split("T")[0]
+    : null;
 
+  startDateOpen.value = false;
+};
+
+const handleEndDateSelect = (val) => {
+  endDatePicker.value = val ?? null;
+  customEndDate.value = val
+    ? val.toDate(getLocalTimeZone()).toISOString().split("T")[0]
+    : null;
+
+  endDateOpen.value = false;
+};
 const areaForm = useForm({ concern: "" });
 const vendorForm = useForm({ vendor_name: "" });
 const statusForm = useForm({ name: "" });

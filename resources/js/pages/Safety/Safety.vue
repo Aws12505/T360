@@ -51,7 +51,23 @@
 
           <!-- Date input for the import file -->
           <div class="flex items-center gap-2" v-if="permissionNames.includes('safety-data.import')">
-            <Input v-model="importForm.date" type="date" required placeholder="Date for Import" />
+            <Popover v-model:open="importDateOpen">
+              <PopoverTrigger as-child>
+                <Button variant="outline" class="justify-start text-left font-normal min-w-[220px]">
+                  <CalendarIcon class="mr-2 h-4 w-4" />
+                  {{
+                    importDatePicker
+                      ? df.format(importDatePicker.toDate(getLocalTimeZone()))
+                      : 'Pick import date'
+                  }}
+                </Button>
+              </PopoverTrigger>
+
+              <PopoverContent class="w-auto p-0">
+                <Calendar :model-value="importDatePicker" layout="month-and-year"
+                  @update:model-value="handleImportDateSelect" />
+              </PopoverContent>
+            </Popover>
           </div>
 
           <!-- Import XLSX button -->
@@ -153,40 +169,28 @@
         </Button>
         <Card class="mx-auto max-w-[95vw] md:max-w-[64vw] lg:max-w-full overflow-x-auto">
           <CardContent class="p-0">
-            <div class="overflow-x-auto border-t border-border bg-background dark:bg-background">
+            <div class="safety-table-wrapper overflow-x-auto border-t border-border bg-background dark:bg-background">
               <Table class="relative h-[500px] overflow-auto">
                 <TableHeader>
-                  <TableRow class="sticky top-0 z-10 border-b bg-background hover:bg-background">
+                  <TableRow class="border-b bg-background hover:bg-background">
                     <!-- Checkbox column for selecting all -->
                     <TableHead v-if="permissionNames.includes('safety-data.delete')" class="w-[50px]"
-                      :class="{ 'sticky left-0 z-20 bg-background': freezeColumns }">
+                      :ref="(el) => setStickyHeaderRef('select', el)" :style="getStickyHeaderStyle('select')">
                       <div class="flex items-center justify-center">
                         <input type="checkbox" @change="toggleSelectAll" :checked="isAllSelected"
                           class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
                       </div>
                     </TableHead>
                     <!-- If SuperAdmin, show Tenant column -->
-                    <TableHead v-if="SuperAdmin" :class="{ 'sticky left-[50px] z-20 bg-background': freezeColumns }">
-                      Company Name</TableHead>
+                    <TableHead v-if="SuperAdmin" :ref="(el) => setStickyHeaderRef('company', el)"
+                      :style="getStickyHeaderStyle('company')">
+                      Company Name
+                    </TableHead>
                     <!-- Dynamically render table columns from the tableColumns array -->
                     <!-- here where we filter out the user_name, group, and group_hierarchy columns and the impact columns -->
-                    <TableHead v-for="col in tableColumns.filter(
-                      (col) =>
-                        ![
-                          'user_name',
-                          'group',
-                          'group_hierarchy',
-                          'requested_video',
-                          'safety_normalisation_factor',
-                        ].includes(col) && !col.toLowerCase().includes('impact')
-                    )" :key="col" class="whitespace-nowrap" :class="{
-                      'sticky z-20 bg-background':
-                        freezeColumns && col === 'driver_name',
-                      'left-[50px]':
-                        freezeColumns && col === 'driver_name' && !SuperAdmin,
-                      'left-[150px]':
-                        freezeColumns && col === 'driver_name' && SuperAdmin,
-                    }">
+                    <TableHead v-for="col in visibleTableColumns" :key="col" class="whitespace-nowrap"
+                      :ref="stickyColumnOrder.includes(col) ? (el) => setStickyHeaderRef(col, el) : undefined"
+                      :style="stickyColumnOrder.includes(col) ? getStickyHeaderStyle(col) : {}">
                       {{
                         col.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
                       }}
@@ -208,31 +212,17 @@
                   <TableRow v-for="item in entries.data" :key="item.id" class="hover:bg-muted/50">
                     <!-- Checkbox for selecting individual row -->
                     <TableCell v-if="permissionNames.includes('safety-data.delete')" class="text-center"
-                      :class="{ 'sticky left-0 z-10 bg-background': freezeColumns }">
+                      :style="getStickyBodyStyle('select')">
                       <input type="checkbox" :value="item.id" v-model="selectedEntries"
                         class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
                     </TableCell>
                     <!-- Display Tenant name for SuperAdmin -->
-                    <TableCell v-if="SuperAdmin" :class="{ 'sticky left-[50px] z-10 bg-background': freezeColumns }">{{
-                      item.tenant?.name ?? "—" }}</TableCell>
+                    <TableCell v-if="SuperAdmin" :style="getStickyBodyStyle('company')">
+                      {{ item.tenant?.name ?? "—" }}
+                    </TableCell>
                     <!-- Render each field for the entry -->
-                    <TableCell v-for="col in tableColumns.filter(
-                      (col) =>
-                        ![
-                          'user_name',
-                          'group',
-                          'group_hierarchy',
-                          'requested_video',
-                          'safety_normalisation_factor',
-                        ].includes(col) && !col.toLowerCase().includes('impact')
-                    )" :key="col" class="whitespace-nowrap" :class="{
-                      'sticky z-10 bg-background':
-                        freezeColumns && col === 'driver_name',
-                      'left-[50px]':
-                        freezeColumns && col === 'driver_name' && !SuperAdmin,
-                      'left-[150px]':
-                        freezeColumns && col === 'driver_name' && SuperAdmin,
-                    }">
+                    <TableCell v-for="col in visibleTableColumns" :key="col" class="whitespace-nowrap"
+                      :style="stickyColumnOrder.includes(col) ? getStickyBodyStyle(col) : {}">
                       {{
                         typeof item[col] === "string" &&
                           /^\d{4}-\d{2}-\d{2}/.test(item[col])
@@ -381,7 +371,24 @@
           <!-- Date field (important, so keep it separate at the top) -->
           <div class="col-span-full">
             <Label for="date" class="font-medium">Date</Label>
-            <Input id="date" v-model="form.date" type="date" required class="w-full" />
+
+            <Popover v-model:open="formDateOpen">
+              <PopoverTrigger as-child>
+                <Button id="date" variant="outline" class="w-full justify-start text-left font-normal">
+                  <CalendarIcon class="mr-2 h-4 w-4" />
+                  {{
+                    formDatePicker
+                      ? df.format(formDatePicker.toDate(getLocalTimeZone()))
+                      : 'Pick a date'
+                  }}
+                </Button>
+              </PopoverTrigger>
+
+              <PopoverContent class="w-auto p-0">
+                <Calendar :model-value="formDatePicker" layout="month-and-year"
+                  @update:model-value="handleFormDateSelect" />
+              </PopoverContent>
+            </Popover>
           </div>
 
           <!-- Group fields into sections for better organization -->
@@ -442,7 +449,7 @@
             )" :key="col" class="space-y-1">
               <Label :for="col" class="text-sm capitalize">{{
                 col.replace(/_/g, " ")
-              }}</Label>
+                }}</Label>
               <Input :id="col" v-model="form[col]" :type="getInputType(col)" :step="getStep(col)" :min="getMin(col)" />
             </div>
           </div>
@@ -471,12 +478,44 @@
         <div class="space-y-4">
           <div>
             <Label>Start Date</Label>
-            <Input type="date" v-model="customStartDate" />
+
+            <Popover v-model:open="startDateOpen">
+              <PopoverTrigger as-child>
+                <Button variant="outline" class="w-full justify-start text-left font-normal">
+                  <CalendarIcon class="mr-2 h-4 w-4" />
+                  {{
+                    startDatePicker
+                      ? df.format(startDatePicker.toDate(getLocalTimeZone()))
+                      : 'Pick a start date'
+                  }}
+                </Button>
+              </PopoverTrigger>
+
+              <PopoverContent class="w-auto p-0">
+                <Calendar :model-value="startDatePicker" @update:model-value="handleStartDateSelect" />
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div>
             <Label>End Date</Label>
-            <Input type="date" v-model="customEndDate" />
+
+            <Popover v-model:open="endDateOpen">
+              <PopoverTrigger as-child>
+                <Button variant="outline" class="w-full justify-start text-left font-normal">
+                  <CalendarIcon class="mr-2 h-4 w-4" />
+                  {{
+                    endDatePicker
+                      ? df.format(endDatePicker.toDate(getLocalTimeZone()))
+                      : 'Pick an end date'
+                  }}
+                </Button>
+              </PopoverTrigger>
+
+              <PopoverContent class="w-auto p-0">
+                <Calendar :model-value="endDatePicker" @update:model-value="handleEndDateSelect" />
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
 
@@ -519,9 +558,16 @@ import {
 } from "@/components/ui";
 import AppLayout from "@/layouts/AppLayout.vue";
 import { Head, router, useForm } from "@inertiajs/vue3";
-import { computed, ref, watch } from "vue";
+import { computed, ref, watch, nextTick, onMounted, onBeforeUnmount } from "vue";
 import SafetySummary from "./SafetySummary.vue";
-
+import { CalendarIcon } from "lucide-vue-next";
+import { DateFormatter, getLocalTimeZone, parseDate } from "@internationalized/date";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 // Define props passed from the backend via Inertia
 const props = defineProps({
   entries: {
@@ -558,7 +604,6 @@ const props = defineProps({
   },
   permissions: Array,
 });
-console.log(props.entries.data.length);
 // Reactive state variables
 const errorMessage = ref("");
 const successMessage = ref("");
@@ -573,6 +618,12 @@ const showDeleteSelectedModal = ref(false);
 const freezeColumns = ref(false); // Changed to false by default
 const showDeleteModal = ref(false);
 const entryToDelete = ref(null);
+const startDatePicker = ref(null);
+const endDatePicker = ref(null);
+const startDateOpen = ref(false);
+const endDateOpen = ref(false);
+
+const df = new DateFormatter("en-US", { dateStyle: "medium" });
 // Define breadcrumbs for the layout
 const breadcrumbs = [
   {
@@ -588,6 +639,8 @@ const breadcrumbs = [
       : route("safety.index.admin"),
   },
 ];
+const permissionNames = computed(() => props.permissions.map((p) => p.name));
+
 const customStartDate = ref(null);
 const customEndDate = ref(null);
 const showCustomDialog = ref(false);
@@ -595,6 +648,10 @@ const showCustomDialog = ref(false);
 function toggleFreezeColumn() {
   freezeColumns.value = !freezeColumns.value;
 }
+const importDatePicker = ref(null);
+const formDatePicker = ref(null);
+const importDateOpen = ref(false);
+const formDateOpen = ref(false);
 const weekNumberText = computed(() => {
   // For yesterday and current-week, show single week
   if (
@@ -617,6 +674,37 @@ const weekNumberText = computed(() => {
 
   return "";
 });
+const handleStartDateSelect = (val) => {
+  startDatePicker.value = val ?? null;
+  customStartDate.value = val
+    ? val.toDate(getLocalTimeZone()).toISOString().split("T")[0]
+    : null;
+
+  startDateOpen.value = false;
+};
+const handleImportDateSelect = (val) => {
+  importDatePicker.value = val ?? null;
+  importForm.date = val
+    ? val.toDate(getLocalTimeZone()).toISOString().split("T")[0]
+    : "";
+  importDateOpen.value = false;
+};
+
+const handleFormDateSelect = (val) => {
+  formDatePicker.value = val ?? null;
+  form.date = val
+    ? val.toDate(getLocalTimeZone()).toISOString().split("T")[0]
+    : "";
+  formDateOpen.value = false;
+};
+const handleEndDateSelect = (val) => {
+  endDatePicker.value = val ?? null;
+  customEndDate.value = val
+    ? val.toDate(getLocalTimeZone()).toISOString().split("T")[0]
+    : null;
+
+  endDateOpen.value = false;
+};
 // Field definitions based on your migration
 const fieldTypes = {
   driver_name: "text",
@@ -678,7 +766,129 @@ const fieldTypes = {
 // Derive formColumns and tableColumns from fieldTypes keys.
 const formColumns = Object.keys(fieldTypes);
 const tableColumns = [...formColumns];
+const stickyColumnOrder = ["select", "company", "driver_name"];
+const visibleTableColumns = computed(() =>
+  tableColumns.filter(
+    (col) =>
+      ![
+        "user_name",
+        "group",
+        "group_hierarchy",
+        "requested_video",
+        "safety_normalisation_factor",
+      ].includes(col) && !col.toLowerCase().includes("impact")
+  )
+);
+const stickyColumnVisibility = computed(() => ({
+  select: permissionNames.value.includes("safety-data.delete"),
+  company: props.SuperAdmin,
+  driver_name: visibleTableColumns.value.includes("driver_name"),
+}));
+const activeStickyColumns = computed(() =>
+  stickyColumnOrder.filter((key) => stickyColumnVisibility.value[key])
+);
+const stickyHeaderRefs = ref({});
+const stickyOffsets = ref({});
+let stickyResizeObserver = null;
 
+function setStickyHeaderRef(key, el) {
+  const target = el?.$el ?? el;
+
+  if (target instanceof Element) {
+    stickyHeaderRefs.value[key] = target;
+  } else {
+    delete stickyHeaderRefs.value[key];
+  }
+}
+function calculateStickyOffsets() {
+  const offsets = {};
+  let currentLeft = 0;
+
+  for (const key of activeStickyColumns.value) {
+    offsets[key] = currentLeft;
+
+    const el = stickyHeaderRefs.value[key];
+    const width = el instanceof Element ? el.getBoundingClientRect().width : 0;
+
+    currentLeft += width;
+  }
+
+  stickyOffsets.value = offsets;
+}
+function getStickyHeaderStyle(key) {
+  if (!freezeColumns.value) return {};
+  if (!activeStickyColumns.value.includes(key)) return {};
+
+  return {
+    left: `${stickyOffsets.value[key] ?? 0}px`,
+    zIndex: 40,
+    backgroundColor: "hsl(var(--background))",
+  };
+}
+
+function getStickyBodyStyle(key) {
+  if (!freezeColumns.value) return {};
+  if (!activeStickyColumns.value.includes(key)) return {};
+
+  return {
+    position: "sticky",
+    left: `${stickyOffsets.value[key] ?? 0}px`,
+    zIndex: 20,
+    backgroundColor: "hsl(var(--background))",
+  };
+}
+function setupStickyResizeObserver() {
+  if (stickyResizeObserver) {
+    stickyResizeObserver.disconnect();
+  }
+
+  stickyResizeObserver = new ResizeObserver(() => {
+    calculateStickyOffsets();
+  });
+
+  Object.values(stickyHeaderRefs.value).forEach((el) => {
+    if (el instanceof Element) {
+      stickyResizeObserver.observe(el);
+    }
+  });
+}
+
+async function refreshStickyLayout() {
+  await nextTick();
+  calculateStickyOffsets();
+  setupStickyResizeObserver();
+}
+watch(
+  [
+    freezeColumns,
+    activeStickyColumns,
+    visibleTableColumns,
+    () => props.entries.data.length,
+  ],
+  () => {
+    refreshStickyLayout();
+  },
+  { immediate: true, deep: true }
+);
+onMounted(() => {
+  refreshStickyLayout();
+  window.addEventListener("resize", calculateStickyOffsets);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("resize", calculateStickyOffsets);
+
+  if (stickyResizeObserver) {
+    stickyResizeObserver.disconnect();
+  }
+});
+function isStickyColumn(key) {
+  return activeStickyColumns.value.includes(key);
+}
+
+function getColumnStickyKey(col) {
+  return stickyColumnOrder.includes(col) ? col : null;
+}
 // Initialize form state using Inertia's useForm helper.
 const form = useForm({
   tenant_id: null,
@@ -720,6 +930,8 @@ function getMin(field) {
 function openCreateModal() {
   form.reset();
   formTitle.value = "Create Entry";
+  formDatePicker.value = form.date ? parseDate(form.date) : null;
+
   formAction.value = "Create";
   showModal.value = true;
 }
@@ -730,6 +942,7 @@ function openEditModal(item) {
   formAction.value = "Update";
   form.tenant_id = props.SuperAdmin ? item.tenant_id : null;
   form.id = item.id;
+  formDatePicker.value = form.date ? parseDate(form.date) : null;
   formColumns.forEach((col) => {
     form[col] = item[col];
   });
@@ -739,6 +952,7 @@ function openEditModal(item) {
 // Close the modal.
 function closeModal() {
   showModal.value = false;
+  formDateOpen.value = false;
 }
 
 // Submit the form data to create or update an entry.
@@ -821,6 +1035,7 @@ function handleImport(e) {
     onSuccess: () => {
       successMessage.value = "Data imported successfully.";
       importForm.reset();
+      importDatePicker.value = null;
     },
     onError: () => alert("Import failed."),
   });
@@ -970,161 +1185,93 @@ function deleteSelectedEntries() {
   });
 }
 
-// Add this to your reactive state variables
-// const safetyData = ref({
-//   greenZoneScore: 1050,
-//   topDrivers: [
-//     { name: 'Daniel Rice', score: 1 },
-//     { name: 'Johnny Rice', score: 2 },
-//     { name: 'Adam Levine the greatest', score: 3 },
-//     { name: 'Alaina', score: 4 },
-//     { name: 'Jaden', score: 5 }
-//   ],
-//   bottomDrivers: [
-//     { name: 'Kain', score: 5 },
-//     { name: 'Ronny', score: 4 },
-//     { name: 'Damen', score: 3 },
-//     { name: 'Leo', score: 2 },
-//     { name: 'Shawn', score: 1 }
-//   ],
-//   alerts: {
-//     distractedDriving: 23,
-//     speeding: 4,
-//     signViolation: 6,
-//     trafficLightViolation: 7,
-//     followingDistance: 3
-//   },
-//   infractions: {
-//     driverStar: 1050,
-//     potentialCollision: 1050,
-//     hardBraking: 1050,
-//     hardTurn: 1050,
-//     hardAcceleration: 1050,
-//     uTurn: 1050,
-//     seatbeltCompliance: 1050,
-//     cameraObstruction: 1050,
-//     driverDrowsiness: 1050,
-//     weaving: 1050,
-//     collisionWarning: 1050,
-//     backing: 1050,
-//     roadsideParking: 1050,
-//     highG: 1050
-//   }
-// });
 
-const permissionNames = computed(() => props.permissions.map((p) => p.name));
 </script>
 
 <style scoped>
-/* Ensure proper table scrolling behavior */
-:deep(.overflow-x-auto) {
+:deep(.safety-table-wrapper) {
   position: relative;
   background-color: hsl(var(--background));
+  min-height: 500px;
 }
 
-:deep(table) {
+:deep(.safety-table-wrapper table) {
   border-collapse: separate;
   border-spacing: 0;
   width: 100%;
-  /* Ensure table takes full width */
   background-color: hsl(var(--background));
 }
 
-/* Enhanced styling for frozen columns */
-:deep(.sticky) {
-  position: sticky !important;
-  z-index: 10;
-  box-shadow: 4px 0 6px -2px rgba(0, 0, 0, 0.1);
-  /* Use the exact same background color variable as the rest of the table */
-  background-color: hsl(var(--background)) !important;
-  background-clip: padding-box;
-  isolation: isolate;
-}
-
-/* Higher z-index for header cells to ensure they stay on top */
-:deep(thead .sticky) {
-  z-index: 30 !important;
-  /* Ensure header cells have the same background */
-  background-color: hsl(var(--background)) !important;
-}
-
-/* Add column dividers that work in both light and dark mode */
-:deep(th),
-:deep(td) {
+:deep(.safety-table-wrapper th),
+:deep(.safety-table-wrapper td) {
   border-right: 1px solid hsl(var(--border));
-  /* Ensure all cells have the same background color */
   background-color: hsl(var(--background));
 }
 
-:deep(th:last-child),
-:deep(td:last-child) {
+:deep(.safety-table-wrapper th:last-child),
+:deep(.safety-table-wrapper td:last-child) {
   border-right: none;
 }
 
-/* Ensure header row stays fixed at the top */
-:deep(thead tr) {
+/* header cells own the vertical sticky behavior */
+:deep(.safety-table-wrapper thead th) {
   position: sticky;
   top: 0;
-  z-index: 20;
+  z-index: 30;
   background-color: hsl(var(--background));
-}
-
-/* Add a subtle border to the bottom of the header for better visual separation */
-:deep(thead th) {
   border-bottom: 2px solid hsl(var(--border));
 }
 
-/* For hover states, ensure the background color is consistent */
-:deep(tbody tr:hover td) {
-  background-color: hsl(var(--muted)) !important;
-}
-
-:deep(tbody tr:hover td.sticky) {
-  background-color: hsl(var(--muted)) !important;
-}
-
-/* Fill any gaps at the bottom of the table */
-:deep(.h-[500px]) {
-  overflow: auto;
-  position: relative;
-  min-height: 500px;
-  /* Ensure minimum height */
-  background-color: hsl(var(--background));
-  /* Match table background */
-}
-
-/* Ensure the table container fills available space */
-:deep(.overflow-x-auto) {
-  background-color: hsl(var(--background));
-  min-height: 500px;
-}
-
-/* Add a bottom border to the last row to ensure visual closure */
-:deep(tbody tr:last-child td) {
-  border-bottom: 1px solid hsl(var(--border));
-}
-
-/* Ensure proper stacking context for frozen columns */
-:deep(.sticky.left-0),
-:deep(.sticky.left-\[50px\]),
-:deep(.sticky.left-\[150px\]) {
+/* cells that are also horizontally frozen */
+:deep(.safety-table-wrapper th[style*="left:"]),
+:deep(.safety-table-wrapper td[style*="left:"]) {
+  box-shadow: 4px 0 6px -2px rgba(0, 0, 0, 0.1);
+  background-color: hsl(var(--background)) !important;
+  background-clip: padding-box;
+  isolation: isolate;
   border-right: 2px solid hsl(var(--border));
 }
 
-/* Fill any gaps between cells */
-:deep(tbody) {
+/* frozen header cells above everything else */
+:deep(.safety-table-wrapper thead th[style*="left:"]) {
+  z-index: 40 !important;
+}
+
+/* frozen body cells below header but above normal cells */
+:deep(.safety-table-wrapper tbody td[style*="left:"]) {
+  z-index: 20 !important;
+}
+
+:deep(.safety-table-wrapper tbody tr:hover td) {
+  background-color: hsl(var(--muted)) !important;
+}
+
+/* keep frozen body cells matching hover */
+:deep(.safety-table-wrapper tbody tr:hover td[style*="left:"]) {
+  background-color: hsl(var(--muted)) !important;
+}
+
+:deep(.safety-table-wrapper .h-[500px]) {
+  overflow: auto;
+  position: relative;
+  min-height: 500px;
   background-color: hsl(var(--background));
 }
 
-:deep(tr) {
+:deep(.safety-table-wrapper tbody tr:last-child td) {
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+:deep(.safety-table-wrapper tbody),
+:deep(.safety-table-wrapper tr),
+:deep(.safety-table-wrapper tr td),
+:deep(.safety-table-wrapper tr th) {
   background-color: hsl(var(--background));
 }
 
-/* Ensure no white space between rows */
-:deep(tr td),
-:deep(tr th) {
+:deep(.safety-table-wrapper tr td),
+:deep(.safety-table-wrapper tr th) {
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
-  background-color: hsl(var(--background));
 }
 </style>

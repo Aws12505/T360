@@ -84,7 +84,24 @@
                 <Icon name="calendar" class="h-4 w-4 text-muted-foreground" />
                 Open Date
               </Label>
-              <Input type="date" v-model="form.ro_open_date" required class="h-9 w-full" />
+
+              <Popover v-model:open="roOpenDateOpen">
+                <PopoverTrigger as-child>
+                  <Button variant="outline" class="h-9 w-full justify-start text-left font-normal">
+                    <CalendarIcon class="mr-2 h-4 w-4" />
+                    {{
+                      roOpenDatePicker
+                        ? df.format(roOpenDatePicker.toDate(getLocalTimeZone()))
+                        : "Pick open date"
+                    }}
+                  </Button>
+                </PopoverTrigger>
+
+                <PopoverContent class="w-auto p-0">
+                  <Calendar :model-value="roOpenDatePicker" layout="month-and-year"
+                    @update:model-value="handleRoOpenDateSelect" />
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div>
@@ -92,7 +109,24 @@
                 <Icon name="calendar-check" class="h-4 w-4 text-muted-foreground" />
                 Close Date
               </Label>
-              <Input type="date" v-model="form.ro_close_date" class="h-9 w-full" />
+
+              <Popover v-model:open="roCloseDateOpen">
+                <PopoverTrigger as-child>
+                  <Button variant="outline" class="h-9 w-full justify-start text-left font-normal">
+                    <CalendarIcon class="mr-2 h-4 w-4" />
+                    {{
+                      roCloseDatePicker
+                        ? df.format(roCloseDatePicker.toDate(getLocalTimeZone()))
+                        : "Pick close date"
+                    }}
+                  </Button>
+                </PopoverTrigger>
+
+                <PopoverContent class="w-auto p-0">
+                  <Calendar :model-value="roCloseDatePicker" layout="month-and-year"
+                    @update:model-value="handleRoCloseDateSelect" />
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
 
@@ -277,7 +311,24 @@
                 <Icon name="calendar-days" class="h-4 w-4 text-muted-foreground" />
                 QS Invoice Date
               </Label>
-              <Input type="date" v-model="form.qs_invoice_date" class="h-9 w-full" />
+
+              <Popover v-model:open="qsInvoiceDateOpen">
+                <PopoverTrigger as-child>
+                  <Button variant="outline" class="h-9 w-full justify-start text-left font-normal">
+                    <CalendarIcon class="mr-2 h-4 w-4" />
+                    {{
+                      qsInvoiceDatePicker
+                        ? df.format(qsInvoiceDatePicker.toDate(getLocalTimeZone()))
+                        : "Pick QS invoice date"
+                    }}
+                  </Button>
+                </PopoverTrigger>
+
+                <PopoverContent class="w-auto p-0">
+                  <Calendar :model-value="qsInvoiceDatePicker" layout="month-and-year"
+                    @update:model-value="handleQsInvoiceDateSelect" />
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
 
@@ -345,7 +396,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 import Icon from "@/components/Icon.vue";
 import {
   Button,
@@ -358,6 +409,14 @@ import {
   Input,
   Label,
 } from "@/components/ui";
+import { CalendarIcon } from "lucide-vue-next";
+import { DateFormatter, getLocalTimeZone, parseDate } from "@internationalized/date";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 const props = defineProps<{
   open: boolean;
@@ -372,7 +431,45 @@ const props = defineProps<{
   areasMap: Record<number, string>;
   availableAreas: any[];
 }>();
+const roOpenDatePicker = ref(
+  props.form?.ro_open_date ? parseDate(props.form.ro_open_date) : null
+);
+const roCloseDatePicker = ref(
+  props.form?.ro_close_date ? parseDate(props.form.ro_close_date) : null
+);
+const qsInvoiceDatePicker = ref(
+  props.form?.qs_invoice_date ? parseDate(props.form.qs_invoice_date) : null
+);
 
+const roOpenDateOpen = ref(false);
+const roCloseDateOpen = ref(false);
+const qsInvoiceDateOpen = ref(false);
+
+const df = new DateFormatter("en-US", { dateStyle: "medium" });
+
+const handleRoOpenDateSelect = (val) => {
+  roOpenDatePicker.value = val ?? null;
+  props.form.ro_open_date = val
+    ? val.toDate(getLocalTimeZone()).toISOString().split("T")[0]
+    : "";
+  roOpenDateOpen.value = false;
+};
+
+const handleRoCloseDateSelect = (val) => {
+  roCloseDatePicker.value = val ?? null;
+  props.form.ro_close_date = val
+    ? val.toDate(getLocalTimeZone()).toISOString().split("T")[0]
+    : "";
+  roCloseDateOpen.value = false;
+};
+
+const handleQsInvoiceDateSelect = (val) => {
+  qsInvoiceDatePicker.value = val ?? null;
+  props.form.qs_invoice_date = val
+    ? val.toDate(getLocalTimeZone()).toISOString().split("T")[0]
+    : "";
+  qsInvoiceDateOpen.value = false;
+};
 const emit = defineEmits<{
   (e: "update:open", v: boolean): void;
   (e: "submitForm"): void;
@@ -385,4 +482,28 @@ const openProxy = computed({
   get: () => props.open,
   set: (v) => emit("update:open", v),
 });
+
+watch(
+  () => props.form?.ro_open_date,
+  (v) => {
+    roOpenDatePicker.value = v ? parseDate(v) : null;
+  },
+  { immediate: true }
+);
+
+watch(
+  () => props.form?.ro_close_date,
+  (v) => {
+    roCloseDatePicker.value = v ? parseDate(v) : null;
+  },
+  { immediate: true }
+);
+
+watch(
+  () => props.form?.qs_invoice_date,
+  (v) => {
+    qsInvoiceDatePicker.value = v ? parseDate(v) : null;
+  },
+  { immediate: true }
+);
 </script>

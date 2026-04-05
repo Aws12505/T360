@@ -5,12 +5,16 @@
         <Table class="relative h-[500px] overflow-auto">
           <TableHeader>
             <TableRow class="sticky top-0 z-10 border-b bg-background hover:bg-background">
+
               <TableHead class="w-12" v-if="permissionNames.includes('repair-orders.delete')">
                 <div class="flex items-center justify-center">
                   <input type="checkbox" :checked="allSelected" @change="$emit('toggleAll', $event)"
                     class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
                 </div>
               </TableHead>
+              <TableHead v-if="isAdmin" class="font-semibold">Company</TableHead>
+
+              <TableHead class="font-semibold">Truck</TableHead>
 
               <TableHead @click="$emit('sort', 'ro_number')" class="cursor-pointer font-semibold">
                 <div class="flex items-center space-x-1">
@@ -19,7 +23,6 @@
                 </div>
               </TableHead>
 
-              <TableHead v-if="isAdmin" class="font-semibold">Company</TableHead>
 
               <TableHead @click="$emit('sort', 'ro_open_date')" class="cursor-pointer font-semibold">
                 <div class="flex items-center space-x-1">
@@ -35,17 +38,10 @@
                 </div>
               </TableHead>
 
-              <TableHead class="font-semibold">Truck</TableHead>
               <TableHead class="font-semibold">Vendor</TableHead>
-              <TableHead class="font-semibold">Areas of Concern</TableHead>
-              <!-- <TableHead class="font-semibold">WO#</TableHead>
-              <TableHead class="font-semibold">WO Status</TableHead>
-              <TableHead class="font-semibold">Invoice</TableHead> -->
-              <TableHead class="font-semibold">Amount</TableHead>
               <TableHead class="font-semibold">Invoice Received</TableHead>
-              <TableHead class="font-semibold">On QS</TableHead>
+              <TableHead class="font-semibold">Amount</TableHead>
               <TableHead class="font-semibold">QS Invoice Date</TableHead>
-              <TableHead class="font-semibold">Original Amount</TableHead>
               <TableHead class="font-semibold">Dispute Status</TableHead>
               <TableHead class="font-semibold">Determination</TableHead>
               <TableHead class="font-semibold">Dispute Outcome</TableHead>
@@ -77,13 +73,16 @@
                   class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-1 focus:ring-primary" />
               </TableCell>
 
+              <TableCell v-if="isAdmin" class="whitespace-nowrap">
+                {{ o.tenant?.name || "—" }}
+              </TableCell>
+              <TableCell class="whitespace-nowrap">
+                {{ o.truck?.truckid || "—" }}
+              </TableCell>
               <TableCell class="whitespace-nowrap font-medium">
                 {{ o.ro_number }}
               </TableCell>
 
-              <TableCell v-if="isAdmin" class="whitespace-nowrap">
-                {{ o.tenant?.name || "—" }}
-              </TableCell>
 
               <TableCell class="whitespace-nowrap">
                 {{ formatDate(o.ro_open_date) }}
@@ -93,54 +92,24 @@
                 {{ o.ro_close_date ? formatDate(o.ro_close_date) : "N/A" }}
               </TableCell>
 
-              <TableCell class="whitespace-nowrap">
-                {{ o.truck?.truckid || "—" }}
-              </TableCell>
+
 
               <TableCell class="whitespace-nowrap">
                 {{ o.vendor?.vendor_name || "—" }}
               </TableCell>
 
-              <TableCell class="whitespace-nowrap">
-                <span v-if="o.areas_of_concern?.length">
-                  <span v-for="(area, idx) in o.areas_of_concern" :key="area.id">
-                    {{ area.concern
-                    }}<span v-if="idx < o.areas_of_concern.length - 1">, </span>
-                  </span>
-                </span>
-                <span v-else>—</span>
-              </TableCell>
-
-              <!-- <TableCell class="whitespace-nowrap">
-                {{ o.wo_number || "—" }}
-              </TableCell>
 
               <TableCell class="whitespace-nowrap">
-                {{ o.wo_status?.name || "—" }}
+                {{ o.invoice_received ? "Yes" : "No" }}
               </TableCell>
 
-              <TableCell class="whitespace-nowrap">
-                {{ o.invoice || "—" }}
-              </TableCell> -->
 
               <TableCell class="whitespace-nowrap">
                 {{ formatCurrency(o.invoice_amount) }}
               </TableCell>
 
               <TableCell class="whitespace-nowrap">
-                {{ o.invoice_received ? "Yes" : "No" }}
-              </TableCell>
-
-              <TableCell class="whitespace-nowrap">
-                {{ o.on_qs ? o.on_qs.charAt(0).toUpperCase() + o.on_qs.slice(1) : "No" }}
-              </TableCell>
-
-              <TableCell class="whitespace-nowrap">
                 {{ o.qs_invoice_date ? formatDate(o.qs_invoice_date) : "N/A" }}
-              </TableCell>
-
-              <TableCell class="whitespace-nowrap">
-                {{ o.original_amount ? formatCurrency(o.original_amount) : "—" }}
               </TableCell>
 
               <TableCell class="whitespace-nowrap">

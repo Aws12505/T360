@@ -484,12 +484,46 @@
         <div class="space-y-4">
           <div>
             <Label>Start Date</Label>
-            <Input type="date" v-model="customStartDate" />
+
+            <Popover v-model:open="startDateOpen">
+              <PopoverTrigger as-child>
+                <Button variant="outline" class="w-full justify-start text-left font-normal">
+                  <CalendarIcon class="mr-2 h-4 w-4" />
+                  {{
+                    startDatePicker
+                      ? df.format(startDatePicker.toDate(getLocalTimeZone()))
+                      : 'Pick a start date'
+                  }}
+                </Button>
+              </PopoverTrigger>
+
+              <PopoverContent class="w-auto p-0">
+                <Calendar :model-value="startDatePicker" layout="month-and-year"
+                  @update:model-value="handleStartDateSelect" />
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div>
             <Label>End Date</Label>
-            <Input type="date" v-model="customEndDate" />
+
+            <Popover v-model:open="endDateOpen">
+              <PopoverTrigger as-child>
+                <Button variant="outline" class="w-full justify-start text-left font-normal">
+                  <CalendarIcon class="mr-2 h-4 w-4" />
+                  {{
+                    endDatePicker
+                      ? df.format(endDatePicker.toDate(getLocalTimeZone()))
+                      : 'Pick an end date'
+                  }}
+                </Button>
+              </PopoverTrigger>
+
+              <PopoverContent class="w-auto p-0">
+                <Calendar :model-value="endDatePicker" layout="month-and-year"
+                  @update:model-value="handleEndDateSelect" />
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
 
@@ -537,7 +571,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import AppLayout from "@/layouts/AppLayout.vue";
-
+import { CalendarIcon } from "lucide-vue-next";
+import { DateFormatter, getLocalTimeZone } from "@internationalized/date";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 // ─── Props ────────────────────────────────────────────────────────────────────
 const props = defineProps({
   rejections: { type: Object, default: () => ({ data: [], links: [], total: 0 }) },
@@ -602,7 +643,12 @@ const localFilters = ref({
   penaltyMax: props.filters?.penaltyMax ?? "",
   rejectionReasonFilter: props.filters?.rejectionReasonFilter ?? "with_reason",
 });
+const startDatePicker = ref(null);
+const endDatePicker = ref(null);
+const startDateOpen = ref(false);
+const endDateOpen = ref(false);
 
+const df = new DateFormatter("en-US", { dateStyle: "medium" });
 // ─── Breadcrumbs ──────────────────────────────────────────────────────────────
 const breadcrumbs = [
   {
@@ -618,7 +664,23 @@ const breadcrumbs = [
       : route("acceptance.index.admin"),
   },
 ];
+const handleStartDateSelect = (val) => {
+  startDatePicker.value = val ?? null;
+  customStartDate.value = val
+    ? val.toDate(getLocalTimeZone()).toISOString().split("T")[0]
+    : null;
 
+  startDateOpen.value = false;
+};
+
+const handleEndDateSelect = (val) => {
+  endDatePicker.value = val ?? null;
+  customEndDate.value = val
+    ? val.toDate(getLocalTimeZone()).toISOString().split("T")[0]
+    : null;
+
+  endDateOpen.value = false;
+};
 // ─── Sub-relation accessors (hasMany → first item) ────────────────────────────
 function ab(r) {
   return r.advanced_rejected_block?.[0] ?? null;
@@ -657,17 +719,7 @@ function bucketLabel(bucket) {
   return map[bucket] ?? bucket ?? "—";
 }
 
-// Short label used in filter pills
-function bucketPillLabel(bucket) {
-  const map = {
-    more_than_24: "24+ Hours Before",
-    less_than_24: "< 24 Hours Before",
-    rejected_after_start_time: "After Start Time",
-    rejected_0_6_hours_before_start_time: "0–6 Hours Before",
-    rejected_6_plus_hours_before_start_time: "6+ Hours Before",
-  };
-  return map[bucket] ?? bucket ?? "—";
-}
+
 
 function formatDate(d) {
   if (!d) return "—";
@@ -703,6 +755,18 @@ const ALL_COLUMNS = [
     getValue: (r) => formatDate(r.date),
   },
   {
+    key: "b_driver_name",
+    label: "Driver Name",
+    shared: false,
+    getValue: (r) => formatDriverName(rb(r)?.driver_name) ?? null,
+  },
+  {
+    key: "l_driver_name",
+    label: "Driver Name",
+    shared: false,
+    getValue: (r) => formatDriverName(rl(r)?.driver_name) ?? null,
+  },
+  {
     key: "type",
     label: "Type",
     shared: true,
@@ -727,122 +791,111 @@ const ALL_COLUMNS = [
     },
   },
   {
+    key: "ab_rejection_id",
+    label: "Adv. Rejection ID",
+    shared: false,
+    getValue: (r) => ab(r)?.advance_block_rejection_id ?? null,
+  },
+  {
+    key: "b_block_id",
+    label: "Block ID",
+    shared: false,
+    getValue: (r) => rb(r)?.block_id ?? null,
+  },
+  {
+    key: "l_load_id",
+    label: "Load ID",
+    shared: false,
+    getValue: (r) => rl(r)?.load_id ?? null,
+  },
+  {
     key: "penalty",
     label: "Penalty",
     shared: true,
 
     getValue: (r) => {
-      // const isWon = r.disputed === "won";
-
-      // const isDriverControllable =
-      //   r.driver_controllable === true ||
-      //   r.driver_controllable === 1 ||
-      //   r.driver_controllable === "1" ||
-      //   r.driver_controllable === "true";
-
-      // const isCarrierControllable =
-      //   r.carrier_controllable === true ||
-      //   r.carrier_controllable === 1 ||
-      //   r.carrier_controllable === "1" ||
-      //   r.carrier_controllable === "true";
-
-      // // ✅ WON
-      // if (isWon) return 0;
-
-      // // ✅ Carrier NOT controllable → always 0
-      // if (!isCarrierControllable) return 0;
-
       return r.penalty != null ? Number(r.penalty) : null;
     },
 
     render: (r) => {
-      const originalPenalty = r.penalty != null ? Number(r.penalty).toFixed(2) : null;
+      if (r.penalty == null) {
+        return h("span", { class: "text-muted-foreground block text-center" }, "—");
+      }
 
-      // const isWon = r.disputed === "won";
+      const penalty = Number(r.penalty);
 
-      // const isDriverControllable =
-      //   r.driver_controllable === true ||
-      //   r.driver_controllable === 1 ||
-      //   r.driver_controllable === "1" ||
-      //   r.driver_controllable === "true";
+      const formattedPenalty = Number.isInteger(penalty)
+        ? String(penalty)
+        : penalty.toFixed(2).replace(/\.?0+$/, "");
 
-      // const isCarrierControllable =
-      //   r.carrier_controllable === true ||
-      //   r.carrier_controllable === 1 ||
-      //   r.carrier_controllable === "1" ||
-      //   r.carrier_controllable === "true";
+      let cls = "bg-muted text-muted-foreground";
 
-      // if (!originalPenalty && !isWon) {
-      //   return h("span", { class: "text-muted-foreground" }, "—");
-      // }
+      if (penalty >= 8) {
+        cls = "bg-red-950 text-red-200 dark:bg-red-950 dark:text-red-200";
+      } else if (penalty >= 4) {
+        cls = "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300";
+      } else if (penalty >= 2) {
+        cls = "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300";
+      } else {
+        cls = "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300";
+      }
 
-      // // ✅ WON + DRIVER CONTROLLABLE
-      // if (isWon && isDriverControllable) {
-      //   return h("div", { class: "flex flex-col leading-tight" }, [
-      //     h(
-      //       "span",
-      //       {
-      //         class: "font-mono text-xs font-semibold text-green-600 dark:text-green-400",
-      //       },
-      //       "0.00"
-      //     ),
-      //     h(
-      //       "span",
-      //       {
-      //         class: "self-end text-[10px] opacity-60 font-mono whitespace-nowrap",
-      //       },
-      //       `Driver: ${originalPenalty}`
-      //     ),
-      //   ]);
-      // }
-
-      // // ✅ WON (not driver controllable)
-      // if (isWon) {
-      //   return h(
-      //     "span",
-      //     {
-      //       class: "font-mono text-xs font-semibold text-green-600 dark:text-green-400",
-      //     },
-      //     "0.00"
-      //   );
-      // }
-
-      // // ✅ Carrier NOT controllable
-      // if (!isCarrierControllable) {
-      //   // If driver IS controllable → show driver note
-      //   if (isDriverControllable && originalPenalty) {
-      //     return h("div", { class: "flex flex-col leading-tight" }, [
-      //       h(
-      //         "span",
-      //         {
-      //           class:
-      //             "font-mono text-xs font-semibold text-green-600 dark:text-green-400",
-      //         },
-      //         "0.00"
-      //       ),
-      //       h(
-      //         "span",
-      //         {
-      //           class: "self-end text-[10px] opacity-60 font-mono whitespace-nowrap",
-      //         },
-      //         `Driver: ${originalPenalty}`
-      //       ),
-      //     ]);
-      //   }
-
-      //   // If both false → just 0
-      //   return h(
-      //     "span",
-      //     {
-      //       class: "font-mono text-xs font-semibold text-green-600 dark:text-green-400",
-      //     },
-      //     "0.00"
-      //   );
-      // }
-
-      // ✅ Normal case
-      return h("span", { class: "font-mono text-xs" }, originalPenalty);
+      return h(
+        "div",
+        { class: "flex justify-center" },
+        [
+          h(
+            "span",
+            {
+              class: `inline-flex items-center justify-center rounded-full px-2 py-0.5 text-xs font-medium ${cls}`,
+            },
+            formattedPenalty
+          ),
+        ]
+      );
     },
+  },
+  {
+    key: "b_rejection_bucket",
+    label: "Bucket",
+    shared: false,
+    getValue: (r) =>
+      rb(r)?.rejection_bucket ? bucketLabel(rb(r).rejection_bucket) : null,
+  },
+  {
+    key: "l_rejection_bucket",
+    label: "Bucket",
+    shared: false,
+    getValue: (r) =>
+      rl(r)?.rejection_bucket ? bucketLabel(rl(r).rejection_bucket) : null,
+  },
+  {
+    key: "rejection_reason",
+    label: "Reason",
+    shared: true,
+    getValue: (r) => r.rejection_reason || null,
+    render: (r) =>
+      r.rejection_reason
+        ? h(
+          "span",
+          { class: "block max-w-[180px] truncate", title: r.rejection_reason },
+          formatRejectionReason(r.rejection_reason)
+        )
+        : h("span", { class: "text-muted-foreground" }, "—"),
+  },
+  {
+    key: "driver_controllable",
+    label: "Driver Controllable",
+    shared: true,
+    getValue: (r) =>
+      r.driver_controllable != null ? (r.driver_controllable ? "Yes" : "No") : null,
+  },
+  {
+    key: "carrier_controllable",
+    label: "Carrier Controllable",
+    shared: true,
+    getValue: (r) =>
+      r.carrier_controllable != null ? (r.carrier_controllable ? "Yes" : "No") : null,
   },
   {
     key: "disputed",
@@ -867,136 +920,7 @@ const ALL_COLUMNS = [
       );
     },
   },
-  {
-    key: "carrier_controllable",
-    label: "Carrier Controllable",
-    shared: true,
-    getValue: (r) =>
-      r.carrier_controllable != null ? (r.carrier_controllable ? "Yes" : "No") : null,
-  },
-  {
-    key: "driver_controllable",
-    label: "Driver Controllable",
-    shared: true,
-    getValue: (r) =>
-      r.driver_controllable != null ? (r.driver_controllable ? "Yes" : "No") : null,
-  },
-  {
-    key: "rejection_reason",
-    label: "Reason",
-    shared: true,
-    getValue: (r) => r.rejection_reason || null,
-    render: (r) =>
-      r.rejection_reason
-        ? h(
-          "span",
-          { class: "block max-w-[180px] truncate", title: r.rejection_reason },
-          formatRejectionReason(r.rejection_reason)
-        )
-        : h("span", { class: "text-muted-foreground" }, "—"),
-  },
 
-  // ── Advanced Block ──
-  {
-    key: "ab_rejection_id",
-    label: "Adv. Rejection ID",
-    shared: false,
-    getValue: (r) => ab(r)?.advance_block_rejection_id ?? null,
-  },
-  {
-    key: "ab_week_start",
-    label: "Week Start",
-    shared: false,
-    getValue: (r) => (ab(r)?.week_start ? formatDate(ab(r).week_start) : null),
-  },
-  {
-    key: "ab_week_end",
-    label: "Week End",
-    shared: false,
-    getValue: (r) => (ab(r)?.week_end ? formatDate(ab(r).week_end) : null),
-  },
-  {
-    key: "ab_impacted_blocks",
-    label: "Impacted Blocks",
-    shared: false,
-    getValue: (r) =>
-      ab(r)?.impacted_blocks != null ? String(ab(r).impacted_blocks) : null,
-  },
-  {
-    key: "ab_expected_blocks",
-    label: "Expected Blocks",
-    shared: false,
-    getValue: (r) =>
-      ab(r)?.expected_blocks != null ? String(ab(r).expected_blocks) : null,
-  },
-
-  // ── Block ──
-  {
-    key: "b_block_id",
-    label: "Block ID",
-    shared: false,
-    getValue: (r) => rb(r)?.block_id ?? null,
-  },
-  {
-    key: "b_driver_name",
-    label: "Driver Name",
-    shared: false,
-    getValue: (r) => formatDriverName(rb(r)?.driver_name) ?? null,
-  },
-  {
-    key: "b_block_start",
-    label: "Block Start",
-    shared: false,
-    getValue: (r) => (rb(r)?.block_start ? formatDateTime(rb(r).block_start) : null),
-  },
-  {
-    key: "b_block_end",
-    label: "Block End",
-    shared: false,
-    getValue: (r) => (rb(r)?.block_end ? formatDateTime(rb(r).block_end) : null),
-  },
-  {
-    key: "b_rejection_datetime",
-    label: "Rejection Time",
-    shared: false,
-    getValue: (r) =>
-      rb(r)?.rejection_datetime ? formatDateTime(rb(r).rejection_datetime) : null,
-  },
-  {
-    key: "b_rejection_bucket",
-    label: "Bucket",
-    shared: false,
-    getValue: (r) =>
-      rb(r)?.rejection_bucket ? bucketLabel(rb(r).rejection_bucket) : null,
-  },
-
-  // ── Load ──
-  {
-    key: "l_load_id",
-    label: "Load ID",
-    shared: false,
-    getValue: (r) => rl(r)?.load_id ?? null,
-  },
-  {
-    key: "l_driver_name",
-    label: "Driver Name",
-    shared: false,
-    getValue: (r) => formatDriverName(rl(r)?.driver_name) ?? null,
-  },
-  {
-    key: "l_origin_yard_arrival",
-    label: "Yard Arrival",
-    shared: false,
-    getValue: (r) =>
-      rl(r)?.origin_yard_arrival ? formatDateTime(rl(r).origin_yard_arrival) : null,
-  },
-  {
-    key: "l_rejection_bucket",
-    label: "Bucket",
-    shared: false,
-    getValue: (r) =>
-      rl(r)?.rejection_bucket ? bucketLabel(rl(r).rejection_bucket) : null,
-  },
 ];
 
 // ─── Inline cell renderer ─────────────────────────────────────────────────────
@@ -1254,9 +1178,12 @@ function visitPage(url) {
 // ─── Week number text ─────────────────────────────────────────────────────────
 const weekNumberText = computed(() => {
   const { year, weekNumber, startWeekNumber, endWeekNumber } = props;
-
+  if (["yesterday"].includes(activeTab.value)) {
+    // Yesterday
+    return "Yesterday";
+  }
   // Yesterday / current-week
-  if (["yesterday", "current-week"].includes(activeTab.value) && weekNumber && year) {
+  if (["current-week"].includes(activeTab.value) && weekNumber && year) {
     return `Week ${weekNumber}, ${year}`;
   }
 

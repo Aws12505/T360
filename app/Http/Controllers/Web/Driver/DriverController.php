@@ -287,9 +287,14 @@ class DriverController extends Controller
     public function driverScorecard(Request $request)
     {
         $dateFilter = $request->input('dateFilter', 'yesterday');
+        $customStartDate = $request->input('startDate');
+        $customEndDate = $request->input('endDate');
 
-        $data = $this->summariesService
-            ->getDriverScorecardData($dateFilter);
+        $data = $this->summariesService->getDriverScorecardData(
+            $dateFilter,
+            $customStartDate,
+            $customEndDate
+        );
         return Inertia::render('Driver/DriverScorecard', $data);
     }
 

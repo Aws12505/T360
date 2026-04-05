@@ -66,6 +66,15 @@ class DriverImportExportService
                 return $val === '' ? null : $val;
             }, $data);
 
+            // Normalize + validate mobile_phone before validator runs
+            $normalizedPhone = $this->normalizeAndValidateUsPhoneNumber($data['mobile_phone'] ?? null);
+            if ($normalizedPhone === null) {
+                $rowsSkipped++;
+                $currentRow++;
+                continue;
+            }
+            $data['mobile_phone'] = $normalizedPhone;
+
             // Convert hiring_date from m/d/Y to Y-m-d (set time to start of day to avoid timezone issues)
             if (!empty($data['hiring_date'])) {
                 try {
@@ -97,7 +106,7 @@ class DriverImportExportService
                 'first_name' => 'required|string',
                 'last_name' => 'required|string',
                 'email' => 'required|email',
-                'mobile_phone' => 'required|string',
+                'mobile_phone' => 'required|string|digits:10',
                 'hiring_date' => 'nullable|date',
                 'netradyne_user_name' => 'required|string',
                 'password' => 'nullable|string|min:8',
@@ -124,6 +133,7 @@ class DriverImportExportService
                 Driver::create($data);
                 $rowsCreated++;
             }
+
             $currentRow++;
         }
 
@@ -132,7 +142,40 @@ class DriverImportExportService
         $totalProcessed = $rowsCreated + $rowsUpdated;
         return redirect()->back()->with('success', "{$totalProcessed} rows processed: {$rowsCreated} created, {$rowsUpdated} updated, {$rowsSkipped} skipped.");
     }
+    protected function normalizeAndValidateUsPhoneNumber(?string $phone): ?string
+    {
+        if ($phone === null) {
+            return null;
+        }
 
+        $phone = trim($phone);
+
+        if ($phone === '') {
+            return null;
+        }
+
+        // Remove everything except digits
+        $digits = preg_replace('/\D+/', '', $phone);
+
+        if ($digits === null || $digits === '') {
+            return null;
+        }
+
+        $length = strlen($digits);
+
+        // 10-digit US number
+        if ($length === 10) {
+            return $digits;
+        }
+
+        // 11-digit US number with leading country code 1
+        if ($length === 11 && $digits[0] === '1') {
+            return substr($digits, -10);
+        }
+
+        // Anything else is invalid
+        return null;
+    }
     /**
      * Export driver data to a CSV file.
      */
