@@ -1,15 +1,11 @@
 <template>
   <Dialog v-model:open="openProxy">
-    <DialogContent
-      class="max-w-[95vw] sm:max-w-[90vw] md:max-w-5xl max-h-[90vh] overflow-hidden flex flex-col"
-    >
+    <DialogContent class="max-w-[95vw] sm:max-w-[90vw] md:max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
       <!-- Header -->
       <DialogHeader class="px-4 sm:px-6 border-b pb-3">
         <div class="flex items-center gap-2">
           <Icon name="upload" class="h-5 w-5 text-primary" />
-          <DialogTitle class="text-lg sm:text-xl font-semibold"
-            >Import Delays</DialogTitle
-          >
+          <DialogTitle class="text-lg sm:text-xl font-semibold">Import Delays</DialogTitle>
         </div>
         <DialogDescription class="text-xs sm:text-sm mt-1 text-muted-foreground">
           Choose an import type, then upload your CSV file. The file will be validated
@@ -22,65 +18,40 @@
         <div v-if="isSuperAdmin" class="space-y-2">
           <p class="text-sm font-semibold flex items-center gap-2">
             <span
-              class="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground"
-              >1</span
-            >
+              class="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground">1</span>
             Select Company
           </p>
-          <select
-            v-model="selectedTenantId"
-            class="select-base"
-            :disabled="isValidating || isImporting"
-            @change="resetFile"
-          >
+          <select v-model="selectedTenantId" class="select-base" :disabled="isValidating || isImporting"
+            @change="resetFile">
             <option :value="null" disabled>— Choose a company —</option>
             <option v-for="tenant in tenants" :key="tenant.id" :value="tenant.id">
               {{ tenant.name }}
             </option>
           </select>
-          <p
-            v-if="!selectedTenantId"
-            class="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1"
-          >
+          <p v-if="!selectedTenantId" class="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
             <Icon name="alert-triangle" class="h-3 w-3" />
             You must select a company before uploading a file.
           </p>
         </div>
 
         <!-- ── Step 1: Choose Import Type ── -->
-        <div
-          class="space-y-2"
-          :class="{ 'opacity-50 pointer-events-none': isSuperAdmin && !selectedTenantId }"
-        >
+        <div class="space-y-2" :class="{ 'opacity-50 pointer-events-none': isSuperAdmin && !selectedTenantId }">
           <p class="text-sm font-semibold flex items-center gap-2">
             <span
-              class="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground"
-            >
+              class="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground">
               {{ isSuperAdmin ? "2" : "1" }}
             </span>
             Import Type
           </p>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <label
-              v-for="option in importOptions"
-              :key="option.value"
+            <label v-for="option in importOptions" :key="option.value"
               class="flex items-start gap-3 rounded-md border p-3 cursor-pointer hover:bg-muted/20 transition-colors"
-              :class="
-                selectedType === option.value
-                  ? 'border-primary bg-primary/5'
-                  : 'border-border'
-              "
-            >
-              <input
-                type="radio"
-                class="mt-1 accent-primary"
-                :value="option.value"
-                v-model="selectedType"
-                :disabled="
-                  isValidating || isImporting || (isSuperAdmin && !selectedTenantId)
-                "
-                @change="resetFile"
-              />
+              :class="selectedType === option.value
+                ? 'border-primary bg-primary/5'
+                : 'border-border'
+                ">
+              <input type="radio" class="mt-1 accent-primary" :value="option.value" v-model="selectedType" :disabled="isValidating || isImporting || (isSuperAdmin && !selectedTenantId)
+                " @change="resetFile" />
               <div class="space-y-0.5">
                 <div class="text-sm font-medium">{{ option.label }}</div>
                 <div class="text-xs text-muted-foreground">{{ option.description }}</div>
@@ -90,14 +61,11 @@
         </div>
 
         <!-- ── Step 2: Upload ── -->
-        <template
-          v-if="selectedType && !validationResults && (!isSuperAdmin || selectedTenantId)"
-        >
+        <template v-if="selectedType && !validationResults && (!isSuperAdmin || selectedTenantId)">
           <div class="space-y-2">
             <p class="text-sm font-semibold flex items-center gap-2">
               <span
-                class="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground"
-              >
+                class="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground">
                 {{ isSuperAdmin ? "3" : "2" }}
               </span>
               Upload File
@@ -110,12 +78,8 @@
             :class="{
               'border-primary bg-primary/5': isDragging,
               'opacity-60 pointer-events-none': isValidating,
-            }"
-            @dragenter.prevent="onDragEnter"
-            @dragover.prevent="onDragOver"
-            @dragleave.prevent="onDragLeave"
-            @drop.prevent="onDrop"
-          >
+            }" @dragenter.prevent="onDragEnter" @dragover.prevent="onDragOver" @dragleave.prevent="onDragLeave"
+            @drop.prevent="onDrop">
             <Icon name="file-spreadsheet" class="h-12 w-12 text-muted-foreground mb-3" />
             <div class="text-center">
               <p class="text-sm font-medium">
@@ -124,17 +88,9 @@
               <p class="text-xs text-muted-foreground mt-1">or</p>
             </div>
             <label class="cursor-pointer mt-3">
-              <span class="text-sm font-medium text-primary hover:underline"
-                >Choose CSV file</span
-              >
-              <input
-                ref="mainFileInput"
-                type="file"
-                class="hidden"
-                accept=".csv,text/csv"
-                @change="onMainFileChange"
-                :disabled="isValidating"
-              />
+              <span class="text-sm font-medium text-primary hover:underline">Choose CSV file</span>
+              <input ref="mainFileInput" type="file" class="hidden" accept=".csv,text/csv" @change="onMainFileChange"
+                :disabled="isValidating" />
             </label>
             <p v-if="selectedFile" class="mt-2 text-xs text-muted-foreground">
               Selected:
@@ -145,9 +101,7 @@
 
           <!-- Validating spinner -->
           <div v-if="isValidating" class="flex items-center justify-center gap-2 py-4">
-            <div
-              class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"
-            ></div>
+            <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
             <span class="text-sm text-muted-foreground">Validating CSV file...</span>
           </div>
         </template>
@@ -155,10 +109,8 @@
         <!-- ── Step 3: Validation Results ── -->
         <template v-if="validationResults">
           <!-- Header error -->
-          <div
-            v-if="validationResults.header_error"
-            class="rounded-md border border-destructive bg-destructive/10 p-4 space-y-2"
-          >
+          <div v-if="validationResults.header_error"
+            class="rounded-md border border-destructive bg-destructive/10 p-4 space-y-2">
             <div class="flex items-center gap-2 text-destructive font-semibold text-sm">
               <Icon name="alert-circle" class="h-4 w-4" />
               Header Error
@@ -176,17 +128,13 @@
                 </div>
                 <div class="text-xs text-muted-foreground mt-1">Total Rows</div>
               </div>
-              <div
-                class="rounded-md border border-green-200 bg-green-50 dark:bg-green-900/10 p-3 text-center"
-              >
+              <div class="rounded-md border border-green-200 bg-green-50 dark:bg-green-900/10 p-3 text-center">
                 <div class="text-2xl font-bold text-green-600">
                   {{ validationResults.summary?.valid ?? 0 }}
                 </div>
                 <div class="text-xs text-muted-foreground mt-1">Valid</div>
               </div>
-              <div
-                class="rounded-md border border-red-200 bg-red-50 dark:bg-red-900/10 p-3 text-center"
-              >
+              <div class="rounded-md border border-red-200 bg-red-50 dark:bg-red-900/10 p-3 text-center">
                 <div class="text-2xl font-bold text-red-600">
                   {{ validationResults.summary?.invalid ?? 0 }}
                 </div>
@@ -196,9 +144,7 @@
             <!-- ✅ NEW: Missing Arrival Time rows (requires user input) -->
             <div v-if="validationResults.needs_input?.length > 0" class="space-y-2">
               <div class="flex items-center justify-between">
-                <p
-                  class="text-sm font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1"
-                >
+                <p class="text-sm font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1">
                   <Icon name="alert-triangle" class="h-4 w-4" />
                   Missing Arrival Time ({{ validationResults.needs_input.length }})
                 </p>
@@ -209,22 +155,15 @@
               </div>
 
               <div class="max-h-64 overflow-y-auto rounded-md border divide-y">
-                <div
-                  v-for="row in validationResults.needs_input"
-                  :key="row.rowNumber"
-                  class="p-3 bg-amber-50/50 dark:bg-amber-900/10 space-y-2"
-                >
+                <div v-for="row in validationResults.needs_input" :key="row.rowNumber"
+                  class="p-3 bg-amber-50/50 dark:bg-amber-900/10 space-y-2">
                   <div class="flex items-start justify-between gap-3 flex-wrap">
                     <div class="text-xs font-semibold whitespace-nowrap">
                       Row {{ row.rowNumber }}
                     </div>
 
                     <div class="flex flex-wrap gap-2">
-                      <span
-                        v-for="p in row.preview || []"
-                        :key="p.key"
-                        class="text-xs bg-muted rounded px-1.5 py-0.5"
-                      >
+                      <span v-for="p in row.preview || []" :key="p.key" class="text-xs bg-muted rounded px-1.5 py-0.5">
                         {{ p.label }}: <span class="font-medium">{{ p.value }}</span>
                       </span>
                     </div>
@@ -240,13 +179,9 @@
                         }}
                       </Label>
 
-                      <input
-                        type="datetime-local"
-                        class="select-base h-9"
-                        :value="row.manual_datetime"
-                        @input="setManualDatetime(row, ($event.target as HTMLInputElement).value)"
-                        :disabled="isImporting"
-                      />
+                      <DateTimePopoverField :model-value="row.manual_datetime"
+                        @update:modelValue="setManualDatetime(row, $event)" :disabled="isImporting"
+                        date-label="Arrival Date" time-label="Arrival Time" />
 
                       <p v-if="!row.manual_datetime" class="text-xs text-destructive">
                         This field is required to import this row.
@@ -277,37 +212,20 @@
                 </Button>
               </div>
               <div class="max-h-48 overflow-y-auto rounded-md border divide-y">
-                <div
-                  v-for="row in validationResults.invalid"
-                  :key="row.rowNumber"
-                  class="p-3 bg-red-50/50 dark:bg-red-900/5"
-                >
+                <div v-for="row in validationResults.invalid" :key="row.rowNumber"
+                  class="p-3 bg-red-50/50 dark:bg-red-900/5">
                   <div class="flex items-start gap-2">
-                    <span class="text-xs font-semibold text-red-600 whitespace-nowrap"
-                      >Row {{ row.rowNumber }}</span
-                    >
+                    <span class="text-xs font-semibold text-red-600 whitespace-nowrap">Row {{ row.rowNumber }}</span>
                     <div class="flex-1 space-y-1">
                       <div v-if="row.preview?.length" class="flex flex-wrap gap-2">
-                        <span
-                          v-for="p in row.preview"
-                          :key="p.key"
-                          class="text-xs bg-muted rounded px-1.5 py-0.5"
-                        >
+                        <span v-for="p in row.preview" :key="p.key" class="text-xs bg-muted rounded px-1.5 py-0.5">
                           {{ p.label }}: <span class="font-medium">{{ p.value }}</span>
                         </span>
                       </div>
-                      <p
-                        v-for="err in row.errors"
-                        :key="err"
-                        class="text-xs text-red-600"
-                      >
+                      <p v-for="err in row.errors" :key="err" class="text-xs text-red-600">
                         • {{ err }}
                       </p>
-                      <p
-                        v-for="warn in row.warnings"
-                        :key="warn"
-                        class="text-xs text-amber-600"
-                      >
+                      <p v-for="warn in row.warnings" :key="warn" class="text-xs text-amber-600">
                         ⚠ {{ warn }}
                       </p>
                     </div>
@@ -317,13 +235,10 @@
             </div>
 
             <!-- All valid confirmation -->
-            <div
-              v-if="
-                validationResults.valid?.length > 0 &&
-                validationResults.summary?.invalid === 0
-              "
-              class="space-y-2"
-            >
+            <div v-if="
+              validationResults.valid?.length > 0 &&
+              validationResults.summary?.invalid === 0
+            " class="space-y-2">
               <p class="text-sm font-semibold text-green-600 flex items-center gap-1">
                 <Icon name="check-circle" class="h-4 w-4" />
                 All {{ importReadyCount }} rows are valid and ready to import.
@@ -336,23 +251,12 @@
                 <Icon name="rotate_ccw" class="mr-1 h-3 w-3" />
                 Upload Different File
               </Button>
-              <Button
-                v-if="(validationResults.summary?.invalid ?? 0) === 0"
-                variant="default"
-                size="sm"
-                :disabled="isImporting || !canConfirmImport"
-                @click="confirmImport"
-              >
-                <p
-                  v-if="!canConfirmImport && validationResults.needs_input?.length"
-                  class="text-xs text-amber-600"
-                >
+              <Button v-if="(validationResults.summary?.invalid ?? 0) === 0" variant="default" size="sm"
+                :disabled="isImporting || !canConfirmImport" @click="confirmImport">
+                <p v-if="!canConfirmImport && validationResults.needs_input?.length" class="text-xs text-amber-600">
                   Please fill all missing arrival times to enable import.
                 </p>
-                <div
-                  v-if="isImporting"
-                  class="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2"
-                ></div>
+                <div v-if="isImporting" class="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2"></div>
                 <Icon v-else name="upload" class="mr-1 h-3 w-3" />
                 {{ importButtonText }}
               </Button>
@@ -363,9 +267,7 @@
 
       <!-- Footer -->
       <div class="border-t px-4 sm:px-6 py-3 flex justify-end">
-        <Button variant="outline" @click="handleClose" :disabled="isImporting"
-          >Close</Button
-        >
+        <Button variant="outline" @click="handleClose" :disabled="isImporting">Close</Button>
       </div>
     </DialogContent>
   </Dialog>
@@ -383,7 +285,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-
+import DateTimePopoverField from "@/components/ui/date-time-popover-field.vue";
 const props = defineProps({
   open: { type: Boolean, default: false },
   isSuperAdmin: { type: Boolean, default: false },
@@ -437,9 +339,8 @@ function toDatetimeLocalValue(val: string | null | undefined) {
   return val.replace(" ", "T").slice(0, 16);
 }
 
-function setManualDatetime(row: any, value: string) {
-  // value from datetime-local is "YYYY-MM-DDTHH:mm"
-  row.manual_datetime = value;
+function setManualDatetime(row: any, value: string | null) {
+  row.manual_datetime = value || "";
 }
 
 const isMissingRequiredManualDates = computed(() => {
@@ -577,8 +478,7 @@ function confirmImport() {
       const count = importReadyCount.value;
       emit(
         "success",
-        `Successfully imported ${count} delay(s)${
-          selectedTenantName.value ? ` for ${selectedTenantName.value}` : ""
+        `Successfully imported ${count} delay(s)${selectedTenantName.value ? ` for ${selectedTenantName.value}` : ""
         }.`
       );
       handleClose();
@@ -617,9 +517,8 @@ const importButtonText = computed(() => {
   if (needsInputTotalCount.value > 0) {
     const missing = missingManualCount.value;
     if (missing > 0) {
-      return `Import ${ready} Delay(s) (missing ${missing} date${
-        missing === 1 ? "" : "s"
-      })`;
+      return `Import ${ready} Delay(s) (missing ${missing} date${missing === 1 ? "" : "s"
+        })`;
     }
     return `Import ${ready} Delay(s)`;
   }
@@ -691,9 +590,6 @@ watch(
 
 <style scoped>
 .select-base {
-  @apply flex h-10 w-full items-center rounded-md border border-input bg-background
-         px-3 py-2 text-sm ring-offset-background appearance-none
-         focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2
-         disabled:cursor-not-allowed disabled:opacity-50;
+  @apply flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background appearance-none focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
 }
 </style>

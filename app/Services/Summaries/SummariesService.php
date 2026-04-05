@@ -193,7 +193,7 @@ class SummariesService
             'endWeekNumber' => $endWeekNumber,
             'year' => $year,
         ];
-        if ($dateFilter == 't6w') {
+        if ($dateFilter == 't6w' || $dateFilter == 'custom') {
             $maintenanceStartDate = $startDate->copy()->subWeek();
             $maintenanceEndDate = $endDate->copy()->subWeek();
         } else {
@@ -597,89 +597,95 @@ class SummariesService
 
         return $result ? (float) $result->total_miles : 0;
     }
-    private function resolveDateRange($dateFilter): array
+    private function resolveDateRange($dateFilter, $customStartDate = null, $customEndDate = null): array
     {
         $now = Carbon::now();
         $isSunday = $now->dayOfWeek === 0;
 
-        switch ($dateFilter) {
+        if ($dateFilter === 'custom') {
+            if (!$customStartDate || !$customEndDate) {
+                throw new \InvalidArgumentException('Custom date range requires startDate and endDate');
+            }
 
-            case 'yesterday':
-                $startDate = Carbon::yesterday()->startOfDay();
-                $endDate = Carbon::yesterday()->endOfDay();
-                $label = 'Yesterday';
-                break;
+            $startDate = Carbon::parse($customStartDate)->startOfDay();
+            $endDate = Carbon::parse($customEndDate)->endOfDay();
+            $label = 'Custom Range';
+        } else {
+            switch ($dateFilter) {
+                case 'yesterday':
+                    $startDate = Carbon::yesterday()->startOfDay();
+                    $endDate = Carbon::yesterday()->endOfDay();
+                    $label = 'Yesterday';
+                    break;
 
-            case 'current-week':
-                $startDate = $now->copy()->startOfDay()->modify('last sunday');
-                if ($isSunday) {
-                    $startDate->subWeek();
-                }
+                case 'current-week':
+                    $startDate = $now->copy()->startOfDay()->modify('last sunday');
+                    if ($isSunday) {
+                        $startDate->subWeek();
+                    }
 
-                $endDate = $startDate->copy()->addDays(6)->endOfDay();
-                $label = 'Current Week';
-                break;
+                    $endDate = $startDate->copy()->addDays(6)->endOfDay();
+                    $label = 'Current Week';
+                    break;
 
-            case 't6w':
-                $startDate = $now->copy()->modify('last sunday');
+                case 't6w':
+                    $startDate = $now->copy()->modify('last sunday');
 
-                if ($isSunday) {
-                    $startDate->subWeek();
-                }
+                    if ($isSunday) {
+                        $startDate->subWeek();
+                    }
 
-                $startDate->subWeeks(5)->startOfDay();
+                    $startDate->subWeeks(5)->startOfDay();
 
-                $endDate = $now->copy()->modify('this saturday');
+                    $endDate = $now->copy()->modify('this saturday');
 
-                if ($isSunday) {
-                    $endDate->subWeek();
-                }
+                    if ($isSunday) {
+                        $endDate->subWeek();
+                    }
 
-                $endDate->endOfDay();
+                    $endDate->endOfDay();
+                    $label = '6 Weeks';
+                    break;
 
-                $label = '6 Weeks';
-                break;
+                case 'quarterly':
+                    $startDate = $now->copy()->subMonths(3)->modify('last sunday');
 
-            case 'quarterly':
+                    if ($isSunday) {
+                        $startDate->subWeek();
+                    }
 
-                $startDate = $now->copy()->subMonths(3)->modify('last sunday');
+                    $startDate->startOfDay();
 
-                if ($isSunday) {
-                    $startDate->subWeek();
-                }
+                    $endDate = $now->copy()->modify('this saturday');
 
-                $startDate->startOfDay();
+                    if ($isSunday) {
+                        $endDate->subWeek();
+                    }
 
-                $endDate = $now->copy()->modify('this saturday');
+                    $endDate->endOfDay();
+                    $label = 'Quarterly';
+                    break;
 
-                if ($isSunday) {
-                    $endDate->subWeek();
-                }
-
-                $endDate->endOfDay();
-
-                $label = 'Quarterly';
-                break;
-
-            default:
-                $startDate = Carbon::yesterday()->startOfDay();
-                $endDate = Carbon::yesterday()->endOfDay();
-                $label = 'Yesterday';
+                default:
+                    $startDate = Carbon::yesterday()->startOfDay();
+                    $endDate = Carbon::yesterday()->endOfDay();
+                    $label = 'Yesterday';
+                    break;
+            }
         }
 
         $year = $startDate->year;
 
         if (in_array($dateFilter, ['yesterday', 'current-week'])) {
-
             $weekNumber = $this->weekNumberSundayStart($startDate);
-
             $startWeekNumber = null;
             $endWeekNumber = null;
-
-        } else {
-
+        } elseif ($dateFilter === 'custom') {
             $weekNumber = null;
-
+            $startWeekNumber = null;
+            $endWeekNumber = null;
+        } else {
+            $weekNumber = null;
             $startWeekNumber = $this->weekNumberSundayStart($startDate);
             $endWeekNumber = $this->weekNumberSundayStart($endDate);
         }
@@ -694,15 +700,13 @@ class SummariesService
                 'weekNumber' => $weekNumber,
                 'startWeekNumber' => $startWeekNumber,
                 'endWeekNumber' => $endWeekNumber,
-                'year' => $year
+                'year' => $year,
             ]
         ];
     }
-    public function getDriverScorecardData($dateFilter): array
+    public function getDriverScorecardData($dateFilter = 'yesterday', $customStartDate = null, $customEndDate = null): array
     {
-        $dateFilter = $dateFilter ?? 'yesterday';
-
-        $range = $this->resolveDateRange($dateFilter);
+        $range = $this->resolveDateRange($dateFilter, $customStartDate, $customEndDate);
 
         $startDate = $range['startDate'];
         $endDate = $range['endDate'];
@@ -719,15 +723,10 @@ class SummariesService
         $permissions = Auth::user()->getAllPermissions();
 
         return [
-
             'driversOverallPerformance' => $drivers,
-
             'dateFilter' => $dateFilter,
-
             'dateRange' => $dateRange,
-
             'tenantSlug' => $tenantSlug,
-
             'permissions' => $permissions
         ];
     }

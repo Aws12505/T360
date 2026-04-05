@@ -23,17 +23,17 @@
         </div>
 
         <!-- Rows -->
-        <div class="space-y-2 flex-1">
-            <div v-for="row in rows" :key="row.label"
-                class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 p-2 rounded-md hover:bg-muted/40 transition">
-                <span class="text-sm font-medium">{{ row.label }}</span>
+        <div v-for="row in rows" :key="row.label" class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 p-2 rounded-md
+           border border-transparent
+           hover:bg-accent hover:border-border hover:shadow-sm
+           transition-all duration-200">
+            <span class="text-sm font-medium">{{ row.label }}</span>
 
-                <div class="flex justify-between sm:justify-end gap-4 text-sm">
-                    <span class="tabular-nums">{{ formatDecimal(row.total) }}</span>
-                    <span class="text-muted-foreground tabular-nums">
-                        {{ formatRate(row.rate) }}
-                    </span>
-                </div>
+            <div class="flex justify-between sm:justify-end gap-4 text-sm">
+                <span class="tabular-nums">{{ formatDecimal(row.total) }}</span>
+                <span class="text-muted-foreground tabular-nums">
+                    {{ formatRate(row.rate) }}
+                </span>
             </div>
         </div>
 

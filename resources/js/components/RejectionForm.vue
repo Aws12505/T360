@@ -4,10 +4,7 @@
     <!-- Tenant dropdown for SuperAdmin -->
     <div v-if="isSuperAdmin" class="col-span-full">
       <Label>Company Name</Label>
-      <select
-        v-model="form.tenant_id"
-        class="select-base"
-      >
+      <select v-model="form.tenant_id" class="select-base">
         <option :value="null" disabled>Select Company</option>
         <option v-for="tenant in tenants" :key="tenant.id" :value="tenant.id">
           {{ tenant.name }}
@@ -19,7 +16,24 @@
     <!-- Date -->
     <div>
       <Label>Date</Label>
-      <Input type="date" v-model="form.date" class="w-full" />
+
+      <Popover v-model:open="dateOpen">
+        <PopoverTrigger as-child>
+          <Button variant="outline" class="w-full justify-start text-left font-normal">
+            <CalendarIcon class="mr-2 h-4 w-4" />
+            {{
+              datePicker
+                ? df.format(datePicker.toDate(getLocalTimeZone()))
+                : "Pick a date"
+            }}
+          </Button>
+        </PopoverTrigger>
+
+        <PopoverContent class="w-auto p-0">
+          <Calendar :model-value="datePicker" layout="month-and-year" @update:model-value="handleDateSelect" />
+        </PopoverContent>
+      </Popover>
+
       <InputError :message="form.errors.date" />
     </div>
 
@@ -56,12 +70,7 @@
 
       <div>
         <Label for="rejection_reason">Rejection Reason</Label>
-        <Input
-          id="rejection_reason"
-          v-model="form.rejection_reason"
-          placeholder="Optional reason..."
-          class="w-full"
-        />
+        <Input id="rejection_reason" v-model="form.rejection_reason" placeholder="Optional reason..." class="w-full" />
         <InputError :message="form.errors.rejection_reason" />
       </div>
     </div>
@@ -70,14 +79,8 @@
     <div>
       <Label>Rejection Type</Label>
       <div class="flex gap-2 mt-1">
-        <Button
-          type="button"
-          v-for="t in rejectionTypes"
-          :key="t.value"
-          :variant="form.type === t.value ? 'default' : 'outline'"
-          size="sm"
-          @click="form.type = t.value"
-        >
+        <Button type="button" v-for="t in rejectionTypes" :key="t.value"
+          :variant="form.type === t.value ? 'default' : 'outline'" size="sm" @click="form.type = t.value">
           {{ t.label }}
         </Button>
       </div>
@@ -85,10 +88,7 @@
     </div>
 
     <!-- ─── Advanced Block Fields ─── -->
-    <div
-      v-if="form.type === 'advanced_block'"
-      class="grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-md border p-4"
-    >
+    <div v-if="form.type === 'advanced_block'" class="grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-md border p-4">
       <p class="col-span-full text-sm font-semibold text-muted-foreground">Advanced Block Details</p>
 
       <div>
@@ -99,13 +99,48 @@
 
       <div>
         <Label>Week Start</Label>
-        <Input type="date" v-model="form.week_start" class="w-full" />
+
+        <Popover v-model:open="weekStartOpen">
+          <PopoverTrigger as-child>
+            <Button variant="outline" class="w-full justify-start text-left font-normal">
+              <CalendarIcon class="mr-2 h-4 w-4" />
+              {{
+                weekStartPicker
+                  ? df.format(weekStartPicker.toDate(getLocalTimeZone()))
+                  : "Pick a start date"
+              }}
+            </Button>
+          </PopoverTrigger>
+
+          <PopoverContent class="w-auto p-0">
+            <Calendar :model-value="weekStartPicker" layout="month-and-year"
+              @update:model-value="handleWeekStartSelect" />
+          </PopoverContent>
+        </Popover>
+
         <InputError :message="form.errors.week_start" />
       </div>
 
       <div>
         <Label>Week End</Label>
-        <Input type="date" v-model="form.week_end" class="w-full" />
+
+        <Popover v-model:open="weekEndOpen">
+          <PopoverTrigger as-child>
+            <Button variant="outline" class="w-full justify-start text-left font-normal">
+              <CalendarIcon class="mr-2 h-4 w-4" />
+              {{
+                weekEndPicker
+                  ? df.format(weekEndPicker.toDate(getLocalTimeZone()))
+                  : "Pick an end date"
+              }}
+            </Button>
+          </PopoverTrigger>
+
+          <PopoverContent class="w-auto p-0">
+            <Calendar :model-value="weekEndPicker" layout="month-and-year" @update:model-value="handleWeekEndSelect" />
+          </PopoverContent>
+        </Popover>
+
         <InputError :message="form.errors.week_end" />
       </div>
 
@@ -123,10 +158,7 @@
     </div>
 
     <!-- ─── Block Fields ─── -->
-    <div
-      v-if="form.type === 'block'"
-      class="grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-md border p-4"
-    >
+    <div v-if="form.type === 'block'" class="grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-md border p-4">
       <p class="col-span-full text-sm font-semibold text-muted-foreground">Block Details</p>
 
       <div>
@@ -142,29 +174,23 @@
       </div>
 
       <div>
-        <Label>Block Start</Label>
-        <Input type="datetime-local" v-model="form.block_start" class="w-full" />
+        <DateTimePopoverField v-model="form.block_start" dateLabel="Block Start Date" timeLabel="Block Start Time" />
         <InputError :message="form.errors.block_start" />
       </div>
 
       <div>
-        <Label>Block End</Label>
-        <Input type="datetime-local" v-model="form.block_end" class="w-full" />
+        <DateTimePopoverField v-model="form.block_end" dateLabel="Block End Date" timeLabel="Block End Time" />
         <InputError :message="form.errors.block_end" />
       </div>
 
       <div>
-        <Label>Rejection Date/Time</Label>
-        <Input type="datetime-local" v-model="form.rejection_datetime" class="w-full" />
+        <DateTimePopoverField v-model="form.rejection_datetime" dateLabel="Rejection Date" timeLabel="Rejection Time" />
         <InputError :message="form.errors.rejection_datetime" />
       </div>
     </div>
 
     <!-- ─── Load Fields ─── -->
-    <div
-      v-if="form.type === 'load'"
-      class="grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-md border p-4"
-    >
+    <div v-if="form.type === 'load'" class="grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-md border p-4">
       <p class="col-span-full text-sm font-semibold text-muted-foreground">Load Details</p>
 
       <div>
@@ -180,8 +206,8 @@
       </div>
 
       <div>
-        <Label>Origin Yard Arrival</Label>
-        <Input type="datetime-local" v-model="form.origin_yard_arrival" class="w-full" />
+        <DateTimePopoverField v-model="form.origin_yard_arrival" dateLabel="Origin Yard Arrival Date"
+          timeLabel="Origin Yard Arrival Time" />
         <InputError :message="form.errors.origin_yard_arrival" />
       </div>
 
@@ -210,32 +236,48 @@
 </template>
 
 <script setup lang="ts">
-import { watch } from 'vue';
+import { ref, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import { Input } from '@/components/ui/input';
 import Button from '@/components/ui/button/Button.vue';
 import Label from '@/components/ui/label/Label.vue';
 import InputError from '@/components/ui/inputError/InputError.vue';
-
+import { CalendarIcon } from 'lucide-vue-next';
+import { DateFormatter, getLocalTimeZone, parseDate } from '@internationalized/date';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import DateTimePopoverField from "@/components/ui/date-time-popover-field.vue";
 // ─── Props ────────────────────────────────────────────────────────────────────
 // NOTE: `rejection` here is the already-normalized object from Index.vue's
 // `normalizedRejection` computed — it has a flat `type` field and scalar
 // sub-relation fields, NOT raw hasMany arrays.
 const props = defineProps({
-  rejection:    { type: Object,  default: null  },
-  tenants:      { type: Array,   default: () => [] },
+  rejection: { type: Object, default: null },
+  tenants: { type: Array, default: () => [] },
   isSuperAdmin: { type: Boolean, default: false },
-  tenantSlug:   { type: String,  default: null  },
+  tenantSlug: { type: String, default: null },
 });
 
 const emit = defineEmits(['close', 'success']);
 
 const rejectionTypes = [
   { value: 'advanced_block', label: 'Advanced Block' },
-  { value: 'block',          label: 'Block'          },
-  { value: 'load',           label: 'Load'           },
+  { value: 'block', label: 'Block' },
+  { value: 'load', label: 'Load' },
 ];
+const datePicker = ref(null);
+const weekStartPicker = ref(null);
+const weekEndPicker = ref(null);
 
+const dateOpen = ref(false);
+const weekStartOpen = ref(false);
+const weekEndOpen = ref(false);
+
+const df = new DateFormatter("en-US", { dateStyle: "medium" });
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 // The normalized rejection already has a `type` field set by Index.vue.
 // We just read it directly — no relation sniffing needed here.
@@ -245,7 +287,29 @@ function resolveType(r: any): string {
   if (r.type && ['advanced_block', 'block', 'load'].includes(r.type)) return r.type;
   return 'block';
 }
+const handleDateSelect = (val) => {
+  datePicker.value = val ?? null;
+  form.date = val
+    ? val.toDate(getLocalTimeZone()).toISOString().split("T")[0]
+    : "";
+  dateOpen.value = false;
+};
 
+const handleWeekStartSelect = (val) => {
+  weekStartPicker.value = val ?? null;
+  form.week_start = val
+    ? val.toDate(getLocalTimeZone()).toISOString().split("T")[0]
+    : "";
+  weekStartOpen.value = false;
+};
+
+const handleWeekEndSelect = (val) => {
+  weekEndPicker.value = val ?? null;
+  form.week_end = val
+    ? val.toDate(getLocalTimeZone()).toISOString().split("T")[0]
+    : "";
+  weekEndOpen.value = false;
+};
 // datetime-local inputs require "YYYY-MM-DDTHH:mm" format.
 // The backend returns "2026-02-14 00:00:00" — convert it.
 function toDatetimeLocal(val: string | null): string {
@@ -272,38 +336,38 @@ function toBool(val: any): boolean {
 function buildFormData(r: any) {
   const type = resolveType(r);
   return {
-    id:        r?.id        ?? null,
+    id: r?.id ?? null,
     tenant_id: r?.tenant_id ?? null,
 
     // Shared
-    date:                 toDateOnly(r?.date)           ?? '',
-    disputed:             r?.disputed                   ?? 'none',
+    date: toDateOnly(r?.date) ?? '',
+    disputed: r?.disputed ?? 'none',
     carrier_controllable: toBool(r?.carrier_controllable),
-    driver_controllable:  toBool(r?.driver_controllable),
-    rejection_reason:     r?.rejection_reason            ?? '',
+    driver_controllable: toBool(r?.driver_controllable),
+    rejection_reason: r?.rejection_reason ?? '',
 
     // Type
     type,
 
     // Advanced Block (populated when type === 'advanced_block')
     advance_block_rejection_id: r?.advance_block_rejection_id ?? '',
-    week_start:      toDateOnly(r?.week_start)                ?? '',
-    week_end:        toDateOnly(r?.week_end)                  ?? '',
-    impacted_blocks: r?.impacted_blocks                       ?? '',
-    expected_blocks: r?.expected_blocks                       ?? '',
+    week_start: toDateOnly(r?.week_start) ?? '',
+    week_end: toDateOnly(r?.week_end) ?? '',
+    impacted_blocks: r?.impacted_blocks ?? '',
+    expected_blocks: r?.expected_blocks ?? '',
 
     // Block (populated when type === 'block')
-    block_id:           r?.block_id                            ?? '',
-    block_driver_name:  r?.block_driver_name                   ?? '',
-    block_start:        toDatetimeLocal(r?.block_start)        ?? '',
-    block_end:          toDatetimeLocal(r?.block_end)          ?? '',
+    block_id: r?.block_id ?? '',
+    block_driver_name: r?.block_driver_name ?? '',
+    block_start: toDatetimeLocal(r?.block_start) ?? '',
+    block_end: toDatetimeLocal(r?.block_end) ?? '',
     rejection_datetime: toDatetimeLocal(r?.rejection_datetime) ?? '',
 
     // Load (populated when type === 'load')
-    load_id:               r?.load_id                             ?? '',
-    load_driver_name:      r?.load_driver_name                    ?? '',
-    origin_yard_arrival:   toDatetimeLocal(r?.origin_yard_arrival) ?? '',
-    load_rejection_bucket: r?.load_rejection_bucket               ?? '',
+    load_id: r?.load_id ?? '',
+    load_driver_name: r?.load_driver_name ?? '',
+    origin_yard_arrival: toDatetimeLocal(r?.origin_yard_arrival) ?? '',
+    load_rejection_bucket: r?.load_rejection_bucket ?? '',
   };
 }
 
@@ -315,10 +379,14 @@ watch(
   () => props.rejection,
   (r) => {
     const data = buildFormData(r);
-    // Assign all keys to the existing form instance so Inertia tracks them
     Object.keys(data).forEach((key) => {
       (form as any)[key] = (data as any)[key];
     });
+
+    datePicker.value = data.date ? parseDate(data.date) : null;
+    weekStartPicker.value = data.week_start ? parseDate(data.week_start) : null;
+    weekEndPicker.value = data.week_end ? parseDate(data.week_end) : null;
+
     form.clearErrors();
   },
   { immediate: true }
@@ -330,13 +398,13 @@ function submit() {
 
   const routeName = props.isSuperAdmin
     ? (isEdit ? 'acceptance.update.admin' : 'acceptance.store.admin')
-    : (isEdit ? 'acceptance.update'       : 'acceptance.store');
+    : (isEdit ? 'acceptance.update' : 'acceptance.store');
 
   const routeParams = props.isSuperAdmin
     ? (isEdit ? { rejection: form.id } : {})
     : (isEdit
-        ? { tenantSlug: props.tenantSlug, rejection: form.id }
-        : { tenantSlug: props.tenantSlug });
+      ? { tenantSlug: props.tenantSlug, rejection: form.id }
+      : { tenantSlug: props.tenantSlug });
 
   const method = isEdit ? 'put' : 'post';
 
@@ -352,9 +420,6 @@ function submit() {
 
 <style scoped>
 .select-base {
-  @apply flex h-10 w-full items-center rounded-md border border-input bg-background
-         px-3 py-2 text-sm ring-offset-background appearance-none
-         focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2
-         disabled:cursor-not-allowed disabled:opacity-50;
+  @apply flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background appearance-none focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
 }
 </style>

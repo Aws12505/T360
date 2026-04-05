@@ -66,14 +66,48 @@
 
               <div>
                 <Label for="dateFrom">Hiring Date From</Label>
-                <Input class="py-1 px-1 md:px-2 md:py-1 h-9 lg:px-3 lg:py-2 lg:h-10" id="dateFrom"
-                  v-model="filters.dateFrom" type="date" @change="applyFilters" />
+
+                <Popover v-model:open="dateFromOpen">
+                  <PopoverTrigger as-child>
+                    <Button id="dateFrom" variant="outline"
+                      class="w-full justify-start text-left font-normal py-1 px-1 md:px-2 md:py-1 h-9 lg:px-3 lg:py-2 lg:h-10">
+                      <CalendarIcon class="mr-2 h-4 w-4" />
+                      {{
+                        dateFromPicker
+                          ? df.format(dateFromPicker.toDate(getLocalTimeZone()))
+                          : "Pick a start date"
+                      }}
+                    </Button>
+                  </PopoverTrigger>
+
+                  <PopoverContent class="w-auto p-0">
+                    <Calendar :model-value="dateFromPicker" layout="month-and-year"
+                      @update:model-value="handleDateFromSelect" />
+                  </PopoverContent>
+                </Popover>
               </div>
 
               <div>
                 <Label for="dateTo">Hiring Date To</Label>
-                <Input class="py-1 px-1 md:px-2 md:py-1 h-9 lg:px-3 lg:py-2 lg:h-10" id="dateTo"
-                  v-model="filters.dateTo" type="date" @change="applyFilters" />
+
+                <Popover v-model:open="dateToOpen">
+                  <PopoverTrigger as-child>
+                    <Button id="dateTo" variant="outline"
+                      class="w-full justify-start text-left font-normal py-1 px-1 md:px-2 md:py-1 h-9 lg:px-3 lg:py-2 lg:h-10">
+                      <CalendarIcon class="mr-2 h-4 w-4" />
+                      {{
+                        dateToPicker
+                          ? df.format(dateToPicker.toDate(getLocalTimeZone()))
+                          : "Pick an end date"
+                      }}
+                    </Button>
+                  </PopoverTrigger>
+
+                  <PopoverContent class="w-auto p-0">
+                    <Calendar :model-value="dateToPicker" layout="month-and-year"
+                      @update:model-value="handleDateToSelect" />
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
 
@@ -162,7 +196,7 @@
 
                   <TableCell v-if="SuperAdmin">{{
                     driver.tenant?.name ?? "—"
-                    }}</TableCell>
+                  }}</TableCell>
 
                   <TableCell v-for="col in tableColumns" :key="col">
                     <template v-if="col === 'hiring_date'">
@@ -250,7 +284,7 @@
           <DialogHeader class="space-y-1 md:space-y-2">
             <DialogTitle class="text-lg md:text-xl lg:text-2xl">{{
               formTitle
-              }}</DialogTitle>
+            }}</DialogTitle>
             <DialogDescription class="text-sm md:text-base">
               Fill in the details to {{ formAction.toLowerCase() }} a driver.
             </DialogDescription>
@@ -330,11 +364,28 @@
 
               <!-- Hiring Date -->
               <div class="sm:col-span-2">
-                <Label for="hiring_date" class="text-sm md:text-base">Hiring Date <span
-                    class="text-muted-foreground text-xs">(optional)</span>
+                <Label for="hiring_date" class="text-sm md:text-base">
+                  Hiring Date <span class="text-muted-foreground text-xs">(optional)</span>
                 </Label>
-                <Input id="hiring_date" v-model="form.hiring_date" type="date"
-                  class="h-8 md:h-10 text-xs md:text-sm px-2 md:px-3 py-1 md:py-2" />
+
+                <Popover v-model:open="hiringDateOpen">
+                  <PopoverTrigger as-child>
+                    <Button id="hiring_date" variant="outline"
+                      class="mt-1 w-full justify-start text-left font-normal h-8 md:h-10 text-xs md:text-sm px-2 md:px-3 py-1 md:py-2">
+                      <CalendarIcon class="mr-2 h-4 w-4" />
+                      {{
+                        hiringDatePicker
+                          ? df.format(hiringDatePicker.toDate(getLocalTimeZone()))
+                          : "Pick a hiring date"
+                      }}
+                    </Button>
+                  </PopoverTrigger>
+
+                  <PopoverContent class="w-auto p-0">
+                    <Calendar :model-value="hiringDatePicker" layout="month-and-year"
+                      @update:model-value="handleHiringDateSelect" />
+                  </PopoverContent>
+                </Popover>
               </div>
 
               <!-- Driver Image -->
@@ -538,7 +589,7 @@
               </AlertTitle>
               <AlertDescription>{{
                 importValidationResults.header_error
-                }}</AlertDescription>
+              }}</AlertDescription>
             </Alert>
 
             <div v-if="importValidationResults.invalid?.length">
@@ -694,7 +745,14 @@ import AppLayout from "@/layouts/AppLayout.vue";
 import { Head, Link, router, useForm, usePage } from "@inertiajs/vue3";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { Eye, EyeOff } from "lucide-vue-next";
-
+import { CalendarIcon } from "lucide-vue-next";
+import { DateFormatter, getLocalTimeZone, parseDate } from "@internationalized/date";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 const props = defineProps({
   entries: { type: Object, default: () => ({ data: [], links: [] }) },
   tenantSlug: { type: String, default: null },
@@ -720,7 +778,15 @@ onMounted(() => {
     window.removeEventListener("drop", prevent);
   });
 });
+const dateFromPicker = ref(null);
+const dateToPicker = ref(null);
+const hiringDatePicker = ref(null);
 
+const dateFromOpen = ref(false);
+const dateToOpen = ref(false);
+const hiringDateOpen = ref(false);
+
+const df = new DateFormatter("en-US", { dateStyle: "medium" });
 /** Drag state for import dropzone */
 const importFileInput = ref(null);
 const isDragging = ref(false);
@@ -740,6 +806,31 @@ function onDragLeave() {
     isDragging.value = false;
   }
 }
+const handleDateFromSelect = (val) => {
+  dateFromPicker.value = val ?? null;
+  filters.value.dateFrom = val
+    ? val.toDate(getLocalTimeZone()).toISOString().split("T")[0]
+    : "";
+  dateFromOpen.value = false;
+  applyFilters();
+};
+
+const handleDateToSelect = (val) => {
+  dateToPicker.value = val ?? null;
+  filters.value.dateTo = val
+    ? val.toDate(getLocalTimeZone()).toISOString().split("T")[0]
+    : "";
+  dateToOpen.value = false;
+  applyFilters();
+};
+
+const handleHiringDateSelect = (val) => {
+  hiringDatePicker.value = val ?? null;
+  form.hiring_date = val
+    ? val.toDate(getLocalTimeZone()).toISOString().split("T")[0]
+    : "";
+  hiringDateOpen.value = false;
+};
 function onDrop(e) {
   dragDepth = 0;
   isDragging.value = false;
@@ -809,7 +900,12 @@ const filters = ref({
   dateFrom: "",
   dateTo: "",
 });
-
+if (filters.value.dateFrom) {
+  dateFromPicker.value = parseDate(filters.value.dateFrom);
+}
+if (filters.value.dateTo) {
+  dateToPicker.value = parseDate(filters.value.dateTo);
+}
 const tableColumns = [
   "first_name",
   "last_name",
@@ -906,6 +1002,8 @@ function applyFilters() {
 }
 function resetFilters() {
   filters.value = { search: "", dateFrom: "", dateTo: "" };
+  dateFromPicker.value = null;
+  dateToPicker.value = null;
 }
 
 function openCreateModal() {
@@ -917,6 +1015,7 @@ function openCreateModal() {
   form.image = null;
 
   imagePreview.value = null;
+  hiringDatePicker.value = form.hiring_date ? parseDate(form.hiring_date) : null;
 
   formTitle.value = "Create Driver";
   formAction.value = "Create";
@@ -935,7 +1034,7 @@ function openEditModal(item) {
   form.hiring_date = item.hiring_date ?? "";
   form.tenant_id = item.tenant_id ?? null;
   form.netradyne_user_name = item.netradyne_user_name ?? "";
-
+  hiringDatePicker.value = form.hiring_date ? parseDate(form.hiring_date) : null;
   // IMPORTANT: do NOT prefill password from server
   form.password = "";
   form.image = null;
@@ -960,6 +1059,7 @@ function closeModal() {
   form.clearErrors();
   imagePreview.value = null;
   showPassword.value = false;
+  hiringDateOpen.value = false;
 }
 
 function submitForm() {

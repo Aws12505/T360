@@ -1,14 +1,10 @@
 <template>
-  <AppLayout
-    :breadcrumbs="breadcrumbs"
-    :tenantSlug="tenantSlug"
-    :permissions="props.permissions"
-  >
+  <AppLayout :breadcrumbs="breadcrumbs" :tenantSlug="tenantSlug" :permissions="props.permissions">
+
     <Head title="Trucks" />
     <!-- responsive here -->
     <div
-      class="w-full md:max-w-2xl lg:max-w-3xl xl:max-w-6xl lg:mx-auto m-0 p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6"
-    >
+      class="w-full md:max-w-2xl lg:max-w-3xl xl:max-w-6xl lg:mx-auto m-0 p-2 md:p-4 lg:p-6 space-y-2 md:space-y-4 lg:space-y-6">
       <!-- Success Message -->
       <Alert v-if="successMessage" variant="success">
         <AlertTitle>Success</AlertTitle>
@@ -21,18 +17,12 @@
       </Alert>
       <!-- Actions Section -->
       <!-- responsive here -->
-      <div
-        class="flex flex-col sm:flex-row justify-between items-center px-2 mb-2 md:mb-4 lg:mb-6"
-      >
+      <div class="flex flex-col sm:flex-row justify-between items-center px-2 mb-2 md:mb-4 lg:mb-6">
         <!-- responsive here -->
         <h1 class="text-lg md:text-xl lg:text-2xl font-bold">Truck Management</h1>
         <div class="flex flex-wrap gap-3">
           <!-- responsive here -->
-          <Button
-            class="px-2 py-0 md:px-4 md:py-2"
-            @click="openCreateModal"
-            variant="default"
-          >
+          <Button class="px-2 py-0 md:px-4 md:py-2" @click="openCreateModal" variant="default">
             <!-- responsive here -->
             <Icon name="plus" class="mr-1 h-4 w-4 md:mr-2" />
             Create New Truck
@@ -40,33 +30,21 @@
 
           <!-- Add Delete Selected button -->
           <!-- responsive here -->
-          <Button
-            class="px-2 py-0 md:px-4 md:py-2"
-            v-if="selectedTrucks.length > 0"
-            @click="confirmDeleteSelected()"
-            variant="destructive"
-          >
+          <Button class="px-2 py-0 md:px-4 md:py-2" v-if="selectedTrucks.length > 0" @click="confirmDeleteSelected()"
+            variant="destructive">
             <!-- responsive here -->
             <Icon name="trash" class="mr-1 h-4 w-4 md:mr-2" />
             Delete Selected ({{ selectedTrucks.length }})
           </Button>
 
-          <Button
-            @click="showImportModal = true"
-            v-if="permissionNames.includes('trucks.import')"
-            variant="secondary"
-            class="px-2 py-0 md:px-4 md:py-2 shadow-sm hover:shadow transition-all"
-          >
+          <Button @click="showImportModal = true" v-if="permissionNames.includes('trucks.import')" variant="secondary"
+            class="px-2 py-0 md:px-4 md:py-2 shadow-sm hover:shadow transition-all">
             <Icon name="upload" class="mr-1 h-4 w-4 md:mr-2" />
             Import CSV
           </Button>
 
           <!-- responsive here -->
-          <Button
-            class="px-2 py-0 md:px-4 md:py-2"
-            @click.prevent="exportCSV"
-            variant="outline"
-          >
+          <Button class="px-2 py-0 md:px-4 md:py-2" @click.prevent="exportCSV" variant="outline">
             <!-- responsive here -->
             <Icon name="download" class="mr-1 h-4 w-4 md:mr-2" />
             Download CSV
@@ -90,23 +68,15 @@
               <div>
                 <Label for="search">Search</Label>
                 <!-- responsive here -->
-                <Input
-                  class="py-1 px-1 md:px-2 md:py-1 h-9 lg:px-3 lg:py-2 lg:h-10"
-                  id="search"
-                  v-model="filters.search"
-                  type="text"
-                  placeholder="Search by truck ID or VIN..."
-                  @input="applyFilters"
-                />
+                <Input class="py-1 px-1 md:px-2 md:py-1 h-9 lg:px-3 lg:py-2 lg:h-10" id="search"
+                  v-model="filters.search" type="text" placeholder="Search by truck ID or VIN..."
+                  @input="applyFilters" />
               </div>
               <div>
                 <Label for="type">Type</Label>
-                <select
-                  id="type"
-                  v-model="filters.type"
+                <select id="type" v-model="filters.type"
                   class="flex h-10 w-full appearance-none items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  @change="applyFilters"
-                >
+                  @change="applyFilters">
                   <option value="">All Types</option>
                   <option value="daycab">Daycab</option>
                   <option value="sleepercab">Sleepercab</option>
@@ -114,12 +84,9 @@
               </div>
               <div>
                 <Label for="make">Make</Label>
-                <select
-                  id="make"
-                  v-model="filters.make"
+                <select id="make" v-model="filters.make"
                   class="flex h-10 w-full appearance-none items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  @change="applyFilters"
-                >
+                  @change="applyFilters">
                   <option value="">All Makes</option>
                   <option value="international">International</option>
                   <option value="kenworth">Kenworth</option>
@@ -144,28 +111,17 @@
           <div class="overflow-x-auto">
             <Table class="relative h-[500px] overflow-auto">
               <TableHeader>
-                <TableRow
-                  class="sticky top-0 z-10 border-b bg-background hover:bg-background"
-                >
+                <TableRow class="sticky top-0 z-10 border-b bg-background hover:bg-background">
                   <!-- Add checkbox column for selecting all -->
                   <TableHead class="w-[50px]">
                     <div class="flex items-center justify-center">
-                      <input
-                        type="checkbox"
-                        @change="toggleSelectAll"
-                        :checked="isAllSelected"
-                        class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                      />
+                      <input type="checkbox" @change="toggleSelectAll" :checked="isAllSelected"
+                        class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
                     </div>
                   </TableHead>
                   <TableHead v-if="SuperAdmin">Company Name</TableHead>
                   <!-- In the TableHead section, update the column label -->
-                  <TableHead
-                    v-for="col in tableColumns"
-                    :key="col"
-                    class="cursor-pointer"
-                    @click="sortBy(col)"
-                  >
+                  <TableHead v-for="col in tableColumns" :key="col" class="cursor-pointer" @click="sortBy(col)">
                     <div class="flex items-center">
                       <template v-if="col === 'inspection_status'">
                         Annual Inspection Status
@@ -180,35 +136,17 @@
                         }}
                       </template>
                       <div v-if="sortColumn === col" class="ml-2">
-                        <svg
-                          v-if="sortDirection === 'asc'"
-                          class="h-4 w-4"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                        >
+                        <svg v-if="sortDirection === 'asc'" class="h-4 w-4" viewBox="0 0 24 24" fill="none"
+                          stroke="currentColor" stroke-width="2">
                           <path d="M8 15l4-4 4 4" />
                         </svg>
-                        <svg
-                          v-else
-                          class="h-4 w-4"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                        >
+                        <svg v-else class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                          stroke-width="2">
                           <path d="M16 9l-4 4-4-4" />
                         </svg>
                       </div>
                       <div v-else class="ml-2 opacity-50">
-                        <svg
-                          class="h-4 w-4"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                        >
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                           <path d="M8 10l4-4 4 4" />
                           <path d="M16 14l-4 4-4-4" />
                         </svg>
@@ -220,53 +158,33 @@
               </TableHeader>
               <TableBody>
                 <TableRow v-if="filteredEntries.length === 0">
-                  <TableCell
-                    :colspan="
-                      SuperAdmin ? tableColumns.length + 3 : tableColumns.length + 2
-                    "
-                    class="py-8 text-center"
-                  >
+                  <TableCell :colspan="SuperAdmin ? tableColumns.length + 3 : tableColumns.length + 2
+                    " class="py-8 text-center">
                     No trucks found matching your criteria
                   </TableCell>
                 </TableRow>
-                <TableRow
-                  v-for="item in filteredEntries"
-                  :key="item.id"
-                  class="hover:bg-muted/50"
-                >
+                <TableRow v-for="item in filteredEntries" :key="item.id" class="hover:bg-muted/50">
                   <!-- Add checkbox for selecting individual row -->
                   <TableCell class="text-center">
-                    <input
-                      type="checkbox"
-                      :value="item.id"
-                      v-model="selectedTrucks"
-                      class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                    />
+                    <input type="checkbox" :value="item.id" v-model="selectedTrucks"
+                      class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
                   </TableCell>
                   <TableCell v-if="SuperAdmin">
                     {{ item.tenant?.name ?? "—" }}
                   </TableCell>
                   <!-- In the TableCell section, add handling for the new columns -->
-                  <TableCell
-                    v-for="col in tableColumns"
-                    :key="col"
-                    class="whitespace-nowrap"
-                  >
+                  <TableCell v-for="col in tableColumns" :key="col" class="whitespace-nowrap">
                     <template v-if="col === 'status'">
-                      <span
-                        :class="{
-                          'text-green-600': item[col] === 'active',
-                          'text-red-600': item[col] === 'inactive',
-                          'text-blue-600': item[col] === 'Returned to AMZ',
-                        }"
-                      >
+                      <span :class="{
+                        'text-green-600': item[col] === 'active',
+                        'text-red-600': item[col] === 'inactive',
+                        'text-blue-600': item[col] === 'Returned to AMZ',
+                      }">
                         {{ item[col] }}
                       </span>
                     </template>
                     <template v-else-if="col === 'inspection_status'">
-                      <span
-                        :class="item[col] === 'good' ? 'text-green-600' : 'text-red-600'"
-                      >
+                      <span :class="item[col] === 'good' ? 'text-green-600' : 'text-red-600'">
                         {{ item[col] === "good" ? "Good" : "Expired" }}
                       </span>
                     </template>
@@ -287,11 +205,7 @@
                         <Icon name="pencil" class="mr-1 h-4 w-4" />
                         Edit
                       </Button>
-                      <Button
-                        @click="deleteEntry(item.id)"
-                        variant="destructive"
-                        size="sm"
-                      >
+                      <Button @click="deleteEntry(item.id)" variant="destructive" size="sm">
                         <Icon name="trash" class="mr-1 h-4 w-4" />
                         Delete
                       </Button>
@@ -307,20 +221,13 @@
             <!-- responsive here -->
             <div class="flex flex-col sm:flex-row justify-between items-center gap-2">
               <div class="flex items-center gap-4 text-sm text-muted-foreground">
-                <span
-                  >Showing {{ filteredEntries.length }} of
-                  {{ entries.data.length }} entries</span
-                >
+                <span>Showing {{ filteredEntries.length }} of
+                  {{ entries.data.length }} entries</span>
                 <!-- responsive here -->
-                <div
-                  class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 w-full sm:w-auto"
-                >
+                <div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 w-full sm:w-auto">
                   <span class="text-sm">Show:</span>
-                  <select
-                    v-model="perPage"
-                    @change="changePerPage"
-                    class="h-8 rounded-md border border-input bg-background px-2 py-1 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                  >
+                  <select v-model="perPage" @change="changePerPage"
+                    class="h-8 rounded-md border border-input bg-background px-2 py-1 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
                     <option v-for="size in [10, 25, 50, 100]" :key="size" :value="size">
                       {{ size }}
                     </option>
@@ -328,16 +235,9 @@
                 </div>
               </div>
               <div class="flex flex-wrap">
-                <Button
-                  v-for="link in entries.links"
-                  :key="link.label"
-                  @click="visitPage(link.url)"
-                  :disabled="!link.url"
-                  variant="ghost"
-                  size="sm"
-                  class="mx-1"
-                  :class="{ 'border-primary bg-primary/10 text-primary': link.active }"
-                >
+                <Button v-for="link in entries.links" :key="link.label" @click="visitPage(link.url)"
+                  :disabled="!link.url" variant="ghost" size="sm" class="mx-1"
+                  :class="{ 'border-primary bg-primary/10 text-primary': link.active }">
                   <span v-html="link.label"></span>
                 </Button>
               </div>
@@ -356,37 +256,24 @@
             </DialogDescription>
           </DialogHeader>
 
-          <form
-            @submit.prevent="submitForm"
-            class="grid max-h-[75vh] grid-cols-1 gap-2 overflow-y-auto p-4 sm:grid-cols-2 sm:gap-3 sm:p-6"
-          >
+          <form @submit.prevent="submitForm"
+            class="grid max-h-[75vh] grid-cols-1 gap-2 overflow-y-auto p-4 sm:grid-cols-2 sm:gap-3 sm:p-6">
             <div v-if="SuperAdmin" class="col-span-2">
               <Label for="tenant">Company Name</Label>
               <div class="relative">
-                <select
-                  id="tenant"
-                  v-model="form.tenant_id"
-                  class="flex h-10 w-full appearance-none items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                >
+                <select id="tenant" v-model="form.tenant_id"
+                  class="flex h-10 w-full appearance-none items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                   <option value="">Select Company</option>
                   <option v-for="tenant in tenants" :key="tenant.id" :value="tenant.id">
                     {{ tenant.name }}
                   </option>
                 </select>
-                <div
-                  class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700"
-                >
-                  <svg
-                    class="h-4 w-4 opacity-50"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fill-rule="evenodd"
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                  <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                    fill="currentColor">
+                    <path fill-rule="evenodd"
                       d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                      clip-rule="evenodd"
-                    />
+                      clip-rule="evenodd" />
                   </svg>
                 </div>
               </div>
@@ -400,29 +287,18 @@
             <div class="col-span-2 sm:col-span-1">
               <Label for="type">Type</Label>
               <div class="relative">
-                <select
-                  id="type"
-                  v-model="form.type"
+                <select id="type" v-model="form.type"
                   class="flex h-10 w-full appearance-none items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  required
-                >
+                  required>
                   <option value="daycab">Daycab</option>
                   <option value="sleepercab">Sleepercab</option>
                 </select>
-                <div
-                  class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700"
-                >
-                  <svg
-                    class="h-4 w-4 opacity-50"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fill-rule="evenodd"
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                  <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                    fill="currentColor">
+                    <path fill-rule="evenodd"
                       d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                      clip-rule="evenodd"
-                    />
+                      clip-rule="evenodd" />
                   </svg>
                 </div>
               </div>
@@ -431,32 +307,21 @@
             <div class="col-span-2 sm:col-span-1">
               <Label for="make">Make</Label>
               <div class="relative">
-                <select
-                  id="make"
-                  v-model="form.make"
+                <select id="make" v-model="form.make"
                   class="flex h-10 w-full appearance-none items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  required
-                >
+                  required>
                   <option value="international">International</option>
                   <option value="kenworth">Kenworth</option>
                   <option value="peterbilt">Peterbilt</option>
                   <option value="volvo">Volvo</option>
                   <option value="freightliner">Freightliner</option>
                 </select>
-                <div
-                  class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700"
-                >
-                  <svg
-                    class="h-4 w-4 opacity-50"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fill-rule="evenodd"
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                  <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                    fill="currentColor">
+                    <path fill-rule="evenodd"
                       d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                      clip-rule="evenodd"
-                    />
+                      clip-rule="evenodd" />
                   </svg>
                 </div>
               </div>
@@ -465,29 +330,18 @@
             <div class="col-span-2 sm:col-span-1">
               <Label for="fuel">Fuel</Label>
               <div class="relative">
-                <select
-                  id="fuel"
-                  v-model="form.fuel"
+                <select id="fuel" v-model="form.fuel"
                   class="flex h-10 w-full appearance-none items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  required
-                >
+                  required>
                   <option value="diesel">Diesel</option>
                   <option value="cng">CNG</option>
                 </select>
-                <div
-                  class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700"
-                >
-                  <svg
-                    class="h-4 w-4 opacity-50"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fill-rule="evenodd"
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                  <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                    fill="currentColor">
+                    <path fill-rule="evenodd"
                       d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                      clip-rule="evenodd"
-                    />
+                      clip-rule="evenodd" />
                   </svg>
                 </div>
               </div>
@@ -495,13 +349,7 @@
 
             <div class="col-span-2 sm:col-span-1">
               <Label for="license">License</Label>
-              <Input
-                id="license"
-                v-model.number="form.license"
-                type="number"
-                min="0"
-                required
-              />
+              <Input id="license" v-model.number="form.license" type="number" min="0" required />
             </div>
 
             <div class="col-span-2 sm:col-span-1">
@@ -513,29 +361,18 @@
             <div class="col-span-2 sm:col-span-1">
               <Label for="inspection_status">Annual Inspection Status</Label>
               <div class="relative">
-                <select
-                  id="inspection_status"
-                  v-model="form.inspection_status"
+                <select id="inspection_status" v-model="form.inspection_status"
                   class="flex h-10 w-full appearance-none items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  required
-                >
+                  required>
                   <option value="good">Good</option>
                   <option value="expired">Expired</option>
                 </select>
-                <div
-                  class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700"
-                >
-                  <svg
-                    class="h-4 w-4 opacity-50"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fill-rule="evenodd"
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                  <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                    fill="currentColor">
+                    <path fill-rule="evenodd"
                       d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                      clip-rule="evenodd"
-                    />
+                      clip-rule="evenodd" />
                   </svg>
                 </div>
               </div>
@@ -543,42 +380,44 @@
 
             <div class="col-span-2 sm:col-span-1">
               <Label for="inspection_expiry_date">Annual Inspection Expiry Date</Label>
-              <Input
-                id="inspection_expiry_date"
-                v-model="form.inspection_expiry_date"
-                type="date"
-                required
-              />
+
+              <Popover v-model:open="inspectionExpiryDateOpen">
+                <PopoverTrigger as-child>
+                  <Button id="inspection_expiry_date" variant="outline"
+                    class="w-full justify-start text-left font-normal">
+                    <CalendarIcon class="mr-2 h-4 w-4" />
+                    {{
+                      inspectionExpiryDatePicker
+                        ? df.format(inspectionExpiryDatePicker.toDate(getLocalTimeZone()))
+                        : "Pick an expiry date"
+                    }}
+                  </Button>
+                </PopoverTrigger>
+
+                <PopoverContent class="w-auto p-0">
+                  <Calendar :model-value="inspectionExpiryDatePicker" layout="month-and-year"
+                    @update:model-value="handleInspectionExpiryDateSelect" />
+                </PopoverContent>
+              </Popover>
             </div>
 
             <!-- Replace is_active and is_returned checkboxes with status dropdown -->
             <div class="col-span-2 sm:col-span-1">
               <Label for="status">Status</Label>
               <div class="relative">
-                <select
-                  id="status"
-                  v-model="form.status"
+                <select id="status" v-model="form.status"
                   class="flex h-10 w-full appearance-none items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  required
-                >
+                  required>
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
                   <option value="Returned to AMZ">Returned to AMZ</option>
                 </select>
-                <div
-                  class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700"
-                >
-                  <svg
-                    class="h-4 w-4 opacity-50"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fill-rule="evenodd"
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                  <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                    fill="currentColor">
+                    <path fill-rule="evenodd"
                       d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                      clip-rule="evenodd"
-                    />
+                      clip-rule="evenodd" />
                   </svg>
                 </div>
               </div>
@@ -628,11 +467,7 @@
             </DialogDescription>
           </DialogHeader>
           <DialogFooter class="mt-4">
-            <Button
-              type="button"
-              @click="showDeleteSelectedModal = false"
-              variant="outline"
-            >
+            <Button type="button" @click="showDeleteSelectedModal = false" variant="outline">
               Cancel
             </Button>
             <Button type="button" @click="deleteSelectedTrucks()" variant="destructive">
@@ -642,9 +477,7 @@
         </DialogContent>
       </Dialog>
       <Dialog v-model:open="showImportModal">
-        <DialogContent
-          class="max-w-[95vw] sm:max-w-[90vw] md:max-w-5xl max-h-[90vh] overflow-hidden flex flex-col"
-        >
+        <DialogContent class="max-w-[95vw] sm:max-w-[90vw] md:max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader class="px-4 sm:px-6 border-b pb-3">
             <div class="flex items-center gap-2">
               <Icon name="upload" class="h-5 w-5 text-primary" />
@@ -663,23 +496,12 @@
             <div v-if="!importValidationResults">
               <div class="space-y-4">
                 <div
-                  class="flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-8 bg-muted/20"
-                >
-                  <Icon
-                    name="file-spreadsheet"
-                    class="h-12 w-12 text-muted-foreground mb-3"
-                  />
+                  class="flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-8 bg-muted/20">
+                  <Icon name="file-spreadsheet" class="h-12 w-12 text-muted-foreground mb-3" />
                   <label class="cursor-pointer">
-                    <span class="text-sm font-medium text-primary hover:underline"
-                      >Choose CSV file</span
-                    >
-                    <input
-                      type="file"
-                      class="hidden"
-                      @change="validateImportFile"
-                      accept=".csv,.txt"
-                      :disabled="isValidating"
-                    />
+                    <span class="text-sm font-medium text-primary hover:underline">Choose CSV file</span>
+                    <input type="file" class="hidden" @change="validateImportFile" accept=".csv,.txt"
+                      :disabled="isValidating" />
                   </label>
                   <p class="text-xs text-muted-foreground mt-2">or drag and drop</p>
                 </div>
@@ -691,26 +513,16 @@
                   </a>
                 </div>
 
-                <div
-                  v-if="isValidating"
-                  class="flex items-center justify-center gap-2 p-4"
-                >
-                  <div
-                    class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"
-                  ></div>
-                  <span class="text-sm text-muted-foreground"
-                    >Validating CSV file...</span
-                  >
+                <div v-if="isValidating" class="flex items-center justify-center gap-2 p-4">
+                  <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                  <span class="text-sm text-muted-foreground">Validating CSV file...</span>
                 </div>
               </div>
             </div>
 
             <!-- Step 2 -->
             <div v-else class="space-y-4">
-              <div
-                v-if="importValidationResults.headers?.length"
-                class="rounded-lg border p-3"
-              >
+              <div v-if="importValidationResults.headers?.length" class="rounded-lg border p-3">
                 <div class="flex items-center justify-between">
                   <div class="text-sm font-semibold">CSV Headers</div>
                   <div class="text-xs text-muted-foreground">
@@ -718,11 +530,8 @@
                   </div>
                 </div>
                 <div class="mt-2 flex flex-wrap gap-2">
-                  <span
-                    v-for="h in importValidationResults.headers"
-                    :key="h"
-                    class="rounded-full bg-muted px-2 py-0.5 text-xs"
-                  >
+                  <span v-for="h in importValidationResults.headers" :key="h"
+                    class="rounded-full bg-muted px-2 py-0.5 text-xs">
                     {{ h }}
                   </span>
                 </div>
@@ -738,9 +547,7 @@
                   </CardContent>
                 </Card>
 
-                <Card
-                  class="border-2 border-green-500/50 bg-green-50 dark:bg-green-900/10"
-                >
+                <Card class="border-2 border-green-500/50 bg-green-50 dark:bg-green-900/10">
                   <CardContent class="p-4 text-center">
                     <div class="text-2xl font-bold text-green-600">
                       {{ importValidationResults.summary.valid }}
@@ -776,12 +583,7 @@
                     Validation Errors ({{ importValidationResults.invalid.length }})
                   </h3>
 
-                  <Button
-                    @click="downloadErrorReport"
-                    variant="outline"
-                    size="sm"
-                    class="flex items-center gap-2"
-                  >
+                  <Button @click="downloadErrorReport" variant="outline" size="sm" class="flex items-center gap-2">
                     <Icon name="download" class="h-4 w-4" />
                     Download Error Report
                   </Button>
@@ -799,50 +601,28 @@
                       </TableHeader>
 
                       <TableBody>
-                        <TableRow
-                          v-for="row in importValidationResults.invalid"
-                          :key="row.rowNumber"
-                          class="hover:bg-muted/50"
-                        >
+                        <TableRow v-for="row in importValidationResults.invalid" :key="row.rowNumber"
+                          class="hover:bg-muted/50">
                           <TableCell class="font-medium">{{ row.rowNumber }}</TableCell>
 
                           <TableCell class="text-sm text-muted-foreground">
                             <div class="flex flex-wrap gap-x-3 gap-y-1">
-                              <span
-                                v-for="p in row.preview || []"
-                                :key="p.key"
-                                class="whitespace-nowrap"
-                              >
-                                <span class="font-medium text-foreground"
-                                  >{{ p.label }}:</span
-                                >
+                              <span v-for="p in row.preview || []" :key="p.key" class="whitespace-nowrap">
+                                <span class="font-medium text-foreground">{{ p.label }}:</span>
                                 {{ p.value }}
                               </span>
-                              <span
-                                v-if="!row.preview?.length"
-                                class="italic text-muted-foreground"
-                                >—</span
-                              >
+                              <span v-if="!row.preview?.length" class="italic text-muted-foreground">—</span>
                             </div>
                           </TableCell>
 
                           <TableCell>
                             <div class="space-y-1">
-                              <div
-                                v-for="(error, idx) in row.errors || []"
-                                :key="idx"
-                                class="text-xs text-red-600 flex items-start gap-1"
-                              >
-                                <Icon
-                                  name="x-circle"
-                                  class="h-3 w-3 mt-0.5 flex-shrink-0"
-                                />
+                              <div v-for="(error, idx) in row.errors || []" :key="idx"
+                                class="text-xs text-red-600 flex items-start gap-1">
+                                <Icon name="x-circle" class="h-3 w-3 mt-0.5 flex-shrink-0" />
                                 <span>{{ error }}</span>
                               </div>
-                              <div
-                                v-if="!row.errors?.length"
-                                class="text-xs text-muted-foreground"
-                              >
+                              <div v-if="!row.errors?.length" class="text-xs text-muted-foreground">
                                 —
                               </div>
                             </div>
@@ -855,9 +635,7 @@
               </div>
 
               <div v-if="importValidationResults.valid?.length">
-                <h3
-                  class="text-lg font-semibold text-green-600 flex items-center gap-2 mb-3"
-                >
+                <h3 class="text-lg font-semibold text-green-600 flex items-center gap-2 mb-3">
                   <Icon name="check-circle" class="h-5 w-5" />
                   Valid Rows ({{ importValidationResults.valid.length }})
                 </h3>
@@ -876,26 +654,15 @@
                     </TableHeader>
 
                     <TableBody>
-                      <TableRow
-                        v-for="row in importValidationResults.valid.slice(0, 5)"
-                        :key="row.rowNumber"
-                      >
+                      <TableRow v-for="row in importValidationResults.valid.slice(0, 5)" :key="row.rowNumber">
                         <TableCell class="font-medium">{{ row.rowNumber }}</TableCell>
                         <TableCell class="text-sm">
                           <div class="flex flex-wrap gap-x-3 gap-y-1">
-                            <span
-                              v-for="p in row.preview || []"
-                              :key="p.key"
-                              class="whitespace-nowrap"
-                            >
+                            <span v-for="p in row.preview || []" :key="p.key" class="whitespace-nowrap">
                               <span class="font-medium">{{ p.label }}:</span>
                               {{ p.value }}
                             </span>
-                            <span
-                              v-if="!row.preview?.length"
-                              class="italic text-muted-foreground"
-                              >—</span
-                            >
+                            <span v-if="!row.preview?.length" class="italic text-muted-foreground">—</span>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -907,25 +674,14 @@
           </div>
 
           <div class="border-t p-4 flex justify-end gap-3">
-            <Button @click="closeImportModal" variant="outline" :disabled="isImporting"
-              >Close</Button
-            >
+            <Button @click="closeImportModal" variant="outline" :disabled="isImporting">Close</Button>
 
-            <Button
-              v-if="importValidationResults && importValidationResults.summary.valid > 0"
-              @click="confirmImport"
-              variant="default"
-              :disabled="
-                isImporting ||
+            <Button v-if="importValidationResults && importValidationResults.summary.valid > 0" @click="confirmImport"
+              variant="default" :disabled="isImporting ||
                 importValidationResults.summary.invalid > 0 ||
                 Boolean(importValidationResults.header_error)
-              "
-              class="flex items-center gap-2"
-            >
-              <div
-                v-if="isImporting"
-                class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"
-              ></div>
+                " class="flex items-center gap-2">
+              <div v-if="isImporting" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
               <Icon v-else name="check" class="h-4 w-4" />
               {{
                 isImporting
@@ -968,10 +724,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui";
+import { Calendar } from '@/components/ui/calendar'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import AppLayout from "@/layouts/AppLayout.vue";
 import { Head, router, useForm, usePage } from "@inertiajs/vue3";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-
+import type { DateValue } from "@internationalized/date";
+import { CalendarIcon } from "lucide-vue-next";
+import { DateFormatter, getLocalTimeZone, parseDate } from "@internationalized/date";
 const props = defineProps({
   entries: Object,
   tenantSlug: String,
@@ -1025,14 +789,23 @@ const isImporting = ref(false);
 // Sorting state
 const sortColumn = ref("truckid");
 const sortDirection = ref("asc");
+const inspectionExpiryDatePicker = ref<DateValue | null>(null);
+const inspectionExpiryDateOpen = ref(false);
 
+const df = new DateFormatter("en-US", { dateStyle: "medium" });
 // Filtering state
 const filters = ref({
   search: "",
   type: "",
   make: "",
 });
-
+const handleInspectionExpiryDateSelect = (val: DateValue | undefined) => {
+  inspectionExpiryDatePicker.value = val ?? null;
+  form.inspection_expiry_date = val
+    ? val.toDate(getLocalTimeZone()).toISOString().split("T")[0]
+    : "";
+  inspectionExpiryDateOpen.value = false;
+};
 const breadcrumbs = [
   {
     title: props.tenantSlug ? "Dashboard" : "Admin Dashboard",
@@ -1166,6 +939,9 @@ function openCreateModal() {
   form.reset();
   form.status = "active"; // Set default status to active
   form.tenant_id = null;
+  inspectionExpiryDatePicker.value = form.inspection_expiry_date
+    ? parseDate(form.inspection_expiry_date)
+    : null;
   formTitle.value = "Create Truck";
   formAction.value = "Create";
   showModal.value = true;
@@ -1185,7 +961,9 @@ function openEditModal(item) {
   form.inspection_status = item.inspection_status || "good";
   form.inspection_expiry_date =
     item.inspection_expiry_date || new Date().toISOString().split("T")[0];
-
+  inspectionExpiryDatePicker.value = form.inspection_expiry_date
+    ? parseDate(form.inspection_expiry_date)
+    : null;
   formTitle.value = "Edit Truck";
   formAction.value = "Update";
   showModal.value = true;
@@ -1193,6 +971,7 @@ function openEditModal(item) {
 
 function closeModal() {
   showModal.value = false;
+  inspectionExpiryDateOpen.value = false;
 }
 
 // Update the submitForm function to include the status field in the payload
@@ -1430,9 +1209,8 @@ function confirmImport() {
     {
       preserveScroll: true,
       onSuccess: () => {
-        successMessage.value = `Successfully imported ${
-          importValidationResults.value.summary?.valid ?? 0
-        } rows`;
+        successMessage.value = `Successfully imported ${importValidationResults.value.summary?.valid ?? 0
+          } rows`;
         closeImportModal();
       },
       onError: () => {

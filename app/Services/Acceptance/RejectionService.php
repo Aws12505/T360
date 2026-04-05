@@ -191,12 +191,10 @@ class RejectionService
             $dateRange['start'] ?? null,
             $dateRange['end'] ?? null
         );
-
         $lineChartData = $this->rejectionBreakdownService->getLineChartData(
             $dateRange['start'] ?? null,
             $dateRange['end'] ?? null
         );
-
         $filters = [
             'search' => (string) $request->input('search', ''),
             'rejectionType' => (string) $request->input('rejectionType', ''),

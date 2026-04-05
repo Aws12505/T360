@@ -37,12 +37,7 @@
           </div>
         </div>
         <div class="mt-4 text-right">
-          <Button 
-            variant="link" 
-            size="sm" 
-            class="text-primary"
-            @click="navigateToDetails"
-          >
+          <Button variant="link" size="sm" class="text-primary" @click="navigateToDetails">
             See details...
           </Button>
         </div>
@@ -85,40 +80,46 @@
       </div>
     </div>
   </div>
-  
+
   <!-- Outstanding Invoices Filter -->
   <div class="bg-card rounded-lg border shadow-sm p-4 mb-6">
     <h3 class="text-lg font-semibold mb-4">Outstanding Invoices Filter</h3>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
         <Label for="min-invoice-amount">Minimum Invoice Amount ($)</Label>
-        <Input 
-          id="min-invoice-amount" 
-          v-model="minInvoiceAmount" 
-          type="number" 
-          min="0" 
-          step="100"
-          placeholder="Enter minimum amount" 
-          class="mt-1"
-        />
+        <Input id="min-invoice-amount" v-model="minInvoiceAmount" type="number" min="0" step="100"
+          placeholder="Enter minimum amount" class="mt-1" />
       </div>
       <div>
         <Label for="outstanding-since">Outstanding Since</Label>
-        <Input 
-          id="outstanding-since" 
-          v-model="outstandingDate" 
-          type="date" 
-          class="mt-1"
-        />
+
+        <Popover v-model:open="outstandingDateOpen">
+          <PopoverTrigger as-child>
+            <Button id="outstanding-since" variant="outline" class="mt-1 w-full justify-start text-left font-normal">
+              <CalendarIcon class="mr-2 h-4 w-4" />
+              {{
+                outstandingDatePicker
+                  ? df.format(outstandingDatePicker.toDate(getLocalTimeZone()))
+                  : 'Pick a date'
+              }}
+            </Button>
+          </PopoverTrigger>
+
+          <PopoverContent class="w-auto p-0">
+            <Calendar :model-value="outstandingDatePicker" layout="month-and-year"
+              @update:model-value="handleOutstandingDateSelect" />
+          </PopoverContent>
+        </Popover>
       </div>
     </div>
     <div class="mt-4 flex justify-end">
       <Button @click="applyFilter">Apply Filter</Button>
     </div>
   </div>
-  
+
   <!-- Outstanding Invoices Section -->
-  <div v-if="maintenanceData.outstanding_invoices && maintenanceData.outstanding_invoices.length > 0" class="bg-card rounded-lg border shadow-sm mb-6">
+  <div v-if="maintenanceData.outstanding_invoices && maintenanceData.outstanding_invoices.length > 0"
+    class="bg-card rounded-lg border shadow-sm mb-6">
     <div class="p-4 border-b flex justify-between items-center">
       <h3 class="text-lg font-semibold">Outstanding Invoices</h3>
       <Badge variant="outline" class="text-sm">{{ maintenanceData.outstanding_invoices.length }} invoices</Badge>
@@ -162,7 +163,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { router } from '@inertiajs/vue3';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-
+import { CalendarIcon } from 'lucide-vue-next';
+import { DateFormatter, getLocalTimeZone, parseDate } from '@internationalized/date';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 const props = defineProps({
   maintenanceData: {
     type: Object,
@@ -191,7 +199,19 @@ const emit = defineEmits(['filter-applied']);
 // Filter state
 const minInvoiceAmount = ref(props.initialMinInvoiceAmount);
 const outstandingDate = ref(props.initialOutstandingDate);
+const outstandingDatePicker = ref(
+  props.initialOutstandingDate ? parseDate(props.initialOutstandingDate) : null
+);
+const outstandingDateOpen = ref(false);
 
+const df = new DateFormatter('en-US', { dateStyle: 'medium' });
+const handleOutstandingDateSelect = (val) => {
+  outstandingDatePicker.value = val ?? null;
+  outstandingDate.value = val
+    ? val.toDate(getLocalTimeZone()).toISOString().split('T')[0]
+    : null;
+  outstandingDateOpen.value = false;
+};
 // Apply filter
 const applyFilter = () => {
   emit('filter-applied', {

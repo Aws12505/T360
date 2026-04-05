@@ -1,0 +1,1 @@
+import{d as e,v as s,Z as a,E as r}from"./vendor-CiEHX2rM.js";const p=e({inheritAttrs:!1,__name:"AppLogoIcon",props:{className:{}},setup(t){return(o,n)=>(s(),a("img",r({src:"/logo.svg",class:o.className,style:{"background-color":"white","border-radius":"50%","aspect-ratio":"1","object-fit":"contain",padding:"4px"}},o.$attrs,{alt:"Logo"}),null,16))}});export{p as _};

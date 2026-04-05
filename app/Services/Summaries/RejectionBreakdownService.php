@@ -324,80 +324,87 @@ class RejectionBreakdownService
 
         if ($dateFilter === 'yesterday') {
 
-            $groupBy = DB::raw('DATE_FORMAT(date, "%Y-%m-%d")');
-            $dateFormat = 'Y-m-d';
-            $labelFormat = 'H:00';
+            $groupBy = 'DATE_FORMAT(date, "%Y-%m-%d %H:00:00")';
+            $selectDate = DB::raw("$groupBy as grouped_date");
+            $labelType = 'hour';
 
         } elseif ($dateFilter === 'current-week') {
 
-            $groupBy = DB::raw('DATE(date)');
-            $dateFormat = 'Y-m-d';
-            $labelFormat = 'D';
+            $groupBy = 'DATE(date)';
+            $selectDate = DB::raw("$groupBy as grouped_date");
+            $labelType = 'day';
 
         } elseif ($dateFilter === '6w') {
 
-            $groupBy = DB::raw('YEARWEEK(date, 6)');
-            $dateFormat = 'Y-W';
-            $labelFormat = 'W';
+            // Group by actual Sunday start of week
+            $groupBy = 'DATE_SUB(date, INTERVAL DAYOFWEEK(date) - 1 DAY)';
+            $selectDate = DB::raw("$groupBy as grouped_date");
+
+            // Sunday-based week number
+            $selectWeekNumber = DB::raw("WEEK($groupBy, 0) + 1 as week_number");
+            $labelType = 'week';
 
         } else {
 
-            $groupBy = DB::raw('DATE_FORMAT(date, "%Y-%m")');
-            $dateFormat = 'Y-m';
-            $labelFormat = 'M';
+            $groupBy = 'DATE_FORMAT(date, "%Y-%m")';
+            $selectDate = DB::raw("$groupBy as grouped_date");
+            $labelType = 'month';
         }
 
+        $query = DB::table('rejections');
 
-        $query = DB::table('rejections')
-            ->select(
-                $groupBy,
+        if ($dateFilter === '6w') {
+            $query->select(
+                $selectDate,
+                $selectWeekNumber,
                 DB::raw("
-            COUNT(*) as total_entries,
-            SUM(CASE WHEN carrier_controllable = 1 THEN penalty ELSE 0 END) as carrier_penalty
-        ")
-            )
-            ->whereBetween('date', [$startDate, $endDate])
-            ->groupBy($groupBy)
-            ->orderBy($groupBy);
+                COUNT(*) as total_entries,
+                SUM(CASE WHEN carrier_controllable = 1 THEN penalty ELSE 0 END) as carrier_penalty
+            ")
+            );
+        } else {
+            $query->select(
+                $selectDate,
+                DB::raw("
+                COUNT(*) as total_entries,
+                SUM(CASE WHEN carrier_controllable = 1 THEN penalty ELSE 0 END) as carrier_penalty
+            ")
+            );
+        }
+
+        $query->whereBetween('date', [$startDate, $endDate])
+            ->groupBy('grouped_date');
+
+        if ($dateFilter === '6w') {
+            $query->groupBy('week_number')->orderBy('grouped_date');
+        } else {
+            $query->orderBy('grouped_date');
+        }
 
         $this->applyTenantFilter($query);
 
         $results = $query->get();
 
-        $chartData = $results->map(function ($item) use ($dateFormat, $labelFormat) {
-
-            $dateValue = $item->{array_key_first((array) $item)};
-
-            if ($dateFormat === 'Y-W') {
-
-                $formattedDate = 'W' . substr($dateValue, 4);
-
-            } elseif ($dateFormat === 'Y-m') {
-
-                $formattedDate = Carbon::parse($dateValue . '-01')->format($labelFormat);
-
+        $chartData = $results->map(function ($item) use ($labelType) {
+            if ($labelType === 'week') {
+                $formattedDate = 'W' . $item->week_number;
+            } elseif ($labelType === 'month') {
+                $formattedDate = Carbon::parse($item->grouped_date . '-01')->format('M');
+            } elseif ($labelType === 'day') {
+                $formattedDate = Carbon::parse($item->grouped_date)->format('D');
             } else {
-
-                $formattedDate = Carbon::parse($dateValue)->format($labelFormat);
+                $formattedDate = Carbon::parse($item->grouped_date)->format('H:00');
             }
 
-
-            if ($item->total_entries > 0) {
-
-                $performance = (1 - ($item->carrier_penalty / $item->total_entries)) * 100;
-
-            } else {
-
-                $performance = 100;
-            }
+            $performance = $item->total_entries > 0
+                ? (1 - ($item->carrier_penalty / $item->total_entries)) * 100
+                : 100;
 
             return [
                 'date' => $formattedDate,
-                'acceptancePerformance' => round($performance, 1)
+                'acceptancePerformance' => round($performance, 1),
             ];
-
         })->toArray();
-
 
         $values = collect($chartData)
             ->pluck('acceptancePerformance')
@@ -407,13 +414,11 @@ class RejectionBreakdownService
             ? round($values->avg(), 1)
             : null;
 
-
         return [
             'chartData' => $chartData,
-            'averageAcceptance' => $averageAcceptance
+            'averageAcceptance' => $averageAcceptance,
         ];
     }
-
 
     /*
     |--------------------------------------------------------------------------

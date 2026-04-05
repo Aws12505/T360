@@ -14,8 +14,7 @@
 
     <!-- Date/Time -->
     <div>
-      <Label>Date & Time</Label>
-      <Input type="datetime-local" v-model="form.date" class="w-full" />
+      <DateTimePopoverField v-model="form.date" dateLabel="Date" timeLabel="Time" />
       <InputError :message="form.errors.date" />
     </div>
 
@@ -136,7 +135,7 @@ import Input from "@/components/ui/input/Input.vue";
 import Button from "@/components/ui/button/Button.vue";
 import Label from "@/components/ui/label/Label.vue";
 import InputError from "@/components/ui/inputError/InputError.vue";
-
+import DateTimePopoverField from "@/components/ui/date-time-popover-field.vue";
 const props = defineProps({
   delay: { type: Object, default: null },
   tenants: { type: Array, default: () => [] },
