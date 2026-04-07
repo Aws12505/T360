@@ -468,7 +468,7 @@
                 </Button>
               </PopoverTrigger>
 
-              <PopoverContent class="w-auto p-0">
+              <PopoverContent class="w-auto p-0" align="start" side="bottom" :avoid-collisions="true">
                 <Calendar :model-value="startDatePicker" layout="month-and-year"
                   @update:model-value="handleStartDateSelect" />
               </PopoverContent>
@@ -490,7 +490,7 @@
                 </Button>
               </PopoverTrigger>
 
-              <PopoverContent class="w-auto p-0">
+              <PopoverContent class="w-auto p-0" align="start" side="bottom" :avoid-collisions="true">
                 <Calendar :model-value="endDatePicker" layout="month-and-year"
                   @update:model-value="handleEndDateSelect" />
               </PopoverContent>
@@ -1032,9 +1032,10 @@ function isControllable(val) {
 
 function formatDate(d) {
   if (!d) return "—";
-  const str = String(d).split(" ")[0];
-  const [y, m, day] = str.split("-");
-  if (!y || !m || !day) return d;
+
+  const [datePart] = String(d).split("T"); // strip time safely
+  const [y, m, day] = datePart.split("-");
+
   return `${Number(m)}/${Number(day)}/${y}`;
 }
 function formatDelayReason(val) {

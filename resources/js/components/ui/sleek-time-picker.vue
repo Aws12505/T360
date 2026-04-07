@@ -174,7 +174,8 @@ const ampm = computed<"AM" | "PM">(() => {
                 </Button>
             </PopoverTrigger>
 
-            <PopoverContent class="w-[280px] p-3 rounded-xl" align="end" :side-offset="4">
+            <PopoverContent class="w-[280px] p-3 rounded-xl" align="end" :side-offset="4" side="bottom"
+                :avoid-collisions="true">
 
                 <div class="space-y-3">
                     <div v-if="allowFormatToggle" class="flex gap-2 rounded-md border bg-muted/30 p-1">

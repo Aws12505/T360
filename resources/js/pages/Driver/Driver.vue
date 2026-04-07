@@ -80,7 +80,7 @@
                     </Button>
                   </PopoverTrigger>
 
-                  <PopoverContent class="w-auto p-0">
+                  <PopoverContent class="w-auto p-0" align="start" side="bottom" :avoid-collisions="true">
                     <Calendar :model-value="dateFromPicker" layout="month-and-year"
                       @update:model-value="handleDateFromSelect" />
                   </PopoverContent>
@@ -103,7 +103,7 @@
                     </Button>
                   </PopoverTrigger>
 
-                  <PopoverContent class="w-auto p-0">
+                  <PopoverContent class="w-auto p-0" align="start" side="bottom" :avoid-collisions="true">
                     <Calendar :model-value="dateToPicker" layout="month-and-year"
                       @update:model-value="handleDateToSelect" />
                   </PopoverContent>
@@ -196,7 +196,7 @@
 
                   <TableCell v-if="SuperAdmin">{{
                     driver.tenant?.name ?? "—"
-                  }}</TableCell>
+                    }}</TableCell>
 
                   <TableCell v-for="col in tableColumns" :key="col">
                     <template v-if="col === 'hiring_date'">
@@ -284,7 +284,7 @@
           <DialogHeader class="space-y-1 md:space-y-2">
             <DialogTitle class="text-lg md:text-xl lg:text-2xl">{{
               formTitle
-            }}</DialogTitle>
+              }}</DialogTitle>
             <DialogDescription class="text-sm md:text-base">
               Fill in the details to {{ formAction.toLowerCase() }} a driver.
             </DialogDescription>
@@ -381,7 +381,7 @@
                     </Button>
                   </PopoverTrigger>
 
-                  <PopoverContent class="w-auto p-0">
+                  <PopoverContent class="w-auto p-0" align="start" side="bottom" :avoid-collisions="true">
                     <Calendar :model-value="hiringDatePicker" layout="month-and-year"
                       @update:model-value="handleHiringDateSelect" />
                   </PopoverContent>
@@ -589,7 +589,7 @@
               </AlertTitle>
               <AlertDescription>{{
                 importValidationResults.header_error
-              }}</AlertDescription>
+                }}</AlertDescription>
             </Alert>
 
             <div v-if="importValidationResults.invalid?.length">

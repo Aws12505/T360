@@ -63,7 +63,7 @@
                 </Button>
               </PopoverTrigger>
 
-              <PopoverContent class="w-auto p-0">
+              <PopoverContent class="w-auto p-0" align="start" side="bottom" :avoid-collisions="true">
                 <Calendar :model-value="importDatePicker" layout="month-and-year"
                   @update:model-value="handleImportDateSelect" />
               </PopoverContent>
@@ -384,7 +384,7 @@
                 </Button>
               </PopoverTrigger>
 
-              <PopoverContent class="w-auto p-0">
+              <PopoverContent class="w-auto p-0" align="start" side="bottom" :avoid-collisions="true">
                 <Calendar :model-value="formDatePicker" layout="month-and-year"
                   @update:model-value="handleFormDateSelect" />
               </PopoverContent>
@@ -449,7 +449,7 @@
             )" :key="col" class="space-y-1">
               <Label :for="col" class="text-sm capitalize">{{
                 col.replace(/_/g, " ")
-                }}</Label>
+              }}</Label>
               <Input :id="col" v-model="form[col]" :type="getInputType(col)" :step="getStep(col)" :min="getMin(col)" />
             </div>
           </div>
@@ -491,7 +491,7 @@
                 </Button>
               </PopoverTrigger>
 
-              <PopoverContent class="w-auto p-0">
+              <PopoverContent class="w-auto p-0" align="start" side="bottom" :avoid-collisions="true">
                 <Calendar :model-value="startDatePicker" @update:model-value="handleStartDateSelect" />
               </PopoverContent>
             </Popover>
@@ -512,7 +512,7 @@
                 </Button>
               </PopoverTrigger>
 
-              <PopoverContent class="w-auto p-0">
+              <PopoverContent class="w-auto p-0" align="start" side="bottom" :avoid-collisions="true">
                 <Calendar :model-value="endDatePicker" @update:model-value="handleEndDateSelect" />
               </PopoverContent>
             </Popover>
