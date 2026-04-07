@@ -29,7 +29,7 @@
           </Button>
         </PopoverTrigger>
 
-        <PopoverContent class="w-auto p-0">
+        <PopoverContent class="w-auto p-0" align="start" side="bottom" :avoid-collisions="true">
           <Calendar :model-value="datePicker" layout="month-and-year" @update:model-value="handleDateSelect" />
         </PopoverContent>
       </Popover>
@@ -112,7 +112,7 @@
             </Button>
           </PopoverTrigger>
 
-          <PopoverContent class="w-auto p-0">
+          <PopoverContent class="w-auto p-0" align="start" side="bottom" :avoid-collisions="true">
             <Calendar :model-value="weekStartPicker" layout="month-and-year"
               @update:model-value="handleWeekStartSelect" />
           </PopoverContent>
@@ -136,7 +136,7 @@
             </Button>
           </PopoverTrigger>
 
-          <PopoverContent class="w-auto p-0">
+          <PopoverContent class="w-auto p-0" align="start" side="bottom" :avoid-collisions="true">
             <Calendar :model-value="weekEndPicker" layout="month-and-year" @update:model-value="handleWeekEndSelect" />
           </PopoverContent>
         </Popover>

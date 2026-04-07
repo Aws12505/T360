@@ -24,7 +24,7 @@
             </Button>
           </PopoverTrigger>
 
-          <PopoverContent class="w-auto p-0">
+          <PopoverContent class="w-auto p-0" align="start" side="bottom" :avoid-collisions="true">
             <Calendar :model-value="outstandingDatePicker" layout="month-and-year"
               @update:model-value="handleOutstandingDateSelect" />
           </PopoverContent>

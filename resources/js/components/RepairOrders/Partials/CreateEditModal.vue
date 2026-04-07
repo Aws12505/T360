@@ -97,7 +97,7 @@
                   </Button>
                 </PopoverTrigger>
 
-                <PopoverContent class="w-auto p-0">
+                <PopoverContent class="w-auto p-0" align="start" side="bottom" :avoid-collisions="true">
                   <Calendar :model-value="roOpenDatePicker" layout="month-and-year"
                     @update:model-value="handleRoOpenDateSelect" />
                 </PopoverContent>
@@ -122,7 +122,7 @@
                   </Button>
                 </PopoverTrigger>
 
-                <PopoverContent class="w-auto p-0">
+                <PopoverContent class="w-auto p-0" align="start" side="bottom" :avoid-collisions="true">
                   <Calendar :model-value="roCloseDatePicker" layout="month-and-year"
                     @update:model-value="handleRoCloseDateSelect" />
                 </PopoverContent>
@@ -324,7 +324,7 @@
                   </Button>
                 </PopoverTrigger>
 
-                <PopoverContent class="w-auto p-0">
+                <PopoverContent class="w-auto p-0 " align="start" side="bottom" :avoid-collisions="true">
                   <Calendar :model-value="qsInvoiceDatePicker" layout="month-and-year"
                     @update:model-value="handleQsInvoiceDateSelect" />
                 </PopoverContent>

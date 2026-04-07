@@ -119,7 +119,7 @@
               </Button>
             </PopoverTrigger>
 
-            <PopoverContent class="w-auto p-0">
+            <PopoverContent class="w-auto p-0 " align="start" side="bottom" :avoid-collisions="true">
               <Calendar :model-value="startDatePicker" @update:model-value="handleStartDateSelect" />
             </PopoverContent>
           </Popover>
@@ -140,7 +140,7 @@
               </Button>
             </PopoverTrigger>
 
-            <PopoverContent class="w-auto p-0">
+            <PopoverContent class="w-auto p-0 " align="start" side="bottom" :avoid-collisions="true">
               <Calendar :model-value="endDatePicker" @update:model-value="handleEndDateSelect" />
             </PopoverContent>
           </Popover>
