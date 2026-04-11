@@ -49,7 +49,6 @@ class RepairOrderService
      */
     public function getIndexData(): array
     {
-        // Properly load the areasOfConcern relationship with withPivot to get all pivot data
         $query = RepairOrder::with([
             'truck',
             'vendor' => function ($query) {
@@ -62,16 +61,15 @@ class RepairOrderService
             'tenant'
         ]);
 
-        // Apply date filtering if requested
+        $request = request();
+
         $dateFilter = $this->filteringService->getDateFilter();
         $dateRange = [];
 
         if ($dateFilter !== 'full') {
             $query = $this->filteringService->applyDateFilter($query, $dateFilter, 'ro_open_date', $dateRange);
         }
-        // ✅ ADD THIS HERE
 
-        $request = request();
         if ($request->filled('search')) {
             $search = strtolower($request->input('search'));
             $query->where(function ($q) use ($search) {
@@ -80,19 +78,21 @@ class RepairOrderService
                     ->orWhereRaw('LOWER(invoice) LIKE ?', ["%{$search}%"]);
             });
         }
+
         if ($request->filled('status_id')) {
             $query->where('wo_status_id', $request->input('status_id'));
         }
+
         if ($request->filled('vendor_id')) {
             $query->where('vendor_id', $request->input('vendor_id'));
         }
-        // Get per page value
+
         $perPage = $this->filteringService->getPerPage(Request::input('perPage', 10));
 
-        // Apply tenant filter for non-admin users
         if (!is_null(Auth::user()->tenant_id)) {
             $query->where('tenant_id', Auth::user()->tenant_id);
         }
+
         if (Auth::user()->hasPermissionTo('repair-orders.view')) {
             $defaultComponent = 'repairOrders';
         } else if (Auth::user()->hasPermissionTo('miles-driven.view')) {
@@ -100,47 +100,74 @@ class RepairOrderService
         } else {
             $defaultComponent = 'trucks';
         }
+
         $openedComponent = $request->input('openedComponent', $defaultComponent);
         $repairOrders = $query->latest('ro_open_date')->paginate($perPage);
+
         $isSuperAdmin = is_null(Auth::user()->tenant_id);
         $tenantSlug = $isSuperAdmin ? null : Auth::user()->tenant->slug;
         $tenants = $isSuperAdmin ? Tenant::all() : [];
-        // Calculate week numbers for display
+
         $weekNumber = null;
         $startWeekNumber = null;
         $endWeekNumber = null;
         $year = null;
-        if (!empty($dateRange) && isset($dateRange['start'])) {
-            $startDate = Carbon::parse($dateRange['start']);
+
+        // initialize safely
+        $startDate = null;
+        $endDate = null;
+
+        // prefer explicit custom request dates
+        if ($dateFilter === 'custom' && $request->filled('startDate') && $request->filled('endDate')) {
+            $startDate = Carbon::parse($request->input('startDate'))->startOfDay();
+            $endDate = Carbon::parse($request->input('endDate'))->endOfDay();
+
+            $dateRange = [
+                'start' => $startDate->toDateString(),
+                'end' => $endDate->toDateString(),
+            ];
+        } elseif (!empty($dateRange) && isset($dateRange['start'], $dateRange['end'])) {
+            $startDate = Carbon::parse($dateRange['start'])->startOfDay();
+            $endDate = Carbon::parse($dateRange['end'])->endOfDay();
+        }
+
+        if ($startDate && $endDate) {
             $year = $startDate->year;
-            $endDate = Carbon::parse($dateRange['end']);
-            // compute week numbers (Sunday=first day)
-            if (in_array($dateFilter, ['yesterday', 'current-week'])) {
+
+            if (in_array($dateFilter, ['yesterday', 'current-week'], true)) {
                 $weekNumber = $this->weekNumberSundayStart($startDate);
-                $startWeekNumber = $endWeekNumber = null;
+                $startWeekNumber = null;
+                $endWeekNumber = null;
             } else {
                 $weekNumber = null;
                 $startWeekNumber = $this->weekNumberSundayStart($startDate);
-                $endWeekNumber = isset($dateRange['end']) ?
-                    $this->weekNumberSundayStart($endDate) :
-                    $startWeekNumber;
+                $endWeekNumber = $this->weekNumberSundayStart($endDate);
             }
         }
-        // Get canceled QS invoices that need attention
+
         $canceledQSInvoices = $this->maintenanceBreakdownService->getCanceledQSInvoices();
-
-
         $outstandingInvoices = $this->maintenanceBreakdownService->getOutstandingInvoices(null, null);
-        $areasOfConcern = $this->maintenanceBreakdownService->getAreasOfConcern($startDate, $endDate);
-        $workOrdersByTruck = $this->maintenanceBreakdownService->getWorkOrdersByTruck($startDate, $endDate);
+
+        $areasOfConcern = ($startDate && $endDate)
+            ? $this->maintenanceBreakdownService->getAreasOfConcern($startDate, $endDate)
+            : collect();
+
+        $workOrdersByTruck = ($startDate && $endDate)
+            ? $this->maintenanceBreakdownService->getWorkOrdersByTruck($startDate, $endDate)
+            : collect();
+
         $filters = [
             'search' => (string) $request->input('search', ''),
             'status_id' => (string) $request->input('status_id', ''),
             'vendor_id' => (string) $request->input('vendor_id', ''),
         ];
+
         $trucks = Truck::with('tenant')->get();
-        $milesEntries = MilesDriven::where('tenant_id', Auth::user()->tenant_id)->latest('week_start_date')->get();
+        $milesEntries = MilesDriven::where('tenant_id', Auth::user()->tenant_id)
+            ->latest('week_start_date')
+            ->get();
         $permissions = Auth::user()->getAllPermissions();
+
         return [
             'repairOrders' => $repairOrders,
             'tenantSlug' => $tenantSlug,

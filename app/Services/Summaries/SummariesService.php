@@ -6,9 +6,9 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Tenant;
 use App\Services\Filtering\FilteringService;
-use App\Models\MilesDriven;
+use App\Models\{MilesDriven, Delay, Rejection, RepairOrder, SafetyData, Performance};
 use Illuminate\Support\Facades\DB;
-use App\Models\Driver;
+
 
 class SummariesService
 {
@@ -223,7 +223,23 @@ class SummariesService
         // Convert outstandingDate to Carbon instance if it's provided
         $permissions = Auth::user()->getAllPermissions();
         // Adjust dates for maintenance breakdown (weeks 16-24 instead of 17-25)
+        $delayLatestUpdatedAt = Delay::query()->latest('updated_at')->value('updated_at');
+        $rejectionLatestUpdatedAt = Rejection::query()->latest('updated_at')->value('updated_at');
+        $repairOrderLatestUpdatedAt = RepairOrder::query()->latest('updated_at')->value('updated_at');
+        $safetyDataLatestUpdatedAt = SafetyData::query()->latest('updated_at')->value('updated_at');
+        $performanceLatestUpdatedAt = Performance::query()->latest('updated_at')->value('updated_at');
+        $milesDrivenLatestUpdatedAt = MilesDriven::query()->latest('updated_at')->value('updated_at');
 
+        $latestUpdatedAt = collect([
+            $delayLatestUpdatedAt,
+            $rejectionLatestUpdatedAt,
+            $repairOrderLatestUpdatedAt,
+            $safetyDataLatestUpdatedAt,
+            $performanceLatestUpdatedAt,
+            $milesDrivenLatestUpdatedAt,
+        ])->filter()->max();
+
+        $performance['last_updated'] = $latestUpdatedAt;
         // $driverOverAll = $this->getDriversOverallPerformance($startDate, $endDate);
         return [
             'summaries' => [

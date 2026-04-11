@@ -162,11 +162,20 @@
 
         <!-- Data Table Section -->
         <!-- Toggle Freeze Column Button -->
-        <Button @click="toggleFreezeColumn" variant="outline" size="sm" class="my-2 md:my-4"
-          :class="{ 'border-primary bg-primary/10 text-primary': freezeColumns }">
-          <Icon :name="freezeColumns ? 'lock' : 'unlock'" class="mr-2 h-4 w-4" />
-          {{ freezeColumns ? "Unfreeze Names" : "Freeze Names" }}
-        </Button>
+        <!-- Data Table Section -->
+        <div class="my-2 flex flex-wrap gap-2 md:my-4">
+          <Button @click="toggleFreezeColumn" variant="outline" size="sm"
+            :class="{ 'border-primary bg-primary/10 text-primary': freezeColumns }">
+            <Icon :name="freezeColumns ? 'lock' : 'unlock'" class="mr-2 h-4 w-4" />
+            {{ freezeColumns ? "Unfreeze Names" : "Freeze Names" }}
+          </Button>
+
+          <Button @click="toggleMoreThan0" variant="outline" size="sm"
+            :class="{ 'border-primary bg-primary/10 text-primary': moreThan0 }">
+            <Icon :name="moreThan0 ? 'check' : 'circle'" class="mr-2 h-4 w-4" />
+            {{ moreThan0 ? "Showing > 0 Mins" : "Showing All Rows" }}
+          </Button>
+        </div>
         <Card class="mx-auto max-w-[95vw] md:max-w-[64vw] lg:max-w-full overflow-x-auto">
           <CardContent class="p-0">
             <div class="safety-table-wrapper overflow-x-auto border-t border-border bg-background dark:bg-background">
@@ -449,7 +458,7 @@
             )" :key="col" class="space-y-1">
               <Label :for="col" class="text-sm capitalize">{{
                 col.replace(/_/g, " ")
-              }}</Label>
+                }}</Label>
               <Input :id="col" v-model="form[col]" :type="getInputType(col)" :step="getStep(col)" :min="getMin(col)" />
             </div>
           </div>
@@ -603,6 +612,10 @@ const props = defineProps({
     default: null,
   },
   permissions: Array,
+  more_than_0: {
+    type: Boolean,
+    default: false,
+  },
 });
 // Reactive state variables
 const errorMessage = ref("");
@@ -616,6 +629,7 @@ const perPage = ref(10);
 const selectedEntries = ref([]);
 const showDeleteSelectedModal = ref(false);
 const freezeColumns = ref(false); // Changed to false by default
+const moreThan0 = ref(props.more_than_0 ?? false);
 const showDeleteModal = ref(false);
 const entryToDelete = ref(null);
 const startDatePicker = ref(null);
@@ -647,6 +661,28 @@ const showCustomDialog = ref(false);
 // Toggle column freezing function
 function toggleFreezeColumn() {
   freezeColumns.value = !freezeColumns.value;
+}
+function toggleMoreThan0() {
+  moreThan0.value = !moreThan0.value;
+
+  const routeName = props.tenantSlug
+    ? route("safety.index", { tenantSlug: props.tenantSlug })
+    : route("safety.index.admin");
+
+  const params = {
+    dateFilter: activeTab.value,
+    perPage: perPage.value,
+    more_than_0: moreThan0.value,
+  };
+
+  if (activeTab.value === "custom") {
+    params.startDate =
+      customStartDate.value || props.dateRange?.start || null;
+    params.endDate =
+      customEndDate.value || props.dateRange?.end || null;
+  }
+
+  router.get(routeName, params, { preserveState: true });
 }
 const importDatePicker = ref(null);
 const formDatePicker = ref(null);
@@ -689,7 +725,13 @@ const handleImportDateSelect = (val) => {
     : "";
   importDateOpen.value = false;
 };
-
+watch(
+  () => props.more_than_0,
+  (value) => {
+    moreThan0.value = value ?? false;
+  },
+  { immediate: true }
+);
 const handleFormDateSelect = (val) => {
   formDatePicker.value = val ?? null;
   form.date = val
@@ -995,7 +1037,7 @@ function deleteEntry(id) {
 const applyCustomRange = () => {
   if (!customStartDate.value || !customEndDate.value) return;
 
-  activeTab.value = 'custom';
+  activeTab.value = "custom";
   showCustomDialog.value = false;
 
   const routeName = props.tenantSlug
@@ -1005,10 +1047,11 @@ const applyCustomRange = () => {
   router.get(
     routeName,
     {
-      dateFilter: 'custom',
+      dateFilter: "custom",
       perPage: perPage.value,
       startDate: customStartDate.value,
       endDate: customEndDate.value,
+      more_than_0: moreThan0.value,
     },
     { preserveState: true }
   );
@@ -1076,10 +1119,12 @@ watch(successMessage, (newValue) => {
 // Function to handle date filter selection
 function selectDateFilter(filter) {
   activeTab.value = filter;
-  if (filter === 'custom') {
+
+  if (filter === "custom") {
     showCustomDialog.value = true;
     return;
   }
+
   const routeName = props.tenantSlug
     ? route("safety.index", { tenantSlug: props.tenantSlug })
     : route("safety.index.admin");
@@ -1089,25 +1134,29 @@ function selectDateFilter(filter) {
     {
       dateFilter: filter,
       perPage: perPage.value,
+      more_than_0: moreThan0.value,
     },
     { preserveState: true }
   );
 }
-
 // Function to handle per page change
 function changePerPage() {
   const routeName = props.tenantSlug
     ? route("safety.index", { tenantSlug: props.tenantSlug })
     : route("safety.index.admin");
 
-  router.get(
-    routeName,
-    {
-      dateFilter: activeTab.value,
-      perPage: perPage.value,
-    },
-    { preserveState: true }
-  );
+  const params = {
+    dateFilter: activeTab.value,
+    perPage: perPage.value,
+    more_than_0: moreThan0.value,
+  };
+
+  if (activeTab.value === "custom") {
+    params.startDate = customStartDate.value || props.dateRange?.start || null;
+    params.endDate = customEndDate.value || props.dateRange?.end || null;
+  }
+
+  router.get(routeName, params, { preserveState: true });
 }
 
 // Format date string helper function
@@ -1122,15 +1171,35 @@ function formatDate(dateStr) {
 // Update visitPage to preserve perPage and dateFilter
 function visitPage(url) {
   if (url) {
-    // Add perPage and dateFilter parameters to the URL
-    const urlObj = new URL(url);
+    const urlObj = new URL(url, window.location.origin);
+
     urlObj.searchParams.set("perPage", perPage.value);
     urlObj.searchParams.set("dateFilter", activeTab.value);
+    urlObj.searchParams.set("more_than_0", moreThan0.value ? "true" : "false");
 
-    router.get(urlObj.href, {}, { only: ["entries"] });
+    if (activeTab.value === "custom") {
+      const startDate = customStartDate.value || props.dateRange?.start;
+      const endDate = customEndDate.value || props.dateRange?.end;
+
+      if (startDate) urlObj.searchParams.set("startDate", startDate);
+      if (endDate) urlObj.searchParams.set("endDate", endDate);
+    }
+
+    router.get(urlObj.href, {}, { preserveState: true });
   }
 }
-
+watch(
+  () => props.dateRange,
+  (range) => {
+    if (props.dateFilter === "custom" && range?.start && range?.end) {
+      customStartDate.value = range.start;
+      customEndDate.value = range.end;
+      startDatePicker.value = parseDate(range.start);
+      endDatePicker.value = parseDate(range.end);
+    }
+  },
+  { immediate: true }
+);
 // Computed property for "Select All" checkbox state
 const isAllSelected = computed(() => {
   return (
