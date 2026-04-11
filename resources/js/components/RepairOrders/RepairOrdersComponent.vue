@@ -443,6 +443,12 @@ function go(url?: string) {
       dateFilter: filter.value.dateFilter,
       openedComponent: "repairOrders",
       page: urlObj.searchParams.get("page") || 1,
+      ...(filter.value.dateFilter === "custom"
+        ? {
+          startDate: customStartDate.value,
+          endDate: customEndDate.value,
+        } :
+        {}),
     },
     { preserveScroll: true }
   );

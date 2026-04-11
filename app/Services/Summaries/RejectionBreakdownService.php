@@ -5,7 +5,7 @@ namespace App\Services\Summaries;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
-
+use Illuminate\Support\Facades\Request;
 class RejectionBreakdownService
 {
 
@@ -281,142 +281,127 @@ class RejectionBreakdownService
     | Line Chart
     |--------------------------------------------------------------------------
     */
-    private function determineDateFilterType(Carbon $start, Carbon $end): string
-    {
-        $daysDifference = $start->diffInDays($end);
-        $now = Carbon::now();
-        $isSunday = $now->dayOfWeek === 0;
-        if ($isSunday) {
-            $now = $now->copy()->subDays(1);
-        }
-        $yesterday = Carbon::yesterday();
-        $currentWeekStart = $now->copy()->startOfWeek(Carbon::SUNDAY);
-        $currentWeekEnd = $now->copy()->endOfWeek(Carbon::SATURDAY);
-        $sixWeeksStart = $currentWeekStart->copy()->subWeeks(5);
-        // Check if the date range matches yesterday
-        if ($start->isSameDay($yesterday) && $end->isSameDay($yesterday)) {
-            return 'yesterday';
-        }
-        // Check if the date range matches current week
-        if ($start->isSameDay($currentWeekStart) && $end->isSameDay($currentWeekEnd)) {
-            return 'current-week';
-        }
 
-        // Check if the date range matches 6 weeks
-        if ($start->isSameDay($sixWeeksStart) && $end->isSameDay($currentWeekEnd)) {
-            return '6w';
-        }
-
-        // Check if the date range is approximately 3 months
-        if ($daysDifference >= 85 && $daysDifference <= 95) {
-            return 'quarterly';
-        }
-
-        // Default to full if none of the above match
-        return 'full';
-    }
     public function getLineChartData($startDate, $endDate): array
     {
-        $start = Carbon::parse($startDate);
-        $end = Carbon::parse($endDate);
+        $dateFilter = Request::input('dateFilter', 'yesterday');
 
-        $dateFilter = $this->determineDateFilterType($start, $end);
+        $usesWeekNumber = in_array($dateFilter, ['6w', 'quarterly', 'custom']);
 
         if ($dateFilter === 'yesterday') {
-
-            $groupBy = 'DATE_FORMAT(date, "%Y-%m-%d %H:00:00")';
+            $groupBy = 'DATE_FORMAT(date, "%Y-%m-%d")';
             $selectDate = DB::raw("$groupBy as grouped_date");
-            $labelType = 'hour';
+            $labelType = 'date';
 
         } elseif ($dateFilter === 'current-week') {
-
             $groupBy = 'DATE(date)';
             $selectDate = DB::raw("$groupBy as grouped_date");
             $labelType = 'day';
 
-        } elseif ($dateFilter === '6w') {
-
-            // Group by actual Sunday start of week
-            $groupBy = 'DATE_SUB(date, INTERVAL DAYOFWEEK(date) - 1 DAY)';
+        } elseif ($usesWeekNumber) {
+            $groupBy = 'DATE(DATE_SUB(date, INTERVAL DAYOFWEEK(date) - 1 DAY))';
             $selectDate = DB::raw("$groupBy as grouped_date");
-
-            // Sunday-based week number
-            $selectWeekNumber = DB::raw("WEEK($groupBy, 0) + 1 as week_number");
+            $selectWeekNumber = DB::raw("WEEK($groupBy, 0) +1 as week_number");
             $labelType = 'week';
 
         } else {
-
-            $groupBy = 'DATE_FORMAT(date, "%Y-%m")';
+            $groupBy = 'DATE(date)';
             $selectDate = DB::raw("$groupBy as grouped_date");
-            $labelType = 'month';
+            $labelType = 'date';
         }
 
-        $query = DB::table('rejections');
+        $query = DB::table('delays');
 
-        if ($dateFilter === '6w') {
+        $aggregates = DB::raw("
+        SUM(CASE
+            WHEN delay_type = 'origin' AND carrier_controllable = 1
+            THEN penalty ELSE 0
+        END) as origin_penalty,
+
+        SUM(CASE
+            WHEN delay_type = 'destination' AND carrier_controllable = 1
+            THEN penalty ELSE 0
+        END) as destination_penalty,
+
+        SUM(CASE
+            WHEN delay_type = 'origin'
+            THEN 1 ELSE 0
+        END) as origin_count,
+
+        SUM(CASE
+            WHEN delay_type = 'destination'
+            THEN 1 ELSE 0
+        END) as destination_count
+    ");
+
+        if ($usesWeekNumber) {
             $query->select(
                 $selectDate,
                 $selectWeekNumber,
-                DB::raw("
-                COUNT(*) as total_entries,
-                SUM(CASE WHEN carrier_controllable = 1 THEN penalty ELSE 0 END) as carrier_penalty
-            ")
+                $aggregates
             );
         } else {
             $query->select(
                 $selectDate,
-                DB::raw("
-                COUNT(*) as total_entries,
-                SUM(CASE WHEN carrier_controllable = 1 THEN penalty ELSE 0 END) as carrier_penalty
-            ")
+                $aggregates
             );
         }
 
         $query->whereBetween('date', [$startDate, $endDate])
-            ->groupBy('grouped_date');
+            ->groupBy('grouped_date')
+            ->orderBy('grouped_date');
 
-        if ($dateFilter === '6w') {
-            $query->groupBy('week_number')->orderBy('grouped_date');
-        } else {
-            $query->orderBy('grouped_date');
+        if ($usesWeekNumber) {
+            $query->groupBy('week_number');
         }
 
         $this->applyTenantFilter($query);
+        $this->applyDelayTypeFilter($query);
 
         $results = $query->get();
 
         $chartData = $results->map(function ($item) use ($labelType) {
             if ($labelType === 'week') {
-                $formattedDate = 'W' . $item->week_number;
+                $formattedDate = isset($item->week_number)
+                    ? 'W' . $item->week_number
+                    : $item->grouped_date;
             } elseif ($labelType === 'month') {
                 $formattedDate = Carbon::parse($item->grouped_date . '-01')->format('M');
             } elseif ($labelType === 'day') {
                 $formattedDate = Carbon::parse($item->grouped_date)->format('D');
             } else {
-                $formattedDate = Carbon::parse($item->grouped_date)->format('H:00');
+                $formattedDate = $item->grouped_date;
             }
 
-            $performance = $item->total_entries > 0
-                ? (1 - ($item->carrier_penalty / $item->total_entries)) * 100
+            $originPerformance = $item->origin_count > 0
+                ? (1 - ($item->origin_penalty / $item->origin_count)) * 100
                 : 100;
+
+            $destinationPerformance = $item->destination_count > 0
+                ? (1 - ($item->destination_penalty / $item->destination_count)) * 100
+                : 100;
+
+            $finalPerformance =
+                ($originPerformance * 0.375) +
+                ($destinationPerformance * 0.625);
 
             return [
                 'date' => $formattedDate,
-                'acceptancePerformance' => round($performance, 1),
+                'onTimePerformance' => round($finalPerformance, 1),
             ];
         })->toArray();
 
         $values = collect($chartData)
-            ->pluck('acceptancePerformance')
+            ->pluck('onTimePerformance')
             ->filter();
 
-        $averageAcceptance = $values->count()
+        $averageOnTime = $values->count()
             ? round($values->avg(), 1)
             : null;
 
         return [
             'chartData' => $chartData,
-            'averageAcceptance' => $averageAcceptance,
+            'averageOnTime' => $averageOnTime,
         ];
     }
 

@@ -62,6 +62,8 @@ import {
   MessageSquareMore,
   ChartBar,
   Award,
+  Circle,
+  Check
   // Add these new icons
 } from 'lucide-vue-next';
 
@@ -124,7 +126,10 @@ export type IconName =
   | 'clipboard_check'
   | 'feedback'
   | 'chart_bar'
-  | 'award'; // New icon for driver scorecard
+  | 'award'
+  | 'circle'
+  | 'check'
+  ; // New icon for driver scorecard
 
 const ICONS: Record<IconName, Component> = {
   truck: Truck,
@@ -185,6 +190,8 @@ const ICONS: Record<IconName, Component> = {
   feedback: MessageSquareMore,
   chart_bar: ChartBar,
   award: Award,
+  circle: Circle,
+  check: Check
 };
 
 // 3. Define props, with defaults for optional values:

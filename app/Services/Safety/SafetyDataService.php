@@ -49,9 +49,17 @@ class SafetyDataService
         // Get per page value
         $perPage = $this->filteringService->getPerPage(Request::input('perPage', 10));
 
+        // Read more_than_0 flag
+        $moreThan0 = filter_var(Request::input('more_than_0', false), FILTER_VALIDATE_BOOLEAN);
+
         // Apply tenant filter for non-admin users
         if (!is_null(Auth::user()->tenant_id)) {
             $query->where('tenant_id', Auth::user()->tenant_id);
+        }
+
+        // Apply safety-data filter itself
+        if ($moreThan0) {
+            $query->where('minutes_analyzed', '>', 0);
         }
 
         $entries = $query->latest('date')->paginate($perPage);
@@ -59,15 +67,16 @@ class SafetyDataService
         $isSuperAdmin = is_null(Auth::user()->tenant_id);
         $tenantSlug = $isSuperAdmin ? null : Auth::user()->tenant->slug;
         $tenants = $isSuperAdmin ? Tenant::all() : [];
+
         // Calculate week numbers for display
         $weekNumber = null;
         $startWeekNumber = null;
         $endWeekNumber = null;
         $year = null;
+
         if (!empty($dateRange) && isset($dateRange['start'])) {
             $startDate = Carbon::parse($dateRange['start']);
             $year = $startDate->year;
-            // Removed dd($startDate) debug statement
 
             // compute week numbers (Sunday=first day)
             if (in_array($dateFilter, ['yesterday', 'current-week'])) {
@@ -80,15 +89,17 @@ class SafetyDataService
             } else {
                 $weekNumber = null;
                 $startWeekNumber = $this->weekNumberSundayStart($startDate);
-                $endWeekNumber = isset($dateRange['end']) ?
-                    $this->weekNumberSundayStart(Carbon::parse($dateRange['end'])) :
-                    $startWeekNumber;
+                $endWeekNumber = isset($dateRange['end'])
+                    ? $this->weekNumberSundayStart(Carbon::parse($dateRange['end']))
+                    : $startWeekNumber;
             }
         }
+
         $permissions = Auth::user()->getAllPermissions();
 
         // Get formatted safety data using the date range from filtering
-        $safetyData = $this->getSafetyDataWithFiltering($dateFilter, $dateRange);
+        $safetyData = $this->getSafetyDataWithFiltering($dateFilter, $dateRange, $moreThan0);
+
         return [
             'entries' => $entries,
             'tenantSlug' => $tenantSlug,
@@ -102,6 +113,7 @@ class SafetyDataService
             'endWeekNumber' => $endWeekNumber,
             'year' => $year,
             'permissions' => $permissions,
+            'more_than_0' => $moreThan0,
         ];
     }
     /**
@@ -130,15 +142,32 @@ class SafetyDataService
      * @param array $dateRange The date range information
      * @return array The formatted safety data
      */
-    public function getSafetyDataWithFiltering(string $dateFilter = 'full', array $dateRange = []): array
-    {
+    public function getSafetyDataWithFiltering(
+        string $dateFilter = 'full',
+        array $dateRange = [],
+        bool $moreThan0 = false
+    ): array {
         // If date range is not provided or empty, determine it based on the date filter
         if (empty($dateRange) || !isset($dateRange['start']) || !isset($dateRange['end'])) {
             // For 'full' filter, we need to handle it specially
             if ($dateFilter === 'full') {
-                // Option 1: Use earliest and latest dates from the database
-                $earliest = SafetyData::min('date') ?? now()->subYears(5)->format('Y-m-d');
-                $latest = SafetyData::max('date') ?? now()->format('Y-m-d');
+                $earliestQuery = SafetyData::query();
+                $latestQuery = SafetyData::query();
+
+                // Apply tenant filter for non-admin users
+                if (!is_null(Auth::user()->tenant_id)) {
+                    $earliestQuery->where('tenant_id', Auth::user()->tenant_id);
+                    $latestQuery->where('tenant_id', Auth::user()->tenant_id);
+                }
+
+                // Apply more_than_0 filter to summary date bounds too
+                if ($moreThan0) {
+                    $earliestQuery->where('minutes_analyzed', '>', 0);
+                    $latestQuery->where('minutes_analyzed', '>', 0);
+                }
+
+                $earliest = $earliestQuery->min('date') ?? now()->subYears(5)->format('Y-m-d');
+                $latest = $latestQuery->max('date') ?? now()->format('Y-m-d');
 
                 $dateRange['start'] = $earliest;
                 $dateRange['end'] = $latest;
@@ -150,7 +179,8 @@ class SafetyDataService
         if (isset($dateRange['start']) && isset($dateRange['end'])) {
             return $this->summariesSafetyDataService->getFormattedSafetyData(
                 $dateRange['start'],
-                $dateRange['end']
+                $dateRange['end'],
+                $moreThan0
             );
         }
 
@@ -182,8 +212,9 @@ class SafetyDataService
                 'laneConduct' => 0,
                 'collisionWarning' => 0,
                 'backing' => 0,
-                'highG' => 0
-            ]
+                'highG' => 0,
+            ],
+            'lineChartData' => [],
         ];
     }
 

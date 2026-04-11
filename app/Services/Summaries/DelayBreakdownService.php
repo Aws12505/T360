@@ -5,6 +5,7 @@ namespace App\Services\Summaries;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Request;
 
 class DelayBreakdownService
 {
@@ -167,103 +168,81 @@ class DelayBreakdownService
     // ─────────────────────────────────────────────
     //  Line chart
     // ─────────────────────────────────────────────
-
+    public function getDateFilter(string $default = 'yesterday'): string
+    {
+        return Request::input('dateFilter', $default);
+    }
     public function getLineChartData($startDate, $endDate): array
     {
-        $start = Carbon::parse($startDate);
-        $end = Carbon::parse($endDate);
+        $dateFilter = $this->getDateFilter('yesterday');
 
-        $dateFilter = $this->determineDateFilterType($start, $end);
+        $usesWeekNumber = in_array($dateFilter, ['6w', 'quarterly', 'custom'], true);
 
         if ($dateFilter === 'yesterday') {
-
             $groupBy = 'DATE_FORMAT(date, "%Y-%m-%d")';
             $selectDate = DB::raw("$groupBy as grouped_date");
             $labelType = 'date';
 
         } elseif ($dateFilter === 'current-week') {
-
             $groupBy = 'DATE(date)';
             $selectDate = DB::raw("$groupBy as grouped_date");
             $labelType = 'day';
 
-        } elseif ($dateFilter === '6w') {
-
+        } elseif ($usesWeekNumber) {
             $groupBy = 'DATE(DATE_SUB(date, INTERVAL DAYOFWEEK(date) - 1 DAY))';
             $selectDate = DB::raw("$groupBy as grouped_date");
-
             $selectWeekNumber = DB::raw("WEEK($groupBy, 0) + 1 as week_number");
             $labelType = 'week';
 
         } else {
-
-            $groupBy = 'DATE_FORMAT(date, "%Y-%m")';
+            $groupBy = 'DATE(date)';
             $selectDate = DB::raw("$groupBy as grouped_date");
-            $labelType = 'month';
+            $labelType = 'date';
         }
+
+        $aggregates = DB::raw("
+            SUM(CASE
+                WHEN delay_type = 'origin' AND carrier_controllable = 1
+                THEN penalty ELSE 0
+            END) as origin_penalty,
+
+            SUM(CASE
+                WHEN delay_type = 'destination' AND carrier_controllable = 1
+                THEN penalty ELSE 0
+            END) as destination_penalty,
+
+            SUM(CASE
+                WHEN delay_type = 'origin'
+                THEN 1 ELSE 0
+            END) as origin_count,
+
+            SUM(CASE
+                WHEN delay_type = 'destination'
+                THEN 1 ELSE 0
+            END) as destination_count
+        ");
 
         $query = DB::table('delays');
 
-        if ($dateFilter === '6w') {
+        if ($usesWeekNumber) {
             $query->select(
                 $selectDate,
                 $selectWeekNumber,
-                DB::raw("
-                SUM(CASE 
-                    WHEN delay_type = 'origin' AND carrier_controllable = 1 
-                    THEN penalty ELSE 0 
-                END) as origin_penalty,
-
-                SUM(CASE 
-                    WHEN delay_type = 'destination' AND carrier_controllable = 1 
-                    THEN penalty ELSE 0 
-                END) as destination_penalty,
-
-                SUM(CASE 
-                    WHEN delay_type = 'origin' 
-                    THEN 1 ELSE 0 
-                END) as origin_count,
-
-                SUM(CASE 
-                    WHEN delay_type = 'destination' 
-                    THEN 1 ELSE 0 
-                END) as destination_count
-            ")
+                $aggregates
             );
         } else {
             $query->select(
                 $selectDate,
-                DB::raw("
-                SUM(CASE 
-                    WHEN delay_type = 'origin' AND carrier_controllable = 1 
-                    THEN penalty ELSE 0 
-                END) as origin_penalty,
-
-                SUM(CASE 
-                    WHEN delay_type = 'destination' AND carrier_controllable = 1 
-                    THEN penalty ELSE 0 
-                END) as destination_penalty,
-
-                SUM(CASE 
-                    WHEN delay_type = 'origin' 
-                    THEN 1 ELSE 0 
-                END) as origin_count,
-
-                SUM(CASE 
-                    WHEN delay_type = 'destination' 
-                    THEN 1 ELSE 0 
-                END) as destination_count
-            ")
+                $aggregates
             );
         }
 
         $query->whereBetween('date', [$startDate, $endDate])
-            ->groupBy('grouped_date');
+            ->groupBy('grouped_date')
+            ->orderBy('grouped_date');
 
-        if ($dateFilter === '6w') {
-            $query->groupBy('week_number')->orderBy('grouped_date');
-        } else {
-            $query->orderBy('grouped_date');
+        if ($usesWeekNumber) {
+            $query->groupBy('week_number');
         }
 
         $this->applyTenantFilter($query);
@@ -273,7 +252,9 @@ class DelayBreakdownService
 
         $chartData = $results->map(function ($item) use ($labelType) {
             if ($labelType === 'week') {
-                $formattedDate = 'W' . $item->week_number;
+                $formattedDate = isset($item->week_number)
+                    ? 'W' . $item->week_number
+                    : $item->grouped_date;
             } elseif ($labelType === 'month') {
                 $formattedDate = Carbon::parse($item->grouped_date . '-01')->format('M');
             } elseif ($labelType === 'day') {

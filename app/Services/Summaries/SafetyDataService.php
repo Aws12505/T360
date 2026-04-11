@@ -12,28 +12,31 @@ class SafetyDataService
 
     protected ?int $email_tenant_id;
 
-public function __construct(?int $email_tenant_id = null) {
-    $this->email_tenant_id = $email_tenant_id;
-}
+    public function __construct(?int $email_tenant_id = null)
+    {
+        $this->email_tenant_id = $email_tenant_id;
+    }
     /**
      * Get aggregate safety data for the specified date range
      */
-    public function getAggregateSafetyData($startDate, $endDate)
+    public function getAggregateSafetyData($startDate, $endDate, bool $moreThan0 = false)
     {
         $query = DB::table('safety_data')
             ->selectRaw("
-                SUM(traffic_light_violation) AS traffic_light_violation,
-                SUM(speeding_violations) AS speeding_violations,
-                SUM(following_distance) AS following_distance,
-                SUM(roadside_parking) AS roadside_parking,
-                SUM(driver_distraction) AS driver_distraction,
-                SUM(sign_violations) AS sign_violations,
-                SUM(minutes_analyzed) AS total_minutes_analyzed,
-                AVG(driver_score) AS average_driver_score
-            ")
+            SUM(traffic_light_violation) AS traffic_light_violation,
+            SUM(speeding_violations) AS speeding_violations,
+            SUM(following_distance) AS following_distance,
+            SUM(roadside_parking) AS roadside_parking,
+            SUM(driver_distraction) AS driver_distraction,
+            SUM(sign_violations) AS sign_violations,
+            SUM(minutes_analyzed) AS total_minutes_analyzed,
+            AVG(driver_score) AS average_driver_score
+        ")
             ->whereBetween('date', [$startDate, $endDate]);
 
         $this->applyTenantFilter($query);
+        $this->applyMinutesAnalyzedFilter($query, $moreThan0);
+
         return $query->first();
     }
 
@@ -55,9 +58,9 @@ public function __construct(?int $email_tenant_id = null) {
     /**
      * Get top drivers by score
      */
-    public function getTopDrivers($startDate, $endDate, $limit = 5)
+    public function getTopDrivers($startDate, $endDate, $limit = 5, bool $moreThan0 = false)
     {
-        $query = $this->getDriverScoreQuery($startDate, $endDate)
+        $query = $this->getDriverScoreQuery($startDate, $endDate, $moreThan0)
             ->orderBy('average_score', 'desc')
             ->limit($limit);
 
@@ -67,10 +70,9 @@ public function __construct(?int $email_tenant_id = null) {
     /**
      * Get bottom drivers by score
      */
-    public function getBottomDrivers($startDate, $endDate, $limit = 5)
+    public function getBottomDrivers($startDate, $endDate, $limit = 5, bool $moreThan0 = false)
     {
-        $query = $this->getDriverScoreQuery($startDate, $endDate)
-            ->where('minutes_analyzed', '>', 0)
+        $query = $this->getDriverScoreQuery($startDate, $endDate, $moreThan0)
             ->orderBy('average_score', 'asc')
             ->limit($limit);
 
@@ -80,7 +82,7 @@ public function __construct(?int $email_tenant_id = null) {
     /**
      * Get base query for driver scores
      */
-    public function getDriverScoreQuery($startDate, $endDate)
+    public function getDriverScoreQuery($startDate, $endDate, bool $moreThan0 = false)
     {
         $query = DB::table('safety_data')
             ->select('driver_name', DB::raw('AVG(driver_score) as average_score'))
@@ -90,6 +92,8 @@ public function __construct(?int $email_tenant_id = null) {
             ->where('driver_name', '!=', '');
 
         $this->applyTenantFilter($query);
+        $this->applyMinutesAnalyzedFilter($query, $moreThan0);
+
         return $query->groupBy('driver_name');
     }
 
@@ -98,7 +102,7 @@ public function __construct(?int $email_tenant_id = null) {
      */
     public function mapDriverResults($drivers)
     {
-        return $drivers->map(function($driver, $index) {
+        return $drivers->map(function ($driver, $index) {
             return [
                 'name' => $driver->driver_name,
                 'score' => round($driver->average_score, 1),
@@ -139,17 +143,17 @@ public function __construct(?int $email_tenant_id = null) {
     /**
      * Get complete safety data for the specified date range
      */
-    public function getSafetyData($startDate, $endDate): array
+    public function getSafetyData($startDate, $endDate, bool $moreThan0 = false): array
     {
-        $safetyData = $this->getAggregateSafetyData($startDate, $endDate);
+        $safetyData = $this->getAggregateSafetyData($startDate, $endDate, $moreThan0);
         $totalHours = ($safetyData->total_minutes_analyzed ?? 0) / 60;
         $rules = PerformanceMetricRule::first();
-        
+
         $rates = $this->calculateViolationRates($safetyData, $totalHours);
         $ratings = $this->calculateSafetyRatings($rates, $rules);
-        
-        $topDrivers = $this->getTopDrivers($startDate, $endDate);
-        $bottomDrivers = $this->getBottomDrivers($startDate, $endDate);
+
+        $topDrivers = $this->getTopDrivers($startDate, $endDate, 5, $moreThan0);
+        $bottomDrivers = $this->getBottomDrivers($startDate, $endDate, 5, $moreThan0);
 
         return [
             'traffic_light_violation' => $safetyData->traffic_light_violation ?? 0,
@@ -185,7 +189,7 @@ public function __construct(?int $email_tenant_id = null) {
         // Check gold tier
         $goldThreshold = $rules->{"{$metricPrefix}_gold"} ?? null;
         $goldOperator = $rules->{"{$metricPrefix}_gold_operator"} ?? null;
-        
+
         if ($goldThreshold !== null && $goldOperator && $this->compareValues($rate, $goldThreshold, $goldOperator)) {
             return 'gold';
         }
@@ -193,7 +197,7 @@ public function __construct(?int $email_tenant_id = null) {
         // Check silver tier
         $silverThreshold = $rules->{"{$metricPrefix}_silver"} ?? null;
         $silverOperator = $rules->{"{$metricPrefix}_silver_operator"} ?? null;
-        
+
         if ($silverThreshold !== null && $silverOperator && $this->compareValues($rate, $silverThreshold, $silverOperator)) {
             return 'silver';
         }
@@ -213,12 +217,12 @@ public function __construct(?int $email_tenant_id = null) {
     public function compareValues($value, $threshold, $operator): bool
     {
         return match ($operator) {
-            'less'          => $value < $threshold,
+            'less' => $value < $threshold,
             'less_or_equal' => $value <= $threshold,
-            'equal'         => $value == $threshold,
+            'equal' => $value == $threshold,
             'more_or_equal' => $value >= $threshold,
-            'more'          => $value > $threshold,
-            default         => false,
+            'more' => $value > $threshold,
+            default => false,
         };
     }
 
@@ -229,32 +233,33 @@ public function __construct(?int $email_tenant_id = null) {
      * @param string $endDate The end date for the query
      * @return object The infractions data
      */
-    public function getInfractionsData($startDate, $endDate)
+    public function getInfractionsData($startDate, $endDate, bool $moreThan0 = false)
     {
         $query = DB::table('safety_data')
             ->selectRaw("
-                SUM(driver_star) AS driver_star,
-                SUM(potential_collision) AS potential_collision,
-                SUM(hard_braking) AS hard_braking,
-                SUM(hard_turn) AS hard_turn,
-                SUM(hard_acceleration) AS hard_acceleration,
-                SUM(u_turn) AS u_turn,
-                SUM(seatbelt_compliance) AS seatbelt_compliance,
-                SUM(camera_obstruction) AS camera_obstruction,
-                SUM(driver_drowsiness) AS driver_drowsiness,
-                SUM(weaving) AS weaving,
-                SUM(swerve) AS swerve,
-                SUM(lane_conduct) AS lane_conduct,
-                SUM(collision_warning) AS collision_warning,
-                SUM(backing) AS backing,
-                SUM(high_g) AS high_g
-            ")
+            SUM(driver_star) AS driver_star,
+            SUM(potential_collision) AS potential_collision,
+            SUM(hard_braking) AS hard_braking,
+            SUM(hard_turn) AS hard_turn,
+            SUM(hard_acceleration) AS hard_acceleration,
+            SUM(u_turn) AS u_turn,
+            SUM(seatbelt_compliance) AS seatbelt_compliance,
+            SUM(camera_obstruction) AS camera_obstruction,
+            SUM(driver_drowsiness) AS driver_drowsiness,
+            SUM(weaving) AS weaving,
+            SUM(swerve) AS swerve,
+            SUM(lane_conduct) AS lane_conduct,
+            SUM(collision_warning) AS collision_warning,
+            SUM(backing) AS backing,
+            SUM(high_g) AS high_g
+        ")
             ->whereBetween('date', [$startDate, $endDate]);
 
         $this->applyTenantFilter($query);
+        $this->applyMinutesAnalyzedFilter($query, $moreThan0);
+
         return $query->first();
     }
-
     /**
      * Get line chart data for safety trends
      * 
@@ -262,56 +267,56 @@ public function __construct(?int $email_tenant_id = null) {
      * @param string $endDate The end date for the query
      * @return array The line chart data
      */
-    public function getLineChartData($startDate, $endDate): array
+    public function getLineChartData($startDate, $endDate, bool $moreThan0 = false): array
     {
         // Use Carbon for consistent date handling with FilteringService
         $start = Carbon::parse($startDate);
         $end = Carbon::parse($endDate);
-        
+
         // Determine date filter type based on date range
         $dateFilter = $this->determineDateFilterType($start, $end);
+
         // Determine grouping based on date filter type
         if ($dateFilter === 'yesterday') {
             // For yesterday, we'll show hourly data if available
             $dateFormat = 'Y-m-d';
             $groupBy = DB::raw('DATE_FORMAT(date, "%Y-%m-%d")');
-            $labelFormat = 'H:00'; // Hour format
+            $labelFormat = 'H:00';
         } elseif ($dateFilter === 'current-week') {
             // Current week - group by day
             $dateFormat = 'Y-m-d';
             $groupBy = DB::raw('DATE(date)');
-            $labelFormat = 'D'; // Day name (Mon, Tue, etc.)
+            $labelFormat = 'D';
         } elseif ($dateFilter === '6w') {
             // 6 weeks - group by week with weeks starting on Sunday
             $dateFormat = 'Y-W';
-            // Use YEARWEEK with mode 0 (weeks starting on Sunday)
             $groupBy = DB::raw('YEARWEEK(date, 6)');
-            $labelFormat = '\WW'; // Week number (W1, W2, etc.)
+            $labelFormat = '\WW';
         } else {
             // Quarterly or longer - group by month
-            $dateFormat = 'Y-m';
-            $groupBy = DB::raw('DATE_FORMAT(date, "%Y-%m")');
-            $labelFormat = 'M'; // Month name (Jan, Feb, etc.)
+            $dateFormat = 'Y-W';
+            $groupBy = DB::raw('YEARWEEK(date, 6)');
+            $labelFormat = '\WW';
         }
+
         $query = DB::table('safety_data')
             ->select($groupBy, DB::raw('AVG(driver_score) as greenZoneScore'))
             ->whereBetween('date', [$startDate, $endDate])
             ->groupBy($groupBy)
             ->orderBy($groupBy);
-        
+
         $this->applyTenantFilter($query);
+        $this->applyMinutesAnalyzedFilter($query, $moreThan0);
+
         $results = $query->get();
+
         // Format dates based on the determined grouping
-        return $results->map(function($item) use ($dateFormat, $labelFormat, $dateFilter) {
+        return $results->map(function ($item) use ($dateFormat, $labelFormat) {
             // Get the first property (date or yearweek)
-            $dateValue = $item->{array_key_first((array)$item)};
-            
+            $dateValue = $item->{array_key_first((array) $item)};
+
             if ($dateFormat === 'Y-m-d') {
                 // For daily grouping
-                $date = Carbon::parse($dateValue);
-                $formattedDate = $date->format($labelFormat);
-            } elseif ($dateFormat === 'Y-m-d') {
-                // For hourly grouping
                 $date = Carbon::parse($dateValue);
                 $formattedDate = $date->format($labelFormat);
             } elseif ($dateFormat === 'Y-m') {
@@ -325,14 +330,14 @@ public function __construct(?int $email_tenant_id = null) {
                 $week = substr($dateValue, 4);
                 $formattedDate = 'W' . $week;
             }
-            
+
             return [
                 'date' => $formattedDate,
-                'greenZoneScore' => round($item->greenZoneScore, 1)
+                'greenZoneScore' => round($item->greenZoneScore, 1),
             ];
         })->toArray();
     }
-    
+
     /**
      * Determine the date filter type based on the date range
      * 
@@ -352,31 +357,38 @@ public function __construct(?int $email_tenant_id = null) {
         $currentWeekStart = $now->copy()->startOfWeek(Carbon::SUNDAY);
         $currentWeekEnd = $now->copy()->endOfWeek(Carbon::SATURDAY);
         $sixWeeksStart = $currentWeekStart->copy()->subWeeks(5);
-        
+
         // Check if the date range matches yesterday
         if ($start->isSameDay($yesterday) && $end->isSameDay($yesterday)) {
             return 'yesterday';
         }
-        
+
         // Check if the date range matches current week
         if ($start->isSameDay($currentWeekStart) && $end->isSameDay($currentWeekEnd)) {
             return 'current-week';
         }
-        
+
         // Check if the date range matches 6 weeks
         if ($start->isSameDay($sixWeeksStart) && $end->isSameDay($currentWeekEnd)) {
             return '6w';
         }
-        
+
         // Check if the date range is approximately 3 months
         if ($daysDifference >= 85 && $daysDifference <= 95) {
             return 'quarterly';
         }
-        
+
         // Default to full if none of the above match
         return 'full';
     }
+    private function applyMinutesAnalyzedFilter($query, bool $moreThan0 = false)
+    {
+        if ($moreThan0) {
+            $query->where('minutes_analyzed', '>', 0);
+        }
 
+        return $query;
+    }
     /**
      * Get formatted safety data for the frontend in the same structure as the hardcoded values
      * 
@@ -384,21 +396,21 @@ public function __construct(?int $email_tenant_id = null) {
      * @param string $endDate The end date for the query
      * @return array The formatted safety data
      */
-    public function getFormattedSafetyData($startDate, $endDate): array
+    public function getFormattedSafetyData($startDate, $endDate, bool $moreThan0 = false): array
     {
         // Get top and bottom drivers
-        $topDrivers = $this->getTopDrivers($startDate, $endDate);
-        $bottomDrivers = $this->getBottomDrivers($startDate, $endDate);
-        
+        $topDrivers = $this->getTopDrivers($startDate, $endDate, 5, $moreThan0);
+        $bottomDrivers = $this->getBottomDrivers($startDate, $endDate, 5, $moreThan0);
+
         // Get aggregate safety data for alerts
-        $aggregateSafetyData = $this->getAggregateSafetyData($startDate, $endDate);
-        
+        $aggregateSafetyData = $this->getAggregateSafetyData($startDate, $endDate, $moreThan0);
+
         // Get infractions data
-        $infractionsData = $this->getInfractionsData($startDate, $endDate);
-        
+        $infractionsData = $this->getInfractionsData($startDate, $endDate, $moreThan0);
+
         // Get line chart data
-        $lineChartData = $this->getLineChartData($startDate, $endDate);
-        
+        $lineChartData = $this->getLineChartData($startDate, $endDate, $moreThan0);
+
         // Format the data according to the structure in Safety.vue
         return [
             'greenZoneScore' => $aggregateSafetyData->average_driver_score ?? 0,
@@ -427,9 +439,9 @@ public function __construct(?int $email_tenant_id = null) {
                 'laneConduct' => $infractionsData->lane_conduct ?? 0,
                 'collisionWarning' => $infractionsData->collision_warning ?? 0,
                 'backing' => $infractionsData->backing ?? 0,
-                'highG' => $infractionsData->high_g ?? 0
+                'highG' => $infractionsData->high_g ?? 0,
             ],
-            'lineChartData' => $lineChartData
+            'lineChartData' => $lineChartData,
         ];
     }
 }
