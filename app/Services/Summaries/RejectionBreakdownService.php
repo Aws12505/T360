@@ -405,6 +405,14 @@ class RejectionBreakdownService
         ];
     }
 
+    private function applyDelayTypeFilter($query): void
+    {
+        $delayType = request()->input('delayType');
+
+        if (in_array($delayType, ['origin', 'destination'])) {
+            $query->where('delay_type', $delayType);
+        }
+    }
     /*
     |--------------------------------------------------------------------------
     | Aggregates
