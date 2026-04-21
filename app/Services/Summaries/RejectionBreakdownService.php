@@ -116,18 +116,22 @@ class RejectionBreakdownService
 
     public function getRejectionsByReason($startDate, $endDate)
     {
-        $query = $this->baseRejectionQuery($startDate, $endDate)
+        $normalizedReason = "COALESCE(NULLIF(TRIM(rejection_reason), ''), '—')";
+
+        $baseQuery = $this->baseRejectionQuery($startDate, $endDate)
+            ->selectRaw("{$normalizedReason} as rejection_reason, penalty");
+
+        $this->applyTenantFilter($baseQuery);
+        $this->applyCompanyAnalyticsFilter($baseQuery);
+
+        return DB::query()
+            ->fromSub($baseQuery, 'rejection_reason_summary')
             ->selectRaw("
-                COALESCE(NULLIF(TRIM(rejection_reason), ''), '—') as rejection_reason,
+                rejection_reason,
                 COUNT(*) as total_rejections,
                 SUM(penalty) as total_penalty
-            ");
-
-        $this->applyTenantFilter($query);
-        $this->applyCompanyAnalyticsFilter($query);
-
-        return $query
-            ->groupBy(DB::raw("COALESCE(NULLIF(TRIM(rejection_reason), ''), '—')"))
+            ")
+            ->groupBy('rejection_reason')
             ->orderBy('total_rejections', 'desc')
             ->get();
     }
