@@ -39,11 +39,19 @@ class DelayBreakdownService
      */
     public function getDelaysByReason($startDate, $endDate)
     {
-        $reasonExpr = "COALESCE(NULLIF(TRIM(delay_reason), ''), '—')";
+        $normalizedReason = "COALESCE(NULLIF(TRIM(delay_reason), ''), '—')";
 
-        $query = DB::table('delays')
+        $baseQuery = DB::table('delays')
+            ->selectRaw("{$normalizedReason} as reason, delay_type, penalty")
+            ->whereBetween('date', [$startDate, $endDate]);
+
+        $this->applyTenantFilter($baseQuery);
+        $this->applyCompanyAnalyticsFilter($baseQuery);
+
+        return DB::query()
+            ->fromSub($baseQuery, 'delay_reason_summary')
             ->selectRaw("
-            {$reasonExpr} as reason,
+            reason,
             COUNT(*) as total_delays,
             SUM(penalty) as total_penalty,
             SUM(CASE WHEN delay_type = 'origin' THEN 1 ELSE 0 END) as total_origin_delays,
@@ -51,13 +59,7 @@ class DelayBreakdownService
             SUM(CASE WHEN delay_type = 'destination' THEN 1 ELSE 0 END) as total_destination_delays,
             SUM(CASE WHEN delay_type = 'destination' THEN penalty ELSE 0 END) as total_destination_penalty
         ")
-            ->whereBetween('date', [$startDate, $endDate]);
-
-        $this->applyTenantFilter($query);
-        $this->applyCompanyAnalyticsFilter($query);
-
-        return $query
-            ->groupByRaw($reasonExpr)
+            ->groupBy('reason')
             ->orderByDesc('total_delays')
             ->get();
     }
