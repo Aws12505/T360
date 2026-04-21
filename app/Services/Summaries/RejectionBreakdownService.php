@@ -314,28 +314,14 @@ class RejectionBreakdownService
             $labelType = 'date';
         }
 
-        $query = DB::table('delays');
+        $query = DB::table('rejections');
 
         $aggregates = DB::raw("
+        COUNT(*) as total_entries,
         SUM(CASE
-            WHEN delay_type = 'origin' AND carrier_controllable = 1
+            WHEN carrier_controllable = 1
             THEN penalty ELSE 0
-        END) as origin_penalty,
-
-        SUM(CASE
-            WHEN delay_type = 'destination' AND carrier_controllable = 1
-            THEN penalty ELSE 0
-        END) as destination_penalty,
-
-        SUM(CASE
-            WHEN delay_type = 'origin'
-            THEN 1 ELSE 0
-        END) as origin_count,
-
-        SUM(CASE
-            WHEN delay_type = 'destination'
-            THEN 1 ELSE 0
-        END) as destination_count
+        END) as carrier_penalty
     ");
 
         if ($usesWeekNumber) {
@@ -360,7 +346,7 @@ class RejectionBreakdownService
         }
 
         $this->applyTenantFilter($query);
-        $this->applyDelayTypeFilter($query);
+        $this->applyCompanyAnalyticsFilter($query);
 
         $results = $query->get();
 
@@ -377,17 +363,12 @@ class RejectionBreakdownService
                 $formattedDate = $item->grouped_date;
             }
 
-            $originPerformance = $item->origin_count > 0
-                ? (1 - ($item->origin_penalty / $item->origin_count)) * 100
-                : 100;
+            $entries = $item->total_entries ?? 0;
+            $penalty = $item->carrier_penalty ?? 0;
 
-            $destinationPerformance = $item->destination_count > 0
-                ? (1 - ($item->destination_penalty / $item->destination_count)) * 100
+            $finalPerformance = $entries > 0
+                ? (1 - ($penalty / $entries)) * 100
                 : 100;
-
-            $finalPerformance =
-                ($originPerformance * 0.375) +
-                ($destinationPerformance * 0.625);
 
             return [
                 'date' => $formattedDate,
@@ -409,14 +390,6 @@ class RejectionBreakdownService
         ];
     }
 
-    private function applyDelayTypeFilter($query): void
-    {
-        $delayType = request()->input('delayType');
-
-        if (in_array($delayType, ['origin', 'destination'])) {
-            $query->where('delay_type', $delayType);
-        }
-    }
     /*
     |--------------------------------------------------------------------------
     | Aggregates
