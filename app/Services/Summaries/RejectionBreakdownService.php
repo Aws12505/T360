@@ -386,7 +386,7 @@ class RejectionBreakdownService
 
         return [
             'chartData' => $chartData,
-            'averageOnTime' => $averageOnTime,
+            'averageAcceptance' => $averageOnTime,
         ];
     }
 
