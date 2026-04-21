@@ -344,9 +344,8 @@ class RejectionBreakdownService
         if ($usesWeekNumber) {
             $query->groupBy('week_number');
         }
-
         $this->applyTenantFilter($query);
-        $this->applyCompanyAnalyticsFilter($query);
+
 
         $results = $query->get();
 
@@ -372,21 +371,20 @@ class RejectionBreakdownService
 
             return [
                 'date' => $formattedDate,
-                'onTimePerformance' => round($finalPerformance, 1),
+                'acceptancePerformance' => round($finalPerformance, 1),
             ];
         })->toArray();
 
         $values = collect($chartData)
-            ->pluck('onTimePerformance')
+            ->pluck('acceptancePerformance')
             ->filter();
 
-        $averageOnTime = $values->count()
+        $averageAcceptance = $values->count()
             ? round($values->avg(), 1)
             : null;
-
         return [
             'chartData' => $chartData,
-            'averageAcceptance' => $averageOnTime,
+            'averageAcceptance' => $averageAcceptance,
         ];
     }
 
