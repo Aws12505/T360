@@ -1,7 +1,17 @@
 <script setup>
 import { computed, watch, ref, nextTick } from 'vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
-import { TrendingUp, TrendingDown, ChevronDown } from 'lucide-vue-next';
+import {
+    TrendingUp,
+    TrendingDown,
+    ChevronDown,
+    X,
+    MessageSquare,
+    SlidersHorizontal,
+    Search,
+    RotateCcw,
+    Eye,
+} from 'lucide-vue-next';
 import AppLayout from '@/layouts/AppLayout.vue';
 import {
     Card,
@@ -13,7 +23,6 @@ import {
     Label,
     Badge,
     Separator,
-    Textarea,
     Tabs,
     TabsList,
     TabsTrigger,
@@ -26,11 +35,6 @@ import {
     AlertDialogFooter,
     AlertDialogAction,
     AlertDialogCancel,
-    Select,
-    SelectTrigger,
-    SelectContent,
-    SelectItem,
-    SelectValue,
     Checkbox,
 } from '@/components/ui';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
@@ -58,16 +62,20 @@ const statusOptions = [
     { value: 'bad', label: 'Bad' },
 ];
 
+const activeTab = ref('messages');
+
 const thresholdMetrics = computed(() =>
     (props.metrics || []).filter((metric) => metric.thresholds)
 );
 
+const clone = (value, fallback) => JSON.parse(JSON.stringify(value || fallback));
+
 const globalMessagesForm = useForm({
-    messages: JSON.parse(JSON.stringify(props.globalMessages || {})),
+    messages: clone(props.globalMessages, {}),
 });
 
 const globalThresholdsForm = useForm({
-    thresholds: JSON.parse(JSON.stringify(props.globalThresholds || {})),
+    thresholds: clone(props.globalThresholds, {}),
 });
 
 const messageOverrideForm = useForm({
@@ -89,10 +97,11 @@ const { toast } = useToast();
 
 const placeholderQuery = ref('');
 const activeField = ref(null);
-const activeTarget = ref(null);
+const activeEditor = ref(null);
 const pendingDelete = ref(null);
 const messageTenantsOpen = ref(false);
 const thresholdTenantsOpen = ref(false);
+const editorRefs = ref({});
 
 watch(
     () => messageOverrideForm.metric_key,
@@ -103,6 +112,50 @@ watch(
             messageOverrideForm.status = 'good';
         }
     }
+);
+
+const ensureGlobalMessagePath = (metricKey, statusKey) => {
+    if (!globalMessagesForm.messages) {
+        globalMessagesForm.messages = {};
+    }
+
+    if (!globalMessagesForm.messages[metricKey]) {
+        globalMessagesForm.messages[metricKey] = {};
+    }
+
+    if (typeof globalMessagesForm.messages[metricKey][statusKey] !== 'string') {
+        globalMessagesForm.messages[metricKey][statusKey] = '';
+    }
+};
+
+const ensureGlobalThresholdPath = (metricKey) => {
+    if (!globalThresholdsForm.thresholds) {
+        globalThresholdsForm.thresholds = {};
+    }
+
+    if (!globalThresholdsForm.thresholds[metricKey]) {
+        globalThresholdsForm.thresholds[metricKey] = {
+            good: '',
+            minor_improvement: '',
+            bad: '',
+        };
+    }
+};
+
+watch(
+    thresholdMetrics,
+    (metrics) => {
+        ensureGlobalMessagePath('general', 'general');
+
+        metrics.forEach((metric) => {
+            ensureGlobalThresholdPath(metric.key);
+
+            statusOptions.forEach((status) => {
+                ensureGlobalMessagePath(metric.key, status.value);
+            });
+        });
+    },
+    { immediate: true }
 );
 
 const submitGlobalMessages = () => {
@@ -124,6 +177,12 @@ const submitMessageOverride = () => {
         preserveScroll: true,
         onSuccess: () => {
             messageOverrideForm.reset('message');
+
+            const editor = editorRefs.value.override;
+            if (editor) {
+                editor.innerHTML = '';
+            }
+
             toast({ title: 'Saved', description: 'Message override saved.' });
         },
     });
@@ -145,11 +204,17 @@ const confirmDelete = (type, override) => {
 
 const executePendingDelete = () => {
     if (!pendingDelete.value) return;
+
     const { type, override } = pendingDelete.value;
+
     const routeName = type === 'message'
         ? 'admin.sms-coaching.messages.overrides.delete'
         : 'admin.sms-coaching.thresholds.overrides.delete';
-    const param = type === 'message' ? { message: override.id } : { threshold: override.id };
+
+    const param = type === 'message'
+        ? { message: override.id }
+        : { threshold: override.id };
+
     router.delete(route(routeName, param), {
         preserveScroll: true,
         onSuccess: () => toast({
@@ -157,39 +222,76 @@ const executePendingDelete = () => {
             description: `${type === 'message' ? 'Message' : 'Threshold'} override removed.`,
         }),
     });
+
     pendingDelete.value = null;
 };
 
-// Tenant multi-select helpers — use div+click pattern to avoid double-toggle from label+button
+const normalizeTenantId = (id) => {
+    const number = Number(id);
+    return Number.isNaN(number) ? id : number;
+};
+
+const isTenantSelected = (form, id) => {
+    const normalizedId = normalizeTenantId(id);
+
+    return form.tenant_ids.some(
+        (tenantId) => normalizeTenantId(tenantId) === normalizedId
+    );
+};
+
+const setTenantSelected = (form, id, checked) => {
+    const normalizedId = normalizeTenantId(id);
+    const selected = isTenantSelected(form, normalizedId);
+
+    if (checked && !selected) {
+        form.tenant_ids.push(normalizedId);
+    }
+
+    if (!checked && selected) {
+        form.tenant_ids = form.tenant_ids.filter(
+            (tenantId) => normalizeTenantId(tenantId) !== normalizedId
+        );
+    }
+};
+
 const toggleTenant = (form, id) => {
-    const idx = form.tenant_ids.indexOf(id);
-    idx === -1 ? form.tenant_ids.push(id) : form.tenant_ids.splice(idx, 1);
+    setTenantSelected(form, id, !isTenantSelected(form, id));
 };
 
 const tenantsLabel = (ids) => {
     if (!ids?.length) return 'Select tenants...';
+
     if (ids.length === 1) {
-        return (props.tenants || []).find((t) => t.id === ids[0])?.name ?? '1 tenant';
+        const selectedId = normalizeTenantId(ids[0]);
+
+        return (props.tenants || []).find(
+            (tenant) => normalizeTenantId(tenant.id) === selectedId
+        )?.name ?? '1 tenant';
     }
+
     return `${ids.length} tenants selected`;
 };
 
-// Character count helpers
 const charCount = (val) => (val || '').length;
+
 const charCountClass = (count) =>
     count <= 160
         ? 'text-green-600 dark:text-green-400'
         : count <= 320
-        ? 'text-amber-600 dark:text-amber-400'
-        : 'text-red-600 dark:text-red-400';
-const charSegments = (count) => (count <= 160 ? 1 : count <= 320 ? 2 : Math.ceil(count / 153));
+            ? 'text-amber-600 dark:text-amber-400'
+            : 'text-red-600 dark:text-red-400';
 
-// Status badge variant
+const charSegments = (count) =>
+    count <= 160 ? 1 : count <= 320 ? 2 : Math.ceil(count / 153);
+
 const statusVariant = (status) =>
-    status === 'good' ? 'success'
-    : status === 'minor_improvement' ? 'warning'
-    : status === 'bad' ? 'destructive'
-    : 'secondary';
+    status === 'good'
+        ? 'success'
+        : status === 'minor_improvement'
+            ? 'warning'
+            : status === 'bad'
+                ? 'destructive'
+                : 'secondary';
 
 const formatMetric = (key) => {
     const metric = (props.metrics || []).find((item) => item.key === key);
@@ -198,16 +300,28 @@ const formatMetric = (key) => {
 
 const formatStatus = (value) => {
     if (!value) return 'General';
+
     const found = statusOptions.find((option) => option.value === value);
     return found ? found.label : value;
 };
 
-// Placeholder groups with search
+const placeholderByValue = computed(() => {
+    const map = {};
+
+    (props.placeholders || []).forEach((placeholder) => {
+        map[placeholder.value] = placeholder;
+    });
+
+    return map;
+});
+
 const placeholderGroups = computed(() => {
     const query = placeholderQuery.value.trim().toLowerCase();
+
     const items = (props.placeholders || []).filter((ph) => {
         const value = (ph.value || '').toLowerCase();
         const label = (ph.label || '').toLowerCase();
+
         return !query || value.includes(query) || label.includes(query);
     });
 
@@ -223,85 +337,477 @@ const placeholderGroups = computed(() => {
         { key: 'date', label: 'Date Range', items: items.filter(isDate) },
     ];
 
-    const used = new Set(groups.flatMap((g) => g.items.map((i) => i.value)));
-    const otherItems = items.filter((i) => !used.has(i.value));
-    if (otherItems.length) groups.push({ key: 'other', label: 'Other', items: otherItems });
+    const used = new Set(groups.flatMap((group) => group.items.map((item) => item.value)));
+    const otherItems = items.filter((item) => !used.has(item.value));
 
-    return groups.filter((g) => g.items.length > 0);
+    if (otherItems.length) {
+        groups.push({ key: 'other', label: 'Other', items: otherItems });
+    }
+
+    return groups.filter((group) => group.items.length > 0);
 });
 
-const setActiveField = (field, event) => {
+const escapeHtml = (text) =>
+    String(text || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+
+const placeholderLabel = (value) => {
+    return placeholderByValue.value[value]?.label || value;
+};
+
+const placeholderChipClass = 'placeholder-token inline-flex select-none items-center rounded-md border border-primary/25 bg-primary/10 px-1.5 py-0.5 align-baseline font-mono text-xs font-medium text-primary';
+
+const renderMessageHtml = (text) => {
+    const value = String(text || '');
+
+    if (!value) return '';
+
+    const parts = value.split(/(\{[^}]+\})/g);
+
+    return parts
+        .map((part) => {
+            if (/^\{[^}]+\}$/.test(part)) {
+                const label = placeholderLabel(part);
+
+                return `<span contenteditable="false" dir="ltr" data-placeholder-value="${escapeHtml(part)}" class="${placeholderChipClass}" title="${escapeHtml(part)}">${escapeHtml(label)}</span>`;
+            }
+
+            return escapeHtml(part).replace(/\n/g, '<br>');
+        })
+        .join('');
+};
+
+const serializeEditorNode = (node) => {
+    if (!node) return '';
+
+    if (node.nodeType === Node.TEXT_NODE) {
+        return node.textContent || '';
+    }
+
+    if (node.nodeType !== Node.ELEMENT_NODE) {
+        return '';
+    }
+
+    const element = node;
+
+    if (element.dataset?.placeholderValue) {
+        return element.dataset.placeholderValue;
+    }
+
+    if (element.tagName === 'BR') {
+        return '\n';
+    }
+
+    let text = '';
+
+    element.childNodes.forEach((child) => {
+        text += serializeEditorNode(child);
+    });
+
+    if (element.tagName === 'DIV' || element.tagName === 'P') {
+        text += '\n';
+    }
+
+    return text;
+};
+
+const serializeEditor = (editor) => {
+    if (!editor) return '';
+
+    let text = '';
+
+    editor.childNodes.forEach((node) => {
+        text += serializeEditorNode(node);
+    });
+
+    return text.replace(/\n$/, '');
+};
+
+const getMessageValue = (field) => {
+    if (!field) return '';
+
+    if (field.type === 'global') {
+        return globalMessagesForm.messages?.[field.metricKey]?.[field.statusKey] || '';
+    }
+
+    if (field.type === 'override') {
+        return messageOverrideForm.message || '';
+    }
+
+    return '';
+};
+
+const setMessageValue = (field, nextValue) => {
+    if (!field) return;
+
+    if (field.type === 'global') {
+        ensureGlobalMessagePath(field.metricKey, field.statusKey);
+        globalMessagesForm.messages[field.metricKey][field.statusKey] = nextValue;
+        return;
+    }
+
+    if (field.type === 'override') {
+        messageOverrideForm.message = nextValue;
+    }
+};
+
+const fieldKey = (field) => {
+    if (!field) return '';
+
+    if (field.type === 'override') {
+        return 'override';
+    }
+
+    return `${field.type}:${field.metricKey}:${field.statusKey}`;
+};
+
+const setEditorRef = (field, el) => {
+    if (!field || !el) return;
+
+    const key = fieldKey(field);
+
+    editorRefs.value[key] = el;
+
+    nextTick(() => {
+        if (activeEditor.value !== el) {
+            el.innerHTML = renderMessageHtml(getMessageValue(field));
+        }
+    });
+};
+
+const setActiveEditor = (field, event) => {
     activeField.value = field;
-    activeTarget.value = event?.target ?? null;
+    activeEditor.value = event?.currentTarget || null;
+};
+
+const syncEditorToForm = (field, editor) => {
+    setMessageValue(field, serializeEditor(editor));
+};
+
+const handleEditorInput = (field, event) => {
+    setActiveEditor(field, event);
+    syncEditorToForm(field, event.currentTarget);
+};
+
+const insertPlainTextAtSelection = (text) => {
+    const selection = window.getSelection();
+
+    if (!selection || !selection.rangeCount) return;
+
+    const range = selection.getRangeAt(0);
+
+    range.deleteContents();
+
+    const lines = text.split(/\r\n|\r|\n/);
+
+    lines.forEach((line, index) => {
+        if (index > 0) {
+            range.insertNode(document.createElement('br'));
+            range.collapse(false);
+        }
+
+        if (line) {
+            const textNode = document.createTextNode(line);
+
+            range.insertNode(textNode);
+            range.setStartAfter(textNode);
+            range.setEndAfter(textNode);
+        }
+    });
+
+    selection.removeAllRanges();
+    selection.addRange(range);
+};
+
+const handleEditorPaste = (field, event) => {
+    event.preventDefault();
+
+    const text = event.clipboardData?.getData('text/plain') || '';
+
+    if (!text) return;
+
+    insertPlainTextAtSelection(text);
+    syncEditorToForm(field, event.currentTarget);
 };
 
 const activeFieldLabel = computed(() => {
     if (!activeField.value) return 'Click a message field to activate.';
     if (activeField.value.type === 'override') return 'Tenant Override Message';
     if (activeField.value.metricKey === 'general') return 'General Message';
+
     return `${formatMetric(activeField.value.metricKey)} · ${formatStatus(activeField.value.statusKey)}`;
 });
 
-// Get the current active message text for preview
-const activeMessageText = computed(() => {
-    if (!activeField.value) return '';
-    if (activeField.value.type === 'global') {
-        return globalMessagesForm.messages?.[activeField.value.metricKey]?.[activeField.value.statusKey] || '';
-    }
-    if (activeField.value.type === 'override') {
-        return messageOverrideForm.message || '';
-    }
-    return '';
-});
+const createPlaceholderChip = (placeholderValue) => {
+    const chip = document.createElement('span');
 
-// Render the message with {variable} patterns highlighted as styled spans
-const activePreviewHtml = computed(() => {
-    const text = activeMessageText.value;
-    if (!text) return '';
-    const escaped = text
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/\n/g, '<br>');
-    return escaped.replace(
-        /\{[^}]+\}/g,
-        (match) =>
-            `<mark class="inline-flex items-center rounded bg-primary/15 px-1 py-0.5 font-mono text-xs font-medium text-primary">${match}</mark>`
-    );
-});
+    chip.contentEditable = 'false';
+    chip.dir = 'ltr';
+    chip.dataset.placeholderValue = placeholderValue;
+    chip.title = placeholderValue;
+    chip.textContent = placeholderLabel(placeholderValue);
+    chip.className = placeholderChipClass;
 
-const setMessageValue = (field, nextValue) => {
-    if (!field) return;
-    if (field.type === 'global') {
-        if (!globalMessagesForm.messages[field.metricKey]) {
-            globalMessagesForm.messages[field.metricKey] = {};
-        }
-        globalMessagesForm.messages[field.metricKey][field.statusKey] = nextValue;
-        return;
-    }
-    if (field.type === 'override') {
-        messageOverrideForm.message = nextValue;
-    }
+    return chip;
+};
+
+const selectionIsInside = (container) => {
+    const selection = window.getSelection();
+
+    if (!selection || !selection.rangeCount || !container) return false;
+
+    const node = selection.anchorNode;
+
+    return node === container || container.contains(node);
+};
+
+const moveCaretToEnd = (element) => {
+    const range = document.createRange();
+    const selection = window.getSelection();
+
+    range.selectNodeContents(element);
+    range.collapse(false);
+
+    selection.removeAllRanges();
+    selection.addRange(range);
 };
 
 const insertPlaceholder = (placeholderValue) => {
-    if (!activeTarget.value || !activeField.value) return;
+    if (!activeField.value || !activeEditor.value) return;
 
-    const target = activeTarget.value;
-    const value = target.value ?? '';
-    const start = target.selectionStart ?? value.length;
-    const end = target.selectionEnd ?? value.length;
-    const nextValue = value.slice(0, start) + placeholderValue + value.slice(end);
+    const editor = activeEditor.value;
 
-    setMessageValue(activeField.value, nextValue);
+    editor.focus();
+
+    if (!selectionIsInside(editor)) {
+        moveCaretToEnd(editor);
+    }
+
+    const selection = window.getSelection();
+
+    if (!selection || !selection.rangeCount) return;
+
+    const range = selection.getRangeAt(0);
+    const chip = createPlaceholderChip(placeholderValue);
+    const spacer = document.createTextNode(' ');
+
+    range.deleteContents();
+
+    range.insertNode(spacer);
+    range.insertNode(chip);
+
+    range.setStartAfter(spacer);
+    range.setEndAfter(spacer);
+
+    selection.removeAllRanges();
+    selection.addRange(range);
+
+    syncEditorToForm(activeField.value, editor);
 
     nextTick(() => {
-        target.focus();
-        const cursor = start + placeholderValue.length;
-        target.selectionStart = cursor;
-        target.selectionEnd = cursor;
+        editor.focus();
     });
 };
+
+const editorEvents = (field) => ({
+    focus: (event) => setActiveEditor(field, event),
+    click: (event) => setActiveEditor(field, event),
+    keyup: (event) => setActiveEditor(field, event),
+    mouseup: (event) => setActiveEditor(field, event),
+    input: (event) => handleEditorInput(field, event),
+    paste: (event) => handleEditorPaste(field, event),
+});
+
+const editorClass = 'sms-message-editor min-h-[84px] whitespace-pre-wrap break-words rounded-md border border-input bg-background px-3 py-2 text-start text-sm leading-relaxed text-foreground ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 empty:before:text-muted-foreground empty:before:content-[attr(data-placeholder)]';
+
+const nativeSelectClass = 'h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
+
+const tenantNameById = (id) => {
+    const normalized = normalizeTenantId(id);
+    return (props.tenants || []).find((t) => normalizeTenantId(t.id) === normalized)?.name ?? `Tenant ${id}`;
+};
+
+const messageOverridesCount = computed(() => (props.messageOverrides || []).length);
+const thresholdOverridesCount = computed(() => (props.thresholdOverrides || []).length);
+
+const OVERRIDE_PAGE_SIZE = 8;
+
+const messageOverrideFilters = ref({
+    query: '',
+    metric: 'all',
+    status: 'all',
+    visibleCount: OVERRIDE_PAGE_SIZE,
+});
+
+const thresholdOverrideFilters = ref({
+    query: '',
+    metric: 'all',
+    visibleCount: OVERRIDE_PAGE_SIZE,
+});
+
+const normalizedText = (value) => String(value || '').toLowerCase().trim();
+
+const compactSelectClass = 'h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm text-foreground ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
+
+const messageOverrideMetricOptions = computed(() => {
+    const keys = new Set((props.messageOverrides || []).map((override) => override.metric_key));
+
+    return [...keys]
+        .filter(Boolean)
+        .map((key) => ({
+            value: key,
+            label: formatMetric(key),
+        }))
+        .sort((a, b) => a.label.localeCompare(b.label));
+});
+
+const thresholdOverrideMetricOptions = computed(() => {
+    const keys = new Set((props.thresholdOverrides || []).map((override) => override.metric_key));
+
+    return [...keys]
+        .filter(Boolean)
+        .map((key) => ({
+            value: key,
+            label: formatMetric(key),
+        }))
+        .sort((a, b) => a.label.localeCompare(b.label));
+});
+
+const filteredMessageOverrides = computed(() => {
+    const query = normalizedText(messageOverrideFilters.value.query);
+    const metric = messageOverrideFilters.value.metric;
+    const status = messageOverrideFilters.value.status;
+
+    return [...(props.messageOverrides || [])]
+        .filter((override) => {
+            const matchesMetric = metric === 'all' || override.metric_key === metric;
+            const matchesStatus = status === 'all' || (override.status || '') === status;
+
+            const searchable = [
+                override.tenant_name,
+                formatMetric(override.metric_key),
+                formatStatus(override.status),
+                override.message,
+            ].map(normalizedText).join(' ');
+
+            const matchesQuery = !query || searchable.includes(query);
+
+            return matchesMetric && matchesStatus && matchesQuery;
+        })
+        .sort((a, b) => {
+            const tenantCompare = String(a.tenant_name || '').localeCompare(String(b.tenant_name || ''));
+
+            if (tenantCompare !== 0) return tenantCompare;
+
+            return String(formatMetric(a.metric_key)).localeCompare(String(formatMetric(b.metric_key)));
+        });
+});
+
+const visibleMessageOverrides = computed(() =>
+    filteredMessageOverrides.value.slice(0, messageOverrideFilters.value.visibleCount)
+);
+
+const hasMoreMessageOverrides = computed(() =>
+    filteredMessageOverrides.value.length > visibleMessageOverrides.value.length
+);
+
+const filteredThresholdOverrides = computed(() => {
+    const query = normalizedText(thresholdOverrideFilters.value.query);
+    const metric = thresholdOverrideFilters.value.metric;
+
+    return [...(props.thresholdOverrides || [])]
+        .filter((override) => {
+            const matchesMetric = metric === 'all' || override.metric_key === metric;
+
+            const searchable = [
+                override.tenant_name,
+                formatMetric(override.metric_key),
+                override.good,
+                override.minor_improvement,
+                override.bad,
+            ].map(normalizedText).join(' ');
+
+            const matchesQuery = !query || searchable.includes(query);
+
+            return matchesMetric && matchesQuery;
+        })
+        .sort((a, b) => {
+            const tenantCompare = String(a.tenant_name || '').localeCompare(String(b.tenant_name || ''));
+
+            if (tenantCompare !== 0) return tenantCompare;
+
+            return String(formatMetric(a.metric_key)).localeCompare(String(formatMetric(b.metric_key)));
+        });
+});
+
+const visibleThresholdOverrides = computed(() =>
+    filteredThresholdOverrides.value.slice(0, thresholdOverrideFilters.value.visibleCount)
+);
+
+const hasMoreThresholdOverrides = computed(() =>
+    filteredThresholdOverrides.value.length > visibleThresholdOverrides.value.length
+);
+
+watch(
+    () => [
+        messageOverrideFilters.value.query,
+        messageOverrideFilters.value.metric,
+        messageOverrideFilters.value.status,
+    ],
+    () => {
+        messageOverrideFilters.value.visibleCount = OVERRIDE_PAGE_SIZE;
+    }
+);
+
+watch(
+    () => [
+        thresholdOverrideFilters.value.query,
+        thresholdOverrideFilters.value.metric,
+    ],
+    () => {
+        thresholdOverrideFilters.value.visibleCount = OVERRIDE_PAGE_SIZE;
+    }
+);
+
+const showMoreMessageOverrides = () => {
+    messageOverrideFilters.value.visibleCount += OVERRIDE_PAGE_SIZE;
+};
+
+const showMoreThresholdOverrides = () => {
+    thresholdOverrideFilters.value.visibleCount += OVERRIDE_PAGE_SIZE;
+};
+
+const resetMessageOverrideFilters = () => {
+    messageOverrideFilters.value = {
+        query: '',
+        metric: 'all',
+        status: 'all',
+        visibleCount: OVERRIDE_PAGE_SIZE,
+    };
+};
+
+const resetThresholdOverrideFilters = () => {
+    thresholdOverrideFilters.value = {
+        query: '',
+        metric: 'all',
+        visibleCount: OVERRIDE_PAGE_SIZE,
+    };
+};
+
+const hasActiveMessageOverrideFilters = computed(() =>
+    messageOverrideFilters.value.query ||
+    messageOverrideFilters.value.metric !== 'all' ||
+    messageOverrideFilters.value.status !== 'all'
+);
+
+const hasActiveThresholdOverrideFilters = computed(() =>
+    thresholdOverrideFilters.value.query ||
+    thresholdOverrideFilters.value.metric !== 'all'
+);
 </script>
 
 <template>
@@ -317,15 +823,14 @@ const insertPlaceholder = (placeholderValue) => {
                 </p>
             </div>
 
-            <Tabs default-value="messages" class="space-y-6">
+            <Tabs v-model="activeTab" default-value="messages" class="space-y-6">
                 <TabsList class="grid w-full grid-cols-3">
                     <TabsTrigger value="messages">Messages</TabsTrigger>
                     <TabsTrigger value="thresholds">Thresholds</TabsTrigger>
                     <TabsTrigger value="overrides">Overrides</TabsTrigger>
                 </TabsList>
 
-                <!-- ─── MESSAGES TAB ─── -->
-                <TabsContent value="messages">
+                <TabsContent value="messages" force-mount :hidden="activeTab !== 'messages'">
                     <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_288px]">
                         <div class="space-y-6">
                             <Card>
@@ -335,65 +840,76 @@ const insertPlaceholder = (placeholderValue) => {
                                         SMS segments: 1 segment up to 160 chars, 2 for 161–320, 3+ beyond 320.
                                     </p>
                                 </CardHeader>
+
                                 <CardContent class="space-y-6">
-                                    <!-- General message -->
                                     <div class="space-y-2">
                                         <Label>General Message</Label>
-                                        <Textarea
-                                            v-model="globalMessagesForm.messages.general.general"
-                                            rows="3"
-                                            placeholder="General message sent before thresholds"
-                                            @focus="setActiveField({ type: 'global', metricKey: 'general', statusKey: 'general' }, $event)"
-                                        />
+
+                                        <div :ref="(el) => setEditorRef({ type: 'global', metricKey: 'general', statusKey: 'general' }, el)"
+                                            :class="editorClass" contenteditable="true" dir="auto" inputmode="text"
+                                            role="textbox" aria-multiline="true"
+                                            data-placeholder="General message sent before thresholds"
+                                            v-on="editorEvents({ type: 'global', metricKey: 'general', statusKey: 'general' })" />
+
                                         <p class="text-right text-xs"
                                             :class="charCountClass(charCount(globalMessagesForm.messages.general.general))">
                                             {{ charCount(globalMessagesForm.messages.general.general) }} chars ·
-                                            {{ charSegments(charCount(globalMessagesForm.messages.general.general)) }} segment(s)
+                                            {{ charSegments(charCount(globalMessagesForm.messages.general.general)) }}
+                                            segment(s)
                                         </p>
                                     </div>
 
                                     <Separator />
 
-                                    <!-- Threshold-based metric messages -->
                                     <div v-for="(metric, index) in thresholdMetrics" :key="metric.key"
                                         class="space-y-4">
                                         <div class="flex flex-wrap items-center justify-between gap-2">
                                             <h3 class="text-base font-semibold text-foreground">
                                                 {{ metric.label }} Messages
                                             </h3>
+
                                             <div class="flex items-center gap-2">
                                                 <Badge v-if="metric.direction === 'high'" variant="outline"
                                                     class="gap-1">
                                                     <TrendingUp class="h-3 w-3" />
                                                     Higher is better
                                                 </Badge>
+
                                                 <Badge v-else-if="metric.direction === 'low'" variant="outline"
                                                     class="gap-1">
                                                     <TrendingDown class="h-3 w-3" />
                                                     Lower is better
                                                 </Badge>
+
                                                 <Badge variant="outline">Threshold-based</Badge>
                                             </div>
                                         </div>
+
                                         <div class="grid gap-4 md:grid-cols-3">
-                                            <div v-for="status in statusOptions" :key="status.value"
-                                                class="space-y-2">
+                                            <div v-for="status in statusOptions" :key="status.value" class="space-y-2">
                                                 <Badge :variant="statusVariant(status.value)">
                                                     {{ status.label }}
                                                 </Badge>
-                                                <Textarea
-                                                    v-model="globalMessagesForm.messages[metric.key][status.value]"
-                                                    rows="3"
-                                                    :placeholder="`${status.label} message`"
-                                                    @focus="setActiveField({ type: 'global', metricKey: metric.key, statusKey: status.value }, $event)"
-                                                />
+
+                                                <div :ref="(el) => setEditorRef({ type: 'global', metricKey: metric.key, statusKey: status.value }, el)"
+                                                    :class="editorClass" contenteditable="true" dir="auto"
+                                                    inputmode="text" role="textbox" aria-multiline="true"
+                                                    :data-placeholder="`${status.label} message`"
+                                                    v-on="editorEvents({ type: 'global', metricKey: metric.key, statusKey: status.value })" />
+
                                                 <p class="text-right text-xs"
                                                     :class="charCountClass(charCount(globalMessagesForm.messages[metric.key][status.value]))">
-                                                    {{ charCount(globalMessagesForm.messages[metric.key][status.value]) }} chars ·
-                                                    {{ charSegments(charCount(globalMessagesForm.messages[metric.key][status.value])) }} segment(s)
+                                                    {{ charCount(globalMessagesForm.messages[metric.key][status.value])
+                                                    }}
+                                                    chars ·
+                                                    {{
+                                                        charSegments(charCount(globalMessagesForm.messages[metric.key][status.value]))
+                                                    }}
+                                                    segment(s)
                                                 </p>
                                             </div>
                                         </div>
+
                                         <Separator v-if="index < thresholdMetrics.length - 1" class="mt-2" />
                                     </div>
 
@@ -407,7 +923,6 @@ const insertPlaceholder = (placeholderValue) => {
                             </Card>
                         </div>
 
-                        <!-- Sticky placeholder sidebar -->
                         <div class="sticky top-6 self-start">
                             <Card class="overflow-hidden">
                                 <CardHeader class="space-y-1 pb-3">
@@ -416,30 +931,28 @@ const insertPlaceholder = (placeholderValue) => {
                                         {{ activeFieldLabel }}
                                     </p>
                                 </CardHeader>
+
                                 <CardContent class="space-y-4 pt-0">
                                     <Input v-model="placeholderQuery" placeholder="Search placeholders..."
                                         class="h-8 text-sm" />
 
-                                    <!-- Scrollable placeholder list -->
-                                    <div class="max-h-[52vh] overflow-y-auto space-y-4 pr-1">
-                                        <div v-for="group in placeholderGroups" :key="group.key"
-                                            class="space-y-1.5">
-                                            <p class="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                                    <div class="max-h-[52vh] space-y-4 overflow-y-auto pr-1">
+                                        <div v-for="group in placeholderGroups" :key="group.key" class="space-y-1.5">
+                                            <p
+                                                class="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                                                 {{ group.label }}
                                             </p>
+
                                             <div class="space-y-1">
-                                                <button
-                                                    v-for="item in group.items"
-                                                    :key="item.value"
-                                                    type="button"
-                                                    class="group flex w-full items-start gap-2 rounded-md border border-border/50 bg-muted/20 px-2.5 py-2 text-left transition-colors hover:border-primary/40 hover:bg-primary/5"
-                                                    @click="insertPlaceholder(item.value)"
-                                                >
+                                                <button v-for="item in group.items" :key="item.value" type="button"
+                                                    class="group flex w-full items-start gap-2 rounded-md border border-border/50 bg-muted/20 px-2.5 py-2 text-left transition-colors hover:border-primary/40 hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-50"
+                                                    :disabled="!activeField" @click="insertPlaceholder(item.value)">
                                                     <div class="min-w-0 flex-1">
                                                         <p class="truncate text-xs font-medium text-foreground">
                                                             {{ item.label }}
                                                         </p>
-                                                        <p class="mt-0.5 truncate font-mono text-[10px] text-muted-foreground">
+                                                        <p
+                                                            class="mt-0.5 truncate font-mono text-[10px] text-muted-foreground">
                                                             {{ item.value }}
                                                         </p>
                                                     </div>
@@ -447,26 +960,13 @@ const insertPlaceholder = (placeholderValue) => {
                                             </div>
                                         </div>
                                     </div>
-
-                                    <!-- Live preview with variable highlighting -->
-                                    <template v-if="activeMessageText">
-                                        <Separator />
-                                        <div class="space-y-1.5">
-                                            <p class="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                                                Preview
-                                            </p>
-                                            <div class="rounded-md border bg-muted/20 px-3 py-2 text-xs leading-relaxed text-foreground"
-                                                v-html="activePreviewHtml" />
-                                        </div>
-                                    </template>
                                 </CardContent>
                             </Card>
                         </div>
                     </div>
                 </TabsContent>
 
-                <!-- ─── THRESHOLDS TAB ─── -->
-                <TabsContent value="thresholds">
+                <TabsContent value="thresholds" force-mount :hidden="activeTab !== 'thresholds'">
                     <Card>
                         <CardHeader>
                             <CardTitle>Global Thresholds</CardTitle>
@@ -474,15 +974,20 @@ const insertPlaceholder = (placeholderValue) => {
                                 Set the numeric cutoffs that determine which coaching message each driver receives.
                             </p>
                         </CardHeader>
+
                         <CardContent class="space-y-8">
                             <div v-for="(metric, index) in thresholdMetrics" :key="metric.key" class="space-y-4">
                                 <div class="flex flex-wrap items-center justify-between gap-2">
-                                    <h3 class="text-base font-semibold text-foreground">{{ metric.label }}</h3>
+                                    <h3 class="text-base font-semibold text-foreground">
+                                        {{ metric.label }}
+                                    </h3>
+
                                     <div class="flex items-center gap-2">
                                         <Badge v-if="metric.direction === 'high'" variant="outline" class="gap-1">
                                             <TrendingUp class="h-3 w-3" />
                                             Higher is better
                                         </Badge>
+
                                         <Badge v-else-if="metric.direction === 'low'" variant="outline" class="gap-1">
                                             <TrendingDown class="h-3 w-3" />
                                             Lower is better
@@ -495,29 +1000,30 @@ const insertPlaceholder = (placeholderValue) => {
                                         <Label class="flex items-center gap-1.5">
                                             <Badge variant="success">Good</Badge>
                                         </Label>
-                                        <Input v-model="globalThresholdsForm.thresholds[metric.key].good"
-                                            type="number" step="0.01" placeholder="e.g. 90" />
+                                        <Input v-model="globalThresholdsForm.thresholds[metric.key].good" type="number"
+                                            step="0.01" placeholder="e.g. 90" />
                                         <p class="text-xs text-muted-foreground">
                                             Drivers at or above this value get the Good message.
                                         </p>
                                     </div>
+
                                     <div class="space-y-2">
                                         <Label class="flex items-center gap-1.5">
                                             <Badge variant="warning">Needs Improvement</Badge>
                                         </Label>
-                                        <Input
-                                            v-model="globalThresholdsForm.thresholds[metric.key].minor_improvement"
+                                        <Input v-model="globalThresholdsForm.thresholds[metric.key].minor_improvement"
                                             type="number" step="0.01" placeholder="e.g. 70" />
                                         <p class="text-xs text-muted-foreground">
                                             Below Good but above Bad — Needs Improvement message.
                                         </p>
                                     </div>
+
                                     <div class="space-y-2">
                                         <Label class="flex items-center gap-1.5">
                                             <Badge variant="destructive">Bad</Badge>
                                         </Label>
-                                        <Input v-model="globalThresholdsForm.thresholds[metric.key].bad"
-                                            type="number" step="0.01" placeholder="e.g. 50" />
+                                        <Input v-model="globalThresholdsForm.thresholds[metric.key].bad" type="number"
+                                            step="0.01" placeholder="e.g. 50" />
                                         <p class="text-xs text-muted-foreground">
                                             Drivers below this value get the Bad message.
                                         </p>
@@ -537,21 +1043,31 @@ const insertPlaceholder = (placeholderValue) => {
                     </Card>
                 </TabsContent>
 
-                <!-- ─── OVERRIDES TAB ─── -->
-                <TabsContent value="overrides">
+                <TabsContent value="overrides" force-mount :hidden="activeTab !== 'overrides'">
                     <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_288px]">
                         <div class="space-y-6">
 
-                            <!-- Message Overrides -->
+                            <!-- ── Message Overrides ── -->
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Tenant Message Overrides</CardTitle>
-                                    <p class="text-sm text-muted-foreground">
-                                        Overrides follow the same SMS segment rules (160 / 320 characters).
-                                    </p>
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div class="space-y-1">
+                                            <CardTitle class="flex items-center gap-2">
+                                                <MessageSquare class="h-4 w-4 text-muted-foreground" />
+                                                Message Overrides
+                                            </CardTitle>
+                                            <p class="text-sm text-muted-foreground">
+                                                Replace the global message for a specific tenant and status level.
+                                            </p>
+                                        </div>
+                                        <Badge v-if="messageOverridesCount" variant="secondary" class="shrink-0 mt-0.5">
+                                            {{ messageOverridesCount }} active
+                                        </Badge>
+                                    </div>
                                 </CardHeader>
-                                <CardContent class="space-y-4">
-                                    <!-- Row 1: Tenants + Metric -->
+
+                                <CardContent class="space-y-5">
+                                    <!-- Tenants + Metric -->
                                     <div class="grid gap-4 md:grid-cols-2">
                                         <div class="space-y-2">
                                             <Label>Tenants</Label>
@@ -566,75 +1082,88 @@ const insertPlaceholder = (placeholderValue) => {
                                                     </Button>
                                                 </PopoverTrigger>
                                                 <PopoverContent class="w-72 p-2">
-                                                    <div class="max-h-56 overflow-y-auto space-y-0.5">
-                                                        <!--
-                                                            Use div+click (not label+button) to avoid the browser
-                                                            double-firing click on both label and the button inside it.
-                                                            The Checkbox is display-only (pointer-events-none).
-                                                        -->
-                                                        <div
-                                                            v-for="tenant in tenants"
-                                                            :key="tenant.id"
-                                                            class="flex cursor-pointer select-none items-center gap-2.5 rounded px-2 py-2 text-sm hover:bg-accent"
-                                                            @click="toggleTenant(messageOverrideForm, tenant.id)"
-                                                        >
-                                                            <div class="pointer-events-none flex items-center">
-                                                                <Checkbox
-                                                                    :checked="messageOverrideForm.tenant_ids.includes(tenant.id)"
-                                                                />
-                                                            </div>
-                                                            {{ tenant.name }}
-                                                        </div>
+                                                    <div class="max-h-56 space-y-0.5 overflow-y-auto">
+                                                        <button v-for="tenant in tenants" :key="tenant.id" type="button"
+                                                            class="flex w-full cursor-pointer select-none items-center gap-2.5 rounded px-2 py-2 text-left text-sm hover:bg-accent"
+                                                            @click="toggleTenant(messageOverrideForm, tenant.id)">
+                                                            <Checkbox
+                                                                :model-value="isTenantSelected(messageOverrideForm, tenant.id)"
+                                                                class="pointer-events-none" />
+                                                            <span class="min-w-0 truncate">{{ tenant.name }}</span>
+                                                        </button>
                                                     </div>
                                                 </PopoverContent>
                                             </Popover>
+                                            <!-- Selected tenant chips -->
+                                            <div v-if="messageOverrideForm.tenant_ids.length"
+                                                class="flex flex-wrap gap-1.5 pt-1">
+                                                <span v-for="id in messageOverrideForm.tenant_ids" :key="id"
+                                                    class="inline-flex items-center gap-1 rounded-full border border-primary/25 bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                                                    {{ tenantNameById(id) }}
+                                                    <button type="button"
+                                                        class="ml-0.5 rounded-full opacity-60 hover:opacity-100"
+                                                        @click="toggleTenant(messageOverrideForm, id)">
+                                                        <X class="h-3 w-3" />
+                                                    </button>
+                                                </span>
+                                            </div>
                                         </div>
+
                                         <div class="space-y-2">
                                             <Label>Metric</Label>
-                                            <Select v-model="messageOverrideForm.metric_key">
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select metric..." />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem v-for="metric in metrics" :key="metric.key"
-                                                        :value="metric.key">
-                                                        {{ metric.label }}
-                                                    </SelectItem>
-                                                </SelectContent>
-                                            </Select>
+                                            <select v-model="messageOverrideForm.metric_key" :class="nativeSelectClass">
+                                                <option disabled value="">Select metric...</option>
+                                                <option v-for="metric in metrics" :key="metric.key" :value="metric.key">
+                                                    {{ metric.label }}
+                                                </option>
+                                            </select>
                                         </div>
                                     </div>
 
-                                    <!-- Row 2: Status + Message -->
-                                    <div class="grid gap-4 md:grid-cols-[180px_1fr]">
-                                        <div class="space-y-2">
-                                            <Label>Status</Label>
-                                            <Select v-model="messageOverrideForm.status"
-                                                :disabled="messageOverrideForm.metric_key === 'general'">
-                                                <SelectTrigger
-                                                    :disabled="messageOverrideForm.metric_key === 'general'">
-                                                    <SelectValue placeholder="Select status..." />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="">General</SelectItem>
-                                                    <SelectItem v-for="status in statusOptions"
-                                                        :key="status.value" :value="status.value">
-                                                        {{ status.label }}
-                                                    </SelectItem>
-                                                </SelectContent>
-                                            </Select>
+                                    <!-- Status toggle buttons — only for threshold metrics -->
+                                    <div v-if="messageOverrideForm.metric_key && messageOverrideForm.metric_key !== 'general'"
+                                        class="space-y-2">
+                                        <Label>Status</Label>
+                                        <div class="grid grid-cols-3 gap-2">
+                                            <button type="button"
+                                                class="rounded-md border px-3 py-2 text-xs font-semibold transition-all"
+                                                :class="messageOverrideForm.status === 'good'
+                                                    ? 'border-green-500 bg-green-500/15 text-green-700 dark:text-green-400'
+                                                    : 'border-border text-muted-foreground hover:border-green-400/60 hover:bg-green-500/5'"
+                                                @click="messageOverrideForm.status = 'good'">
+                                                Good
+                                            </button>
+                                            <button type="button"
+                                                class="rounded-md border px-3 py-2 text-xs font-semibold transition-all"
+                                                :class="messageOverrideForm.status === 'minor_improvement'
+                                                    ? 'border-amber-500 bg-amber-500/15 text-amber-700 dark:text-amber-400'
+                                                    : 'border-border text-muted-foreground hover:border-amber-400/60 hover:bg-amber-500/5'"
+                                                @click="messageOverrideForm.status = 'minor_improvement'">
+                                                Needs Improvement
+                                            </button>
+                                            <button type="button"
+                                                class="rounded-md border px-3 py-2 text-xs font-semibold transition-all"
+                                                :class="messageOverrideForm.status === 'bad'
+                                                    ? 'border-red-500 bg-red-500/15 text-red-700 dark:text-red-400'
+                                                    : 'border-border text-muted-foreground hover:border-red-400/60 hover:bg-red-500/5'"
+                                                @click="messageOverrideForm.status = 'bad'">
+                                                Bad
+                                            </button>
                                         </div>
-                                        <div class="space-y-2">
-                                            <Label>Message</Label>
-                                            <Textarea v-model="messageOverrideForm.message" rows="3"
-                                                placeholder="Override message"
-                                                @focus="setActiveField({ type: 'override' }, $event)" />
-                                            <p class="text-right text-xs"
-                                                :class="charCountClass(charCount(messageOverrideForm.message))">
-                                                {{ charCount(messageOverrideForm.message) }} chars ·
-                                                {{ charSegments(charCount(messageOverrideForm.message)) }} segment(s)
-                                            </p>
-                                        </div>
+                                    </div>
+
+                                    <!-- Message editor -->
+                                    <div class="space-y-2">
+                                        <Label>Message</Label>
+                                        <div :ref="(el) => setEditorRef({ type: 'override' }, el)" :class="editorClass"
+                                            contenteditable="true" dir="auto" inputmode="text" role="textbox"
+                                            aria-multiline="true" data-placeholder="Override message"
+                                            v-on="editorEvents({ type: 'override' })" />
+                                        <p class="text-right text-xs"
+                                            :class="charCountClass(charCount(messageOverrideForm.message))">
+                                            {{ charCount(messageOverrideForm.message) }} chars ·
+                                            {{ charSegments(charCount(messageOverrideForm.message)) }} segment(s)
+                                        </p>
                                     </div>
 
                                     <Button type="button" @click="submitMessageOverride"
@@ -644,54 +1173,194 @@ const insertPlaceholder = (placeholderValue) => {
 
                                     <Separator />
 
-                                    <!-- Existing message overrides list -->
+                                    <!-- Active overrides browser -->
                                     <div v-if="messageOverrides?.length" class="space-y-3">
-                                        <div v-for="override in messageOverrides" :key="override.id"
-                                            class="flex flex-col gap-2 rounded-lg border-l-4 border border-border p-3 md:flex-row md:items-start md:justify-between"
-                                            :class="{
-                                                'border-l-green-500': override.status === 'good',
-                                                'border-l-amber-500': override.status === 'minor_improvement',
-                                                'border-l-red-500': override.status === 'bad',
-                                                'border-l-blue-400': !override.status,
-                                            }">
-                                            <div class="min-w-0 space-y-1">
-                                                <div class="flex flex-wrap items-center gap-2">
-                                                    <span class="text-sm font-semibold text-foreground">
-                                                        {{ override.tenant_name }}
-                                                    </span>
-                                                    <Badge variant="outline" class="text-xs">
-                                                        {{ formatMetric(override.metric_key) }}
-                                                    </Badge>
-                                                    <Badge :variant="statusVariant(override.status)" class="text-xs">
-                                                        {{ formatStatus(override.status) }}
-                                                    </Badge>
-                                                </div>
-                                                <p class="text-xs text-muted-foreground line-clamp-2">
-                                                    {{ override.message }}
+                                        <div class="flex flex-wrap items-center justify-between gap-2">
+                                            <div>
+                                                <p class="text-xs font-medium text-muted-foreground">
+                                                    Active overrides
+                                                </p>
+                                                <p class="text-[11px] text-muted-foreground/70">
+                                                    Showing {{ visibleMessageOverrides.length }} of {{
+                                                    filteredMessageOverrides.length }}
+                                                    <template
+                                                        v-if="filteredMessageOverrides.length !== messageOverrides.length">
+                                                        filtered
+                                                    </template>
+                                                    / {{ messageOverrides.length }} total
                                                 </p>
                                             </div>
-                                            <Button variant="destructive" size="sm" type="button" class="shrink-0"
-                                                @click="confirmDelete('message', override)">
-                                                Remove
+
+                                            <Button v-if="hasActiveMessageOverrideFilters" type="button" variant="ghost"
+                                                size="sm" class="h-7 gap-1.5 px-2 text-xs"
+                                                @click="resetMessageOverrideFilters">
+                                                <RotateCcw class="h-3 w-3" />
+                                                Reset
+                                            </Button>
+                                        </div>
+
+                                        <div class="rounded-lg border bg-muted/20 p-3">
+                                            <div class="grid gap-2 md:grid-cols-[minmax(0,1fr)_180px_160px]">
+                                                <div class="relative">
+                                                    <Search
+                                                        class="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                                    <Input v-model="messageOverrideFilters.query"
+                                                        placeholder="Search tenant, metric, status, or message..."
+                                                        class="h-9 pl-8 text-sm" />
+                                                </div>
+
+                                                <select v-model="messageOverrideFilters.metric"
+                                                    :class="compactSelectClass">
+                                                    <option value="all">All metrics</option>
+                                                    <option v-for="metric in messageOverrideMetricOptions"
+                                                        :key="metric.value" :value="metric.value">
+                                                        {{ metric.label }}
+                                                    </option>
+                                                </select>
+
+                                                <select v-model="messageOverrideFilters.status"
+                                                    :class="compactSelectClass">
+                                                    <option value="all">All statuses</option>
+                                                    <option value="">General</option>
+                                                    <option v-for="status in statusOptions" :key="status.value"
+                                                        :value="status.value">
+                                                        {{ status.label }}
+                                                    </option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div v-if="visibleMessageOverrides.length"
+                                            class="max-h-[520px] space-y-2 overflow-y-auto rounded-lg pr-1">
+                                            <div v-for="override in visibleMessageOverrides" :key="override.id"
+                                                class="group rounded-lg border border-l-4 bg-card p-3 transition-colors hover:bg-muted/30"
+                                                :class="{
+                                                    'border-l-green-500': override.status === 'good',
+                                                    'border-l-amber-500': override.status === 'minor_improvement',
+                                                    'border-l-red-500': override.status === 'bad',
+                                                    'border-l-primary/60': !override.status,
+                                                }">
+                                                <div class="flex items-start justify-between gap-3">
+                                                    <div class="min-w-0 space-y-2">
+                                                        <div class="flex flex-wrap items-center gap-1.5">
+                                                            <span class="text-sm font-semibold text-foreground">
+                                                                {{ override.tenant_name }}
+                                                            </span>
+                                                            <span class="text-muted-foreground/40">·</span>
+                                                            <Badge variant="outline" class="text-xs">
+                                                                {{ formatMetric(override.metric_key) }}
+                                                            </Badge>
+                                                            <Badge :variant="statusVariant(override.status)"
+                                                                class="text-xs">
+                                                                {{ formatStatus(override.status) }}
+                                                            </Badge>
+                                                        </div>
+
+                                                        <p class="line-clamp-2 text-xs leading-relaxed text-muted-foreground"
+                                                            v-html="renderMessageHtml(override.message)" />
+
+                                                        <Popover>
+                                                            <PopoverTrigger as-child>
+                                                                <Button type="button" variant="link"
+                                                                    class="h-auto gap-1.5 p-0 text-xs">
+                                                                    <Eye class="h-3.5 w-3.5" />
+                                                                    View full message
+                                                                </Button>
+                                                            </PopoverTrigger>
+
+                                                            <PopoverContent align="start"
+                                                                class="w-[min(92vw,560px)] p-0">
+                                                                <div class="border-b px-4 py-3">
+                                                                    <div class="flex flex-wrap items-center gap-1.5">
+                                                                        <span
+                                                                            class="text-sm font-semibold text-foreground">
+                                                                            {{ override.tenant_name }}
+                                                                        </span>
+                                                                        <span class="text-muted-foreground/40">·</span>
+                                                                        <Badge variant="outline" class="text-xs">
+                                                                            {{ formatMetric(override.metric_key) }}
+                                                                        </Badge>
+                                                                        <Badge :variant="statusVariant(override.status)"
+                                                                            class="text-xs">
+                                                                            {{ formatStatus(override.status) }}
+                                                                        </Badge>
+                                                                    </div>
+                                                                    <p class="mt-1 text-xs text-muted-foreground">
+                                                                        Full override message
+                                                                    </p>
+                                                                </div>
+
+                                                                <div
+                                                                    class="max-h-[420px] overflow-y-auto px-4 py-3 text-sm leading-relaxed text-foreground">
+                                                                    <div class="whitespace-pre-wrap break-words"
+                                                                        v-html="renderMessageHtml(override.message)" />
+                                                                </div>
+                                                            </PopoverContent>
+                                                        </Popover>
+                                                    </div>
+
+                                                    <Button variant="ghost" size="icon"
+                                                        class="h-7 w-7 shrink-0 text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
+                                                        type="button" @click="confirmDelete('message', override)">
+                                                        <X class="h-3.5 w-3.5" />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div v-else class="rounded-lg border border-dashed py-8 text-center">
+                                            <p class="text-sm font-medium text-muted-foreground">
+                                                No message overrides match your filters
+                                            </p>
+                                            <p class="mt-1 text-xs text-muted-foreground/60">
+                                                Try a different tenant, metric, status, or search term.
+                                            </p>
+                                        </div>
+
+                                        <div v-if="hasMoreMessageOverrides" class="flex justify-center pt-1">
+                                            <Button type="button" variant="outline" size="sm"
+                                                @click="showMoreMessageOverrides">
+                                                Show {{ Math.min(OVERRIDE_PAGE_SIZE, filteredMessageOverrides.length -
+                                                visibleMessageOverrides.length) }}
+                                                more
                                             </Button>
                                         </div>
                                     </div>
-                                    <p v-else class="text-sm text-muted-foreground">
-                                        No message overrides yet.
-                                    </p>
+
+                                    <!-- Empty state -->
+                                    <div v-else class="flex flex-col items-center gap-2 py-8 text-center">
+                                        <MessageSquare class="h-8 w-8 text-muted-foreground/30" />
+                                        <p class="text-sm font-medium text-muted-foreground">No message overrides</p>
+                                        <p class="text-xs text-muted-foreground/60">
+                                            Fill in the form above to create a tenant-specific message.
+                                        </p>
+                                    </div>
                                 </CardContent>
                             </Card>
 
-                            <!-- Threshold Overrides -->
+                            <!-- ── Threshold Overrides ── -->
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Tenant Threshold Overrides</CardTitle>
-                                    <p class="text-sm text-muted-foreground">
-                                        Override the global thresholds for specific tenants.
-                                    </p>
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div class="space-y-1">
+                                            <CardTitle class="flex items-center gap-2">
+                                                <SlidersHorizontal class="h-4 w-4 text-muted-foreground" />
+                                                Threshold Overrides
+                                            </CardTitle>
+                                            <p class="text-sm text-muted-foreground">
+                                                Set different thresholds for specific tenants instead of the global
+                                                defaults.
+                                            </p>
+                                        </div>
+                                        <Badge v-if="thresholdOverridesCount" variant="secondary"
+                                            class="shrink-0 mt-0.5">
+                                            {{ thresholdOverridesCount }} active
+                                        </Badge>
+                                    </div>
                                 </CardHeader>
-                                <CardContent class="space-y-4">
-                                    <!-- Row 1: Tenants + Metric -->
+
+                                <CardContent class="space-y-5">
+                                    <!-- Tenants + Metric -->
                                     <div class="grid gap-4 md:grid-cols-2">
                                         <div class="space-y-2">
                                             <Label>Tenants</Label>
@@ -706,48 +1375,54 @@ const insertPlaceholder = (placeholderValue) => {
                                                     </Button>
                                                 </PopoverTrigger>
                                                 <PopoverContent class="w-72 p-2">
-                                                    <div class="max-h-56 overflow-y-auto space-y-0.5">
-                                                        <div
-                                                            v-for="tenant in tenants"
-                                                            :key="tenant.id"
-                                                            class="flex cursor-pointer select-none items-center gap-2.5 rounded px-2 py-2 text-sm hover:bg-accent"
-                                                            @click="toggleTenant(thresholdOverrideForm, tenant.id)"
-                                                        >
-                                                            <div class="pointer-events-none flex items-center">
-                                                                <Checkbox
-                                                                    :checked="thresholdOverrideForm.tenant_ids.includes(tenant.id)"
-                                                                />
-                                                            </div>
-                                                            {{ tenant.name }}
-                                                        </div>
+                                                    <div class="max-h-56 space-y-0.5 overflow-y-auto">
+                                                        <button v-for="tenant in tenants" :key="tenant.id" type="button"
+                                                            class="flex w-full cursor-pointer select-none items-center gap-2.5 rounded px-2 py-2 text-left text-sm hover:bg-accent"
+                                                            @click="toggleTenant(thresholdOverrideForm, tenant.id)">
+                                                            <Checkbox
+                                                                :model-value="isTenantSelected(thresholdOverrideForm, tenant.id)"
+                                                                class="pointer-events-none" />
+                                                            <span class="min-w-0 truncate">{{ tenant.name }}</span>
+                                                        </button>
                                                     </div>
                                                 </PopoverContent>
                                             </Popover>
+                                            <!-- Selected tenant chips -->
+                                            <div v-if="thresholdOverrideForm.tenant_ids.length"
+                                                class="flex flex-wrap gap-1.5 pt-1">
+                                                <span v-for="id in thresholdOverrideForm.tenant_ids" :key="id"
+                                                    class="inline-flex items-center gap-1 rounded-full border border-primary/25 bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                                                    {{ tenantNameById(id) }}
+                                                    <button type="button"
+                                                        class="ml-0.5 rounded-full opacity-60 hover:opacity-100"
+                                                        @click="toggleTenant(thresholdOverrideForm, id)">
+                                                        <X class="h-3 w-3" />
+                                                    </button>
+                                                </span>
+                                            </div>
                                         </div>
+
                                         <div class="space-y-2">
                                             <Label>Metric</Label>
-                                            <Select v-model="thresholdOverrideForm.metric_key">
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select metric..." />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem v-for="metric in thresholdMetrics"
-                                                        :key="metric.key" :value="metric.key">
-                                                        {{ metric.label }}
-                                                    </SelectItem>
-                                                </SelectContent>
-                                            </Select>
+                                            <select v-model="thresholdOverrideForm.metric_key"
+                                                :class="nativeSelectClass">
+                                                <option disabled value="">Select metric...</option>
+                                                <option v-for="metric in thresholdMetrics" :key="metric.key"
+                                                    :value="metric.key">
+                                                    {{ metric.label }}
+                                                </option>
+                                            </select>
                                         </div>
                                     </div>
 
-                                    <!-- Row 2: Good / Needs Improvement / Bad -->
+                                    <!-- Threshold inputs with colored labels -->
                                     <div class="grid gap-4 md:grid-cols-3">
                                         <div class="space-y-2">
                                             <Label class="flex items-center gap-1.5">
                                                 <Badge variant="success">Good</Badge>
                                             </Label>
-                                            <Input v-model="thresholdOverrideForm.good" type="number"
-                                                step="0.01" placeholder="e.g. 90" />
+                                            <Input v-model="thresholdOverrideForm.good" type="number" step="0.01"
+                                                placeholder="e.g. 90" />
                                         </div>
                                         <div class="space-y-2">
                                             <Label class="flex items-center gap-1.5">
@@ -760,8 +1435,8 @@ const insertPlaceholder = (placeholderValue) => {
                                             <Label class="flex items-center gap-1.5">
                                                 <Badge variant="destructive">Bad</Badge>
                                             </Label>
-                                            <Input v-model="thresholdOverrideForm.bad" type="number"
-                                                step="0.01" placeholder="e.g. 50" />
+                                            <Input v-model="thresholdOverrideForm.bad" type="number" step="0.01"
+                                                placeholder="e.g. 50" />
                                         </div>
                                     </div>
 
@@ -772,44 +1447,128 @@ const insertPlaceholder = (placeholderValue) => {
 
                                     <Separator />
 
-                                    <!-- Existing threshold overrides list -->
+                                    <!-- Active overrides browser -->
                                     <div v-if="thresholdOverrides?.length" class="space-y-3">
-                                        <div v-for="override in thresholdOverrides" :key="override.id"
-                                            class="flex flex-col gap-2 rounded-lg border-l-4 border-l-primary border border-border p-3 md:flex-row md:items-center md:justify-between">
-                                            <div class="space-y-1">
-                                                <div class="flex flex-wrap items-center gap-2">
-                                                    <span class="text-sm font-semibold text-foreground">
-                                                        {{ override.tenant_name }}
-                                                    </span>
-                                                    <Badge variant="outline" class="text-xs">
-                                                        {{ formatMetric(override.metric_key) }}
-                                                    </Badge>
+                                        <div class="flex flex-wrap items-center justify-between gap-2">
+                                            <div>
+                                                <p class="text-xs font-medium text-muted-foreground">
+                                                    Active overrides
+                                                </p>
+                                                <p class="text-[11px] text-muted-foreground/70">
+                                                    Showing {{ visibleThresholdOverrides.length }} of {{
+                                                    filteredThresholdOverrides.length }}
+                                                    <template
+                                                        v-if="filteredThresholdOverrides.length !== thresholdOverrides.length">
+                                                        filtered
+                                                    </template>
+                                                    / {{ thresholdOverrides.length }} total
+                                                </p>
+                                            </div>
+
+                                            <Button v-if="hasActiveThresholdOverrideFilters" type="button"
+                                                variant="ghost" size="sm" class="h-7 gap-1.5 px-2 text-xs"
+                                                @click="resetThresholdOverrideFilters">
+                                                <RotateCcw class="h-3 w-3" />
+                                                Reset
+                                            </Button>
+                                        </div>
+
+                                        <div class="rounded-lg border bg-muted/20 p-3">
+                                            <div class="grid gap-2 md:grid-cols-[minmax(0,1fr)_220px]">
+                                                <div class="relative">
+                                                    <Search
+                                                        class="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                                    <Input v-model="thresholdOverrideFilters.query"
+                                                        placeholder="Search tenant, metric, or threshold value..."
+                                                        class="h-9 pl-8 text-sm" />
                                                 </div>
-                                                <div class="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                                                    <Badge variant="success" class="text-xs">Good</Badge>
-                                                    <span>{{ override.good }}</span>
-                                                    <span class="opacity-40">·</span>
-                                                    <Badge variant="warning" class="text-xs">Needs Improvement</Badge>
-                                                    <span>{{ override.minor_improvement }}</span>
-                                                    <span class="opacity-40">·</span>
-                                                    <Badge variant="destructive" class="text-xs">Bad</Badge>
-                                                    <span>{{ override.bad }}</span>
+
+                                                <select v-model="thresholdOverrideFilters.metric"
+                                                    :class="compactSelectClass">
+                                                    <option value="all">All metrics</option>
+                                                    <option v-for="metric in thresholdOverrideMetricOptions"
+                                                        :key="metric.value" :value="metric.value">
+                                                        {{ metric.label }}
+                                                    </option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div v-if="visibleThresholdOverrides.length"
+                                            class="max-h-[520px] space-y-2 overflow-y-auto rounded-lg pr-1">
+                                            <div v-for="override in visibleThresholdOverrides" :key="override.id"
+                                                class="group rounded-lg border border-l-4 border-l-primary/50 bg-card p-3 transition-colors hover:bg-muted/30">
+                                                <div class="flex items-start justify-between gap-3">
+                                                    <div class="min-w-0 space-y-2">
+                                                        <div class="flex flex-wrap items-center gap-1.5">
+                                                            <span class="text-sm font-semibold text-foreground">
+                                                                {{ override.tenant_name }}
+                                                            </span>
+                                                            <span class="text-muted-foreground/40">·</span>
+                                                            <Badge variant="outline" class="text-xs">
+                                                                {{ formatMetric(override.metric_key) }}
+                                                            </Badge>
+                                                        </div>
+                                                        <div class="flex flex-wrap items-center gap-2">
+                                                            <span
+                                                                class="inline-flex items-center gap-1.5 rounded-md border border-green-500/25 bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-700 dark:text-green-400">
+                                                                Good <span class="font-mono font-bold">{{ override.good
+                                                                    }}</span>
+                                                            </span>
+                                                            <span
+                                                                class="inline-flex items-center gap-1.5 rounded-md border border-amber-500/25 bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400">
+                                                                Needs Improvement <span class="font-mono font-bold">{{
+                                                                    override.minor_improvement
+                                                                    }}</span>
+                                                            </span>
+                                                            <span
+                                                                class="inline-flex items-center gap-1.5 rounded-md border border-red-500/25 bg-red-500/10 px-2 py-0.5 text-xs font-medium text-red-700 dark:text-red-400">
+                                                                Bad <span class="font-mono font-bold">{{ override.bad
+                                                                    }}</span>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <Button variant="ghost" size="icon"
+                                                        class="h-7 w-7 shrink-0 text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
+                                                        type="button" @click="confirmDelete('threshold', override)">
+                                                        <X class="h-3.5 w-3.5" />
+                                                    </Button>
                                                 </div>
                                             </div>
-                                            <Button variant="destructive" size="sm" type="button" class="shrink-0"
-                                                @click="confirmDelete('threshold', override)">
-                                                Remove
+                                        </div>
+
+                                        <div v-else class="rounded-lg border border-dashed py-8 text-center">
+                                            <p class="text-sm font-medium text-muted-foreground">
+                                                No threshold overrides match your filters
+                                            </p>
+                                            <p class="mt-1 text-xs text-muted-foreground/60">
+                                                Try a different tenant, metric, or threshold value.
+                                            </p>
+                                        </div>
+
+                                        <div v-if="hasMoreThresholdOverrides" class="flex justify-center pt-1">
+                                            <Button type="button" variant="outline" size="sm"
+                                                @click="showMoreThresholdOverrides">
+                                                Show {{ Math.min(OVERRIDE_PAGE_SIZE, filteredThresholdOverrides.length -
+                                                visibleThresholdOverrides.length) }}
+                                                more
                                             </Button>
                                         </div>
                                     </div>
-                                    <p v-else class="text-sm text-muted-foreground">
-                                        No threshold overrides yet.
-                                    </p>
+
+                                    <!-- Empty state -->
+                                    <div v-else class="flex flex-col items-center gap-2 py-8 text-center">
+                                        <SlidersHorizontal class="h-8 w-8 text-muted-foreground/30" />
+                                        <p class="text-sm font-medium text-muted-foreground">No threshold overrides</p>
+                                        <p class="text-xs text-muted-foreground/60">
+                                            Fill in the form above to override global thresholds for a tenant.
+                                        </p>
+                                    </div>
                                 </CardContent>
                             </Card>
                         </div>
 
-                        <!-- Sticky placeholder sidebar (Overrides tab) -->
+                        <!-- Sticky placeholder sidebar -->
                         <div class="sticky top-6 self-start">
                             <Card class="overflow-hidden">
                                 <CardHeader class="space-y-1 pb-3">
@@ -818,29 +1577,27 @@ const insertPlaceholder = (placeholderValue) => {
                                         {{ activeFieldLabel }}
                                     </p>
                                 </CardHeader>
+
                                 <CardContent class="space-y-4 pt-0">
                                     <Input v-model="placeholderQuery" placeholder="Search placeholders..."
                                         class="h-8 text-sm" />
 
-                                    <div class="max-h-[52vh] overflow-y-auto space-y-4 pr-1">
-                                        <div v-for="group in placeholderGroups" :key="group.key"
-                                            class="space-y-1.5">
-                                            <p class="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                                    <div class="max-h-[52vh] space-y-4 overflow-y-auto pr-1">
+                                        <div v-for="group in placeholderGroups" :key="group.key" class="space-y-1.5">
+                                            <p
+                                                class="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                                                 {{ group.label }}
                                             </p>
                                             <div class="space-y-1">
-                                                <button
-                                                    v-for="item in group.items"
-                                                    :key="item.value"
-                                                    type="button"
-                                                    class="group flex w-full items-start gap-2 rounded-md border border-border/50 bg-muted/20 px-2.5 py-2 text-left transition-colors hover:border-primary/40 hover:bg-primary/5"
-                                                    @click="insertPlaceholder(item.value)"
-                                                >
+                                                <button v-for="item in group.items" :key="item.value" type="button"
+                                                    class="group flex w-full items-start gap-2 rounded-md border border-border/50 bg-muted/20 px-2.5 py-2 text-left transition-colors hover:border-primary/40 hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-50"
+                                                    :disabled="!activeField" @click="insertPlaceholder(item.value)">
                                                     <div class="min-w-0 flex-1">
                                                         <p class="truncate text-xs font-medium text-foreground">
                                                             {{ item.label }}
                                                         </p>
-                                                        <p class="mt-0.5 truncate font-mono text-[10px] text-muted-foreground">
+                                                        <p
+                                                            class="mt-0.5 truncate font-mono text-[10px] text-muted-foreground">
                                                             {{ item.value }}
                                                         </p>
                                                     </div>
@@ -848,17 +1605,6 @@ const insertPlaceholder = (placeholderValue) => {
                                             </div>
                                         </div>
                                     </div>
-
-                                    <template v-if="activeMessageText">
-                                        <Separator />
-                                        <div class="space-y-1.5">
-                                            <p class="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                                                Preview
-                                            </p>
-                                            <div class="rounded-md border bg-muted/20 px-3 py-2 text-xs leading-relaxed text-foreground"
-                                                v-html="activePreviewHtml" />
-                                        </div>
-                                    </template>
                                 </CardContent>
                             </Card>
                         </div>
@@ -867,8 +1613,7 @@ const insertPlaceholder = (placeholderValue) => {
             </Tabs>
         </div>
 
-        <!-- Shared delete confirmation dialog -->
-        <AlertDialog :open="!!pendingDelete" @update:open="(v) => { if (!v) pendingDelete = null }">
+        <AlertDialog :open="!!pendingDelete" @update:open="(value) => { if (!value) pendingDelete = null }">
             <AlertDialogContent>
                 <AlertDialogHeader>
                     <AlertDialogTitle>Remove Override</AlertDialogTitle>
@@ -883,16 +1628,28 @@ const insertPlaceholder = (placeholderValue) => {
                         This cannot be undone.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
+
                 <AlertDialogFooter>
                     <AlertDialogCancel @click="pendingDelete = null">Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                        class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    <AlertDialogAction class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         @click="executePendingDelete">
                         Remove
                     </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
-
     </AppLayout>
 </template>
+
+<style scoped>
+.sms-message-editor {
+    direction: auto;
+    unicode-bidi: plaintext;
+}
+
+.sms-message-editor .placeholder-token {
+    direction: ltr;
+    unicode-bidi: isolate;
+    white-space: nowrap;
+}
+</style>

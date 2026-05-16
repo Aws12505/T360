@@ -1,0 +1,1 @@
+import{c as a}from"./utils-CuvtwMM8.js";import{d as r,v as l,Z as n,aj as t,u as c,z as m}from"./vendor-BFKy2jUN.js";const u=r({__name:"DialogFooter",props:{class:{}},setup(s){const e=s;return(o,p)=>(l(),n("div",{class:t(c(a)("flex flex-col-reverse sm:flex-row sm:justify-end sm:gap-x-2",e.class))},[m(o.$slots,"default")],2))}});export{u as _};
