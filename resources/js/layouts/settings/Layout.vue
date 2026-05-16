@@ -48,13 +48,8 @@ const sidebarNavItems: NavItem[] = [
     }] : []),
     ...(showTenantSettings && permissionsNames.value.includes('sms-coaching-thresholds.view') ? [
     {
-        title: 'SMS Coaching Thresholds',
-        href: route('thresholds.edit', { tenantSlug: tenantSlug })
-    }] : []),
-    ...(showTenantSettings && permissionsNames.value.includes('sms-coaching-templates.view') ? [
-    {
-        title: 'SMS Coaching Templates',
-        href: route('sms-coaching-templates.index', { tenantSlug: tenantSlug })
+        title: 'SMS Coaching',
+        href: route('sms-coaching-settings.edit', { tenantSlug: tenantSlug })
     }] : []),
 ];
 
