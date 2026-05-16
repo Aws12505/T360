@@ -47,6 +47,11 @@ const mainNavItems = computed<NavItem[]>(() => [
         href: route('performance-metrics.edit'),
         icon: 'gauge',
       },
+      {
+        title: 'SMS Coaching',
+        href: route('admin.sms-coaching.index'),
+        icon: 'messageCircle',
+      },
     ]
     : []),
   // Only show Performance if user has performance.view permission
